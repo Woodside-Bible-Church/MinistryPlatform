@@ -405,8 +405,22 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
-# Environment
-.env.local
-
 # nextJS
 .next/*
+
+# Environment
+.env
+.env.*.local
+
+# Vercel/Netlify deploy folders
+.vercel/
+.netlify/
+
+# Build output (if using static export)
+out/
+
+# Test coverage
+coverage/
+
+# Optional: Turbo repo
+turbo/
