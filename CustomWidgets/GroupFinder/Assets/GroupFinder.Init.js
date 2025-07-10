@@ -1,17 +1,25 @@
 (function () {
+  const isLocalDev =
+    location.hostname.includes("localhost") ||
+    location.hostname.includes("127.0.0.1");
+
+  const templatePath = isLocalDev
+    ? "/CustomWidgets/GroupFinder/Template/widget.html"
+    : "/Template/widget.html";
+
   const tag = `
-    <div class="container">
-      <div id="GroupFinderWidget" 
-          data-component="CustomWidget" 
-          data-sp="api_custom_GroupFinderWidget_JSON" 
-          data-params="" 
-          data-template="/CustomWidgets/GroupFinder/Template/widget.html" 
-          data-requireUser="false" 
-          data-cache="false" 
-          data-host="woodsidebible" 
-          data-debug="true">
-      </div>  
-    </div>`;
+  <div class="container">
+    <div id="GroupFinderWidget" 
+        data-component="CustomWidget" 
+        data-sp="api_custom_GroupFinderWidget_JSON" 
+        data-params="" 
+        data-template="${templatePath}"
+        data-requireUser="false" 
+        data-cache="false" 
+        data-host="woodsidebible" 
+        data-debug="true">
+    </div>  
+  </div>`;
 
   const widgetRoot = document.getElementById("groupTag");
   const loader = document.getElementById("loader");
