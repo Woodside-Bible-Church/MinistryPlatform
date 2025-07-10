@@ -1,0 +1,1373 @@
+:root {
+  --primaryColor: #1c2b39;
+  --secondaryColor: #62bb46;
+}
+
+body {
+  background-color: var(--blue);
+}
+
+* {
+  font-family: Montserrat, Helvetica, Arial, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-transform: uppercase;
+}
+
+section > h3 {
+  margin: 1em 0;
+}
+
+.btn {
+  color: #ffffff;
+  background-color: var(--secondaryColor);
+  border-radius: 0;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0.5em 2em;
+}
+
+.titleHeadingContainer {
+  text-align: center;
+  display: flex;
+  gap: 0.5em;
+  justify-content: center;
+  align-items: center;
+  color: #ffffff;
+  text-decoration: none;
+  height: 100%;
+  -webkit-transition: color 0.25s ease-out;
+  -moz-transition: color 0.25s ease-out;
+  -o-transition: color 0.25s ease-out;
+  transition: color 0.25s ease-out;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  h1 {
+    font-weight: 600;
+    margin: 0;
+    position: relative;
+    margin: 0;
+    font-size: 2rem;
+
+    i {
+      position: absolute;
+      bottom: 7px;
+      right: -1.5em;
+      color: #ffffffd0;
+      font-size: 14px;
+      -webkit-transition: color 0.25s ease-out;
+      -moz-transition: color 0.25s ease-out;
+      -o-transition: color 0.25s ease-out;
+      transition: color 0.25s ease-out;
+    }
+  }
+}
+
+.titleHeadingContainer:hover,
+.titleHeadingContainer:hover i {
+  color: var(--secondaryColor);
+}
+
+.centered {
+  text-align: center;
+}
+
+.fullWidthBackground::before,
+.fullWidthBackground::after {
+  content: "";
+  height: 100px;
+  width: 100px;
+  display: block;
+  position: absolute;
+  top: 0;
+  height: 110px;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 0;
+  z-index: -1;
+}
+
+.fullWidthBackground::before {
+  background: linear-gradient(
+    155deg,
+    rgba(28, 43, 57, 1) 0%,
+    rgba(28, 43, 57, 1) 25%,
+    rgba(57, 115, 170, 1) 100%
+  );
+  width: 100%;
+}
+
+.fullWidthBackground::after {
+  background-image: url("https://woodsidebible.org/wp-content/themes/woodside/public/svg/lines-pattern-full.svg");
+  background-size: cover;
+  background-position-y: center;
+  background-position-x: left;
+  width: 50%;
+  transform: rotate(180deg) translateX(130%);
+  opacity: 0.9;
+}
+
+.fullWidthBackground {
+  height: 110px;
+  z-index: 100;
+}
+
+.secondaryNav {
+  text-align: right;
+  margin-top: 1em;
+  font-weight: 500;
+}
+
+.secondaryNavBtn {
+  text-decoration: none;
+  color: var(--primaryColor);
+  margin-right: 0.25em;
+}
+
+section {
+  margin-top: 5em;
+
+  .sectionHeading {
+    margin: 1em 0;
+  }
+
+  .sectionHeading::before {
+    content: "";
+    display: block;
+    height: 1px;
+    width: calc(100% - 80px);
+    transform: translateX(80px) translateY(-1em);
+    background: linear-gradient(
+      160deg,
+      rgba(28, 43, 57, 0) 0%,
+      rgba(28, 43, 57, 0.24831939611782217) 5%,
+      rgba(98, 187, 70, 0.6516807406556373) 95%,
+      rgba(98, 187, 70, 0) 100%
+    );
+  }
+}
+
+.upcomingMeetingsContainer {
+  margin-bottom: -1em;
+}
+
+.upcomingMeeting {
+  position: relative;
+  flex: 0 0 20em;
+  padding-top: 1em;
+
+  > span {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #e4e7ea;
+    color: var(--primaryColor);
+    white-space: nowrap;
+    padding: 0.5em 2em;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+
+  .meetingDetailsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #cccccc;
+    padding: 2em 1em 1em 1em;
+
+    .meetingDetails {
+      display: grid;
+      grid-template-columns: auto auto;
+      align-items: center;
+      gap: 0.5em 0.75em;
+    }
+
+    .btn {
+      background-color: var(--primaryColor);
+      width: 100%;
+    }
+
+    .btn:hover {
+      background: #78828a;
+      border-color: #78828a;
+      color: #ffffff;
+    }
+
+    h3 {
+      font-size: 1.1em;
+      font-weight: 600;
+    }
+  }
+}
+
+.needHelpContainer {
+  width: 100%;
+  background-color: #62bb46;
+  background: linear-gradient(
+    318deg,
+    rgba(98, 187, 70, 1) 0%,
+    rgba(70, 187, 130, 1) 50%,
+    rgba(28, 43, 57, 1) 100%
+  );
+  border-radius: 0;
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1em;
+  padding: 2em;
+  outline: 1px solid #ffffff;
+  outline-offset: -10px;
+  text-decoration: none;
+  -webkit-transition: outline-offset 0.25s ease-out,
+    outline-width 0.25s ease-out, outline-color 0.25s ease-out,
+    filter 0.25s ease-out;
+  -moz-transition: outline-offset 0.25s ease-out, outline-width 0.25s ease-out,
+    outline-color 0.25s ease-out, filter 0.25s ease-out;
+  -o-transition: outline-offset 0.25s ease-out, outline-width 0.25s ease-out,
+    outline-color 0.25s ease-out, filter 0.25s ease-out;
+  transition: outline-offset 0.25s ease-out, outline-width 0.25s ease-out,
+    outline-color 0.25s ease-out, filter 0.25s ease-out;
+
+  h4 {
+    font-weight: 600;
+  }
+
+  .btnContainer {
+    display: flex;
+    gap: 1em;
+
+    .btn {
+      background-color: var(--primaryColor);
+      background: linear-gradient(
+        225deg,
+        rgb(28, 43, 57) 0%,
+        rgb(57, 115, 170) 100%
+      );
+      color: #ffffff;
+      position: relative;
+      border: none;
+    }
+  }
+}
+
+.needHelpContainer:hover,
+.needHelpContainer:focus,
+.needHelpContainer:focus-within,
+section:focus :has(.needHelpContainer) {
+  outline-offset: -1px;
+  outline-color: var(--primaryColor);
+  outline-width: 1px;
+  filter: brightness(1.07);
+}
+
+.needHelpContainer:hover .btn {
+  visibility: hidden;
+}
+
+.needHelpContainer:hover .btn::after,
+.needHelpContainer:focus .btn::after,
+.needHelpContainer:focus-within .btn::after,
+section:focus :has(.needHelpContainer) .btn::after {
+  content: "Click here!";
+  visibility: visible;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--primaryColor);
+  background: linear-gradient(
+    225deg,
+    rgb(28, 43, 57) 0%,
+    rgb(57, 115, 170) 100%
+  );
+  color: #ffffff;
+}
+
+.groupFinderContainer {
+  padding-bottom: 5em;
+}
+
+.filterContainer {
+  background-color: var(--primaryColor);
+  color: #ffffff;
+  display: flex;
+  gap: 0.5em;
+  justify-content: space-between;
+
+  .left {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0.5em;
+    flex-grow: 1;
+    padding: 0.5em;
+
+    .searchContainer {
+      height: 56px;
+      padding: 0.5em 0;
+    }
+
+    .filterContainer,
+    .searchContainer > input {
+      appearance: auto;
+      display: block;
+      min-width: 200px;
+      min-height: 27px;
+      height: 100%;
+      border: 0;
+      border-radius: 0;
+      background: #fff;
+      padding: 0 40px 0 10px;
+      padding: 0.5em 1em;
+      font-family: Montserrat, Helvetica, Arial, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--primaryColor);
+      text-transform: uppercase;
+    }
+  }
+
+  .right {
+    background-color: #62bb46;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    min-width: 70px;
+    aspect-ratio: 1/1;
+    border: none;
+  }
+}
+
+.searchContainer > input {
+  display: block;
+  min-width: 200px;
+  min-height: 27px;
+  height: 56px;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  padding: 0 40px 0 10px;
+  padding: 0.5em 1em;
+  font-family: Montserrat, Helvetica, Arial, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--primaryColor);
+  text-transform: uppercase;
+}
+
+.searchContainer > select {
+  appearance: auto !important;
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+  container-type: inline-size;
+  margin-top: 1em;
+}
+
+.groupGrid {
+  display: grid;
+  border: 1px solid #cccccc;
+  padding: 1em;
+  position: relative;
+  gap: 1em 2em;
+  grid-template-areas:
+    "header header header header"
+    "details leaders about about"
+    "tags tags tags button";
+  line-height: 2;
+
+  h6 {
+    color: #62bb46;
+  }
+
+  .shareBtn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 25px;
+    height: 25px;
+    background-color: #c1c1c1;
+    color: #ffffff;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: "Font Awesome 5 Free";
+    text-decoration: none;
+  }
+
+  .groupTitle {
+    grid-area: header;
+    font-weight: 700;
+    background-image: linear-gradient(135deg, #1c2b39, #2f8184);
+    color: transparent;
+    background-clip: text;
+    width: 100%;
+  }
+
+  .groupDetailsContainer {
+    grid-area: details;
+    justify-self: flex-start;
+  }
+
+  .groupDetails {
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: center;
+    gap: 0em 0.75em;
+  }
+
+  .groupLeadersContainer {
+    grid-area: leaders;
+  }
+
+  .groupAboutContainer {
+    grid-area: about;
+  }
+
+  .groupAboutContainer > div {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    overflow: hidden;
+  }
+
+  .groupTagsContainer {
+    grid-area: tags;
+    display: flex;
+    align-items: center;
+  }
+
+  .groupTags {
+    display: flex;
+    gap: 1em;
+    align-items: center;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+
+    ::-webkit-scrollbar {
+      display: none;
+    }
+
+    li {
+      flex: 0 0 auto;
+
+      .filterBtn {
+        text-decoration: none;
+        color: var(--primaryColor);
+        background-color: #e4e7ea;
+        border-radius: 20px;
+        white-space: nowrap;
+      }
+    }
+  }
+
+  .groupSignUpBtn {
+    grid-area: button;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+
+    .btn:hover {
+      background-color: var(--primaryColor);
+      color: #ffffff;
+    }
+  }
+}
+
+.groupGrid:not(:has(.groupSignUpBtn > .btn)) {
+  opacity: 0.6;
+
+  > .groupTitle {
+    display: flex;
+    justify-content: space-between;
+    gap: 2em;
+  }
+}
+
+@keyframes borderPulse {
+  0% {
+    border-color: #61bc47;
+  }
+  50% {
+    border-color: #a8e6a1;
+  }
+  100% {
+    border-color: #61bc47;
+  }
+}
+
+.filterBtn.loading-pill {
+  border: 1px solid #61bc47;
+  animation: borderPulse 0.4s ease;
+}
+
+.groupFull .groupTitle::after,
+.groupPaused .groupTitle::after,
+.groupGrid:not(:has(.groupSignUpBtn)) > .groupTitle::after {
+  font-size: 0.65em;
+  align-self: flex-end;
+  font-size: 0.65rem;
+}
+
+.groupFull .groupTitle::after {
+  content: "  —  Group Full";
+}
+
+.groupPaused .groupTitle::after {
+  content: "  —  Group Paused";
+}
+
+.groupFull::after,
+.groupPaused::after,
+.groupGrid:not(:has(.groupSignUpBtn))::after {
+  color: #ffffff;
+  background-color: var(--primaryColor);
+  border-radius: 0;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0.5em 2em;
+  text-align: center;
+  grid-area: button;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-self: flex-end;
+  justify-self: flex-end;
+  width: 100%;
+}
+
+.groupFull::after {
+  content: "Group Full";
+}
+
+.groupPaused::after {
+  content: "Group Paused";
+}
+
+li:has(.blur) {
+  a {
+    position: relative;
+
+    .blur {
+      display: none;
+      position: absolute;
+      top: 4px;
+      bottom: 4px;
+      left: 4px;
+      right: 4px;
+      border-radius: 20px;
+      background-color: #e4e7eae5;
+      justify-content: center;
+      align-items: center;
+
+      i {
+        color: var(--primaryColor);
+      }
+    }
+  }
+
+  a:hover {
+    > span:first-child {
+      filter: blur(1px);
+    }
+
+    .blur {
+      display: flex;
+    }
+  }
+}
+
+.selectedFilters {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tag,
+.filterBtn {
+  font-size: 0.75rem;
+  text-decoration: none;
+  color: var(--primaryColor);
+  background-color: #e4e7ea;
+  padding: 0.5em 1em;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+
+.iconContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modalContentContainer {
+  display: none;
+  background-color: #1c2b3960;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000000;
+  opacity: 0;
+  transition: opacity 0.35s ease-out;
+}
+
+.modalContent {
+  display: grid;
+  background-color: var(--primaryColor);
+  background: linear-gradient(
+    135deg,
+    rgba(28, 43, 57, 1) 0%,
+    rgba(57, 115, 170, 1) 100%
+  );
+  color: #fefefe;
+  width: 100%;
+  max-width: 600px;
+  border: none;
+  gap: 2em;
+  grid-template-columns: auto auto auto auto auto;
+  grid-template-rows: auto auto auto auto auto auto;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  align-items: space-between;
+  justify-content: space-between;
+  position: relative;
+
+  .close {
+    grid-area: close;
+    font-size: 2em;
+    transition: color 0.15s ease-out;
+    z-index: 1000000;
+    position: absolute;
+    top: 0.5em;
+    right: 0.5em;
+  }
+
+  .close:hover,
+  .close:focus {
+    color: #62bb46;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .headline {
+    font-weight: 600;
+    text-align: center;
+    margin: 0;
+    z-index: 1000;
+    align-self: center;
+    justify-self: center;
+    grid-column-start: 2;
+    grid-column-end: 5;
+    grid-row-start: 2;
+    grid-row-end: 3;
+  }
+
+  .img {
+    background-image: url("https://woodsidebible.org/wp-content/uploads/2021/09/groups2-885x645.jpg");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: top left;
+    filter: brightness(0.3);
+    grid-column-start: 1;
+    grid-column-end: 6;
+    grid-row-start: 1;
+    grid-row-end: 4;
+    aspect-ratio: 16/9;
+  }
+
+  .blurb {
+    grid-column-start: 2;
+    grid-column-end: 5;
+    grid-row-start: 4;
+    grid-row-end: 5;
+    z-index: 1000;
+    line-height: 2;
+    text-align: center;
+  }
+
+  .btnContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    grid-column-start: 2;
+    grid-column-end: 5;
+    grid-row-start: 5;
+    grid-row-end: 6;
+    z-index: 10000;
+  }
+
+  .btn {
+    border: 2px solid transparent;
+    width: 100%;
+  }
+
+  .btn:hover,
+  .btn:focus {
+    border: 2px solid #ffffff;
+    color: #ffffff;
+  }
+}
+
+.leadGroupContainer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: 0;
+  border: none;
+  overflow: visible;
+  background: none;
+  container-type: inline-size;
+  padding: 0;
+  margin: 0;
+  margin: auto;
+
+  a {
+    position: fixed;
+    bottom: 1em;
+    /*right: 50%;
+        transform: translateX(50%);*/
+    right: calc(var(--bs-gutter-x) * 0.5);
+    text-decoration: none;
+    color: #ffffff;
+    z-index: 100000;
+    border: none;
+    background: rgb(28, 43, 57);
+    background: linear-gradient(
+      135deg,
+      rgba(28, 43, 57, 1) 0%,
+      rgba(57, 115, 170, 1) 100%
+    );
+    padding: 0.5em 2em;
+    margin: 0;
+    white-space: nowrap;
+    overflow: visible;
+    cursor: pointer;
+    transition: opacity 0.15s ease-out, filter 0.15s ease-out;
+    text-transform: uppercase;
+    font-size: 15px;
+    font-weight: 600;
+    opacity: 1;
+    border-width: 3px;
+    border-style: solid;
+    border-image: linear-gradient(to right, #699ddf, #62bb46) 1;
+    filter: brightness(100%);
+  }
+
+  a:hover {
+    opacity: 1;
+    filter: brightness(100%);
+  }
+}
+
+.carousel {
+  display: flex;
+  gap: 1em;
+  container-type: inline-size;
+  flex-grow: 1;
+  align-items: center;
+  scrollbar-width: none;
+}
+
+.carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.horizontalScroll::after {
+  content: "\25b6";
+  z-index: 10000;
+  color: var(--primaryColor);
+  align-self: center;
+  position: sticky;
+  right: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 1) 100%
+  );
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 0 0 3em;
+}
+
+.fadeToBlue::after {
+  background: linear-gradient(
+    90deg,
+    rgba(28, 43, 57, 0) 0%,
+    rgba(28, 43, 57, 1) 100%
+  );
+  background: none;
+}
+
+.groupFinderContainer .carousel {
+  overflow-y: scroll;
+  height: 100%;
+  line-height: 2.5;
+}
+
+#filterMenu:popover-open {
+  display: flex;
+}
+
+@starting-style {
+  #filterMenu:popover-open {
+    opacity: 0;
+  }
+}
+
+#filterMenu {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1em;
+  background-color: var(--primaryColor);
+  color: #ffffff;
+  border: none;
+  padding: 1em 2em;
+  background: linear-gradient(
+    135deg,
+    rgb(28, 43, 57) 0%,
+    rgb(57, 115, 170) 100%
+  );
+  padding: 2em;
+  transition: opacity 0.15s ease-out, filter 0.15s ease-out;
+  border-width: 3px;
+  border-style: solid;
+  border-image: linear-gradient(to right, #699ddf, #62bb46) 1;
+  opacity: 0.925;
+  transition-property: overlay display opacity;
+  transition-duration: 0.5s;
+  transition-behavior: allow-discrete;
+  max-width: MIN(95%, 900px);
+  width: 100%;
+  z-index: 10000;
+}
+
+#filterMenu::backdrop {
+  background-color: rgb(0 0 0 / 60%);
+}
+
+#filterMenu .closeBtn {
+  border: none;
+  color: #ffffff;
+  background-color: transparent;
+  border-radius: 0;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0;
+  line-height: 0.5;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 2em;
+}
+
+#filterMenu .closeBtn:after {
+  display: inline-block;
+  content: "\00d7";
+}
+
+#filterMenu .filterMenuTop {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1em;
+  border-bottom: 1px solid #c1c1c19e;
+  padding-bottom: 2em;
+}
+
+#filterMenu .searchContainer {
+  width: 100%;
+}
+
+#filterMenu .selectedFilters {
+  display: flex;
+  gap: 1em;
+  flex-wrap: wrap;
+}
+
+#filterMenu > #filterForm {
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+  width: 100%;
+}
+
+#filterMenu > #filterForm > select:not(#dayOfWeek) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 56px;
+  padding: 0 20px;
+  letter-spacing: 0.02em;
+  background-color: #ffffff;
+  border: none;
+  appearance: auto;
+}
+
+/* NOT WORKING WANT TO ADD DOWN CARET TO DROP DOWN
+#filterMenu > #filterForm > select:after {
+    content: "\f0d7";
+    font-family: "Font Awesome 5 Free";
+}
+*/
+
+#filterMenu > #filterForm > fieldset {
+  display: flex;
+  gap: 0.5em;
+  flex-wrap: wrap;
+}
+
+#filterMenu > #filterForm > fieldset > label {
+  display: grid;
+  grid-template-columns: 1em auto;
+  gap: 0.5em;
+}
+
+.dropdownButton {
+  anchor-name: --campusDropdown;
+}
+
+.filteredDropdown {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  position-anchor: --campusDropdown;
+  top: anchor(bottom);
+  right: anchor(right);
+
+  > li > input:hover,
+  > li > input:focus {
+    background-color: #efefef;
+  }
+}
+
+.filteredDropdown > li > input,
+.form-control {
+  width: 100%;
+  min-height: 27px;
+  height: 56px;
+  border: 0;
+  border-radius: 0 !important;
+  background: #ffffff;
+  border-top: 1px solid #cccccc;
+  padding: 0 40px 0 10px;
+  padding: 0.5em 1em;
+  font-family: Montserrat, Helvetica, Arial, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--primaryColor);
+  text-transform: uppercase;
+  text-align: start;
+}
+
+.filterPopover {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  max-height: 80vh;
+  overflow-y: auto;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 600px;
+  margin: auto;
+}
+
+.popoverSection {
+  margin-bottom: 2rem;
+}
+
+.popoverHeader {
+  font-weight: bold;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.filterFields {
+  list-style: none;
+  padding: 0;
+}
+
+.filterField {
+  margin-bottom: 1rem;
+}
+
+.filterOptionsList {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filterOptionsList li {
+  display: inline-block;
+}
+
+.groupGrid:has(.leaderBadge) {
+  border-color: #61bb46 !important;
+}
+
+.leaderBadge::before {
+  display: inline-block;
+  vertical-align: middle;
+  line-height: normal;
+  background-color: var(--primaryColor);
+  padding: 0.35em;
+  border-radius: 100%;
+  aspect-ratio: 1/1;
+  color: #ffffff;
+  font-size: 0.65rem;
+  border: 1px solid #62bb46;
+}
+
+.cammelCase {
+  text-transform: capitalize;
+}
+
+.noResultsFound {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 2em;
+  width: 100%;
+  font-size: 1.5rem;
+  padding: 2em;
+
+  .btn:hover,
+  .btn:focus {
+    background-color: var(--primaryColor);
+    color: #ffffff;
+  }
+}
+
+/* Start Loader */
+.loader-container {
+  width: 100px;
+  height: 100px;
+  position: relative;
+  margin: 4em auto;
+}
+
+/* Spinning Border */
+.loader {
+  width: 86px;
+  height: 86px;
+  border: 1px solid transparent;
+  border-top: 1px solid #61ba467c; /* Green Color */
+  border-radius: 50%;
+  position: absolute;
+  top: 9px;
+  left: 7px;
+  animation: spin 1s linear infinite;
+}
+
+/* Static Background */
+.loader-bg {
+  width: 100px;
+  height: 100px;
+  background: url("https://woodsidebible.org/wp-content/uploads/2025/03/WoodsideW_BrightGreen.png")
+    center/cover no-repeat;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.loader-container::after {
+  display: block;
+  content: var(--loading-text);
+  width: 200px;
+  text-align: center;
+  position: absolute;
+  top: 110px;
+  left: -50px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+/* End Loader */
+
+/* DROPDOWNS FOR TEXT INPUT BOXES */
+.dropdown {
+  position: relative;
+  display: inline-block;
+  width: 200px;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  width: 100%;
+  max-height: 150px;
+  overflow-y: auto;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.dropdown-content.show {
+  display: block;
+}
+
+.dropdown-content div {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.dropdown-content div:hover {
+  background-color: #f1f1f1;
+}
+
+.hidden {
+  display: none;
+}
+/* END DROPDOWNS */
+
+@container (width < 900px) {
+  .needHelpContainer {
+    flex-direction: column;
+    text-align: center;
+
+    .btnContainer {
+      flex-direction: column;
+      width: 100%;
+    }
+  }
+
+  .groupGrid {
+    grid-template-areas: "header  header " "details leaders" "about about" "tags tags" "button button";
+    gap: 1em;
+
+    > .groupSignUpBtn > .btn {
+      width: 100%;
+    }
+
+    .groupTitle {
+      text-align: center;
+      flex-direction: column;
+      gap: 0.5em !important;
+      width: calc(100% - 50px);
+      margin: auto;
+    }
+
+    .groupTags {
+      align-items: center;
+    }
+  }
+
+  .groupGrid:not(:has(.groupSignUpBtn)) > .groupTitle {
+    flex-direction: column;
+    gap: 0.5em;
+  }
+  .groupGrid .groupAboutContainer > div {
+    -webkit-line-clamp: 6;
+    line-clamp: 6;
+  }
+}
+
+.copy-message {
+  display: none;
+  position: sticky;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  background-color: var(--primaryColor);
+  color: #ffffff;
+  padding: 1em;
+  opacity: 0.9;
+  border-radius: 20px;
+  max-width: 400px;
+  margin: auto;
+}
+
+@container (width < 475px) {
+  .groupGrid {
+    grid-template-areas: "header" "details" "leaders" "about" "tags" "button";
+  }
+}
+
+@media (min-width: 576px) {
+  .leadGroupContainer {
+    max-width: 540px;
+  }
+}
+
+@media (min-width: 768px) {
+  .leadGroupContainer {
+    max-width: 720px;
+  }
+  .titleHeadingContainer h1 {
+    font-size: 2.5rem;
+  }
+  .fullWidthBackground::before,
+  .fullWidthBackground,
+  .fullWidthBackground::after {
+    height: 140px;
+  }
+
+  .leadGroupContainer a {
+    transform: translateX(0%);
+    opacity: 0.9;
+    filter: brightness(90%);
+  }
+
+  .modalContent {
+    grid-template-columns: auto auto;
+    grid-template-rows: auto auto auto auto auto;
+    align-items: space-between;
+    justify-content: space-between;
+    min-height: 50%;
+    width: 80%;
+
+    .headline {
+      grid-column-start: 2;
+      grid-column-end: 4;
+      grid-row-start: 2;
+      grid-row-end: 3;
+    }
+
+    .img {
+      grid-column-start: 1;
+      grid-column-end: 5;
+      grid-row-start: 1;
+      grid-row-end: 6;
+      aspect-ratio: unset;
+    }
+
+    .blurb {
+      grid-column-start: 2;
+      grid-column-end: 4;
+      grid-row-start: 3;
+      grid-row-end: 4;
+      line-height: 3;
+    }
+
+    .btnContainer {
+      grid-column-start: 2;
+      grid-column-end: 4;
+      grid-row-start: 4;
+      grid-row-end: 5;
+    }
+  }
+}
+
+@media (min-width: 992px) {
+  .leadGroupContainer {
+    max-width: 960px;
+  }
+  .fullWidthBackground::before,
+  .fullWidthBackground,
+  .fullWidthBackground::after {
+    height: 200px;
+  }
+  .modalContent {
+    max-width: 800px;
+  }
+
+  .tag,
+  .filterBtn {
+    font-size: 1rem;
+  }
+
+  .left .filterContainer,
+  .left #txtKeyword {
+    font-size: 1rem;
+  }
+
+  .left {
+    flex-direction: row !important;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5em 1em !important;
+
+    .carousel {
+      align-items: center;
+    }
+  }
+
+  .groupFull::after,
+  .groupPaused::after {
+    width: fit-content;
+  }
+}
+
+@media (min-width: 1200px) {
+  .leadGroupContainer {
+    max-width: 1140px;
+  }
+
+  .titleHeadingContainer h1 {
+    font-size: 2.75rem;
+  }
+}
+
+@media (min-width: 1400px) {
+  .leadGroupContainer {
+    max-width: 1320px;
+  }
+}
+
+/* Edit this later to be in the right media query, hope I can do this in the container and not have to use HTML, but the container */
+@media (max-width: 992px) {
+  html:has(.groups) {
+    scroll-snap-type: y proximity;
+  }
+
+  .groupGrid {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+}
