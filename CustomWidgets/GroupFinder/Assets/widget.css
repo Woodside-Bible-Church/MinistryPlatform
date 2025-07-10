@@ -1372,22 +1372,72 @@ li:has(.blur) {
   }
 }
 
-/* Additional Styling for Preview */
+/* === Adjusted Preview Mode Styling === */
+
+body.preview {
+  font-size: 0.5rem !important;
+  line-height: 1.3 !important;
+}
+
 body.preview .sectionHeading,
 body.preview .filterContainer {
   display: none !important;
 }
 
-body.preview .groups,
-body.preview .groupFinderContainer {
-  padding: 0 !important;
+body.preview .groupFinderContainer,
+body.preview .groups {
+  padding: 0.5em 0.75em !important;
   margin: 0 !important;
 }
 
 body.preview #groupFinder {
-  margin: 0.5em 0 !important;
+  margin: 1em 0 !important;
 }
 
-body.preview {
-  font-size: 0.5rem !important;
+/* Group Card Layout */
+body.preview .groupGrid {
+  padding: 1em !important;
+  gap: 0.75em !important;
+  line-height: 1.3 !important;
+}
+
+body.preview .groupGrid h3,
+body.preview .groupGrid h6,
+body.preview .groupTitle {
+  font-size: 0.95rem !important;
+  margin: 0.25em 0 !important;
+}
+
+body.preview .groupAboutContainer > div {
+  font-size: 0.75rem !important;
+  line-height: 1.3 !important;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  max-height: 4.5em;
+  overflow: hidden;
+}
+
+/* Details & Tags */
+body.preview .groupDetailsContainer,
+body.preview .groupLeadersContainer {
+  font-size: 0.8rem !important;
+}
+
+body.preview .groupTags {
+  gap: 0.5em !important;
+  margin-top: 0.5em !important;
+}
+
+body.preview .tag,
+body.preview .filterBtn {
+  font-size: 0.65rem !important;
+  padding: 0.25em 0.5em !important;
+  margin: 0.1em !important;
+  border-radius: 15px !important;
+}
+
+/* Button */
+body.preview .btn {
+  font-size: 0.75rem !important;
+  padding: 0.4em 1em !important;
 }
