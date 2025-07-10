@@ -3,6 +3,7 @@
     location.hostname.includes("localhost") ||
     location.hostname.includes("127.0.0.1");
 
+  // Determine the template path based on the environment
   const templatePath = isLocalDev
     ? "/CustomWidgets/GroupFinder/Template/widget.html"
     : "/Template/widget.html";
