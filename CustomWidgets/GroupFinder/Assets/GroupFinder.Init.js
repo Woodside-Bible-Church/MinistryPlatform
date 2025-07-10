@@ -1,27 +1,46 @@
 (function () {
-  // Figure out if we are in a local development environment
+  // Local dev detection
   const isLocalDev =
     location.hostname.includes("localhost") ||
     location.hostname.includes("127.0.0.1");
 
-  // Determine the template path based on the environment
+  // Template path
   const templatePath = isLocalDev
     ? "/CustomWidgets/GroupFinder/Template/widget.html"
     : "/Template/widget.html";
 
+  // Allowed query params
+  const allowedKeys = [
+    "@CongregationID",
+    "@DaysOfWeek",
+    "@Cities",
+    "@Leaders",
+    "@GroupIDs",
+    "@Search",
+    "@Tags"
+  ];
+
+  // Parse allowed params from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const filteredParams = Array.from(urlParams.entries())
+    .filter(([k]) => allowedKeys.includes(k))
+    .map(([k, v]) => `${k}=${v}`)
+    .join("&");
+
+  // Insert widget
   const tag = `
-  <div class="container">
-    <div id="GroupFinderWidget" 
-        data-component="CustomWidget" 
-        data-sp="api_custom_GroupFinderWidget_JSON" 
-        data-params="" 
-        data-template="${templatePath}"
-        data-requireUser="false" 
-        data-cache="false" 
-        data-host="woodsidebible" 
-        data-debug="true">
-    </div>  
-  </div>`;
+    <div class="container">
+      <div id="GroupFinderWidget" 
+          data-component="CustomWidget" 
+          data-sp="api_custom_GroupFinderWidget_JSON" 
+          data-params="${filteredParams}" 
+          data-template="${templatePath}"
+          data-requireUser="false" 
+          data-cache="false" 
+          data-host="woodsidebible" 
+          data-debug="true">
+      </div>  
+    </div>`;
 
   const widgetRoot = document.getElementById("groupTag");
   const loader = document.getElementById("loader");
@@ -32,6 +51,7 @@
     ReInitWidget("GroupFinderWidget");
   }
 
+  // On widget loaded
   window.addEventListener("widgetLoaded", function (event) {
     if (event.detail?.widgetId !== "GroupFinderWidget") return;
     if (loader) loader.classList.add("hidden");
@@ -40,6 +60,17 @@
     });
   });
 
+  // Sync params to URL
+  function syncParamsToUrl(paramMap) {
+    const newUrl = new URL(window.location.href);
+    allowedKeys.forEach((key) => newUrl.searchParams.delete(key));
+    Array.from(paramMap.entries()).forEach(([k, v]) => {
+      newUrl.searchParams.set("@" + k, v);
+    });
+    window.history.replaceState({}, "", newUrl);
+  }
+
+  // Handle click filters
   document.addEventListener("click", function (e) {
     const widget = document.getElementById("GroupFinderWidget");
     if (!widget) return;
@@ -77,8 +108,9 @@
       .map(([k, v]) => `@${k}=${v}`)
       .join("&");
 
-    console.log("Updated data-params:", newParams);
     widget.setAttribute("data-params", newParams);
+    syncParamsToUrl(paramMap);
+
     const clone = btn.cloneNode(true);
     btn.parentNode.replaceChild(clone, btn);
     clone.classList.add("loading-pill");
@@ -88,6 +120,7 @@
     }, 20);
   });
 
+  // Handle select filters
   document.addEventListener("change", function (e) {
     const widget = document.getElementById("GroupFinderWidget");
     if (!widget) return;
@@ -124,9 +157,11 @@
       .join("&");
 
     widget.setAttribute("data-params", newParams);
+    syncParamsToUrl(paramMap);
     ReInitWidget("GroupFinderWidget");
   });
 
+  // Handle search input Enter
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Enter") return;
 
@@ -161,6 +196,7 @@
       .join("&");
 
     widget.setAttribute("data-params", newParams);
+    syncParamsToUrl(paramMap);
     ReInitWidget("GroupFinderWidget");
   });
 })();
