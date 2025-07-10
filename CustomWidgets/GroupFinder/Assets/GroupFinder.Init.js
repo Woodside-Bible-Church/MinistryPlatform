@@ -1,4 +1,5 @@
 (function () {
+  // Figure out if we are in a local development environment
   const isLocalDev =
     location.hostname.includes("localhost") ||
     location.hostname.includes("127.0.0.1");
