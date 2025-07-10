@@ -26,6 +26,13 @@
   </head>
   <body>
     <script>
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("preview") === "true") {
+          document.body.classList.add("preview");
+        }
+      })();
+
       /* All of the things that need to get done before loading anything else when first coming to the page */
       const loadingText = [
         "Finding the perfect group for you...",

@@ -1371,3 +1371,23 @@ li:has(.blur) {
     scroll-snap-stop: always;
   }
 }
+
+/* Additional Styling for Preview */
+body.preview .sectionHeading,
+body.preview .filterContainer {
+  display: none !important;
+}
+
+body.preview .groups,
+body.preview .groupFinderContainer {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+body.preview #groupFinder {
+  margin: 0.5em 0 !important;
+}
+
+body.preview {
+  font-size: 0.5rem;
+}
