@@ -54,6 +54,8 @@
       const decodedJwt = decodeURIComponent(cookieJwt);
       const parts = decodedJwt.split(".");
 
+      console.log("Decoded JWT parts:", parts);
+
       if (parts.length === 3) {
         const payload = JSON.parse(base64UrlDecode(parts[1]));
         console.log("Decoded JWT payload:", payload);
