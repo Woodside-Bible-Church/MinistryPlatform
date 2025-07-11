@@ -468,6 +468,9 @@ section:focus :has(.needHelpContainer) .btn::after {
 
     li {
       flex: 0 0 auto;
+      font-size: inherit !important;
+      line-height: unset !important;
+      margin-bottom: 0 !important;
 
       .filterBtn {
         text-decoration: none;
