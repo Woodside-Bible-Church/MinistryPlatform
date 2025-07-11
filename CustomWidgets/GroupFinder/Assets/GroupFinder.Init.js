@@ -45,6 +45,8 @@
 
   // Try to get location_id from cookie if @CongregationID is missing
   const cookieJwt = getCookie("tbx-ws__selected-location");
+  console.log("Cookie JWT:", cookieJwt);
+
   let fallbackCongregationID = null;
 
   if (cookieJwt) {
@@ -53,6 +55,7 @@
       if (parts.length === 3) {
         const payload = JSON.parse(base64UrlDecode(parts[1]));
         if (payload?.location_id) {
+          console.log("Found location_id in JWT payload:", payload.location_id);
           fallbackCongregationID = payload.location_id;
         }
       }
