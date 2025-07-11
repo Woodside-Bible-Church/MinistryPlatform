@@ -1,15 +1,12 @@
 (function () {
-  // Local dev detection
   const isLocalDev =
     location.hostname.includes("localhost") ||
     location.hostname.includes("127.0.0.1");
 
-  // Template path
   const templatePath = isLocalDev
     ? "/CustomWidgets/GroupFinder/Template/widget.html"
     : "/Template/widget.html";
 
-  // Allowed query params
   const allowedKeys = [
     "@CongregationID",
     "@DaysOfWeek",
@@ -17,17 +14,17 @@
     "@Leaders",
     "@GroupIDs",
     "@Search",
-    "@Tags"
+    "@LifeStageID",
+    "@FamilyAccommodationID",
+    "@IntendedAudienceID"
   ];
 
-  // Parse allowed params from URL
   const urlParams = new URLSearchParams(window.location.search);
   const filteredParams = Array.from(urlParams.entries())
-    .filter(([k]) => allowedKeys.includes(k))
+    .filter(([k, v]) => allowedKeys.includes(k) && v && v.trim() !== "")
     .map(([k, v]) => `${k}=${v}`)
     .join("&");
 
-  // Insert widget
   const tag = `
     <div class="container">
       <div id="GroupFinderWidget" 
@@ -51,7 +48,6 @@
     ReInitWidget("GroupFinderWidget");
   }
 
-  // On widget loaded
   window.addEventListener("widgetLoaded", function (event) {
     if (event.detail?.widgetId !== "GroupFinderWidget") return;
     if (loader) loader.classList.add("hidden");
@@ -60,17 +56,52 @@
     });
   });
 
-  // Sync params to URL
+  function cleanMap(map) {
+    for (let [k, v] of map) {
+      if (!v || v.trim() === "") {
+        map.delete(k);
+      }
+    }
+    return map;
+  }
+
   function syncParamsToUrl(paramMap) {
     const newUrl = new URL(window.location.href);
     allowedKeys.forEach((key) => newUrl.searchParams.delete(key));
-    Array.from(paramMap.entries()).forEach(([k, v]) => {
+    for (let [k, v] of cleanMap(paramMap)) {
       newUrl.searchParams.set("@" + k, v);
-    });
+    }
     window.history.replaceState({}, "", newUrl);
   }
 
-  // Handle click filters
+  function parseParams(str) {
+    return new Map(
+      str
+        .replace(/@@/g, "@")
+        .split("&")
+        .map((p) => p.trim())
+        .filter(Boolean)
+        .map((p) => {
+          const clean = p.replace(/^@+/, "");
+          const [key, val] = clean.split("=");
+          return [key, val];
+        })
+    );
+  }
+
+  function applyParams(paramMap) {
+    cleanMap(paramMap);
+    const newParams = Array.from(paramMap.entries())
+      .map(([k, v]) => `@${k}=${v}`)
+      .join("&");
+
+    const widget = document.getElementById("GroupFinderWidget");
+    if (widget) {
+      widget.setAttribute("data-params", newParams);
+    }
+    syncParamsToUrl(paramMap);
+  }
+
   document.addEventListener("click", function (e) {
     const widget = document.getElementById("GroupFinderWidget");
     if (!widget) return;
@@ -83,33 +114,15 @@
     const id = btn.dataset.id;
     const action = btn.dataset.action;
 
-    let currentParams = widget.getAttribute("data-params") || "";
-    currentParams = currentParams.replace(/@@/g, "@");
-
-    const paramEntries = currentParams
-      .split("&")
-      .map((p) => p.trim())
-      .filter(Boolean)
-      .map((p) => {
-        const clean = p.replace(/^@+/, "");
-        const [key, val] = clean.split("=");
-        return [key, val];
-      });
-
-    const paramMap = new Map(paramEntries);
+    let paramMap = parseParams(widget.getAttribute("data-params") || "");
 
     if (action === "remove") {
       paramMap.delete(filter);
-    } else if (action === "add" && filter && id) {
+    } else if (action === "add" && filter && id && id.trim() !== "") {
       paramMap.set(filter, id);
     }
 
-    const newParams = Array.from(paramMap.entries())
-      .map(([k, v]) => `@${k}=${v}`)
-      .join("&");
-
-    widget.setAttribute("data-params", newParams);
-    syncParamsToUrl(paramMap);
+    applyParams(paramMap);
 
     const clone = btn.cloneNode(true);
     btn.parentNode.replaceChild(clone, btn);
@@ -120,7 +133,6 @@
     }, 20);
   });
 
-  // Handle select filters
   document.addEventListener("change", function (e) {
     const widget = document.getElementById("GroupFinderWidget");
     if (!widget) return;
@@ -130,73 +142,40 @@
 
     const filter = select.name?.replace(/^@+/, "");
     const id = select.value;
-    if (!filter) return;
 
-    let currentParams = widget.getAttribute("data-params") || "";
-    currentParams = currentParams.replace(/@@/g, "@");
+    let paramMap = parseParams(widget.getAttribute("data-params") || "");
 
-    const paramEntries = currentParams
-      .split("&")
-      .map((p) => p.trim())
-      .filter(Boolean)
-      .map((p) => {
-        const clean = p.replace(/^@+/, "");
-        const [key, val] = clean.split("=");
-        return [key, val];
-      });
-
-    const paramMap = new Map(paramEntries);
     if (id) {
       paramMap.set(filter, id);
     } else {
       paramMap.delete(filter);
     }
 
-    const newParams = Array.from(paramMap.entries())
-      .map(([k, v]) => `@${k}=${v}`)
-      .join("&");
-
-    widget.setAttribute("data-params", newParams);
-    syncParamsToUrl(paramMap);
+    applyParams(paramMap);
     ReInitWidget("GroupFinderWidget");
   });
 
-  // Handle search input Enter
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Enter") return;
 
     const input = e.target.closest(".filterSearch");
     if (!input) return;
 
-    const widget = document.getElementById("GroupFinderWidget");
-    if (!widget) return;
-
     const filter = input.name?.replace(/^@+/, "");
     const value = input.value;
-    if (!filter || !value) return;
 
-    let currentParams = widget.getAttribute("data-params") || "";
-    currentParams = currentParams.replace(/@@/g, "@");
+    const widget = document.getElementById("GroupFinderWidget");
+    if (!widget || !filter) return;
 
-    const paramEntries = currentParams
-      .split("&")
-      .map((p) => p.trim())
-      .filter(Boolean)
-      .map((p) => {
-        const clean = p.replace(/^@+/, "");
-        const [key, val] = clean.split("=");
-        return [key, val];
-      });
+    let paramMap = parseParams(widget.getAttribute("data-params") || "");
 
-    const paramMap = new Map(paramEntries);
-    paramMap.set(filter, value);
+    if (value) {
+      paramMap.set(filter, value);
+    } else {
+      paramMap.delete(filter);
+    }
 
-    const newParams = Array.from(paramMap.entries())
-      .map(([k, v]) => `@${k}=${v}`)
-      .join("&");
-
-    widget.setAttribute("data-params", newParams);
-    syncParamsToUrl(paramMap);
+    applyParams(paramMap);
     ReInitWidget("GroupFinderWidget");
   });
 })();
