@@ -608,9 +608,9 @@ li:has(.blur) {
 }
 
 .selectedFilters {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+  list-style-type: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .tag,
