@@ -3,10 +3,6 @@
   --secondaryColor: #62bb46;
 }
 
-body {
-  background-color: var(--blue);
-}
-
 * {
   font-family: Montserrat, Helvetica, Arial, sans-serif;
 }
@@ -878,6 +874,7 @@ li:has(.blur) {
   transition-duration: 0.5s;
   transition-behavior: allow-discrete;
   max-width: MIN(95%, 900px);
+  min-height: 50%;
   width: 100%;
   z-index: 10000;
 }

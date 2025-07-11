@@ -24,8 +24,56 @@
   ];
 
   const urlParams = new URLSearchParams(window.location.search);
-  const filteredParams = Array.from(urlParams.entries())
-    .filter(([k, v]) => allowedKeys.includes(k) && v && v.trim() !== "")
+  // Helper to get a cookie by name
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+  }
+
+  // Decode base64url (padding fix)
+  function base64UrlDecode(str) {
+    str = str.replace(/-/g, "+").replace(/_/g, "/");
+    while (str.length % 4) str += "=";
+    return decodeURIComponent(
+      atob(str)
+        .split("")
+        .map((c) => `%${("00" + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join("")
+    );
+  }
+
+  // Try to get location_id from cookie if @CongregationID is missing
+  const cookieJwt = getCookie("tbx-ws__selected-location");
+  let fallbackCongregationID = null;
+
+  if (cookieJwt) {
+    try {
+      const parts = cookieJwt.split(".");
+      if (parts.length === 3) {
+        const payload = JSON.parse(base64UrlDecode(parts[1]));
+        if (payload?.location_id) {
+          fallbackCongregationID = payload.location_id;
+        }
+      }
+    } catch (e) {
+      console.warn("Invalid JWT in cookie:", e);
+    }
+  }
+
+  // Build URL params map
+  const paramMap = new Map(
+    Array.from(urlParams.entries()).filter(
+      ([k, v]) => allowedKeys.includes(k) && v && v.trim() !== ""
+    )
+  );
+
+  // Fallback to cookie-based CongregationID if missing
+  if (!paramMap.has("@CongregationID") && fallbackCongregationID) {
+    paramMap.set("@CongregationID", fallbackCongregationID.toString());
+  }
+
+  const filteredParams = Array.from(paramMap.entries())
     .map(([k, v]) => `${k}=${v}`)
     .join("&");
 
