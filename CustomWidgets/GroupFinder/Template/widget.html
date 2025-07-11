@@ -27,7 +27,8 @@
           {% for filter in Filters %} {% assign isDaysOfWeek = filter.Filter ==
           "@DaysOfWeek" %} {% assign skipFilter = isDaysOfWeek and
           hideDaysOfWeek %} {% unless skipFilter %} {% if filter.Options %} {%
-          for option in filter.Options %} {% if option.Selected %}
+          for option in filter.Options %} {% if option.Selected and option.Text
+          != blank %}
           <li>
             <a
               class="filterBtn"
@@ -72,7 +73,7 @@
         {% for filter in Filters %} {% assign isDaysOfWeek = filter.Filter ==
         "@DaysOfWeek" %} {% assign skipFilter = isDaysOfWeek and hideDaysOfWeek
         %} {% unless skipFilter %} {% if filter.Options %} {% for option in
-        filter.Options %} {% if option.Selected %}
+        filter.Options %} {% if option.Selected and option.Text != blank %}
         <li>
           <a
             class="filterBtn"

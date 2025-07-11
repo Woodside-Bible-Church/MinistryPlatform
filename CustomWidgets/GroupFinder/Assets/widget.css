@@ -1392,10 +1392,6 @@ body.preview .filterContainer {
   display: none !important;
 }
 
-body.preview #groupFinder {
-  margin: 1em 0 !important;
-}
-
 /* Group Card Layout */
 body.preview .groupGrid {
   padding: 1em !important;
