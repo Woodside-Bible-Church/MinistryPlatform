@@ -1,11 +1,15 @@
 (function () {
+  const hostname = location.hostname;
   const isLocalDev =
-    location.hostname.includes("localhost") ||
-    location.hostname.includes("127.0.0.1");
+    hostname.includes("localhost") || hostname.includes("127.0.0.1");
+
+  const isHostedApp = hostname.includes("groupfinder-five.vercel.app");
 
   const templatePath = isLocalDev
     ? "/CustomWidgets/GroupFinder/Template/widget.html"
-    : "/Template/widget.html";
+    : isHostedApp
+    ? "/Template/widget.html"
+    : "https://groupfinder-five.vercel.app/Template/widget.html";
 
   const allowedKeys = [
     "@CongregationID",
