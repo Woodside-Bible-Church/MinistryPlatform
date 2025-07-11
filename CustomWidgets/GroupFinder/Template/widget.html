@@ -82,13 +82,28 @@
             data-action="remove"
           >
             <span>
-              {% if filter.Use_Prefix == true %} {{ filter.Label }}: {% endif %}
+              {% if filter.Use_Prefix == true %}{{ filter.Label }}: {% endif %}
               {{ option.Text }}
             </span>
             <span class="blur"><i class="fas fa-trash"></i></span>
           </a>
         </li>
-        {% endif %} {% endfor %} {% endif %} {% endunless %} {% endfor %}
+        {% endif %} {% endfor %} {% elsif filter.Selected %}
+        <li>
+          <a
+            class="filterBtn"
+            data-filter="{{ filter.Filter }}"
+            data-id="{{ filter.Selected }}"
+            data-action="remove"
+          >
+            <span>
+              {% if filter.Use_Prefix == true %}{{ filter.Label }}: {% endif %}
+              {{ filter.LabelValue | default: filter.Label }}
+            </span>
+            <span class="blur"><i class="fas fa-trash"></i></span>
+          </a>
+        </li>
+        {% endif %} {% endunless %} {% endfor %}
       </ul>
 
       <h5>Filter Options</h5>
@@ -107,7 +122,7 @@
 
           {% elsif filter.Type == "Dropdown" %}
           <select class="filterSelect" name="{{ filter.Filter }}">
-            <option value="">Select one...</option>
+            <option value="">{{ filter.Placeholder }}</option>
             {% for option in filter.Options %}
             <option
               value="{{ option.ID }}"
