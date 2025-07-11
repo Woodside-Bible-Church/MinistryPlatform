@@ -51,21 +51,14 @@
 
   if (cookieJwt) {
     try {
-      const decodedJwt = decodeURIComponent(cookieJwt);
-      const parts = decodedJwt.split(".");
-
-      console.log("Decoded JWT parts:", parts);
-
-      if (parts.length === 3) {
-        const payload = JSON.parse(base64UrlDecode(parts[1]));
-        console.log("Decoded JWT payload:", payload);
-        if (payload?.location_id) {
-          console.log("Found location_id in JWT payload:", payload.location_id);
-          fallbackCongregationID = payload.location_id;
-        }
+      const decoded = JSON.parse(base64UrlDecode(cookieJwt));
+      console.log("Decoded cookie payload:", decoded);
+      if (decoded?.location_id) {
+        console.log("Found location_id in cookie:", decoded.location_id);
+        fallbackCongregationID = decoded.location_id;
       }
     } catch (e) {
-      console.warn("Invalid JWT in cookie:", e);
+      console.warn("Failed to decode or parse location cookie:", e);
     }
   }
 
