@@ -236,14 +236,15 @@ section {
     outline-color 0.25s ease-out, filter 0.25s ease-out;
   transition: outline-offset 0.25s ease-out, outline-width 0.25s ease-out,
     outline-color 0.25s ease-out, filter 0.25s ease-out;
+}
 
-  h4 {
+.groupGrid .groupTitle {
     font-weight: 600;
     font-size: calc(1.275rem + 0.3vw);
   }
 
   @media (min-width: 1200px) {
-    h4 {
+  .groupGrid .groupTitle {
       font-size: 1.5rem;
     }
   }
