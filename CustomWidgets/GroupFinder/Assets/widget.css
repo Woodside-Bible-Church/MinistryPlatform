@@ -924,6 +924,7 @@ li:has(.blur) {
   display: flex;
   gap: 1em;
   flex-wrap: wrap;
+  margin-bottom: 2rem;
 }
 
 #filterMenu > #filterForm {

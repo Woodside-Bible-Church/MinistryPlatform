@@ -67,7 +67,14 @@
       </button>
     </div>
 
+    {% assign anyFiltersSelected = false %} {% for filter in Filters %} {% if
+    filter.Options %} {% for option in filter.Options %} {% if option.Selected
+    and option.Text != blank %} {% assign anyFiltersSelected = true %} {% endif
+    %} {% endfor %} {% elsif filter.Selected %} {% assign anyFiltersSelected =
+    true %} {% endif %} {% endfor %}
+
     <div popover id="filterMenu" class="filterPopover" popover="manual">
+      {% if anyFiltersSelected %}
       <h5>Current Filters</h5>
       <ul class="selectedFilters">
         {% for filter in Filters %} {% assign isDaysOfWeek = filter.Filter ==
@@ -105,6 +112,7 @@
         </li>
         {% endif %} {% endunless %} {% endfor %}
       </ul>
+      {% endif %}
 
       <h5>Filter Options</h5>
       <div class="filterFields">
