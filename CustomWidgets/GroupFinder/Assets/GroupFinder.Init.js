@@ -51,7 +51,9 @@
 
   if (cookieJwt) {
     try {
-      const parts = cookieJwt.split(".");
+      const decodedJwt = decodeURIComponent(cookieJwt);
+      const parts = decodedJwt.split(".");
+
       if (parts.length === 3) {
         const payload = JSON.parse(base64UrlDecode(parts[1]));
         if (payload?.location_id) {
