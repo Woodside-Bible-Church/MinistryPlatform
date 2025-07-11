@@ -56,6 +56,7 @@
 
       if (parts.length === 3) {
         const payload = JSON.parse(base64UrlDecode(parts[1]));
+        console.log("Decoded JWT payload:", payload);
         if (payload?.location_id) {
           console.log("Found location_id in JWT payload:", payload.location_id);
           fallbackCongregationID = payload.location_id;
