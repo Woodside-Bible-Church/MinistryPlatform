@@ -236,18 +236,6 @@ section {
     outline-color 0.25s ease-out, filter 0.25s ease-out;
   transition: outline-offset 0.25s ease-out, outline-width 0.25s ease-out,
     outline-color 0.25s ease-out, filter 0.25s ease-out;
-}
-
-.groupGrid .groupTitle {
-    font-weight: 600;
-    font-size: calc(1.275rem + 0.3vw);
-  }
-
-  @media (min-width: 1200px) {
-  .groupGrid .groupTitle {
-      font-size: 1.5rem;
-    }
-  }
 
   .btnContainer {
     display: flex;
@@ -264,6 +252,17 @@ section {
       position: relative;
       border: none;
     }
+  }
+}
+
+.groupGrid .groupTitle {
+  font-weight: 600;
+  font-size: calc(1.275rem + 0.3vw);
+}
+
+@media (min-width: 1200px) {
+  .groupGrid .groupTitle {
+    font-size: 1.5rem;
   }
 }
 
