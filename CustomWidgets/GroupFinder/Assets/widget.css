@@ -135,21 +135,6 @@ section {
   .sectionHeading {
     margin: 1em 0;
   }
-
-  .sectionHeading::before {
-    content: "";
-    display: block;
-    height: 1px;
-    width: calc(100% - 80px);
-    transform: translateX(80px) translateY(-1em);
-    background: linear-gradient(
-      160deg,
-      rgba(28, 43, 57, 0) 0%,
-      rgba(28, 43, 57, 0.24831939611782217) 5%,
-      rgba(98, 187, 70, 0.6516807406556373) 95%,
-      rgba(98, 187, 70, 0) 100%
-    );
-  }
 }
 
 .upcomingMeetingsContainer {
