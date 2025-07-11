@@ -604,6 +604,10 @@ li:has(.blur) {
   padding: 0 !important;
 }
 
+.selectedFilters li {
+  margin: 0 !important;
+}
+
 .tag,
 .filterBtn {
   font-size: 0.75rem;
