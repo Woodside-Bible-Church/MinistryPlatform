@@ -1,0 +1,47 @@
+{
+  "ID": 1234,
+  "Title": "On Goal Soccer Camp",
+  "Buttons": {
+    "Share": [
+      {
+        "Type": "Facebook",
+        "URL": "https://www.facebook.com/sharer/sharer.php?u=https://woodsidebible.org/events/details/?id=315393"
+      },
+      {
+        "Type": "Copy",
+        "URL": "https://woodsidebible.org/events/details/?id=315393"
+      }
+    ],
+    "CallToAction": [
+      [
+        {
+          "Text": "Register",
+          "URL": "https://woodsidebible.org/events/details/?id=315393",
+          "Paramter": "@CongregationID",
+          "ID": 9
+        },
+        {
+          "Text": "Register",
+          "URL": "https://woodsidebible.org/events/details/?id=315395",
+          "Paramter": "@CongregationID",
+          "ID": 15
+        }
+      ],
+      [
+        {
+          "Text": "Serve",
+          "URL": "https://woodsidebible.org/events/details/?id=315393",
+          "Paramter": "@CongregationID",
+          "ID": 9
+        },
+        {
+          "Text": "Serve",
+          "URL": "https://woodsidebible.org/events/details/?id=315393",
+          "Paramter": "@CongregationID",
+          "ID": 15
+        }
+      ]
+    ]
+  },
+  "Tags": ["On Goal Soccer Camp", "Soccer", "Sports", "Camp", "Summer Camp"]
+}

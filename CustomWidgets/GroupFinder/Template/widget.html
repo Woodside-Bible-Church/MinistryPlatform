@@ -1,29 +1,67 @@
-<head>
-  <link
-    rel="stylesheet"
-    href="//use.fontawesome.com/releases/v5.0.7/css/all.css"
-  />
-  <script
-    data-search-pseudo-elements
-    defer
-    src="//use.fontawesome.com/releases/v5.0.7/js/all.js"
-  ></script>
-</head>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link
+      rel="stylesheet"
+      href="//use.fontawesome.com/releases/v5.0.7/css/all.css"
+    />
+    <script
+      data-search-pseudo-elements
+      defer
+      src="//use.fontawesome.com/releases/v5.0.7/js/all.js"
+    ></script>
+  </head>
+  <body>
+    <section id="groupFinder" class="groupFinderContainer">
+      <h1 class="sectionHeading">{{ Settings.Finder_Title }}</h1>
 
-<body>
-  <section id="groupFinder" class="groupFinderContainer">
-    <h1 class="sectionHeading">{{ Settings.Finder_Title }}</h1>
+      {% assign hideDaysOfWeek = false %} {% assign dayFilter = Filters | where:
+      "Filter", "@DaysOfWeek" | first %} {% if dayFilter %} {% assign
+      allDaysSelected = true %} {% for day in dayFilter.Options %} {% if
+      day.Selected != true %} {% assign allDaysSelected = false %} {% endif %}
+      {% endfor %} {% if allDaysSelected %} {% assign hideDaysOfWeek = true %}
+      {% endif %} {% endif %}
 
-    {% assign hideDaysOfWeek = false %} {% assign dayFilter = Filters | where:
-    "Filter", "@DaysOfWeek" | first %} {% if dayFilter %} {% assign
-    allDaysSelected = true %} {% for day in dayFilter.Options %} {% if
-    day.Selected != true %} {% assign allDaysSelected = false %} {% endif %} {%
-    endfor %} {% if allDaysSelected %} {% assign hideDaysOfWeek = true %} {%
-    endif %} {% endif %}
+      <div class="filterContainer">
+        <div class="left">
+          <ul class="selectedFilters carousel fadeToBlue">
+            {% for filter in Filters %} {% assign isDaysOfWeek = filter.Filter
+            == "@DaysOfWeek" %} {% assign skipFilter = isDaysOfWeek and
+            hideDaysOfWeek %} {% unless skipFilter %} {% if filter.Options %} {%
+            for option in filter.Options %} {% if option.Selected and
+            option.Text != blank %}
+            <li>
+              <a
+                class="filterBtn"
+                data-filter="{{ filter.Filter }}"
+                data-id="{{ option.ID | default: option.Text }}"
+                data-action="remove"
+              >
+                <span>
+                  {% if filter.Use_Prefix == true %}{{ filter.Label }}: {% endif
+                  %} {{ option.Text }}
+                </span>
+                <span class="blur"><i class="fas fa-trash"></i></span>
+              </a>
+            </li>
+            {% endif %} {% endfor %} {% endif %} {% endunless %} {% endfor %}
+          </ul>
+        </div>
+        <button popovertarget="filterMenu" class="right filterIconContainer">
+          <i class="fas fa-filter"></i>
+        </button>
+      </div>
 
-    <div class="filterContainer">
-      <div class="left">
-        <ul class="selectedFilters carousel fadeToBlue">
+      {% assign anyFiltersSelected = false %} {% for filter in Filters %} {% if
+      filter.Options %} {% for option in filter.Options %} {% if option.Selected
+      and option.Text != blank %} {% assign anyFiltersSelected = true %} {%
+      endif %} {% endfor %} {% elsif filter.Selected %} {% assign
+      anyFiltersSelected = true %} {% endif %} {% endfor %}
+
+      <div popover id="filterMenu" class="filterPopover" popover="manual">
+        {% if anyFiltersSelected %}
+        <h5>Current Filters</h5>
+        <ul class="selectedFilters">
           {% for filter in Filters %} {% assign isDaysOfWeek = filter.Filter ==
           "@DaysOfWeek" %} {% assign skipFilter = isDaysOfWeek and
           hideDaysOfWeek %} {% unless skipFilter %} {% if filter.Options %} {%
@@ -45,222 +83,204 @@
           </li>
           {% endif %} {% endfor %} {% endif %} {% endunless %} {% endfor %}
         </ul>
-      </div>
+        {% endif %}
 
-      <button popovertarget="filterMenu" class="right filterIconContainer">
-        <i class="fas fa-filter"></i>
-      </button>
-    </div>
+        <h5>Filter Options</h5>
+        <div class="filterFields">
+          {% for filter in Filters %} {% if filter.Type %}
+          <div class="filterGroup">
+            <h6>{{ filter.Label }}</h6>
 
-    {% assign anyFiltersSelected = false %} {% for filter in Filters %} {% if
-    filter.Options %} {% for option in filter.Options %} {% if option.Selected
-    and option.Text != blank %} {% assign anyFiltersSelected = true %} {% endif
-    %} {% endfor %} {% elsif filter.Selected %} {% assign anyFiltersSelected =
-    true %} {% endif %} {% endfor %}
-
-    <div popover id="filterMenu" class="filterPopover" popover="manual">
-      {% if anyFiltersSelected %}
-      <h5>Current Filters</h5>
-      <ul class="selectedFilters">
-        {% for filter in Filters %} {% assign isDaysOfWeek = filter.Filter ==
-        "@DaysOfWeek" %} {% assign skipFilter = isDaysOfWeek and hideDaysOfWeek
-        %} {% unless skipFilter %} {% if filter.Options %} {% for option in
-        filter.Options %} {% if option.Selected and option.Text != blank %}
-        <li>
-          <a
-            class="filterBtn"
-            data-filter="{{ filter.Filter }}"
-            data-id="{{ option.ID | default: option.Text }}"
-            data-action="remove"
-          >
-            <span>
-              {% if filter.Use_Prefix == true %}{{ filter.Label }}: {% endif %}
-              {{ option.Text }}
-            </span>
-            <span class="blur"><i class="fas fa-trash"></i></span>
-          </a>
-        </li>
-        {% endif %} {% endfor %} {% elsif filter.Selected %}
-        <li>
-          <a
-            class="filterBtn"
-            data-filter="{{ filter.Filter }}"
-            data-id="{{ filter.Selected }}"
-            data-action="remove"
-          >
-            <span>
-              {% if filter.Use_Prefix == true %}{{ filter.Label }}: {% endif %}
-              {{ filter.LabelValue | default: filter.Label }}
-            </span>
-            <span class="blur"><i class="fas fa-trash"></i></span>
-          </a>
-        </li>
-        {% endif %} {% endunless %} {% endfor %}
-      </ul>
-      {% endif %}
-
-      <h5>Filter Options</h5>
-      <div class="filterFields">
-        {% for filter in Filters %} {% if filter.Type %}
-        <div class="filterGroup">
-          <h6>{{ filter.Label }}</h6>
-
-          {% if filter.Type == "Text" %}
-          <input
-            type="text"
-            class="filterSearch"
-            name="{{ filter.Filter }}"
-            placeholder="Type to search..."
-          />
-
-          {% elsif filter.Type == "Dropdown" %}
-          <select class="filterSelect" name="{{ filter.Filter }}">
-            <option value="">{{ filter.Placeholder }}</option>
-            {% for option in filter.Options %}
-            <option
-              value="{{ option.ID }}"
-              {%
-              if
-              option.Selected
-              %}selected{%
-              endif
-              %}
-            >
-              {{ option.Text }}
-            </option>
-            {% endfor %}
-          </select>
-
-          {% elsif filter.Type == "MultiSelect" %}
-          <ul class="pillSelector">
-            {% for option in filter.Options %}
-            <li>
-              <a
-                class="filterBtn"
-                data-filter="{{ filter.Filter }}"
-                data-id="{{ option.ID }}"
-                data-action="{% if option.Selected %}remove{% else %}add{% endif %}"
+            {% if filter.Type == "Text" %}
+            <input
+              type="text"
+              class="filterSearch"
+              name="{{ filter.Filter }}"
+              placeholder="Type to search..."
+            />
+            {% elsif filter.Type == "Dropdown" %}
+            <select class="filterSelect" name="{{ filter.Filter }}">
+              <option value="">{{ filter.Placeholder }}</option>
+              {% for option in filter.Options %}
+              <option
+                value="{{ option.ID }}"
+                {%
+                if
+                option.Selected
+                %}selected{%
+                endif
+                %}
               >
                 {{ option.Text }}
-                <span class="blur">
-                  <i
-                    class="fas fa-{% if option.Selected %}trash{% else %}plus{% endif %}"
-                  ></i>
-                </span>
-              </a>
-            </li>
-            {% endfor %}
-          </ul>
-          {% endif %}
-        </div>
-        {% endif %} {% endfor %}
-      </div>
-    </div>
-
-    {% if Groups.size == 0 %}
-    <div class="noResultsFound">
-      <span>No groups found</span>
-      <a class="btn" href="{{ Settings.GroupInquiryFormBaseURL }}">
-        {{ Settings.joinAGroupFormRedirectButton }}
-      </a>
-    </div>
-    {% endif %}
-
-    <div class="groups">
-      {% for group in Groups %}
-      <div
-        class="groupGrid{% if group.Full %} groupFull{% endif %}{% if group.Paused %} groupPaused{% endif %}"
-      >
-        <a
-          class="shareBtn"
-          data-url="{{ Settings.GroupDetailsBaseURL }}{{ group.ID }}"
-        >
-          <i class="fas fa-share"></i>
-        </a>
-        <h4 class="groupTitle">
-          {% if group.User_Is_Leader %}<i class="fas fa-star leaderBadge"></i>{%
-          endif %} {{ group.Title }}
-        </h4>
-
-        <div class="groupDetailsContainer">
-          <h6>{{ Settings.Time_And_Location_Details_Heading }}</h6>
-          <div class="groupDetails">
-            <div class="iconContainer"><i class="fas fa-calendar"></i></div>
-            <div>{{ group.Meeting_Details.Occurrence }}</div>
-            <div class="iconContainer"><i class="fas fa-clock"></i></div>
-            <div>{{ group.Meeting_Details.Time }}</div>
-            <div class="iconContainer">
-              <i class="fas fa-map-marker-alt"></i>
+              </option>
+              {% endfor %}
+            </select>
+            {% elsif filter.Type == "MultiSelect" %}
+            <div class="multiSelectDropdown">
+              <input
+                type="text"
+                class="multiSelectInput"
+                placeholder="Search..."
+              />
+              <ul class="multiSelectOptions">
+                {% for option in filter.Options %}
+                <li>
+                  <a
+                    class="filterBtn"
+                    data-filter="{{ filter.Filter }}"
+                    data-id="{{ option.ID | default: option.Text }}"
+                    data-action="{% if option.Selected %}remove{% else %}add{% endif %}"
+                  >
+                    {{ option.Text }}
+                    <span class="blur">
+                      <i
+                        class="fas fa-{% if option.Selected %}trash{% else %}plus{% endif %}"
+                      ></i>
+                    </span>
+                  </a>
+                </li>
+                {% endfor %}
+              </ul>
             </div>
-            <div class="cammelCase">
-              {{ group.Meeting_Details.City | capitalize }}
+            {% endif %}
+          </div>
+          {% endif %} {% endfor %}
+        </div>
+      </div>
+
+      {% if Groups.size == 0 %}
+      <div class="noResultsFound">
+        <span>No groups found</span>
+        <a class="btn" href="{{ Settings.GroupInquiryFormBaseURL }}">
+          {{ Settings.joinAGroupFormRedirectButton }}
+        </a>
+      </div>
+      {% endif %}
+
+      <div class="groups">
+        {% for group in Groups %}
+        <div
+          class="groupGrid{% if group.Full %} groupFull{% endif %}{% if group.Paused %} groupPaused{% endif %}"
+        >
+          <a
+            class="shareBtn"
+            data-url="{{ Settings.GroupDetailsBaseURL }}{{ group.ID }}"
+          >
+            <i class="fas fa-share"></i>
+          </a>
+          <h4 class="groupTitle">
+            {% if group.User_Is_Leader %}<i class="fas fa-star leaderBadge"></i
+            >{% endif %} {{ group.Title }}
+          </h4>
+
+          <div class="groupDetailsContainer">
+            <h6>{{ Settings.Time_And_Location_Details_Heading }}</h6>
+            <div class="groupDetails">
+              <div class="iconContainer"><i class="fas fa-calendar"></i></div>
+              <div>{{ group.Meeting_Details.Occurrence }}</div>
+              <div class="iconContainer"><i class="fas fa-clock"></i></div>
+              <div>{{ group.Meeting_Details.Time }}</div>
+              <div class="iconContainer">
+                <i class="fas fa-map-marker-alt"></i>
+              </div>
+              <div class="cammelCase">
+                {{ group.Meeting_Details.City | capitalize }}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="groupLeadersContainer">
-          <h6>{{ Settings.Leaders_List_Heading }}</h6>
-          <div>{{ group.Leaders | join: ", " }}</div>
-        </div>
+          <div class="groupLeadersContainer">
+            <h6>{{ Settings.Leaders_List_Heading }}</h6>
+            <div>{{ group.Leaders | join: ", " }}</div>
+          </div>
 
-        <div class="groupAboutContainer">
-          <h6>{{ Settings.Description_Heading }}</h6>
-          <div>{{ group.Description }}</div>
-        </div>
+          <div class="groupAboutContainer">
+            <h6>{{ Settings.Description_Heading }}</h6>
+            <div>{{ group.Description }}</div>
+          </div>
 
-        <div class="groupTagsContainer">
-          <ul class="groupTags carousel">
-            {% for tag in group.Tags %} {% assign matchingFilter = Filters |
-            where: "Filter", tag.Filter | first %} {% assign isSelected = false
-            %} {% if matchingFilter and matchingFilter.Options %} {% for option
-            in matchingFilter.Options %} {% if option.ID == tag.ID or
-            option.Text == tag.Text %} {% if option.Selected %}{% assign
-            isSelected = true %}{% endif %} {% endif %} {% endfor %} {% elsif
-            matchingFilter and matchingFilter.Selected %} {% if
-            matchingFilter.Selected == tag.ID or matchingFilter.Selected ==
-            tag.Text %} {% assign isSelected = true %} {% endif %} {% endif %}
-            <li>
-              <a
-                class="filterBtn tag"
-                data-filter="{{ tag.Filter }}"
-                data-id="{{ tag.ID }}"
-                data-action="{% if isSelected %}remove{% else %}add{% endif %}"
-              >
-                <span>{{ tag.Text }}</span>
-                <span class="blur">
-                  <i
-                    class="fas fa-{% if isSelected %}trash{% else %}plus{% endif %}"
-                  ></i>
-                </span>
-              </a>
-            </li>
-            {% endfor %}
-          </ul>
-        </div>
+          <div class="groupTagsContainer">
+            <ul class="groupTags carousel">
+              {% for tag in group.Tags %} {% assign matchingFilter = Filters |
+              where: "Filter", tag.Filter | first %} {% assign isSelected =
+              false %} {% if matchingFilter and matchingFilter.Options %} {% for
+              option in matchingFilter.Options %} {% if option.ID == tag.ID or
+              option.Text == tag.Text %} {% if option.Selected %} {% assign
+              isSelected = true %} {% endif %} {% endif %} {% endfor %} {% elsif
+              matchingFilter and matchingFilter.Selected %} {% if
+              matchingFilter.Selected == tag.ID or matchingFilter.Selected ==
+              tag.Text %} {% assign isSelected = true %} {% endif %} {% endif %}
+              <li>
+                <a
+                  class="filterBtn tag"
+                  data-filter="{{ tag.Filter }}"
+                  data-id="{{ tag.ID }}"
+                  data-action="{% if isSelected %}remove{% else %}add{% endif %}"
+                >
+                  <span>{{ tag.Text }}</span>
+                  <span class="blur">
+                    <i
+                      class="fas fa-{% if isSelected %}trash{% else %}plus{% endif %}"
+                    ></i>
+                  </span>
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
 
-        <div class="groupSignUpBtn">
-          {% if group.User_In_Group %}
-          <a
-            class="btn"
-            href="{{ Settings.ViewGroupBaseURL }}{{ group.ID }}"
-            target="_blank"
-          >
-            {{ Settings.View_Group_Button_Label }}
-          </a>
-          {% elsif group.Paused != true and group.Full != true %}
-          <a
-            class="btn"
-            href="{{ Settings.GroupDetailsBaseURL }}{{ group.ID }}"
-            target="_blank"
-          >
-            {{ Settings.Register_Button_Label }}
-          </a>
-          {% endif %}
+          <div class="groupSignUpBtn">
+            {% if group.User_In_Group %}
+            <a
+              class="btn"
+              href="{{ Settings.ViewGroupBaseURL }}{{ group.ID }}"
+              target="_blank"
+            >
+              {{ Settings.View_Group_Button_Label }}
+            </a>
+            {% elsif group.Paused != true and group.Full != true %}
+            <a
+              class="btn"
+              href="{{ Settings.GroupDetailsBaseURL }}{{ group.ID }}"
+              target="_blank"
+            >
+              {{ Settings.Register_Button_Label }}
+            </a>
+            {% endif %}
+          </div>
         </div>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
-  </section>
+    </section>
 
-  <p id="copyMessage" class="copy-message">🔗 Link copied to clipboard!</p>
-</body>
+    <p id="copyMessage" class="copy-message">🔗 Link copied to clipboard!</p>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const dropdowns = document.querySelectorAll(".multiSelectDropdown");
+        dropdowns.forEach((dropdown) => {
+          const input = dropdown.querySelector(".multiSelectInput");
+          const list = dropdown.querySelector(".multiSelectOptions");
+
+          input.addEventListener("focus", () => {
+            list.style.display = "block";
+          });
+
+          input.addEventListener("blur", () => {
+            setTimeout(() => {
+              list.style.display = "none";
+            }, 150);
+          });
+
+          input.addEventListener("input", () => {
+            const query = input.value.toLowerCase();
+            list.querySelectorAll("li").forEach((li) => {
+              const text = li.textContent.toLowerCase();
+              li.style.display = text.includes(query) ? "block" : "none";
+            });
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

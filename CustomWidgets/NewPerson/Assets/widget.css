@@ -1,0 +1,39 @@
+:root {
+  --primaryColor: #1c2b39;
+  --secondaryColor: #62bb46;
+}
+
+* {
+  font-family: Montserrat, Helvetica, Arial, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-transform: uppercase;
+}
+
+.new-person-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+  margin-top: 1em;
+}
+
+.person-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1em;
+  background: #f8f8f8;
+}
+
+.person-card h3 {
+  margin: 0 0 0.5em;
+}
+
+.household h4 {
+  margin: 1em 0 0.25em;
+}

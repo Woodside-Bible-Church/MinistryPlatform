@@ -1,0 +1,30 @@
+<div class="new-person-cards">
+  {% for person in DataSet1 %}
+  <div class="person-card">
+    <h3>{{ person.Display_Name }}</h3>
+    <p><strong>Status:</strong> {{ person.New_Type }}</p>
+    <p><strong>Group:</strong> {{ person.Group_Name }}</p>
+    <p><strong>Last Event:</strong> {{ person.Last_Event }}</p>
+
+    {% if person.Head_1 %}
+    <div class="household">
+      <h4>Primary Contact: {{ person.Head_1 }}</h4>
+      <p><strong>Phone:</strong> {{ person.Head_1_Mobile }}</p>
+      <p>
+        <strong>Email:</strong>
+        <a href="mailto:{{ person.Head_1_Email }}">{{ person.Head_1_Email }}</a>
+      </p>
+    </div>
+    {% endif %} {% if person.Head_2 %}
+    <div class="household">
+      <h4>Secondary Contact: {{ person.Head_2 }}</h4>
+      <p><strong>Phone:</strong> {{ person.Head_2_Mobile }}</p>
+      <p>
+        <strong>Email:</strong>
+        <a href="mailto:{{ person.Head_2_Email }}">{{ person.Head_2_Email }}</a>
+      </p>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
