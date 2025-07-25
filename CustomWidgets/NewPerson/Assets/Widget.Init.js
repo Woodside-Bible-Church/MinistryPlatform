@@ -6,13 +6,15 @@
   const hostname = location.hostname;
   const isLocalDev =
     hostname.includes("localhost") || hostname.includes("127.0.0.1");
-  const isHostedApp = hostname.includes("groupfinder-five.vercel.app");
+  const isHostedApp = hostname.includes(
+    "https://new-person-widget.vercel.app/"
+  );
 
   const templatePath = isLocalDev
     ? `/CustomWidgets/${widgetId.replace("Widget", "")}/Template/widget.html`
     : isHostedApp
     ? "/Template/widget.html"
-    : "https://groupfinder-five.vercel.app/Template/widget.html";
+    : "https://new-person-widget.vercel.app//Template/widget.html";
 
   const allowedKeys = [
     "@UserName",
