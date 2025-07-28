@@ -1,3 +1,8 @@
+<div class="date-picker-container">
+  <label for="datePicker">Choose a Date:</label>
+  <input type="date" id="datePicker" />
+</div>
+
 {% if DataSet1.length > 0 %}
 <h2>{{ DataSet1[0].Event_Title }}</h2>
 <h3>{{ DataSet1[0].Event_Start_Date | date: "%A, %B %e, %Y @ %I:%M%p" }}</h3>
@@ -25,12 +30,12 @@
     </div>
     {% endif %} {% if person.Head_1 or person.Head_2 %}
     <div class="household">
-      <h4>Household Contacts</h4>
+      <h4>Heads of Household</h4>
       <ul>
         {% if person.Head_1 %}
-        <div class="household-contact">
+        <li class="household-contact">
           <p>{{ person.Head_1 }}</p>
-          <li class="icons">
+          <div class="icons">
             {% if person.Head_1_Email %}
             <a href="mailto:{{ person.Head_1_Email }}"
               ><i class="fas fa-envelope"></i
@@ -40,12 +45,12 @@
               ><i class="fas fa-phone"></i
             ></a>
             {% endif %}
-          </li>
-        </div>
+          </div>
+        </li>
         {% endif %} {% if person.Head_2 %}
-        <div class="household-contact">
+        <li class="household-contact">
           <p>{{ person.Head_2 }}</p>
-          <li class="icons">
+          <div class="icons">
             {% if person.Head_2_Email %}
             <a href="mailto:{{ person.Head_2_Email }}"
               ><i class="fas fa-envelope"></i
@@ -55,8 +60,8 @@
               ><i class="fas fa-phone"></i
             ></a>
             {% endif %}
-          </li>
-        </div>
+          </div>
+        </li>
         {% endif %}
       </ul>
     </div>

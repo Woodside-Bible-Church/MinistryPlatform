@@ -1,14 +1,12 @@
 (function () {
-  // 🧩 CONFIGURATION
-  const widgetId = "NewPersonWidget"; // Only change this for other widgets
+  const widgetId = "NewPersonWidget";
+  const containerId = `${widgetId}-container`;
   const storedProc = "api_custom_NewPersonWidget";
 
   const hostname = location.hostname;
   const isLocalDev =
     hostname.includes("localhost") || hostname.includes("127.0.0.1");
-  const isHostedApp = hostname.includes(
-    "https://new-person-widget.vercel.app/"
-  );
+  const isHostedApp = hostname.includes("new-person-widget.vercel.app");
 
   const templatePath = isLocalDev
     ? `/CustomWidgets/${widgetId.replace("Widget", "")}/Template/widget.html`
@@ -23,41 +21,46 @@
     "@ProgramID",
     "@Date"
   ];
-
   const urlParams = new URLSearchParams(window.location.search);
 
-  // 🔍 Filter valid params
   const paramMap = new Map(
     Array.from(urlParams.entries()).filter(
-      ([k, v]) => allowedKeys.includes(k) && v && v.trim() !== ""
+      ([k, v]) => allowedKeys.includes(k) && v?.trim()
     )
   );
+
+  // ✅ Inject today's date if @Date is not present
+  if (!paramMap.has("@Date")) {
+    const today = new Date();
+    const mm = today.getMonth() + 1;
+    const dd = today.getDate();
+    const yyyy = today.getFullYear();
+    paramMap.set("@Date", `${mm}/${dd}/${yyyy}`);
+  }
 
   const filteredParams = Array.from(paramMap.entries())
     .map(([k, v]) => `${k}=${v}`)
     .join("&");
 
-  // 🧱 Inject the widget DIV
   const tag = `
     <div id="${widgetId}" 
-        data-component="CustomWidget" 
-        data-sp="${storedProc}" 
-        data-params="${filteredParams}" 
-        data-template="${templatePath}"
-        data-requireUser="false" 
-        data-cache="false" 
-        data-host="woodsidebible" 
-        data-debug="true">
+         data-component="CustomWidget" 
+         data-sp="${storedProc}" 
+         data-params="${filteredParams}" 
+         data-template="${templatePath}" 
+         data-requireUser="false" 
+         data-cache="false" 
+         data-host="woodsidebible" 
+         data-debug="true">
     </div>`;
 
-  const widgetRoot = document.getElementById(widgetId);
+  const widgetRoot = document.getElementById(containerId);
   const loader = document.getElementById("loader");
 
   if (widgetRoot) {
     if (loader) loader.classList.remove("hidden");
     widgetRoot.innerHTML = tag;
 
-    // Wait for ReInitWidget to be available
     const waitForReInit = setInterval(() => {
       if (typeof window.ReInitWidget === "function") {
         clearInterval(waitForReInit);
@@ -66,16 +69,19 @@
     }, 50);
   }
 
-  // ✅ Confirm widget load
   window.addEventListener("widgetLoaded", function (event) {
     if (event.detail?.widgetId !== widgetId) return;
     console.log("✅ Widget loaded:", event.detail);
+
+    // 🟢 Initialize the date picker *after* widget is fully rendered
+    setTimeout(() => {
+      initDatePicker();
+    }, 100); // small delay ensures DOM is ready
   });
 
-  // 🔁 Utility Functions
   function cleanMap(map) {
     for (let [k, v] of map) {
-      if (!v || v.trim() === "") {
+      if (!v?.trim()) {
         map.delete(k);
       }
     }
@@ -108,92 +114,68 @@
 
   function applyParams(paramMap) {
     cleanMap(paramMap);
+
     const newParams = Array.from(paramMap.entries())
       .map(([k, v]) => `@${k}=${v}`)
       .join("&");
 
-    const widget = document.getElementById(widgetId);
-    if (widget) {
-      widget.setAttribute("data-params", newParams);
-    }
+    const widgetRoot = document.getElementById(containerId);
+    if (!widgetRoot) return;
+
+    const tag = `
+    <div id="${widgetId}" 
+         data-component="CustomWidget" 
+         data-sp="${storedProc}" 
+         data-params="${newParams}" 
+         data-template="${templatePath}" 
+         data-requireUser="false" 
+         data-cache="false" 
+         data-host="woodsidebible" 
+         data-debug="true">
+    </div>`;
+
+    widgetRoot.innerHTML = tag;
     syncParamsToUrl(paramMap);
+
+    if (typeof ReInitWidget === "function") {
+      ReInitWidget(widgetId);
+    }
   }
 
-  // 🧠 Listeners for filters
-  document.addEventListener("click", function (e) {
+  // 📅 Date Picker Logic
+  function formatDateToParam(dateStr) {
+    const [yyyy, mm, dd] = dateStr.split("-");
+    return `${parseInt(mm)}/${parseInt(dd)}/${yyyy}`;
+  }
+
+  function initDatePicker() {
+    const picker = document.getElementById("datePicker");
+    if (!picker) return;
+
     const widget = document.getElementById(widgetId);
     if (!widget) return;
 
-    const btn = e.target.closest(".filterBtn");
-    if (!btn) return;
+    const paramMap = parseParams(widget.getAttribute("data-params") || "");
+    const currentDate = paramMap.get("Date");
 
-    e.preventDefault();
-    const filter = btn.dataset.filter?.replace(/^@+/, "");
-    const id = btn.dataset.id;
-    const action = btn.dataset.action;
-
-    let paramMap = parseParams(widget.getAttribute("data-params") || "");
-
-    if (action === "remove") {
-      paramMap.delete(filter);
-    } else if (action === "add" && filter && id && id.trim() !== "") {
-      paramMap.set(filter, id);
+    if (currentDate) {
+      const parsed = new Date(currentDate);
+      if (!isNaN(parsed)) {
+        const yyyy = parsed.getFullYear();
+        const mm = String(parsed.getMonth() + 1).padStart(2, "0");
+        const dd = String(parsed.getDate()).padStart(2, "0");
+        picker.value = `${yyyy}-${mm}-${dd}`;
+      }
     }
 
-    applyParams(paramMap);
-
-    const clone = btn.cloneNode(true);
-    btn.parentNode.replaceChild(clone, btn);
-    clone.classList.add("loading-pill");
-
-    setTimeout(() => {
-      ReInitWidget(widgetId);
-    }, 20);
-  });
-
-  document.addEventListener("change", function (e) {
-    const widget = document.getElementById(widgetId);
-    if (!widget) return;
-
-    const select = e.target.closest(".filterSelect");
-    if (!select) return;
-
-    const filter = select.name?.replace(/^@+/, "");
-    const id = select.value;
-
-    let paramMap = parseParams(widget.getAttribute("data-params") || "");
-
-    if (id) {
-      paramMap.set(filter, id);
-    } else {
-      paramMap.delete(filter);
-    }
-
-    applyParams(paramMap);
-    ReInitWidget(widgetId);
-  });
-
-  document.addEventListener("keydown", function (e) {
-    if (e.key !== "Enter") return;
-
-    const input = e.target.closest(".filterSearch");
-    if (!input) return;
-
-    const filter = input.name?.replace(/^@+/, "");
-    const value = input.value;
-
-    const widget = document.getElementById(widgetId);
-    if (!widget || !filter) return;
-
-    let paramMap = parseParams(widget.getAttribute("data-params") || "");
-
-    if (value) {
-      paramMap.set(filter, value);
-    } else {
-      paramMap.delete(filter);
-    }
-
-    applyParams(paramMap);
-    ReInitWidget(widgetId);
-  });
+    picker.addEventListener("change", () => {
+      console.log(
+        "📅 Picker changed, reloading widget with date:",
+        picker.value
+      );
+      const formatted = formatDateToParam(picker.value);
+      paramMap.set("Date", formatted);
+      applyParams(paramMap); // 🚀 rebuilds + re-inits
+    });
+  }
 })();
