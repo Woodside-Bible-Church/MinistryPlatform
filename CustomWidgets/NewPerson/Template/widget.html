@@ -10,7 +10,7 @@
     <div>
       <h4>Group</h4>
       {{ person.Group_Name }}
-      <p>Start: {{ person.Group_Start | date: "%-I:%M%p" }}</p>
+      <p>Start: {{ person.Group_Start | date: "%-m/%-d/%Y" }}</p>
     </div>
 
     {% if person.Last_Event %}
