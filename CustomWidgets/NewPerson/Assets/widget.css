@@ -16,6 +16,10 @@ h6 {
   text-transform: uppercase;
 }
 
+h4 {
+  margin-bottom: 0.25em;
+}
+
 .new-person-cards {
   display: flex;
   flex-wrap: wrap;
@@ -33,7 +37,7 @@ h6 {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  gap: 1em;
+  gap: 0.25em;
 }
 
 .person-card h3 {
@@ -67,10 +71,6 @@ h6 {
 .household li {
   margin: 0.25em 0;
   font-size: 0.9em;
-}
-
-.household h4 {
-  margin: 0;
 }
 
 .icons {
