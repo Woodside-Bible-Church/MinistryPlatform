@@ -12,15 +12,6 @@
       <small>Start: {{ person.Group_Start | date: "%-I:%M%p" }}</small>
     </p>
 
-    <p class="icons">
-      {% if person.Head_1_Email %}<i class="fas fa-envelope" title="Email"></i
-      >{% endif %} {% if person.Head_1_Mobile %}<i
-        class="fas fa-phone"
-        title="Phone"
-      ></i
-      >{% endif %}
-    </p>
-
     {% if person.Last_Event %}
     <p><strong>Last Event:</strong> {{ person.Last_Event }}</p>
     {% endif %} {% if person.Last_Congregation_Event %}
