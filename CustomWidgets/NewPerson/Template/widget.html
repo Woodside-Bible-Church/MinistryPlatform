@@ -23,29 +23,35 @@
       <h4>Household Contacts</h4>
       <ul>
         {% if person.Head_1 %}
-        <li class="icons">
-          {{ person.Head_1 }} {% if person.Head_1_Email %}
-          <a href="mailto:{{ person.Head_1_Email }}"
-            ><i class="fas fa-envelope"></i
-          ></a>
-          {% endif %} {% if person.Head_1_Mobile %}
-          <a href="tel:{{ person.Head_1_Mobile }}"
-            ><i class="fas fa-phone"></i
-          ></a>
-          {% endif %}
-        </li>
+        <div class="household-contact">
+          <p>{{ person.Head_1 }}</p>
+          <li class="icons">
+            {% if person.Head_1_Email %}
+            <a href="mailto:{{ person.Head_1_Email }}"
+              ><i class="fas fa-envelope"></i
+            ></a>
+            {% endif %} {% if person.Head_1_Mobile %}
+            <a href="tel:{{ person.Head_1_Mobile }}"
+              ><i class="fas fa-phone"></i
+            ></a>
+            {% endif %}
+          </li>
+        </div>
         {% endif %} {% if person.Head_2 %}
-        <li class="icons">
-          {{ person.Head_2 }} {% if person.Head_2_Email %}
-          <a href="mailto:{{ person.Head_2_Email }}"
-            ><i class="fas fa-envelope"></i
-          ></a>
-          {% endif %} {% if person.Head_2_Mobile %}
-          <a href="tel:{{ person.Head_2_Mobile }}"
-            ><i class="fas fa-phone"></i
-          ></a>
-          {% endif %}
-        </li>
+        <div class="household-contact">
+          <p>{{ person.Head_2 }}</p>
+          <li class="icons">
+            {% if person.Head_2_Email %}
+            <a href="mailto:{{ person.Head_2_Email }}"
+              ><i class="fas fa-envelope"></i
+            ></a>
+            {% endif %} {% if person.Head_2_Mobile %}
+            <a href="tel:{{ person.Head_2_Mobile }}"
+              ><i class="fas fa-phone"></i
+            ></a>
+            {% endif %}
+          </li>
+        </div>
         {% endif %}
       </ul>
     </div>
