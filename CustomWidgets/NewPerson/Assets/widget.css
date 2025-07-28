@@ -21,26 +21,26 @@ h4 {
 }
 
 .new-person-cards {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1em;
   margin-top: 1em;
+  align-items: stretch; /* 🧱 Ensure cards fill their row */
 }
 
 .person-card {
   background: #f0f3f8;
   padding: 1em;
-  padding-top: 2.5em;
-  flex: 1 1 300px;
-  width: 100%;
-  max-width: 350px;
-  box-sizing: border-box;
+  padding-top: 2.5em !important;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   gap: 0.25em;
   position: relative;
+  height: 100%; /* 🧱 Stretch to match tallest card */
+  box-sizing: border-box; /* 📦 Important for consistent sizing */
+  overflow-wrap: break-word; /* 🧼 Prevent badge or long text issues */
 }
 
 .person-card h3 {
@@ -59,6 +59,7 @@ h4 {
   position: absolute;
   top: 0.75em;
   right: 0.75em;
+  z-index: 1;
 }
 
 .person-card p {
@@ -116,16 +117,14 @@ h4 {
   font-size: 1em;
 }
 
-/* Media Queries for smaller screens */
+/* Responsive Layouts */
 @media (max-width: 768px) {
   .new-person-cards {
-    flex-direction: column;
-    align-items: center;
+    grid-template-columns: 1fr;
   }
 
   .person-card {
-    max-width: 100%;
-    width: 90%;
+    width: 100%;
   }
 }
 
