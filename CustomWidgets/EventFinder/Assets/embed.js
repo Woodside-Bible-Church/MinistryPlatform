@@ -1,6 +1,6 @@
 (function () {
   // 🧩 CONFIGURATION
-  const baseUrl = "https://groupfinder-five.vercel.app/Assets"; // <- Change this per widget project
+  const baseUrl = "https://event-finder-alpha.vercel.app/Assets"; // <- Change this per widget project
   const widgetName = "EventFinder"; // <- Must match div IDs and container names
   const initScriptFilename = "Widget.Init.js"; // <- Shared Init script, or unique if needed
   const containerId = `${widgetName}WidgetEmbed`;
@@ -10,7 +10,7 @@
   const params = parseParams(scriptTag?.getAttribute("data-params"));
 
   // 🧼 Inject styles
-  stylesheets.forEach((href) => injectStylesheet(href));
+  //stylesheets.forEach((href) => injectStylesheet(href));
 
   // 🎯 Inject container HTML
   const container = document.getElementById(containerId);
