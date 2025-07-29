@@ -16,9 +16,9 @@
     <p>
       This widget allows users to search for events by various parameters. It
       displays a list of matching events with details and a link to the event
-      page in a nested JSON format. Open the console log to see the object and
-      refer to the github to see examples of how other widgets have been used in
-      this manner (eg.
+      page in a nested JSON format. Check out the Live JSON Output (or the
+      console log) to see the object and refer to the github to see examples of
+      how other widgets have been used in this manner (eg.
       <a
         href="https://github.com/Woodside-Bible-Church/MinistryPlatform/tree/main/CustomWidgets/GroupFinder"
         target="_blank"
@@ -44,8 +44,34 @@
 
     <div id="EventFinder"></div>
     <div id="loader" class="hidden">Loading...</div>
+    <h2 style="margin-top: 2em">Live JSON Output</h2>
+    <pre
+      id="jsonOutput"
+      style="
+        background: #f0f0f0;
+        padding: 1em;
+        border-radius: 6px;
+        overflow-x: auto;
+        max-height: 500px;
+        font-family: monospace;
+      "
+    ></pre>
 
     <script src="Assets/CustomWidgets.js"></script>
     <script src="Assets/Widget.Init.js"></script>
+
+    <script>
+      window.addEventListener("widgetLoaded", function (event) {
+        const jsonContainer = document.getElementById("jsonOutput");
+        if (!jsonContainer) return;
+
+        try {
+          const jsonData = event.detail;
+          jsonContainer.textContent = JSON.stringify(jsonData, null, 2);
+        } catch (err) {
+          console.error("Failed to display JSON output:", err);
+        }
+      });
+    </script>
   </body>
 </html>
