@@ -64,6 +64,7 @@
   }
 
   window.addEventListener("widgetLoaded", function (event) {
+    loader?.classList.add("hidden");
     if (event.detail?.widgetId !== widgetId) return;
     console.log("✅ Widget loaded:", event.detail);
 
