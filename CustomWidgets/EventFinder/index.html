@@ -45,31 +45,79 @@
     <div id="EventFinder"></div>
     <h2 style="margin-top: 2em">Live JSON Output</h2>
     <div id="loader" class="hidden">Loading...</div>
-    <pre
+    <div
       id="jsonOutput"
       style="
-        background: #f0f0f0;
+        font-family: monospace;
+        background: #f9f9f9;
         padding: 1em;
         border-radius: 6px;
-        overflow-x: auto;
-        max-height: 500px;
-        font-family: monospace;
+        max-height: 600px;
+        overflow: auto;
       "
-    ></pre>
+    ></div>
 
     <script src="Assets/CustomWidgets.js"></script>
     <script src="Assets/Widget.Init.js"></script>
 
     <script>
       window.addEventListener("widgetLoaded", function (event) {
-        const jsonContainer = document.getElementById("jsonOutput");
-        if (!jsonContainer) return;
+        const container = document.getElementById("jsonOutput");
+        if (!container) return;
 
-        try {
-          const jsonData = event.detail;
-          jsonContainer.textContent = JSON.stringify(jsonData, null, 2);
-        } catch (err) {
-          console.error("Failed to display JSON output:", err);
+        container.innerHTML = ""; // Clear previous
+
+        const data = event.detail;
+
+        function renderNode(key, value, depth = 0) {
+          const wrapper = document.createElement("div");
+          wrapper.style.marginLeft = depth * 16 + "px";
+
+          const isObject = typeof value === "object" && value !== null;
+
+          const line = document.createElement("div");
+
+          if (isObject) {
+            const toggle = document.createElement("span");
+            toggle.textContent = "▶ ";
+            toggle.style.cursor = "pointer";
+            toggle.style.userSelect = "none";
+
+            const keySpan = document.createElement("strong");
+            keySpan.textContent = key + ": ";
+            line.appendChild(toggle);
+            line.appendChild(keySpan);
+            wrapper.appendChild(line);
+
+            const childrenContainer = document.createElement("div");
+            childrenContainer.style.display = "none";
+
+            for (const k in value) {
+              childrenContainer.appendChild(renderNode(k, value[k], depth + 1));
+            }
+
+            wrapper.appendChild(childrenContainer);
+
+            toggle.addEventListener("click", () => {
+              const expanded = childrenContainer.style.display === "block";
+              childrenContainer.style.display = expanded ? "none" : "block";
+              toggle.textContent = expanded ? "▶ " : "▼ ";
+            });
+          } else {
+            const keySpan = document.createElement("strong");
+            keySpan.textContent = key + ": ";
+            const valueSpan = document.createElement("span");
+            valueSpan.textContent = JSON.stringify(value);
+            line.appendChild(keySpan);
+            line.appendChild(valueSpan);
+            wrapper.appendChild(line);
+          }
+
+          return wrapper;
+        }
+
+        for (const key in data) {
+          container.appendChild(renderNode(key, data[key]));
         }
       });
     </script>
