@@ -1,12 +1,8 @@
 (function () {
   // 🧩 CONFIGURATION
   const baseUrl = "https://groupfinder-five.vercel.app/Assets"; // <- Change this per widget project
-  const widgetName = "newPerson"; // <- Must match div IDs and container names
+  const widgetName = "EventFinder"; // <- Must match div IDs and container names
   const initScriptFilename = "Widget.Init.js"; // <- Shared Init script, or unique if needed
-  const stylesheets = [
-    "//use.fontawesome.com/releases/v5.0.7/css/all.css",
-    `${baseUrl}/widget.css`
-  ];
   const containerId = `${widgetName}WidgetEmbed`;
 
   // 🧾 Grab params from <script data-params="key=value&key=value">
