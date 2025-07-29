@@ -76,7 +76,7 @@
     // 🟢 Initialize the date picker *after* widget is fully rendered
     setTimeout(() => {
       initDatePicker();
-    }, 100); // small delay ensures DOM is ready
+    }, 100);
   });
 
   function cleanMap(map) {

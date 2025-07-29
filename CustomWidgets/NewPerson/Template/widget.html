@@ -5,7 +5,7 @@
 
 {% if DataSet1.length > 0 %}
 <h2>{{ DataSet1[0].Event_Title }}</h2>
-<h3>{{ DataSet1[0].Event_Start_Date | date: "%A, %B %e, %Y @ %I:%M%p" }}</h3>
+<h3>{{ DataSet1[0].Event_Start_Date | date: "%A, %B %e, %Y - %I:%M%p" }}</h3>
 
 <div class="new-person-cards">
   {% for person in DataSet1 %}
