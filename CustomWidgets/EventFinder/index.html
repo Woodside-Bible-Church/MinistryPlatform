@@ -13,6 +13,28 @@
   <body style="margin: auto; max-width: 1200px; margin-top: 2em; padding: 1em">
     <h1>Event Finder</h1>
 
+    <p>
+      This widget allows users to search for events by various parameters. It
+      displays a list of matching events with details and a link to the event
+      page in a nested JSON format. The following parameters can be used to
+      filter events:
+    </p>
+    <ul>
+      <li>@CongregationID - One congregation can be selected at a time</li>
+      <li>
+        @MinistryIDs - A comma separated list of ministry ID's can be passed
+      </li>
+      <li>
+        @Search - Search term to filter events by various fields in the event
+      </li>
+      <li>
+        @EventIDs - Comma-separated list of specific event IDs to filter to
+      </li>
+      <li>@Page - Page number for pagination</li>
+      <li>@NumPerPage - Number of events per page</li>
+      <li>@Username - Automatically passed by the Login Widget</li>
+    </ul>
+
     <div id="EventFinder"></div>
     <div id="loader" class="hidden">Loading...</div>
 
