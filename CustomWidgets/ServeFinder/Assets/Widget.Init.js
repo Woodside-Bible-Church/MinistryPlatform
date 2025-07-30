@@ -5,7 +5,7 @@
   const hostname = location.hostname;
   const isLocalDev =
     hostname.includes("localhost") || hostname.includes("127.0.0.1");
-  const isHostedApp = hostname.includes("serve-finder-widget.vercel.app");
+  const isHostedApp = hostname.includes("serve-finder.vercel.app");
 
   const templatePath = isLocalDev
     ? `/CustomWidgets/${widgetId.replace("Widget", "")}/Template/widget.html`
