@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Serve Finder Widget</title>
+    <link rel="stylesheet" href="Assets/widget.css" />
+    <link rel="icon" href="Assets/favicon.png" type="image/png" />
+    <link
+      rel="stylesheet"
+      href="//use.fontawesome.com/releases/v5.0.7/css/all.css"
+    />
+  </head>
+  <body style="margin: auto; max-width: 1200px; margin-top: 2em; padding: 1em">
+    <h1>Serve Finder</h1>
+
+    <p>
+      This widget allows users to search for serve opportunities by various
+      parameters. It displays a list of matching serve opportunities with
+      details and a link to the opportunity page in a nested JSON format. Check
+      out the Live JSON Output (or the console log) to see the object and refer
+      to the github to see examples of how other widgets have been used in this
+      manner (eg.
+      <a
+        href="https://github.com/Woodside-Bible-Church/MinistryPlatform/tree/main/CustomWidgets/GroupFinder"
+        target="_blank"
+        >Group Finder</a
+      >). The github for this project can be found
+      <a
+        href="https://github.com/Woodside-Bible-Church/MinistryPlatform/tree/main/CustomWidgets/ServeFinder"
+        target="_blank"
+        >here</a
+      >. The following parameters can be used to filter events (all are
+      optional):
+    </p>
+    <ul>
+      <li>@CongregationID - One congregation can be selected at a time</li>
+      <li>
+        @OpportunityTypeID - One opportunity type can be selected at a time
+      </li>
+      <li>
+        @MinistryIDs - A comma separated list of ministry ID's can be passed
+      </li>
+      <li>
+        @Search - Search term to filter events by various fields in the event
+      </li>
+      <li>
+        @OpportunityIDs - Comma-separated list of specific event IDs to filter
+        to
+      </li>
+      <li>@Page - Page number for pagination</li>
+      <li>@NumPerPage - Number of events per page</li>
+      <li>@Username - Automatically passed by the Login Widget</li>
+    </ul>
+
+    <div id="ServeFinder"></div>
+    <h2 style="margin-top: 2em">Live JSON Output</h2>
+    <div id="loader" class="hidden">Loading...</div>
+    <div
+      id="jsonOutput"
+      style="
+        font-family: monospace;
+        background: #f9f9f9;
+        padding: 1em;
+        border-radius: 6px;
+        max-height: 600px;
+        overflow: auto;
+      "
+    ></div>
+
+    <script src="Assets/CustomWidgets.js"></script>
+    <script src="Assets/Widget.Init.js"></script>
+
+    <script>
+      window.addEventListener("widgetLoaded", function (event) {
+        const container = document.getElementById("jsonOutput");
+        if (!container) return;
+
+        container.innerHTML = ""; // Clear previous
+
+        const data = event.detail;
+
+        function renderNode(key, value, depth = 0) {
+          const wrapper = document.createElement("div");
+          wrapper.style.marginLeft = depth * 16 + "px";
+
+          const isObject = typeof value === "object" && value !== null;
+
+          const line = document.createElement("div");
+
+          if (isObject) {
+            const toggle = document.createElement("span");
+            toggle.textContent = "▶ ";
+            toggle.style.cursor = "pointer";
+            toggle.style.userSelect = "none";
+
+            const keySpan = document.createElement("strong");
+            keySpan.textContent = key + ": ";
+            line.appendChild(toggle);
+            line.appendChild(keySpan);
+            wrapper.appendChild(line);
+
+            const childrenContainer = document.createElement("div");
+            childrenContainer.style.display = "none";
+
+            for (const k in value) {
+              childrenContainer.appendChild(renderNode(k, value[k], depth + 1));
+            }
+
+            wrapper.appendChild(childrenContainer);
+
+            toggle.addEventListener("click", () => {
+              const expanded = childrenContainer.style.display === "block";
+              childrenContainer.style.display = expanded ? "none" : "block";
+              toggle.textContent = expanded ? "▶ " : "▼ ";
+            });
+          } else {
+            const keySpan = document.createElement("strong");
+            keySpan.textContent = key + ": ";
+            const valueSpan = document.createElement("span");
+            valueSpan.textContent = JSON.stringify(value);
+            line.appendChild(keySpan);
+            line.appendChild(valueSpan);
+            wrapper.appendChild(line);
+          }
+
+          return wrapper;
+        }
+
+        for (const key in data) {
+          container.appendChild(renderNode(key, data[key]));
+        }
+      });
+    </script>
+  </body>
+</html>
