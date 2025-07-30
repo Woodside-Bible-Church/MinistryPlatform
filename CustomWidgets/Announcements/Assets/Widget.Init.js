@@ -1,24 +1,24 @@
 (function () {
-  const widgetId = "ServeFinder";
-  const storedProc = "api_custom_ServeFinderWidget_JSON";
+  const widgetId = "Announcements";
+  const storedProc = "api_custom_AnnouncementsWidget_JSON";
 
   const hostname = location.hostname;
   const isLocalDev =
     hostname.includes("localhost") || hostname.includes("127.0.0.1");
-  const isHostedApp = hostname.includes("serve-finder.vercel.app");
+  const isHostedApp = hostname.includes("announcements.vercel.app");
 
   const templatePath = isLocalDev
     ? `/CustomWidgets/${widgetId.replace("Widget", "")}/Template/widget.html`
     : isHostedApp
     ? "/Template/widget.html"
-    : "https://serve-finder.vercel.app/Template/widget.html";
+    : "https://announcements.vercel.app/Template/widget.html";
 
   const allowedKeys = [
     "@CongregationID",
-    "@OpportunityTypeID",
-    "@MinistryIDs",
+    "@GroupID",
+    "@EventID",
     "@Search",
-    "@OpportunityIDs",
+    "@AnnouncementIDs",
     "@Page",
     "@NumPerPage",
     "@UserName",

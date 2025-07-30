@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Serve Finder Widget</title>
+    <title>Announcements Widget</title>
     <link rel="stylesheet" href="Assets/widget.css" />
     <link rel="icon" href="Assets/favicon.png" type="image/png" />
     <link
@@ -11,49 +11,47 @@
     />
   </head>
   <body style="margin: auto; max-width: 1200px; margin-top: 2em; padding: 1em">
-    <h1>Serve Finder</h1>
+    <h1>Announcements</h1>
 
     <p>
-      This widget allows users to search for serve opportunities by various
-      parameters. It displays a list of matching serve opportunities with
-      details and a link to the opportunity page in a nested JSON format. Check
-      out the Live JSON Output (or the console log) to see the object and refer
-      to the github to see examples of how other widgets have been used in this
-      manner (eg.
+      This widget allows users to search for announcements by various
+      parameters. It displays a list of matching announcements with details and
+      a link to the right spot in a nested JSON format. Check out the Live JSON
+      Output (or the console log) to see the object and refer to the github to
+      see examples of how other widgets have been used in this manner (eg.
       <a
         href="https://github.com/Woodside-Bible-Church/MinistryPlatform/tree/main/CustomWidgets/GroupFinder"
         target="_blank"
         >Group Finder</a
       >). The github for this project can be found
       <a
-        href="https://github.com/Woodside-Bible-Church/MinistryPlatform/tree/main/CustomWidgets/ServeFinder"
+        href="https://github.com/Woodside-Bible-Church/MinistryPlatform/tree/main/CustomWidgets/Announcements"
         target="_blank"
         >here</a
-      >. The following parameters can be used to filter serve opportunities (all
-      are optional):
+      >. The following parameters can be used to filter announcements (all are
+      optional):
     </p>
     <ul>
       <li>@CongregationID - One congregation can be selected at a time</li>
       <li>
-        @OpportunityTypeID - One opportunity type can be selected at a time
+        @GroupID - Announcements related to a specific group can be selected
       </li>
       <li>
-        @MinistryIDs - A comma separated list of ministry ID's can be passed
+        @EventID - Announcements related to a specific event can be selected
       </li>
       <li>
-        @Search - Search term to filter serve opportunities by various fields in
-        the opportunity
+        @Search - Search term to filter events by various fields in the event
       </li>
       <li>
-        @OpportunityIDs - Comma-separated list of specific opportunity IDs to
+        @AnnouncementIDs - Comma-separated list of specific announcement IDs to
         filter to
       </li>
       <li>@Page - Page number for pagination</li>
-      <li>@NumPerPage - Number of serve opportunities per page</li>
+      <li>@NumPerPage - Number of announcements per page</li>
       <li>@Username - Automatically passed by the Login Widget</li>
     </ul>
 
-    <div id="ServeFinder"></div>
+    <div id="Announcements"></div>
     <h2 style="margin-top: 2em">Live JSON Output</h2>
     <div id="loader" class="hidden">Loading...</div>
     <div
