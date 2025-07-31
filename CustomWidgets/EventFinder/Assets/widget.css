@@ -26,7 +26,7 @@ h4 {
 
 .event-finder {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 2rem;
 }
 
@@ -89,7 +89,6 @@ h4 {
 .event-title {
   font-size: 1.25rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
 }
 
 .event-content .fas {
@@ -101,13 +100,11 @@ h4 {
 .event-meta-address {
   font-size: 0.95rem;
   color: #666;
-  margin-bottom: 0.5rem;
 }
 
 .event-description {
   font-size: 0.95rem;
   color: #333;
-  margin-bottom: 1rem;
   display: -webkit-box;
   -webkit-line-clamp: 6; /* Change this number to limit lines */
   -webkit-box-orient: vertical;
