@@ -5,13 +5,15 @@
   const hostname = location.hostname;
   const isLocalDev =
     hostname.includes("localhost") || hostname.includes("127.0.0.1");
-  const isHostedApp = hostname.includes("event-finder-widget.vercel.app");
+  const isHostedApp = hostname.includes(
+    "https://event-finder-alpha.vercel.app"
+  );
 
   const templatePath = isLocalDev
     ? `/CustomWidgets/${widgetId.replace("Widget", "")}/Template/widget.html`
     : isHostedApp
     ? "/Template/widget.html"
-    : "https://event-finder.vercel.app/Template/widget.html";
+    : "https://event-finder-alpha.vercel.app/Template/widget.html";
 
   const allowedKeys = [
     "@CongregationID",
