@@ -1,0 +1,43 @@
+<div class="event-finder">
+  {% for event in Events %}
+  <div class="event-card">
+    <div
+      class="event-image"
+      style="background-image: url('{{ event.Image }}');"
+    >
+      {% if event.Badge %}
+      <div class="event-badge">{{ event.Badge }}</div>
+      {% endif %}
+      <a class="event-share-button">
+        <i class="fas fa-share"></i>
+      </a>
+    </div>
+
+    <div class="event-content">
+      <div class="event-title">{{ event.Title }}</div>
+      <div class="event-meta-date">
+        <i class="fas fa-calendar-alt"></i>
+        {{ event.Start | date: "%A, %B %-d at %-I:%M%p" }} {% if event.End
+        %}&ndash; {{ event.End | date: "%-I:%M%p" }}{% endif %}
+      </div>
+      <div class="event-meta-address">
+        <i class="fas fa-map-marker-alt"></i>
+        {{ event.Location.Name }}, {{ event.Location.Address.Line_1 }}
+      </div>
+      <div class="event-description clamp-5">{{ event.Description }}</div>
+    </div>
+
+    <ul class="event-tags">
+      {% for tag in event.Tags %}
+      <li><span class="filterBtn">{{ tag.Text }}</span></li>
+      {% endfor %}
+    </ul>
+
+    <div class="event-buttons">
+      {% for button in event.Buttons %}
+      <a href="{{ button.URL }}">{{ button.Text }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
