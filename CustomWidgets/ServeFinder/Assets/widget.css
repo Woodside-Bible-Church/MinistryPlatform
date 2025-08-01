@@ -6,7 +6,6 @@
 
 * {
   font-family: Montserrat, Helvetica, Arial, sans-serif;
-  box-sizing: border-box;
 }
 
 h1,
@@ -25,8 +24,8 @@ h6 {
 /* === GRID CONTAINER === */
 .serve-finder {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 2rem;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }
 
 /* === INDIVIDUAL CARD === */
@@ -117,7 +116,7 @@ h6 {
   line-height: 1.5;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 8;
   line-clamp: 4;
   overflow: hidden;
 }
