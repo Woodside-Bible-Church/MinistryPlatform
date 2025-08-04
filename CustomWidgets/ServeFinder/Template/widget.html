@@ -17,9 +17,11 @@
       <div class="serve-title">{{ serve.Title }}</div>
 
       <div class="serve-meta">
-        <div><i class="fas fa-handshake"></i> {{ serve.Type.Name }}</div>
+        <i class="fas fa-handshake"></i>
+        <div>{{ serve.Type.Name }}</div>
         {% if serve.Campus.Name %}
-        <div><i class="fas fa-map-marker-alt"></i> {{ serve.Campus.Name }}</div>
+        <i class="fas fa-map-marker-alt"></i>
+        <div>{{ serve.Campus.Name }}</div>
         {% endif %}
       </div>
 

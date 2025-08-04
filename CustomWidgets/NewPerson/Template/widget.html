@@ -3,78 +3,90 @@
   <input type="date" id="datePicker" />
 </div>
 
-{% if DataSet1.length > 0 %}
-<h2>{{ DataSet1[0].Event_Title }}</h2>
-<h3>{{ DataSet1[0].Event_Start_Date | date: "%A, %B %e, %Y - %I:%M%p" }}</h3>
+{% assign currentEventID = "" %}
 
-<div class="new-person-cards">
+{% if DataSet1.size > 0 %}
   {% for person in DataSet1 %}
-  <div class="person-card">
-    <span class="badge">{{ person.New_Type }}</span>
-    <h3>{{ person.Display_Name }}</h3>
-    <div>
-      <h4>Group</h4>
-      {{ person.Group_Name }}
-      <p>Start: {{ person.Group_Start | date: "%-m/%-d/%Y" }}</p>
-    </div>
+    {% if person.Event_ID != currentEventID %}
+      {% assign currentEventID = person.Event_ID %}
 
-    {% if person.Last_Event %}
-    <div>
-      <h4>Last Event</h4>
-      <p>{{ person.Last_Event }}</p>
-    </div>
-    {% endif %} {% if person.Last_Congregation_Event %}
-    <div>
-      <h4>Last Location Event</h4>
-      <p>{{ person.Last_Congregation_Event }}</p>
-    </div>
-    {% endif %} {% if person.Head_1 or person.Head_2 %}
-    <div class="household">
-      <h4>Heads of Household</h4>
-      <ul>
-        {% if person.Head_1 %}
-        <li class="household-contact">
-          <p>{{ person.Head_1 }}</p>
-          <div class="icons">
-            {% if person.Head_1_Email %}
-            <a href="mailto:{{ person.Head_1_Email }}"
-              ><i class="fas fa-envelope"></i
-            ></a>
-            {% endif %} {% if person.Head_1_Mobile %}
-            <a href="tel:{{ person.Head_1_Mobile }}"
-              ><i class="fas fa-phone"></i
-            ></a>
-            {% endif %}
-          </div>
-        </li>
-        {% endif %} {% if person.Head_2 %}
-        <li class="household-contact">
-          <p>{{ person.Head_2 }}</p>
-          <div class="icons">
-            {% if person.Head_2_Email %}
-            <a href="mailto:{{ person.Head_2_Email }}"
-              ><i class="fas fa-envelope"></i
-            ></a>
-            {% endif %} {% if person.Head_2_Mobile %}
-            <a href="tel:{{ person.Head_2_Mobile }}"
-              ><i class="fas fa-phone"></i
-            ></a>
-            {% endif %}
-          </div>
-        </li>
-        {% endif %}
-      </ul>
-    </div>
+      {% if forloop.index != 1 %}
+        </div> <!-- Close previous .new-person-cards -->
+      {% endif %}
+
+      <h2>{{ person.Event_Title }}</h2>
+      <h3>{{ person.Event_Start_Date | date: "%A, %B %e, %Y - %I:%M%p" }}</h3>
+      <div class="new-person-cards">
     {% endif %}
-  </div>
+
+    <div class="person-card">
+      <span class="badge">{{ person.New_Type }}</span>
+      <h3>{{ person.Display_Name }}</h3>
+
+      <div>
+        <h4>Group</h4>
+        {{ person.Group_Name }}
+        <p>Start: {{ person.Group_Start | date: "%-m/%-d/%Y" }}</p>
+      </div>
+
+      {% if person.Last_Event %}
+      <div>
+        <h4>Last Event</h4>
+        <p>{{ person.Last_Event }}</p>
+      </div>
+      {% endif %}
+
+      {% if person.Last_Congregation_Event %}
+      <div>
+        <h4>Last Location Event</h4>
+        <p>{{ person.Last_Congregation_Event }}</p>
+      </div>
+      {% endif %}
+
+      {% if person.Head_1 or person.Head_2 %}
+      <div class="household">
+        <h4>Heads of Household</h4>
+        <ul>
+          {% if person.Head_1 %}
+          <li class="household-contact">
+            <p>{{ person.Head_1 }}</p>
+            <div class="icons">
+              {% if person.Head_1_Email %}
+              <a href="mailto:{{ person.Head_1_Email }}"><i class="fas fa-envelope"></i></a>
+              {% endif %}
+              {% if person.Head_1_Mobile %}
+              <a href="tel:{{ person.Head_1_Mobile }}"><i class="fas fa-phone"></i></a>
+              {% endif %}
+            </div>
+          </li>
+          {% endif %}
+
+          {% if person.Head_2 %}
+          <li class="household-contact">
+            <p>{{ person.Head_2 }}</p>
+            <div class="icons">
+              {% if person.Head_2_Email %}
+              <a href="mailto:{{ person.Head_2_Email }}"><i class="fas fa-envelope"></i></a>
+              {% endif %}
+              {% if person.Head_2_Mobile %}
+              <a href="tel:{{ person.Head_2_Mobile }}"><i class="fas fa-phone"></i></a>
+              {% endif %}
+            </div>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
   {% endfor %}
-</div>
+
+  </div> <!-- Close final .new-person-cards -->
 {% else %}
-<div class="empty-state">
-  <h3>🔒 Data not found or user not authorized.</h3>
-  <p>
-    Please ensure you're logged in with the correct role and parameters are set
-    correctly.
-  </p>
-</div>
+  <div class="empty-state">
+    <h3>🔒 Data not found or user not authorized.</h3>
+    <p>
+      Please ensure you're logged in with the correct role and parameters are set
+      correctly.
+    </p>
+  </div>
 {% endif %}

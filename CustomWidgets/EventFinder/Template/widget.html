@@ -15,14 +15,16 @@
 
     <div class="event-content">
       <div class="event-title">{{ event.Title }}</div>
-      <div class="event-meta-date">
+      <div class="event-meta">
         <i class="fas fa-calendar-alt"></i>
-        {{ event.Start | date: "%A, %B %-d at %-I:%M%p" }} {% if event.End
-        %}&ndash; {{ event.End | date: "%-I:%M%p" }}{% endif %}
-      </div>
-      <div class="event-meta-address">
+        <div>
+          {{ event.Start | date: "%A, %B %-d at %-I:%M%p" }} {% if event.End
+          %}&ndash; {{ event.End | date: "%-I:%M%p" }}{% endif %}
+        </div>
         <i class="fas fa-map-marker-alt"></i>
-        {{ event.Location.Name }}, {{ event.Location.Address.Line_1 }}
+        <div>
+          {{ event.Location.Name }}, {{ event.Location.Address.Line_1 }}
+        </div>
       </div>
       <div class="event-description clamp-5">{{ event.Description }}</div>
     </div>

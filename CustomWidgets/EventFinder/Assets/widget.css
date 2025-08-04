@@ -96,10 +96,11 @@ h4 {
   color: var(--primaryColor);
 }
 
-.event-meta-date,
-.event-meta-address {
-  font-size: 0.95rem;
-  color: #666;
+.event-meta {
+  display: grid;
+  grid-template-columns: max-content auto;
+  align-items: center;
+  gap: 0.25em 0.75em;
 }
 
 .event-description {
