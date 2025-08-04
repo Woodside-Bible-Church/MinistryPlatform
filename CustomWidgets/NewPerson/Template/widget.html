@@ -6,7 +6,7 @@
 <div class="event-picker-container">
   <label for="eventPicker">Choose an Event:</label>
   <select id="eventPicker">
-    <option value="">-- Select Event --</option>
+    <option value="">All Events</option>
     {% for event in DataSet1 %}
       <option value="{{ event.Event_ID }}">
         {{ event.Event_Title }} — {{ event.Event_Start_Date | date: "%-I:%M%p" }}
