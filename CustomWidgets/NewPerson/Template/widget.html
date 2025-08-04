@@ -6,24 +6,18 @@
 <div class="event-picker-container">
   <label for="eventPicker">Choose an Event:</label>
   <select id="eventPicker">
-    <option value="">All Events</option>
-    {% assign seenEventIDs = "" | split: "," %}
-    {% for person in DataSet1 %}
-      {% unless seenEventIDs contains person.Event_ID %}
-        <option value="{{ person.Event_ID }}">
-          {{ person.Event_Title }} — {{ person.Event_Start_Date | date: "%-I:%M%p" }}
-        </option>
-        {% assign seenEventIDs = seenEventIDs | push: person.Event_ID %}
-      {% endunless %}
+    <option value="">-- Select Event --</option>
+    {% for event in DataSet1 %}
+      <option value="{{ event.Event_ID }}">
+        {{ event.Event_Title }} — {{ event.Event_Start_Date | date: "%-I:%M%p" }}
+      </option>
     {% endfor %}
   </select>
 </div>
 
-
 {% assign currentEventID = "" %}
-
-{% if DataSet1.size > 0 %}
-  {% for person in DataSet1 %}
+{% if DataSet2.size > 0 %}
+  {% for person in DataSet2 %}
     {% if person.Event_ID != currentEventID %}
       {% assign currentEventID = person.Event_ID %}
 
@@ -102,8 +96,7 @@
   <div class="empty-state">
     <h3>🔒 Data not found or user not authorized.</h3>
     <p>
-      Please ensure you're logged in with the correct role and parameters are set
-      correctly.
+      Please ensure you're logged in with the correct role and parameters are set correctly.
     </p>
   </div>
 {% endif %}
