@@ -3,6 +3,23 @@
   <input type="date" id="datePicker" />
 </div>
 
+<div class="event-picker-container">
+  <label for="eventPicker">Choose an Event:</label>
+  <select id="eventPicker">
+    <option value="">All Events</option>
+    {% assign seenEventIDs = "" | split: "," %}
+    {% for person in DataSet1 %}
+      {% unless seenEventIDs contains person.Event_ID %}
+        <option value="{{ person.Event_ID }}">
+          {{ person.Event_Title }} — {{ person.Event_Start_Date | date: "%-I:%M%p" }}
+        </option>
+        {% assign seenEventIDs = seenEventIDs | push: person.Event_ID %}
+      {% endunless %}
+    {% endfor %}
+  </select>
+</div>
+
+
 {% assign currentEventID = "" %}
 
 {% if DataSet1.size > 0 %}

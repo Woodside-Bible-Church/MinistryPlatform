@@ -19,7 +19,8 @@
     "@CongregationID",
     "@EventTypeID",
     "@ProgramID",
-    "@Date"
+    "@Date",
+    "@EventID"
   ];
   const urlParams = new URLSearchParams(window.location.search);
 
@@ -76,6 +77,7 @@
     // 🟢 Initialize the date picker *after* widget is fully rendered
     setTimeout(() => {
       initDatePicker();
+      initEventPicker(); // 👈 new
     }, 100);
   });
 
@@ -175,6 +177,31 @@
       );
       const formatted = formatDateToParam(picker.value);
       paramMap.set("Date", formatted);
+      applyParams(paramMap); // 🚀 rebuilds + re-inits
+    });
+  }
+
+  function initEventPicker() {
+    const picker = document.getElementById("eventPicker");
+    if (!picker) return;
+
+    const widget = document.getElementById(widgetId);
+    if (!widget) return;
+
+    const paramMap = parseParams(widget.getAttribute("data-params") || "");
+    const currentEventID = paramMap.get("EventID");
+
+    if (currentEventID) {
+      picker.value = currentEventID;
+    }
+
+    picker.addEventListener("change", () => {
+      const selectedEventID = picker.value;
+      if (selectedEventID) {
+        paramMap.set("EventID", selectedEventID);
+      } else {
+        paramMap.delete("EventID");
+      }
       applyParams(paramMap); // 🚀 rebuilds + re-inits
     });
   }
