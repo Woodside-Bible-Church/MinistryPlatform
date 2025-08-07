@@ -29,6 +29,10 @@ section > h3 {
   padding: 0.5em 2em;
 }
 
+.hidden {
+  display: none;
+}
+
 .titleHeadingContainer {
   text-align: center;
   display: flex;
@@ -1101,6 +1105,60 @@ li:has(.blur) {
   }
 }
 
+.search-select {
+  position: relative;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5em 1em;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+}
+
+.search-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0; /* 🔧 NEW: helps prevent clipping on the right */
+  width: auto; /* 🔧 override fixed width if needed */
+  max-width: 100%; /* 🔧 ensures it never overflows parent */
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  border-top: none;
+  background: white;
+  z-index: 1000;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  color: var(--primaryColor);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* 💄 optional */
+  box-sizing: border-box; /* 🔧 ensures padding stays inside max-width */
+}
+
+/* Upward flip */
+.search-options.flipped {
+  bottom: 100%;
+  top: auto;
+  border-top: 1px solid #ccc;
+  border-bottom: none;
+}
+
+.search-option {
+  padding: 0.75em 1em;
+  cursor: pointer;
+}
+
+.search-option:hover {
+  background-color: #f0f0f0;
+}
+
+.hidden {
+  display: none;
+}
+
 /* Start Loader */
 .loader-container {
   width: 100px;
@@ -1153,43 +1211,6 @@ li:has(.blur) {
   }
 }
 /* End Loader */
-
-/* DROPDOWNS FOR TEXT INPUT BOXES */
-.dropdown {
-  position: relative;
-  display: inline-block;
-  width: 200px;
-}
-
-.dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: white;
-  border: 1px solid #ccc;
-  width: 100%;
-  max-height: 150px;
-  overflow-y: auto;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-}
-
-.dropdown-content.show {
-  display: block;
-}
-
-.dropdown-content div {
-  padding: 8px;
-  cursor: pointer;
-}
-
-.dropdown-content div:hover {
-  background-color: #f1f1f1;
-}
-
-.hidden {
-  display: none;
-}
-/* END DROPDOWNS */
 
 @container (width < 900px) {
   .needHelpContainer {

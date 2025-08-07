@@ -107,7 +107,85 @@
     document.querySelectorAll(".loading-pill").forEach((el) => {
       el.classList.remove("loading-pill");
     });
+
+    // Custom dropdown filter logic (typeahead + selection)
+    document.querySelectorAll(".search-select").forEach((select) => {
+      const input = select.querySelector(".search-input");
+      const dropdown = select.querySelector(".search-options");
+      const options = dropdown.querySelectorAll(".search-option");
+      const rawFilterKey = select.dataset.filter || "";
+      const filterKey = rawFilterKey.replace(/^@+/, ""); // ✅ strip leading @
+
+      // Show dropdown when focused
+      input.addEventListener("focus", () => {
+        adjustDropdownPosition(dropdown, input); // ✅ call BEFORE showing
+        dropdown.classList.remove("hidden");
+        filterOptions("");
+      });
+
+      // Hide dropdown when clicking outside
+      document.addEventListener("click", (e) => {
+        if (!select.contains(e.target)) {
+          dropdown.classList.add("hidden");
+        }
+      });
+
+      // Filter options as user types
+      input.addEventListener("input", () => {
+        filterOptions(input.value);
+      });
+
+      function filterOptions(query) {
+        const lower = query.toLowerCase();
+        options.forEach((option) => {
+          const text = option.dataset.text.toLowerCase();
+          option.style.display = text.includes(lower) ? "block" : "none";
+        });
+      }
+
+      // When user clicks an option
+      options.forEach((option) => {
+        option.addEventListener("click", () => {
+          const id = option.dataset.id;
+          const text = option.dataset.text;
+
+          input.value = ""; // optional: clear input after selection
+          dropdown.classList.add("hidden");
+
+          const widget = document.getElementById("GroupFinderWidget");
+          if (!widget) return;
+
+          let paramMap = parseParams(widget.getAttribute("data-params") || "");
+          let existing = paramMap.get(filterKey) || "";
+
+          // Build new comma-separated list (without duplicates)
+          const items = existing
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+          if (!items.includes(id)) {
+            items.push(id);
+          }
+
+          paramMap.set(filterKey, items.join(","));
+          applyParams(paramMap);
+          ReInitWidget("GroupFinderWidget");
+        });
+      });
+    });
   });
+
+  function adjustDropdownPosition(dropdown, input) {
+    const rect = input.getBoundingClientRect();
+    const midpoint = window.innerHeight / 2;
+
+    if (rect.top > midpoint) {
+      dropdown.classList.add("flipped");
+    } else {
+      dropdown.classList.remove("flipped");
+    }
+  }
 
   function cleanMap(map) {
     for (let [k, v] of map) {
@@ -170,7 +248,17 @@
     let paramMap = parseParams(widget.getAttribute("data-params") || "");
 
     if (action === "remove") {
-      paramMap.delete(filter);
+      const current = paramMap.get(filter) || "";
+      const updated = current
+        .split(",")
+        .map((s) => s.trim())
+        .filter((val) => val !== id);
+
+      if (updated.length) {
+        paramMap.set(filter, updated.join(","));
+      } else {
+        paramMap.delete(filter);
+      }
     } else if (action === "add" && filter && id && id.trim() !== "") {
       paramMap.set(filter, id);
     }

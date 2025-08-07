@@ -1,3 +1,12 @@
+{% assign hideDaysOfWeek = false %} {% assign dayFilter = Filters | where:
+"Filter", "@DaysOfWeek" | first %} {% if dayFilter and dayFilter.Selected %} {%
+assign selectedDaysArray = dayFilter.Selected | split: ", " | sort %} {% assign
+allDaysArray = "Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday" |
+split: "," | sort %} {% assign selectedDaysJoined = selectedDaysArray | join:
+"," %} {% assign allDaysJoined = allDaysArray | join: "," %} {% if
+selectedDaysJoined == allDaysJoined %} {% assign hideDaysOfWeek = true %} {%
+endif %} {% endif %}
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -14,13 +23,6 @@
   <body>
     <section id="groupFinder" class="groupFinderContainer">
       <h1 class="sectionHeading">{{ Settings.Finder_Title }}</h1>
-
-      {% assign hideDaysOfWeek = false %} {% assign dayFilter = Filters | where:
-      "Filter", "@DaysOfWeek" | first %} {% if dayFilter %} {% assign
-      allDaysSelected = true %} {% for day in dayFilter.Options %} {% if
-      day.Selected != true %} {% assign allDaysSelected = false %} {% endif %}
-      {% endfor %} {% if allDaysSelected %} {% assign hideDaysOfWeek = true %}
-      {% endif %} {% endif %}
 
       <div class="filterContainer">
         <div class="left">
@@ -116,28 +118,21 @@
               {% endfor %}
             </select>
             {% elsif filter.Type == "MultiSelect" %}
-            <div class="multiSelectDropdown">
+            <div class="search-select" data-filter="{{ filter.Filter }}">
               <input
                 type="text"
-                class="multiSelectInput"
-                placeholder="Search..."
+                class="search-input"
+                placeholder="Search for a leader"
+                autocomplete="off"
               />
-              <ul class="multiSelectOptions">
+              <ul class="search-options hidden">
                 {% for option in filter.Options %}
-                <li>
-                  <a
-                    class="filterBtn"
-                    data-filter="{{ filter.Filter }}"
-                    data-id="{{ option.ID | default: option.Text }}"
-                    data-action="{% if option.Selected %}remove{% else %}add{% endif %}"
-                  >
-                    {{ option.Text }}
-                    <span class="blur">
-                      <i
-                        class="fas fa-{% if option.Selected %}trash{% else %}plus{% endif %}"
-                      ></i>
-                    </span>
-                  </a>
+                <li
+                  class="search-option"
+                  data-id="{{ option.ID }}"
+                  data-text="{{ option.Text }}"
+                >
+                  {{ option.Text }}
                 </li>
                 {% endfor %}
               </ul>
