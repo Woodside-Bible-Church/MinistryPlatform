@@ -3,24 +3,24 @@
   --secondaryColor: #62bb46;
 }
 
-* {
+#groupFinder {
   font-family: Montserrat, Helvetica, Arial, sans-serif;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+#groupFinder h1,
+#groupFinder h2,
+#groupFinder h3,
+#groupFinder h4,
+#groupFinder h5,
+#groupFinder h6 {
   text-transform: uppercase;
 }
 
-section > h3 {
+#groupFinder section > h3 {
   margin: 1em 0;
 }
 
-.btn {
+#groupFinder .btn {
   color: #ffffff;
   background-color: var(--secondaryColor);
   border-radius: 0;
@@ -33,7 +33,7 @@ section > h3 {
   display: none;
 }
 
-.titleHeadingContainer {
+#groupFinder .titleHeadingContainer {
   text-align: center;
   display: flex;
   gap: 0.5em;
@@ -961,13 +961,6 @@ li:has(.blur) {
 .filterGroup .filterSearch::placeholder {
   color: #888aa9;
 }
-
-/* NOT WORKING WANT TO ADD DOWN CARET TO DROP DOWN
-#filterMenu > #filterForm > select:after {
-    content: "\f0d7";
-    font-family: "Font Awesome 5 Free";
-}
-*/
 
 #filterMenu > #filterForm > fieldset {
   display: flex;
