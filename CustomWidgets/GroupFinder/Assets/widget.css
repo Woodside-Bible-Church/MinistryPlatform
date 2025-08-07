@@ -956,6 +956,7 @@ li:has(.blur) {
   background-color: #fff;
   color: #888aa9;
   padding: 0.25rem 0.75rem;
+  font-size: 1rem;
 }
 
 .filterGroup .filterSearch::placeholder {
