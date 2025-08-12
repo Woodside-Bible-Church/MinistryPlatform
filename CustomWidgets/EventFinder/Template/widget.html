@@ -1,12 +1,14 @@
 <div class="event-finder">
-  {% for event in Events %}
+  {% for event in Events %} {% assign dates = event.Dates %} {% assign dateCount
+  = dates | size %} {% assign first = dates[0] %}
+
   <div class="event-card">
     <div
       class="event-image"
-      style="background-image: url('{{ event.Image }}');"
+      style="background-image: url('{{ first.Image }}');"
     >
-      {% if event.Badge %}
-      <div class="event-badge">{{ event.Badge }}</div>
+      {% if first.Badge %}
+      <div class="event-badge">{{ first.Badge }}</div>
       {% endif %}
       <a class="event-share-button">
         <i class="fas fa-share"></i>
@@ -15,28 +17,59 @@
 
     <div class="event-content">
       <div class="event-title">{{ event.Title }}</div>
+
       <div class="event-meta">
         <i class="fas fa-calendar-alt"></i>
         <div>
-          {{ event.Start | date: "%A, %B %-d at %-I:%M%p" }} {% if event.End
-          %}&ndash; {{ event.End | date: "%-I:%M%p" }}{% endif %}
+          {{ first.Start | date: "%A, %B %-d at %-I:%M%p" }} {% if first.End
+          %}&ndash; {{ first.End | date: "%-I:%M%p" }}{% endif %} {% if
+          dateCount > 1 %} &nbsp;&nbsp;<span class="event-more-dates"
+            >{{ dateCount }} dates</span
+          >
+          {% endif %}
         </div>
+
         <i class="fas fa-map-marker-alt"></i>
         <div>
-          {{ event.Location.Name }}, {{ event.Location.Address.Line_1 }}
+          {{ first.Location.Name }}{% if first.Location.Address.Line_1 %}, {{
+          first.Location.Address.Line_1 }}{% endif %}
         </div>
       </div>
-      <div class="event-description clamp-5">{{ event.Description }}</div>
+
+      {% if first.Description %}
+      <div class="event-description clamp-5">{{ first.Description }}</div>
+      {% endif %} {% if dateCount > 1 %}
+      <details class="event-dates">
+        <summary>See all dates</summary>
+        <ul>
+          {% for d in dates %}
+          <li class="event-date-row">
+            <div class="event-date-row__when">
+              {{ d.Start | date: "%a, %b %-d, %Y %-I:%M%p" }} {% if d.End
+              %}&ndash; {{ d.End | date: "%-I:%M%p" }}{% endif %}
+            </div>
+            <div class="event-date-row__actions">
+              {% for button in d.Buttons %}
+              <a class="btn" href="{{ button.URL }}">{{ button.Text }}</a>
+              {% endfor %}
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </details>
+      {% endif %}
     </div>
 
+    {% if first.Tags %}
     <ul class="event-tags">
-      {% for tag in event.Tags %}
+      {% for tag in first.Tags %}
       <li><span class="filterBtn">{{ tag.Text }}</span></li>
       {% endfor %}
     </ul>
+    {% endif %}
 
     <div class="event-buttons">
-      {% for button in event.Buttons %}
+      {% for button in first.Buttons %}
       <a href="{{ button.URL }}">{{ button.Text }}</a>
       {% endfor %}
     </div>

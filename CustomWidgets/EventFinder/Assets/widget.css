@@ -78,6 +78,7 @@ h4 {
   text-decoration: none;
   opacity: 0.8;
 }
+
 .event-content {
   flex-grow: 1;
   padding: 1rem;
@@ -103,13 +104,87 @@ h4 {
   gap: 0.25em 0.75em;
 }
 
+.event-more-dates {
+  display: inline-block;
+  background: var(--secondaryColor);
+  color: #fff;
+  font-size: 0.65rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
 .event-description {
   font-size: 0.95rem;
   color: #333;
   display: -webkit-box;
-  -webkit-line-clamp: 6; /* Change this number to limit lines */
+  -webkit-line-clamp: 6;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Multi-date details section */
+.event-dates {
+  margin-top: 0.5rem;
+  max-height: 300px;
+  overflow-y: scroll;
+
+  /* Hide scrollbar for Chrome, Safari, and Edge */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.event-dates::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Edge */
+}
+.event-dates summary {
+  position: sticky; /* <-- key */
+  top: 0;
+  z-index: 2;
+  background: #fff; /* so content doesn’t show through */
+  padding: 0.35rem 0;
+  font-weight: 600;
+  color: var(--primaryColor);
+}
+
+/* optional: only apply sticky when the details is open */
+.event-dates:not([open]) summary {
+  position: static;
+}
+
+/* tidy the list */
+.event-dates > ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.event-date-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #eee;
+  font-size: 0.9rem;
+}
+
+.event-date-row:last-child {
+  border-bottom: none;
+}
+
+.event-date-row__when {
+  flex: 1;
+  margin-right: 0.75rem;
+}
+
+.event-date-row__actions .btn {
+  background: var(--secondaryColor);
+  color: #fff;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.75rem;
+  text-decoration: none;
+  border-radius: 3px;
+  white-space: nowrap;
 }
 
 /* Tags */
