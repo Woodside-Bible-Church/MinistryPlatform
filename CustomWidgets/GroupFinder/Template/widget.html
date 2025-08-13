@@ -122,7 +122,7 @@ endif %} {% endif %}
               <input
                 type="text"
                 class="search-input"
-                placeholder="Search for a leader"
+                placeholder="Search for a {{ filter.Label | downcase }}"
                 autocomplete="off"
               />
               <ul class="search-options hidden">
