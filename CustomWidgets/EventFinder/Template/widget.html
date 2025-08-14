@@ -1,61 +1,74 @@
 <div class="event-finder">
-  {% for event in Events %} {% assign dates = event.Dates %} {% assign
-  first_date = dates[0] %} {% assign first = first_date.Occurrences[0] %} {%-
-  assign occ_total = 0 -%} {% for d in dates %} {% assign occ_total = occ_total
-  | plus: d.Occurrences.size %} {% endfor %}
+  {% for event in Events %} {% assign ds = event.DateSummary %} {% assign
+  occ_total = ds.TotalOccurrences | default: 0 %} {%- comment -%} Card image:
+  event.Image (from SQL overrides) → Information.Default16x9Image → local asset
+  {%- endcomment -%} {% assign hero = event.Image | default:
+  Information.Default16x9Image | default:
+  '/CustomWidgets/EventFinder/Assets/W_16x9.png' %}
 
   <div class="event-card">
-    <div class="event-image" style="background-image:url('{{ first.Image }}');">
-      {% if first.Badge %}
-      <div class="event-badge">{{ first.Badge }}</div>
-      {% endif %}
-      <a class="event-share-button"><i class="fas fa-share"></i></a>
-    </div>
+    <div class="event-image" style="background-image:url('{{ hero }}');"></div>
 
     <div class="event-content">
+      {% if event.Title %}
       <div class="event-title">{{ event.Title }}</div>
-
+      {% endif %}
       <div class="event-meta">
         <i class="fas fa-calendar-alt"></i>
         <div>
-          {%- comment -%} If multiple times on the first date, show date only
-          {%- endcomment -%} {% if first_date.HasMultipleTimes %} {{
-          first_date.Date | date: "%A, %B %-d" }} {% else %} {{ first.Start |
-          date: "%A, %B %-d at %-I:%M%p" }} {% if first.End %}&ndash; {{
-          first.End | date: "%-I:%M%p" }}{% endif %} {% endif %} {% if occ_total
-          > 1 %} &nbsp;&nbsp;<span class="event-more-dates"
-            >{{ occ_total }} dates</span
-          >
-          {% endif %}
+          {% if ds.HasMultipleTimesOnFirstDate %} {{ ds.FirstStart | date: "%A,
+          %B %-d" }} {% else %} {{ ds.FirstStart | date: "%A, %B %-d at
+          %-I:%M%p" }} {% if ds.FirstEnd %}&ndash; {{ ds.FirstEnd | date:
+          "%-I:%M%p" }}{% endif %} {% endif %}
         </div>
 
+        {% if event.Campus and event.Campus.Name %}
+        <i class="fas fa-place-of-worship" aria-hidden="true"></i>
+        <div>{{ event.Campus.Name }}</div>
+        {% endif %} {% if event.Location and event.Location.Name %}
         <i class="fas fa-map-marker-alt"></i>
-        <div>
-          {% if event.Location.Name == 'Multiple Locations' %} Multiple
-          Locations {% else %} {{ event.Location.Name }} {% if
-          event.Location.Address and event.Location.Address.Line_1 %} , {{
-          event.Location.Address.Line_1 }} {% endif %} {% endif %}
-        </div>
+        <div>{{ event.Location.Name }}</div>
+        {% endif %}
       </div>
 
-      {% if first.Description %}
-      <div class="event-description clamp-5">{{ first.Description }}</div>
-      {% endif %} {% if occ_total > 1 %}
+      {% if event.Description %}
+      <div class="event-description clamp-5">{{ event.Description }}</div>
+      {% endif %}{% if event.Dates and event.Dates.size > 0 and occ_total > 1 %}
       <details class="event-dates">
-        <summary>See all dates</summary>
-        {% for d in dates %}
+        <summary>See all {{ occ_total }} dates</summary>
+
+        {% for d in event.Dates %} {% assign localDate = d.Date | append:
+        "T12:00:00" %}
         <h4 class="event-date-heading">
-          {{ d.Date | date: "%a, %b %-d, %Y" }}
+          <i class="fas fa-calendar-alt"></i>{{ localDate | date: "%a, %b %-d,
+          %Y" }}
         </h4>
         <ul>
           {% for o in d.Occurrences %}
           <li class="event-date-row">
+            {% if o.Title %}
+            <h5 class="occ-title">{{ o.Title }}</h5>
+            {% endif %}
+
             <div class="event-date-row__when">
-              {{ o.Campus.Name }} &bull; {{ o.Start | date: "%-I:%M%p" }}{% if
-              o.End %} &ndash; {{ o.End | date: "%-I:%M%p" }}{% endif %} {% if
-              o.Location and o.Location.Address and o.Location.Address.Line_1 %}
-              <br />{{ o.Location.Address.Line_1 }} {% endif %}
+              {% if o.Campus and o.Campus.Name %}
+              <i class="fas fa-place-of-worship" aria-hidden="true"></i>
+              <div class="occ-campus">{{ o.Campus.Name }}</div>
+              {% endif %}
+
+              <i class="fas fa-clock" aria-hidden="true"></i>
+              <div class="occ-time">
+                {{ o.Start | date: "%-I:%M%p" }}{% if o.End %} – {{ o.End |
+                date: "%-I:%M%p" }}{% endif %}
+              </div>
+
+              {% if o.Location and o.Location.Address %} {% assign addr =
+              o.Location.Address %}
+              <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+              <div class="occ-address">{{ event.Location.Name }}</div>
+              {% endif %}
             </div>
+
             <div class="event-date-row__actions">
               {% for button in o.Buttons %}
               <a class="btn" href="{{ button.URL }}">{{ button.Text }}</a>
@@ -69,19 +82,13 @@
       {% endif %}
     </div>
 
-    {% if first.Tags %}
-    <ul class="event-tags">
-      {% for tag in first.Tags %}
-      <li><span class="filterBtn">{{ tag.Text }}</span></li>
-      {% endfor %}
-    </ul>
-    {% endif %}
-
+    {% if event.Buttons and event.Buttons.size > 0 %}
     <div class="event-buttons">
-      {% for button in first.Buttons %}
+      {% for button in event.Buttons %}
       <a href="{{ button.URL }}">{{ button.Text }}</a>
       {% endfor %}
     </div>
+    {% endif %}
   </div>
   {% endfor %}
 </div>

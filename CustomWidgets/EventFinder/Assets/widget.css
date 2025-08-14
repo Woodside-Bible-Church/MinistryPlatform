@@ -1,8 +1,29 @@
+/* ===========================
+   Theme variables
+   =========================== */
 :root {
-  --primaryColor: #1c2b39;
-  --secondaryColor: #62bb46;
+  /* Colors */
+  --primary: #1c2b39;
+  --secondary: #62bb46;
+  --text-muted: #333;
+  --card-bg: #fff;
+  --border: #dcdcdc;
+
+  /* Layout */
+  --radius: 0; /* square buttons/cards by default */
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --gap-lg: 2rem;
+  --gap-md: 0.75rem;
+  --gap-sm: 0.5rem;
+
+  /* Typography */
+  --title-size: 1.25rem;
+
+  /* Sticky headings inside details */
+  --sticky-offset: 2rem; /* ≈ summary height; tweak as needed */
 }
 
+/* Global font */
 * {
   font-family: Montserrat, Helvetica, Arial, sans-serif;
 }
@@ -15,7 +36,6 @@ h5,
 h6 {
   text-transform: uppercase;
 }
-
 h4 {
   margin-bottom: 0.25em;
 }
@@ -24,89 +44,103 @@ h4 {
   display: none;
 }
 
+/* ===========================
+   Grid of event cards
+   =========================== */
 .event-finder {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 2rem;
+  gap: var(--gap-lg);
 }
 
+/* ===========================
+   Event card
+   =========================== */
 .event-card {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background: #fff;
-  border: 1px solid #dcdcdc;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   position: relative;
   line-height: 1.5;
 }
 
 .event-image {
   position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
   background-size: cover;
   background-position: center;
-  aspect-ratio: 16 / 9;
-  width: 100%;
 }
 
+/* Small badge in the image corner */
 .event-badge {
   position: absolute;
-  top: 0rem;
-  left: 0rem;
-  background: var(--secondaryColor);
-  color: white;
+  top: 0;
+  left: 0;
+  background: var(--secondary);
+  color: #fff;
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
   opacity: 0.8;
   z-index: 1;
 }
 
+/* Share button (optional) */
 .event-share-button {
   position: absolute;
   top: 0;
   right: 0;
   width: 25px;
   height: 25px;
-  background-color: #c1c1c1;
-  color: #ffffff;
-  text-align: center;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: "Font Awesome 5 Free";
+  place-content: center;
+  place-items: center;
+  background-color: #c1c1c1;
+  color: #fff;
   text-decoration: none;
   opacity: 0.8;
 }
 
+/* Card body */
 .event-content {
   flex-grow: 1;
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--gap-md);
 }
 
 .event-title {
-  font-size: 1.25rem;
+  font-size: var(--title-size);
   font-weight: 700;
 }
 
+/* Icon color inside content */
 .event-content .fas {
-  margin-right: 0.5rem;
-  color: var(--primaryColor);
+  color: var(--primary);
 }
 
+/* Meta rows at the top of the card: icon | text grid */
 .event-meta {
   display: grid;
-  grid-template-columns: max-content auto;
+  grid-template-columns: max-content 1fr;
   align-items: center;
-  gap: 0.25em 0.75em;
+  row-gap: var(--gap-sm);
+  column-gap: var(--gap-md);
+}
+.event-meta > i {
+  line-height: 1;
+  text-align: center;
 }
 
+/* Optional pill (kept for reuse) */
 .event-more-dates {
   display: inline-block;
-  background: var(--secondaryColor);
+  background: var(--secondary);
   color: #fff;
   font-size: 0.65rem;
   padding: 0.15rem 0.4rem;
@@ -114,93 +148,137 @@ h4 {
   vertical-align: middle;
 }
 
+/* Clamp long descriptions */
 .event-description {
   font-size: 0.95rem;
-  color: #333;
+  color: var(--text-muted);
   display: -webkit-box;
   -webkit-line-clamp: 6;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-/* Multi-date details section */
+/* ===========================
+   “See all dates” panel
+   =========================== */
 .event-dates {
   margin-top: 0.5rem;
   max-height: 300px;
-  overflow-y: scroll;
+  overflow-y: auto;
 
-  /* Hide scrollbar for Chrome, Safari, and Edge */
+  /* hide scrollbars where possible */
   scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  -ms-overflow-style: none; /* IE/Edge legacy */
 }
-
 .event-dates::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, and Edge */
-}
-.event-dates summary {
-  position: sticky; /* <-- key */
-  top: 0;
-  z-index: 2;
-  background: #fff; /* so content doesn’t show through */
-  padding: 0.35rem 0;
-  font-weight: 600;
-  color: var(--primaryColor);
+  display: none;
 }
 
-/* optional: only apply sticky when the details is open */
+/* Sticky summary at the very top */
+.event-dates summary {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #fff;
+  padding: 0.4rem 0;
+  font-weight: 600;
+  color: var(--primary);
+}
+/* Optional: disable sticky when closed */
 .event-dates:not([open]) summary {
   position: static;
 }
 
-/* tidy the list */
+/* Each date heading sticks just below the summary */
+.event-date-heading {
+  position: sticky;
+  top: var(--sticky-offset);
+  z-index: 2;
+  background: #fff;
+  margin: 0;
+  padding: 0.4rem 0 0.35rem;
+  box-shadow: 0 1px 0 #eee; /* subtle divider when stuck */
+}
+
+.event-date-heading > i {
+  margin-right: var(--gap-md);
+}
+
+/* Tidy list */
 .event-dates > ul {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
+/* ===========================
+   Date rows (inside details)
+   =========================== */
 .event-date-row {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.4rem 0;
+  flex-direction: column;
+  gap: var(--gap-sm);
+  padding: 0.75rem 0;
   border-bottom: 1px solid #eee;
-  font-size: 0.9rem;
 }
-
 .event-date-row:last-child {
   border-bottom: none;
 }
 
+/* Optional title line per occurrence */
+.occ-title {
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Icon | text grid for campus / time / address */
 .event-date-row__when {
-  flex: 1;
-  margin-right: 0.75rem;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  align-items: center;
+  column-gap: var(--gap-sm);
+  row-gap: 0.25rem;
+}
+.event-date-row__when > i {
+  color: var(--primary);
+  line-height: 1;
+  text-align: center;
 }
 
+/* Right-side actions */
+.event-date-row__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  width: 100%;
+}
 .event-date-row__actions .btn {
-  background: var(--secondaryColor);
   color: #fff;
-  padding: 0.4rem 0.75rem;
-  font-size: 0.75rem;
+  background-color: var(--secondary);
+  border-radius: var(--radius);
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0.75em 2em;
+  font-size: 0.85em;
   text-decoration: none;
-  border-radius: 3px;
-  white-space: nowrap;
+  flex: 1;
+  text-align: center;
 }
 
-/* Tags */
+/* ===========================
+   Tags
+   =========================== */
 .event-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--gap-sm);
   padding: 0 1rem;
   margin: 1rem 0;
   list-style: none;
 }
-
 .event-tags::-webkit-scrollbar {
   display: none;
 }
-
 .event-tags li {
   flex: 0 0 auto;
 }
@@ -208,26 +286,27 @@ h4 {
 .filterBtn {
   font-size: 0.75rem;
   text-decoration: none;
-  color: var(--primaryColor);
+  color: var(--primary);
   background-color: #e4e7ea;
   padding: 0.5em 1em;
   border-radius: 100px;
   white-space: nowrap;
 }
 
-/* Buttons */
+/* ===========================
+   Card footer buttons
+   =========================== */
 .event-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--gap-sm);
   padding: 0 1rem 1rem;
   justify-content: flex-end;
 }
-
 .event-buttons a {
-  color: #ffffff;
-  background-color: var(--secondaryColor);
-  border-radius: 0;
+  color: #fff;
+  background-color: var(--secondary);
+  border-radius: var(--radius);
   text-transform: uppercase;
   font-weight: 600;
   padding: 0.75em 2em;
