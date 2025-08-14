@@ -33,52 +33,6 @@
 
       {% if event.Description %}
       <div class="event-description clamp-5">{{ event.Description }}</div>
-      {% endif %}{% if event.Dates and event.Dates.size > 0 and occ_total > 1 %}
-      <details class="event-dates">
-        <summary>See all {{ occ_total }} dates</summary>
-
-        {% for d in event.Dates %} {% assign localDate = d.Date | append:
-        "T12:00:00" %}
-        <h4 class="event-date-heading">
-          <i class="fas fa-calendar-alt"></i>{{ localDate | date: "%a, %b %-d,
-          %Y" }}
-        </h4>
-        <ul>
-          {% for o in d.Occurrences %}
-          <li class="event-date-row">
-            {% if o.Title %}
-            <h5 class="occ-title">{{ o.Title }}</h5>
-            {% endif %}
-
-            <div class="event-date-row__when">
-              {% if o.Campus and o.Campus.Name %}
-              <i class="fas fa-place-of-worship" aria-hidden="true"></i>
-              <div class="occ-campus">{{ o.Campus.Name }}</div>
-              {% endif %}
-
-              <i class="fas fa-clock" aria-hidden="true"></i>
-              <div class="occ-time">
-                {{ o.Start | date: "%-I:%M%p" }}{% if o.End %} – {{ o.End |
-                date: "%-I:%M%p" }}{% endif %}
-              </div>
-
-              {% if o.Location and o.Location.Address %} {% assign addr =
-              o.Location.Address %}
-              <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
-              <div class="occ-address">{{ event.Location.Name }}</div>
-              {% endif %}
-            </div>
-
-            <div class="event-date-row__actions">
-              {% for button in o.Buttons %}
-              <a class="btn" href="{{ button.URL }}">{{ button.Text }}</a>
-              {% endfor %}
-            </div>
-          </li>
-          {% endfor %}
-        </ul>
-        {% endfor %}
-      </details>
       {% endif %}
     </div>
 
@@ -88,6 +42,52 @@
       <a href="{{ button.URL }}">{{ button.Text }}</a>
       {% endfor %}
     </div>
+    {% endif %} {% if event.Dates and event.Dates.size > 0 and occ_total > 1 %}
+    <details class="event-dates">
+      <summary>See all {{ occ_total }} dates</summary>
+
+      {% for d in event.Dates %} {% assign localDate = d.Date | append:
+      "T12:00:00" %}
+      <h4 class="event-date-heading">
+        <i class="fas fa-calendar-alt"></i>{{ localDate | date: "%a, %b %-d, %Y"
+        }}
+      </h4>
+      <ul>
+        {% for o in d.Occurrences %}
+        <li class="event-date-row">
+          {% if o.Title %}
+          <h5 class="occ-title">{{ o.Title }}</h5>
+          {% endif %}
+
+          <div class="event-date-row__when">
+            {% if o.Campus and o.Campus.Name %}
+            <i class="fas fa-place-of-worship" aria-hidden="true"></i>
+            <div class="occ-campus">{{ o.Campus.Name }}</div>
+            {% endif %}
+
+            <i class="fas fa-clock" aria-hidden="true"></i>
+            <div class="occ-time">
+              {{ o.Start | date: "%-I:%M%p" }}{% if o.End %} – {{ o.End | date:
+              "%-I:%M%p" }}{% endif %}
+            </div>
+
+            {% if o.Location and o.Location.Address %} {% assign addr =
+            o.Location.Address %}
+            <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+            <div class="occ-address">{{ event.Location.Name }}</div>
+            {% endif %}
+          </div>
+
+          <div class="event-date-row__actions">
+            {% for button in o.Buttons %}
+            <a class="btn" href="{{ button.URL }}">{{ button.Text }}</a>
+            {% endfor %}
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endfor %}
+    </details>
     {% endif %}
   </div>
   {% endfor %}

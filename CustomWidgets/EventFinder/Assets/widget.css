@@ -1,16 +1,17 @@
-/* ===========================
+/* =========================================
    Theme variables
-   =========================== */
+   ========================================= */
 :root {
   /* Colors */
   --primary: #1c2b39;
   --secondary: #62bb46;
+  --text: #111;
   --text-muted: #333;
   --card-bg: #fff;
   --border: #dcdcdc;
 
   /* Layout */
-  --radius: 0; /* square buttons/cards by default */
+  --radius: 0; /* square corners by default */
   --shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   --gap-lg: 2rem;
   --gap-md: 0.75rem;
@@ -19,8 +20,8 @@
   /* Typography */
   --title-size: 1.25rem;
 
-  /* Sticky headings inside details */
-  --sticky-offset: 2rem; /* ≈ summary height; tweak as needed */
+  /* Sticky headings (should roughly match summary height) */
+  --sticky-offset: 2rem;
 }
 
 /* Global font */
@@ -39,23 +40,22 @@ h6 {
 h4 {
   margin-bottom: 0.25em;
 }
-
 .hidden {
   display: none;
 }
 
-/* ===========================
+/* =========================================
    Grid of event cards
-   =========================== */
+   ========================================= */
 .event-finder {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: var(--gap-lg);
 }
 
-/* ===========================
+/* =========================================
    Event card
-   =========================== */
+   ========================================= */
 .event-card {
   display: flex;
   flex-direction: column;
@@ -66,17 +66,18 @@ h4 {
   overflow: hidden;
   position: relative;
   line-height: 1.5;
+  color: var(--text);
 }
 
 .event-image {
-  position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
   background-size: cover;
   background-position: center;
+  position: relative;
 }
 
-/* Small badge in the image corner */
+/* Badge in image corner (optional) */
 .event-badge {
   position: absolute;
   top: 0;
@@ -99,13 +100,12 @@ h4 {
   display: flex;
   place-content: center;
   place-items: center;
-  background-color: #c1c1c1;
+  background: #c1c1c1;
   color: #fff;
   text-decoration: none;
   opacity: 0.8;
 }
 
-/* Card body */
 .event-content {
   flex-grow: 1;
   padding: 1rem;
@@ -119,25 +119,27 @@ h4 {
   font-weight: 700;
 }
 
-/* Icon color inside content */
+/* =========================================
+   Event meta (icon | text rows)
+   ========================================= */
 .event-content .fas {
   color: var(--primary);
 }
 
-/* Meta rows at the top of the card: icon | text grid */
 .event-meta {
   display: grid;
-  grid-template-columns: max-content 1fr;
-  align-items: center;
+  grid-template-columns: max-content 1fr; /* icon | text */
+  align-items: center; /* center icons vertically */
   row-gap: var(--gap-sm);
   column-gap: var(--gap-md);
 }
 .event-meta > i {
   line-height: 1;
   text-align: center;
+  align-self: center; /* ensure perfect vertical centering per-row */
 }
 
-/* Optional pill (kept for reuse) */
+/* Pill (kept for reuse if needed) */
 .event-more-dates {
   display: inline-block;
   background: var(--secondary);
@@ -158,23 +160,25 @@ h4 {
   overflow: hidden;
 }
 
-/* ===========================
-   “See all dates” panel
-   =========================== */
+/* =========================================
+   “See all dates” details (sticky headings)
+   ========================================= */
 .event-dates {
-  margin-top: 0.5rem;
-  max-height: 300px;
-  overflow-y: auto;
+  max-height: 300px; /* the scroll container is the <details> */
+  overflow-y: auto; /* required for sticky to work inside */
+  padding: 1rem;
+  padding-top: 0;
+  margin-top: 1rem;
 
   /* hide scrollbars where possible */
   scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge legacy */
+  -ms-overflow-style: none; /* old IE/Edge */
 }
 .event-dates::-webkit-scrollbar {
   display: none;
 }
 
-/* Sticky summary at the very top */
+/* summary stays at the very top when open */
 .event-dates summary {
   position: sticky;
   top: 0;
@@ -183,37 +187,41 @@ h4 {
   padding: 0.4rem 0;
   font-weight: 600;
   color: var(--primary);
+  font-size: 0.85rem;
 }
-/* Optional: disable sticky when closed */
+/* optionally disable sticky look when closed */
 .event-dates:not([open]) summary {
   position: static;
 }
 
-/* Each date heading sticks just below the summary */
+.event-dates[open] {
+  margin-bottom: 2rem;
+}
+
+/* each date heading sticks just below the summary */
 .event-date-heading {
   position: sticky;
   top: var(--sticky-offset);
-  z-index: 2;
+  z-index: 2; /* under summary, over rows */
   background: #fff;
   margin: 0;
   padding: 0.4rem 0 0.35rem;
   box-shadow: 0 1px 0 #eee; /* subtle divider when stuck */
 }
-
 .event-date-heading > i {
   margin-right: var(--gap-md);
 }
 
-/* Tidy list */
+/* tidy list */
 .event-dates > ul {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-/* ===========================
+/* =========================================
    Date rows (inside details)
-   =========================== */
+   ========================================= */
 .event-date-row {
   display: flex;
   flex-direction: column;
@@ -225,13 +233,12 @@ h4 {
   border-bottom: none;
 }
 
-/* Optional title line per occurrence */
 .occ-title {
   font-weight: 700;
   margin: 0;
 }
 
-/* Icon | text grid for campus / time / address */
+/* icon | text grid for campus / time / address lines */
 .event-date-row__when {
   display: grid;
   grid-template-columns: max-content 1fr;
@@ -243,9 +250,10 @@ h4 {
   color: var(--primary);
   line-height: 1;
   text-align: center;
+  align-self: center;
 }
 
-/* Right-side actions */
+/* right-side actions */
 .event-date-row__actions {
   display: flex;
   align-items: center;
@@ -254,7 +262,7 @@ h4 {
 }
 .event-date-row__actions .btn {
   color: #fff;
-  background-color: var(--secondary);
+  background: var(--secondary);
   border-radius: var(--radius);
   text-transform: uppercase;
   font-weight: 600;
@@ -265,9 +273,9 @@ h4 {
   text-align: center;
 }
 
-/* ===========================
+/* =========================================
    Tags
-   =========================== */
+   ========================================= */
 .event-tags {
   display: flex;
   flex-wrap: wrap;
@@ -287,25 +295,25 @@ h4 {
   font-size: 0.75rem;
   text-decoration: none;
   color: var(--primary);
-  background-color: #e4e7ea;
+  background: #e4e7ea;
   padding: 0.5em 1em;
   border-radius: 100px;
   white-space: nowrap;
 }
 
-/* ===========================
+/* =========================================
    Card footer buttons
-   =========================== */
+   ========================================= */
 .event-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: var(--gap-sm);
-  padding: 0 1rem 1rem;
+  padding: 0 1rem;
   justify-content: flex-end;
 }
 .event-buttons a {
   color: #fff;
-  background-color: var(--secondary);
+  background: var(--secondary);
   border-radius: var(--radius);
   text-transform: uppercase;
   font-weight: 600;
