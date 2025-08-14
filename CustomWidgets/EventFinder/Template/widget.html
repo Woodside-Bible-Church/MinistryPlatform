@@ -1,6 +1,5 @@
-{% assign vercelFallback =
-"https://event-finder-alpha.vercel.app/Assets/W_16x9.png" %} {% assign hero =
-event.Image | default: Information.Default16x9Image | default: vercelFallback %}
+{% assign hero = event.Image | default: Information.Default16x9Image | default:
+'https://event-finder-alpha.vercel.app/Assets/W_16x9.png' %}
 
 <div class="event-finder">
   {% for event in Events %} {% assign ds = event.DateSummary %} {% assign
