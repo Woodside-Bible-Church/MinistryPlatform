@@ -1,6 +1,3 @@
-{% assign hero = event.Image | default: Information.Default16x9Image | default:
-'https://event-finder-alpha.vercel.app/Assets/W_16x9.png' %}
-
 <div class="event-finder">
   {% for event in Events %} {% assign ds = event.DateSummary %} {% assign
   occ_total = ds.TotalOccurrences | default: 0 %} {%- comment -%} Card image:
@@ -10,7 +7,13 @@
   '/CustomWidgets/EventFinder/Assets/W_16x9.png' %}
 
   <div class="event-card">
-    <div class="event-image" style="background-image:url('{{ hero }}');"></div>
+    <div
+      class="event-image"
+      style="background-image:
+       url('{{ event.Image }}'),
+       url('{{ Information.Default16x9Image }}'),
+       url('https://event-finder-alpha.vercel.app/Assets/W_16x9.png');"
+    ></div>
 
     <div class="event-content">
       {% if event.Title %}
