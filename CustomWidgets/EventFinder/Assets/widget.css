@@ -67,6 +67,7 @@ h4 {
   position: relative;
   line-height: 1.5;
   color: var(--text);
+  padding-bottom: 2rem;
 }
 
 .event-image {
@@ -166,8 +167,7 @@ h4 {
 .event-dates {
   max-height: 300px; /* the scroll container is the <details> */
   overflow-y: auto; /* required for sticky to work inside */
-  padding: 1rem;
-  padding-top: 0;
+  padding: 0 1rem;
   margin-top: 1rem;
 
   /* hide scrollbars where possible */
@@ -192,10 +192,6 @@ h4 {
 /* optionally disable sticky look when closed */
 .event-dates:not([open]) summary {
   position: static;
-}
-
-.event-dates[open] {
-  margin-bottom: 2rem;
 }
 
 /* each date heading sticks just below the summary */
