@@ -17,7 +17,7 @@
 
     <div class="event-content">
       {% if event.Title %}
-      <div class="event-title">{{ event.Title }}</div>
+      <h6 class="event-title">{{ event.Title }}</h6>
       {% endif %}
       <div class="event-meta">
         <i class="fas fa-calendar-alt"></i>
@@ -45,7 +45,17 @@
     {% if event.Buttons and event.Buttons.size > 0 %}
     <div class="event-buttons">
       {% for button in event.Buttons %}
-      <a href="{{ button.URL }}">{{ button.Text }}</a>
+      <a
+        class="nectar-button large regular accent-color regular-button"
+        href="{{ button.URL }}"
+        role="button"
+        style="visibility: visible"
+        href="#"
+        data-color-override="false"
+        data-hover-color-override="false"
+        data-hover-text-color-override="#fff"
+        >{{ button.Text }}</a
+      >
       {% endfor %}
     </div>
     {% endif %} {% if event.Dates and event.Dates.size > 0 and occ_total > 1 %}
@@ -54,15 +64,15 @@
 
       {% for d in event.Dates %} {% assign localDate = d.Date | append:
       "T12:00:00" %}
-      <h4 class="event-date-heading">
+      <h6 class="event-date-heading">
         <i class="fas fa-calendar-alt"></i>{{ localDate | date: "%a, %b %-d, %Y"
         }}
-      </h4>
+      </h6>
       <ul>
         {% for o in d.Occurrences %}
         <li class="event-date-row">
           {% if o.Title %}
-          <h5 class="occ-title">{{ o.Title }}</h5>
+          <h6 class="occ-title">{{ o.Title }}</h6>
           {% endif %}
 
           <div class="event-date-row__when">
@@ -80,13 +90,23 @@
             {% if o.Location and o.Location.Address %} {% assign addr =
             o.Location.Address %}
             <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
-            <div class="occ-address">{{ event.Location.Name }}</div>
+            <div class="occ-address">{{ o.Location.Name }}</div>
             {% endif %}
           </div>
 
           <div class="event-date-row__actions">
             {% for button in o.Buttons %}
-            <a class="btn" href="{{ button.URL }}">{{ button.Text }}</a>
+            <a
+              class="nectar-button large regular accent-color regular-button"
+              href="{{ button.URL }}"
+              role="button"
+              style="visibility: visible"
+              href="#"
+              data-color-override="false"
+              data-hover-color-override="false"
+              data-hover-text-color-override="#fff"
+              >{{ button.Text }}</a
+            >
             {% endfor %}
           </div>
         </li>
