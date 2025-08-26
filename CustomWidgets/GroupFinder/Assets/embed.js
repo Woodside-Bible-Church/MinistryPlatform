@@ -1,41 +1,49 @@
 (function () {
-  // ---------- tiny utils: load CSS/JS safely ----------
+  /* ======================================================================
+   * tiny utils: load CSS/JS (with absolute URL normalization)
+   * ==================================================================== */
   function ensureStylesheet(href) {
     if (!href) return Promise.resolve();
-    const already = Array.from(document.styleSheets).some(
-      (s) => s.href && s.href.includes(href)
-    );
+    const abs = new URL(href, document.baseURI).href;
+    const already = [...document.styleSheets].some((s) => s.href === abs);
     if (already) return Promise.resolve();
     return new Promise((res, rej) => {
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = href;
+      link.href = abs;
       link.crossOrigin = "anonymous";
-      link.onload = () => res();
+      link.onload = res;
       link.onerror = rej;
       document.head.appendChild(link);
     });
   }
+
   function ensureScript(src) {
     if (!src) return Promise.resolve();
-    const already = !!document.querySelector(`script[src*="${src}"]`);
+    const abs = new URL(src, document.baseURI).href;
+    const already = !!document.querySelector(`script[src="${abs}"]`);
     if (already) return Promise.resolve();
     return new Promise((res, rej) => {
       const s = document.createElement("script");
-      s.src = src;
+      s.src = abs;
       s.defer = true;
       s.crossOrigin = "anonymous";
-      s.onload = () => res();
+      s.onload = res;
       s.onerror = rej;
       document.head.appendChild(s);
     });
   }
 
-  // ---------- config & root-path resolution ----------
+  /* ======================================================================
+   * mount & path resolution
+   * ==================================================================== */
   const mount = document.getElementById("groupFinder");
   if (!mount) return;
+  // ensure overlay anchors correctly even before CSS is loaded
+  const cs = getComputedStyle(mount).position;
+  if (!cs || cs === "static") mount.style.position = "relative";
 
-  // prefer data on the DIV, then on the <script>, then infer
+  // prefer data on the DIV, then on the <script>, then infer from script src
   const currentScript =
     document.currentScript ||
     Array.from(document.scripts).find(
@@ -47,22 +55,18 @@
 
   const host = dsDiv.host || dsScript.host || "woodsidebible";
 
-  // infer root: /.../GroupFinder/Assets/GroupFinder.Embed.js  ->  /.../GroupFinder
+  // /.../GroupFinder/Assets/GroupFinder.Embed.js -> /.../GroupFinder
   function inferRootFromScript() {
     if (!currentScript || !currentScript.src) return "";
     const url = new URL(currentScript.src, document.baseURI);
-    // strip "/Assets/<file>.js"
     return url.pathname.replace(/\/Assets\/[^/]+\.js$/, "");
   }
 
-  // normalize join: join("/GroupFinder", "/Assets/x.css") -> "/GroupFinder/Assets/x.css"
   const joinPath = (root, seg) =>
     root.replace(/\/+$/, "") + "/" + String(seg || "").replace(/^\/+/, "");
 
-  // pick root (DIV > SCRIPT > inferred)
   const ROOT = dsDiv.root || dsScript.root || inferRootFromScript() || "";
 
-  // allow manual overrides but default to ROOT-based assets
   const templatePath =
     dsDiv.template ||
     dsScript.template ||
@@ -77,14 +81,16 @@
     String(dsDiv.bootstrap || dsScript.bootstrap || "false").toLowerCase() ===
     "true";
 
-  // allow ?preview=true
+  // ?preview=true support
   try {
     const params = new URLSearchParams(window.location.search);
     if (params.get("preview") === "true")
       document.body.classList.add("preview");
   } catch {}
 
-  // ---------- deps: FA6 (+ optional Bootstrap) + your CSS + CustomWidgets ----------
+  /* ======================================================================
+   * deps: FA6 (+ optional Bootstrap) + your CSS + CustomWidgets.js
+   * ==================================================================== */
   const FA6 =
     "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css";
   const BS5 =
@@ -100,9 +106,10 @@
       console.warn("GroupFinder embed failed to load a dependency:", e)
     );
 
-  // ---------- main init ----------
+  /* ======================================================================
+   * main init
+   * ==================================================================== */
   function initWidget() {
-    // build initial params from URL (only allowed keys)
     const allowedKeys = [
       "@CongregationID",
       "@DaysOfWeek",
@@ -114,6 +121,7 @@
       "@FamilyAccommodationID",
       "@IntendedAudienceID"
     ];
+
     const urlParams = new URLSearchParams(window.location.search);
     const paramMap = new Map(
       Array.from(urlParams.entries()).filter(
@@ -121,14 +129,14 @@
       )
     );
 
-    // optional cookie → @CongregationID fallback
+    // cookie -> @CongregationID fallback
     const cookieJwt = getCookie("tbx-ws__selected-location");
     const fallbackCongregationID = safeDecodeLocation(cookieJwt);
     if (!paramMap.has("@CongregationID") && fallbackCongregationID) {
       paramMap.set("@CongregationID", String(fallbackCongregationID));
     }
 
-    // inject loader + widget markup into the single mount node
+    // inject markup
     mount.innerHTML = `
       <div id="loader" class="loader-container">
         <div class="loader-bg"></div>
@@ -148,23 +156,22 @@
     const loader = document.getElementById("loader");
     const widgetId = "GroupFinderWidget";
 
-    // helpers
+    /* ------------------------ helpers ------------------------ */
     function scrollToFinder() {
-      // if the page wrapped our mount in a larger section with the same id, prefer that
       const el = document.getElementById("groupFinder") || mount;
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
-        try {
-          const url = new URL(window.location.href);
-          url.hash = "groupFinder";
-          history.replaceState({}, "", url);
-        } catch {}
-      }
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      try {
+        const url = new URL(window.location.href);
+        url.hash = "groupFinder";
+        history.replaceState({}, "", url);
+      } catch {}
     }
+
     function prepReload() {
-      if (loader) loader.classList.remove("hidden");
+      loader && loader.classList.remove("hidden");
       scrollToFinder();
     }
+
     function parseParams(str) {
       return new Map(
         (str || "")
@@ -179,23 +186,26 @@
           })
       );
     }
+
     function cleanMap(map) {
       for (let [k, v] of map) if (!v || v.trim() === "") map.delete(k);
       return map;
     }
+
     function serializeParams(map) {
+      // keep whatever keys the map has (URL map includes @)
       return Array.from(map.entries())
         .map(([k, v]) => `${k}=${v}`)
         .join("&");
     }
+
     function syncParamsToUrl(map) {
       const newUrl = new URL(window.location.href);
       allowedKeys.forEach((key) => newUrl.searchParams.delete(key));
-      for (let [k, v] of cleanMap(new Map(map))) {
-        newUrl.searchParams.set(k, v); // keep the @ in k already
-      }
+      for (let [k, v] of cleanMap(new Map(map))) newUrl.searchParams.set(k, v);
       history.replaceState({}, "", newUrl);
     }
+
     function applyParams(map) {
       cleanMap(map);
       const newParams = Array.from(map.entries())
@@ -204,22 +214,53 @@
       const w = document.getElementById(widgetId);
       if (w) w.setAttribute("data-params", newParams);
 
-      // also sync to URL using @-prefixed keys
       const urlMap = new Map(
         Array.from(map.entries()).map(([k, v]) => [`@${k}`, v])
       );
       syncParamsToUrl(urlMap);
     }
 
-    // first render
-    if (loader) loader.classList.remove("hidden");
-    if (typeof ReInitWidget === "function") ReInitWidget(widgetId);
+    function adjustDropdownPosition(dropdown, input) {
+      if (!dropdown || !input) return;
+      const rect = input.getBoundingClientRect();
+      const midpoint = window.innerHeight / 2;
+      if (rect.top > midpoint) dropdown.classList.add("flipped");
+      else dropdown.classList.remove("flipped");
+    }
 
-    // hide loader on load + wire in-widget interactions
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(";").shift();
+    }
+
+    function base64UrlDecode(str) {
+      if (!str) return null;
+      str = str.replace(/-/g, "+").replace(/_/g, "/");
+      while (str.length % 4) str += "=";
+      return decodeURIComponent(
+        atob(str)
+          .split("")
+          .map((c) => `%${("00" + c.charCodeAt(0).toString(16)).slice(-2)}`)
+          .join("")
+      );
+    }
+
+    function safeDecodeLocation(jwt) {
+      try {
+        const decoded = JSON.parse(base64UrlDecode(jwt));
+        return decoded?.location_id || null;
+      } catch {
+        return null;
+      }
+    }
+
+    /* ----------------- widget lifecycle wiring ---------------- */
+    // listen BEFORE first render so we catch the initial load
     window.addEventListener("widgetLoaded", function (event) {
       if (event.detail?.widgetId !== widgetId) return;
 
-      if (loader) loader.classList.add("hidden");
+      loader && loader.classList.add("hidden");
       document
         .querySelectorAll(".loading-pill")
         .forEach((el) => el.classList.remove("loading-pill"));
@@ -269,7 +310,7 @@
             if (!items.includes(id)) items.push(id);
 
             map.set(filterKey, items.join(","));
-            applyParams(new Map(Array.from(map.entries()))); // clone
+            applyParams(new Map(Array.from(map.entries())));
             prepReload();
             ReInitWidget(widgetId);
           });
@@ -277,7 +318,11 @@
       });
     });
 
-    // Global handlers: pills, select, enter
+    // first render (after listener is attached)
+    loader && loader.classList.remove("hidden");
+    if (typeof ReInitWidget === "function") ReInitWidget(widgetId);
+
+    /* ---------------- global interactions ---------------- */
     document.addEventListener("click", function (e) {
       const w = document.getElementById(widgetId);
       if (!w) return;
@@ -352,39 +397,5 @@
       prepReload();
       ReInitWidget(widgetId);
     });
-
-    // helpers used above
-    function adjustDropdownPosition(dropdown, input) {
-      if (!dropdown || !input) return;
-      const rect = input.getBoundingClientRect();
-      const midpoint = window.innerHeight / 2;
-      if (rect.top > midpoint) dropdown.classList.add("flipped");
-      else dropdown.classList.remove("flipped");
-    }
-
-    function getCookie(name) {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop().split(";").shift();
-    }
-    function base64UrlDecode(str) {
-      if (!str) return null;
-      str = str.replace(/-/g, "+").replace(/_/g, "/");
-      while (str.length % 4) str += "=";
-      return decodeURIComponent(
-        atob(str)
-          .split("")
-          .map((c) => `%${("00" + c.charCodeAt(0).toString(16)).slice(-2)}`)
-          .join("")
-      );
-    }
-    function safeDecodeLocation(jwt) {
-      try {
-        const decoded = JSON.parse(base64UrlDecode(jwt));
-        return decoded?.location_id || null;
-      } catch {
-        return null;
-      }
-    }
   }
 })();
