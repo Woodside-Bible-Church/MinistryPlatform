@@ -39,6 +39,7 @@ endif %} {% endif %}
                 data-id="{{ option.ID | default: option.Text }}"
                 data-action="remove"
               >
+                <i class="fa-solid {{ option.Icon }}"></i>
                 <span>
                   {% if filter.Use_Prefix == true %}{{ filter.Label }}: {% endif
                   %} {{ option.Text }}
@@ -154,9 +155,7 @@ endif %} {% endif %}
 
       <div class="groups">
         {% for group in Groups %}
-        <div
-          class="groupGrid{% if group.Full %} groupFull{% endif %}{% if group.Paused %} groupPaused{% endif %}"
-        >
+        <div class="groupGrid{% if group.Paused %} groupPaused{% endif %}">
           <a
             class="shareBtn"
             data-url="{{ Settings.GroupDetailsBaseURL }}{{ group.ID }}"
@@ -196,15 +195,37 @@ endif %} {% endif %}
 
           <div class="groupTagsContainer">
             <ul class="groupTags carousel">
-              {% for tag in group.Tags %} {% assign matchingFilter = Filters |
-              where: "Filter", tag.Filter | first %} {% assign isSelected =
-              false %} {% if matchingFilter and matchingFilter.Options %} {% for
-              option in matchingFilter.Options %} {% if option.ID == tag.ID or
-              option.Text == tag.Text %} {% if option.Selected %} {% assign
-              isSelected = true %} {% endif %} {% endif %} {% endfor %} {% elsif
-              matchingFilter and matchingFilter.Selected %} {% if
-              matchingFilter.Selected == tag.ID or matchingFilter.Selected ==
-              tag.Text %} {% assign isSelected = true %} {% endif %} {% endif %}
+              {% if group.Full %}
+              <li>
+                <a
+                  class="filterBtn tag specialTag groupFull"
+                  aria-disabled="true"
+                >
+                  <i class="fas fa-ban"></i>
+                  <span>Group Full</span>
+                </a>
+              </li>
+              {% endif %} {% if group.Paused %}
+              <li>
+                <a
+                  class="filterBtn tag specialTag groupPaused"
+                  aria-disabled="true"
+                >
+                  <i class="fas fa-pause"></i>
+                  <span>Group Paused</span>
+                </a>
+              </li>
+              {% endif %} {% for tag in group.Tags %} {% assign matchingFilter =
+              Filters | where: "Filter", tag.Filter | first %} {% assign
+              isSelected = false %} {% if matchingFilter and
+              matchingFilter.Options %} {% for option in matchingFilter.Options
+              %} {% if option.ID == tag.ID or option.Text == tag.Text %} {% if
+              option.Selected %}{% assign isSelected = true %}{% endif %} {%
+              endif %} {% endfor %} {% elsif matchingFilter and
+              matchingFilter.Selected %} {% if matchingFilter.Selected == tag.ID
+              or matchingFilter.Selected == tag.Text %} {% assign isSelected =
+              true %} {% endif %} {% endif %} {% assign icon = tag.Icon |
+              default: matchingFilter.Icon | default: 'fa-tag' %}
               <li>
                 <a
                   class="filterBtn tag"
@@ -212,6 +233,7 @@ endif %} {% endif %}
                   data-id="{{ tag.ID }}"
                   data-action="{% if isSelected %}remove{% else %}add{% endif %}"
                 >
+                  <i class="fas {{ icon }}"></i>
                   <span>{{ tag.Text }}</span>
                   <span class="blur">
                     <i
