@@ -26,7 +26,9 @@
   border-radius: 0;
   text-transform: uppercase;
   font-weight: 600;
-  padding: 0.5em 2em;
+  padding: 11px 2em;
+  min-width: 100px;
+  border-width: 2px;
 }
 
 .hidden {
@@ -1130,6 +1132,16 @@ li:has(.blur) {
   color: var(--primaryColor);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* 💄 optional */
   box-sizing: border-box; /* 🔧 ensures padding stays inside max-width */
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* For Chrome, Safari, and other WebKit browsers */
+.search-options::-webkit-scrollbar {
+  display: none;
 }
 
 /* Upward flip */
