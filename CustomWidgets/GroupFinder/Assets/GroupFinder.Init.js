@@ -24,14 +24,13 @@
   ];
 
   const urlParams = new URLSearchParams(window.location.search);
-  // Helper to get a cookie by name
+
   function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(";").shift();
   }
 
-  // Decode base64url (padding fix)
   function base64UrlDecode(str) {
     str = str.replace(/-/g, "+").replace(/_/g, "/");
     while (str.length % 4) str += "=";
@@ -43,20 +42,13 @@
     );
   }
 
-  // Try to get location_id from cookie if @CongregationID is missing
+  // cookie → fallback Congregation
   const cookieJwt = getCookie("tbx-ws__selected-location");
-  console.log("Cookie JWT:", cookieJwt);
-
   let fallbackCongregationID = null;
-
   if (cookieJwt) {
     try {
       const decoded = JSON.parse(base64UrlDecode(cookieJwt));
-      console.log("Decoded cookie payload:", decoded);
-      if (decoded?.location_id) {
-        console.log("Found location_id in cookie:", decoded.location_id);
-        fallbackCongregationID = decoded.location_id;
-      }
+      if (decoded?.location_id) fallbackCongregationID = decoded.location_id;
     } catch (e) {
       console.warn("Failed to decode or parse location cookie:", e);
     }
@@ -95,6 +87,31 @@
   const widgetRoot = document.getElementById("groupTag");
   const loader = document.getElementById("loader");
 
+  // === helpers for scroll + loader =========================================
+  const finderAnchorId = "groupFinder"; // <section id="groupFinder"> in template
+  function scrollToFinder() {
+    const el =
+      document.getElementById(finderAnchorId) ||
+      document.getElementById("groupFinderContainer") ||
+      document.getElementById("GroupFinderWidget");
+    if (!el) return;
+
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    // keep hash in sync without jump
+    try {
+      const url = new URL(window.location.href);
+      url.hash = finderAnchorId;
+      history.replaceState({}, "", url);
+    } catch {}
+  }
+
+  function prepReload() {
+    if (loader) loader.classList.remove("hidden");
+    scrollToFinder();
+  }
+  // =========================================================================
+
   if (widgetRoot) {
     if (loader) loader.classList.remove("hidden");
     widgetRoot.innerHTML = tag;
@@ -103,6 +120,7 @@
 
   window.addEventListener("widgetLoaded", function (event) {
     if (event.detail?.widgetId !== "GroupFinderWidget") return;
+
     if (loader) loader.classList.add("hidden");
     document.querySelectorAll(".loading-pill").forEach((el) => {
       el.classList.remove("loading-pill");
@@ -114,23 +132,19 @@
       const dropdown = select.querySelector(".search-options");
       const options = dropdown.querySelectorAll(".search-option");
       const rawFilterKey = select.dataset.filter || "";
-      const filterKey = rawFilterKey.replace(/^@+/, ""); // ✅ strip leading @
+      const filterKey = rawFilterKey.replace(/^@+/, ""); // strip leading @
 
-      // Show dropdown when focused
       input.addEventListener("focus", () => {
-        adjustDropdownPosition(dropdown, input); // ✅ call BEFORE showing
+        adjustDropdownPosition(dropdown, input);
         dropdown.classList.remove("hidden");
         filterOptions("");
       });
 
       // Hide dropdown when clicking outside
       document.addEventListener("click", (e) => {
-        if (!select.contains(e.target)) {
-          dropdown.classList.add("hidden");
-        }
+        if (!select.contains(e.target)) dropdown.classList.add("hidden");
       });
 
-      // Filter options as user types
       input.addEventListener("input", () => {
         filterOptions(input.value);
       });
@@ -147,9 +161,8 @@
       options.forEach((option) => {
         option.addEventListener("click", () => {
           const id = option.dataset.id;
-          const text = option.dataset.text;
 
-          input.value = ""; // optional: clear input after selection
+          input.value = "";
           dropdown.classList.add("hidden");
 
           const widget = document.getElementById("GroupFinderWidget");
@@ -164,12 +177,13 @@
             .map((s) => s.trim())
             .filter(Boolean);
 
-          if (!items.includes(id)) {
-            items.push(id);
-          }
+          if (!items.includes(id)) items.push(id);
 
           paramMap.set(filterKey, items.join(","));
           applyParams(paramMap);
+
+          // NEW: scroll + show loader before reload
+          prepReload();
           ReInitWidget("GroupFinderWidget");
         });
       });
@@ -179,19 +193,13 @@
   function adjustDropdownPosition(dropdown, input) {
     const rect = input.getBoundingClientRect();
     const midpoint = window.innerHeight / 2;
-
-    if (rect.top > midpoint) {
-      dropdown.classList.add("flipped");
-    } else {
-      dropdown.classList.remove("flipped");
-    }
+    if (rect.top > midpoint) dropdown.classList.add("flipped");
+    else dropdown.classList.remove("flipped");
   }
 
   function cleanMap(map) {
     for (let [k, v] of map) {
-      if (!v || v.trim() === "") {
-        map.delete(k);
-      }
+      if (!v || v.trim() === "") map.delete(k);
     }
     return map;
   }
@@ -227,12 +235,12 @@
       .join("&");
 
     const widget = document.getElementById("GroupFinderWidget");
-    if (widget) {
-      widget.setAttribute("data-params", newParams);
-    }
+    if (widget) widget.setAttribute("data-params", newParams);
+
     syncParamsToUrl(paramMap);
   }
 
+  // Click on tag/pill buttons
   document.addEventListener("click", function (e) {
     const widget = document.getElementById("GroupFinderWidget");
     if (!widget) return;
@@ -254,17 +262,18 @@
         .map((s) => s.trim())
         .filter((val) => val !== id);
 
-      if (updated.length) {
-        paramMap.set(filter, updated.join(","));
-      } else {
-        paramMap.delete(filter);
-      }
+      if (updated.length) paramMap.set(filter, updated.join(","));
+      else paramMap.delete(filter);
     } else if (action === "add" && filter && id && id.trim() !== "") {
       paramMap.set(filter, id);
     }
 
     applyParams(paramMap);
 
+    // NEW: scroll + show loader before reload
+    prepReload();
+
+    // keep the nice loading border on the pill
     const clone = btn.cloneNode(true);
     btn.parentNode.replaceChild(clone, btn);
     clone.classList.add("loading-pill");
@@ -274,6 +283,7 @@
     }, 20);
   });
 
+  // Dropdown change
   document.addEventListener("change", function (e) {
     const widget = document.getElementById("GroupFinderWidget");
     if (!widget) return;
@@ -286,16 +296,17 @@
 
     let paramMap = parseParams(widget.getAttribute("data-params") || "");
 
-    if (id) {
-      paramMap.set(filter, id);
-    } else {
-      paramMap.delete(filter);
-    }
+    if (id) paramMap.set(filter, id);
+    else paramMap.delete(filter);
 
     applyParams(paramMap);
+
+    // NEW
+    prepReload();
     ReInitWidget("GroupFinderWidget");
   });
 
+  // Text search (Enter)
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Enter") return;
 
@@ -310,13 +321,13 @@
 
     let paramMap = parseParams(widget.getAttribute("data-params") || "");
 
-    if (value) {
-      paramMap.set(filter, value);
-    } else {
-      paramMap.delete(filter);
-    }
+    if (value) paramMap.set(filter, value);
+    else paramMap.delete(filter);
 
     applyParams(paramMap);
+
+    // NEW
+    prepReload();
     ReInitWidget("GroupFinderWidget");
   });
 })();

@@ -4,6 +4,7 @@
 }
 
 #groupFinder {
+  position: relative;
   font-family: Montserrat, Helvetica, Arial, sans-serif;
 }
 
@@ -294,8 +295,8 @@ section:focus :has(.needHelpContainer) .btn::after {
   color: #ffffff;
 }
 
-.groupFinderContainer {
-  padding-bottom: 5em;
+#groupFinderContainer {
+  position: relative;
 }
 
 .filterContainer {
@@ -467,6 +468,7 @@ section:focus :has(.needHelpContainer) .btn::after {
     overflow-x: auto;
     -ms-overflow-style: none;
     scrollbar-width: none;
+    line-height: unset !important;
 
     ::-webkit-scrollbar {
       display: none;
@@ -482,8 +484,10 @@ section:focus :has(.needHelpContainer) .btn::after {
         text-decoration: none;
         color: var(--primaryColor);
         background-color: #e4e7ea;
-        border-radius: 20px;
+        border-radius: 80px;
         white-space: nowrap;
+        height: 100%;
+        display: inline-block;
       }
     }
   }
@@ -1146,61 +1150,72 @@ li:has(.blur) {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
-/* Start Loader */
-.loader-container {
-  width: 100px;
-  height: 100px;
+/* Anchor the overlay at the top INSIDE the finder */
+#groupFinder {
   position: relative;
-  margin: 4em auto;
+  scroll-margin-top: var(--gf-scroll-offset, 90px);
 }
 
-/* Spinning Border */
-.loader {
-  width: 86px;
-  height: 86px;
-  border: 1px solid transparent;
-  border-top: 1px solid #61ba467c; /* Green Color */
-  border-radius: 50%;
-  position: absolute;
-  top: 9px;
-  left: 7px;
-  animation: spin 1s linear infinite;
-}
-
-/* Static Background */
-.loader-bg {
-  width: 100px;
-  height: 100px;
-  background: url("https://woodsidebible.org/wp-content/uploads/2025/03/WoodsideW_BrightGreen.png")
-    center/cover no-repeat;
-  border-radius: 50%;
+#groupFinder .loader-container {
   position: absolute;
   top: 0;
   left: 0;
+  right: 0;
+  height: 100dvh; /* space reserved for spinner */
+  z-index: 10000;
+  pointer-events: none;
+  background-image: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.85) 20%,
+    rgba(255, 255, 255, 0.6) 45%,
+    rgba(255, 255, 255, 0.3) 70%,
+    rgba(255, 255, 255, 0) 100%
+  );
 }
 
-.loader-container::after {
-  display: block;
-  content: var(--loading-text);
-  width: 200px;
-  text-align: center;
+/* Image circle */
+#groupFinder .loader-container .loader-bg {
   position: absolute;
-  top: 110px;
-  left: -50px;
+  width: 100px;
+  height: 100px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%); /* center it */
+  background-image: url("https://woodsidebible.org/wp-content/uploads/2025/03/WoodsideW_BrightGreen.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+/* Spinning border */
+#groupFinder .loader-container .loader {
+  position: absolute;
+  width: 86px;
+  height: 86px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%); /* center it */
+  border: 1px solid transparent;
+  border-top: 1px solid #61ba467c;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  z-index: 2;
 }
 
 @keyframes spin {
   0% {
-    transform: rotate(0deg);
+    transform: translate(-50%, -50%) rotate(0deg);
   }
   100% {
-    transform: rotate(360deg);
+    transform: translate(-50%, -50%) rotate(360deg);
   }
 }
-/* End Loader */
 
 @container (width < 900px) {
   .needHelpContainer {

@@ -12,10 +12,7 @@
       integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
       crossorigin="anonymous"
     />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
-      rel="stylesheet"
-    />
+
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
@@ -26,7 +23,7 @@
     <link rel="icon" href="Assets/favicon.png" type="image/png" />
     <link href="Assets/widget.css" rel="stylesheet" />
   </head>
-  <body>
+  <body style="max-width: 2000px; margin: auto; padding: 2em">
     <script>
       (function () {
         const params = new URLSearchParams(window.location.search);
@@ -34,46 +31,17 @@
           document.body.classList.add("preview");
         }
       })();
-
-      /* All of the things that need to get done before loading anything else when first coming to the page */
-      const loadingText = [
-        "Finding the perfect group for you...",
-        "We can't wait to get you in a group!",
-        "Life is better together!",
-        "Did we just become best friends?",
-        "I came for the spiritual growth and stay because someone keeps bringing amazing snacks.",
-        "They said 'find a group that fits you'—I found one that just feeds me.",
-        "I picked my group based on one question: 'Do you believe in long prayer requests or short ones?'",
-        "Loading new life-long friends",
-        "I was looking for a Life Group that studies the bible, but I accidentally joined one that also runs marathons. Send help.",
-        "Finding a church group is like finding a good seat at Sunday service. Once you're in, you're never leaving.",
-        "I knew I found the right group when the leader said, 'This is a judgment-free zone—except about pineapple on pizza.'",
-        "I signed up for a Life Group, but somehow, I am now part of a church softball league.",
-        "I came to the group with questions, and I left with inside jokes, group texts, and a new set of besties."
-      ];
-
-      function changeLoadingText() {
-        const randomText =
-          loadingText[Math.floor(Math.random() * loadingText.length)];
-
-        document.documentElement.style.setProperty(
-          "--loading-text",
-          `'${randomText}'`
-        );
-      }
-
-      changeLoadingText();
     </script>
 
-    <div id="groupFinderContainer" class="container">
-      <div id="loader" class="loader-container">
-        <div class="loader-bg"></div>
-        <div class="loader"></div>
-      </div>
-      <div id="groupTag"></div>
-    </div>
+    <div
+      id="groupFinder"
+      data-host="woodsidebible"
+      data-template="/CustomWidgets/GroupFinder/Template/widget.html"
+      data-css="/CustomWidgets/GroupFinder/Assets/widget.css"
+      data-widgets="/CustomWidgets/GroupFinder/Assets/CustomWidgets.js"
+      data-bootstrap="false"
+    ></div>
 
-    <script src="Assets/CustomWidgets.js"></script>
-    <script src="Assets/GroupFinder.Init.js"></script>
+    <script src="/CustomWidgets/GroupFinder/Assets/embed.js" defer></script>
   </body>
 </html>
