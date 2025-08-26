@@ -31,30 +31,51 @@
     });
   }
 
-  // ---------- config from the embed node ----------
+  // ---------- config & root-path resolution ----------
   const mount = document.getElementById("groupFinder");
   if (!mount) return;
 
-  const ds = mount.dataset || {};
-  const host = ds.host || "woodsidebible";
-  const templateAttr = ds.template;
-  const cssUrl = ds.css || "/Assets/widget.css";
-  const widgetsUrl = ds.widgets || "/Assets/CustomWidgets.js";
-  const wantBootstrap =
-    String(ds.bootstrap || "false").toLowerCase() === "true";
+  // prefer data on the DIV, then on the <script>, then infer
+  const currentScript =
+    document.currentScript ||
+    Array.from(document.scripts).find(
+      (s) => (s.src || "").includes("GroupFinder") && s.src.endsWith(".js")
+    );
 
-  const hostname = location.hostname;
-  const isLocalDev =
-    hostname.includes("localhost") || hostname.includes("127.0.0.1");
-  const isHostedApp = hostname.includes("groupfinder-five.vercel.app");
+  const dsDiv = mount.dataset || {};
+  const dsScript = (currentScript && currentScript.dataset) || {};
 
+  const host = dsDiv.host || dsScript.host || "woodsidebible";
+
+  // infer root: /.../GroupFinder/Assets/GroupFinder.Embed.js  ->  /.../GroupFinder
+  function inferRootFromScript() {
+    if (!currentScript || !currentScript.src) return "";
+    const url = new URL(currentScript.src, document.baseURI);
+    // strip "/Assets/<file>.js"
+    return url.pathname.replace(/\/Assets\/[^/]+\.js$/, "");
+  }
+
+  // normalize join: join("/GroupFinder", "/Assets/x.css") -> "/GroupFinder/Assets/x.css"
+  const joinPath = (root, seg) =>
+    root.replace(/\/+$/, "") + "/" + String(seg || "").replace(/^\/+/, "");
+
+  // pick root (DIV > SCRIPT > inferred)
+  const ROOT = dsDiv.root || dsScript.root || inferRootFromScript() || "";
+
+  // allow manual overrides but default to ROOT-based assets
   const templatePath =
-    templateAttr ||
-    (isLocalDev
-      ? "/CustomWidgets/GroupFinder/Template/widget.html"
-      : isHostedApp
-      ? "/Template/widget.html"
-      : "https://groupfinder-five.vercel.app/Template/widget.html");
+    dsDiv.template ||
+    dsScript.template ||
+    joinPath(ROOT, "/Template/widget.html");
+  const cssUrl =
+    dsDiv.css || dsScript.css || joinPath(ROOT, "/Assets/widget.css");
+  const widgetsUrl =
+    dsDiv.widgets ||
+    dsScript.widgets ||
+    joinPath(ROOT, "/Assets/CustomWidgets.js");
+  const wantBootstrap =
+    String(dsDiv.bootstrap || dsScript.bootstrap || "false").toLowerCase() ===
+    "true";
 
   // allow ?preview=true
   try {
