@@ -537,22 +537,6 @@ section:focus :has(.needHelpContainer) .btn::after {
   animation: borderPulse 0.4s ease;
 }
 
-.groupPaused .groupTitle::after,
-.groupGrid:not(:has(.groupSignUpBtn)) > .groupTitle::after {
-  font-size: 0.65em;
-  align-self: flex-end;
-  font-size: 0.65rem;
-}
-
-.groupPaused .groupTitle::after {
-  font-family: "Font Awesome 6 Free"; /* required */
-  font-weight: 900; /* solid style */
-  content: "\f04c"; /* fa-pause-circle */
-  margin-left: 0.5em; /* space from text */
-  color: var(--primaryColor); /* or any color */
-  font-size: 0.85em; /* scale down if needed */
-}
-
 li:has(.blur) {
   a {
     position: relative;
