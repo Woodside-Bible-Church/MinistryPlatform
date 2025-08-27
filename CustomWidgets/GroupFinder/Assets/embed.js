@@ -149,12 +149,12 @@
 
         input.addEventListener("focus", () => {
           adjustDropdownPosition(dropdown, input);
-          dropdown.classList.remove("is-hidden");
+          dropdown.classList.remove("hidden");
           filterOptions("");
         });
 
         document.addEventListener("click", (e) => {
-          if (!select.contains(e.target)) dropdown.classList.add("is-hidden");
+          if (!select.contains(e.target)) dropdown.classList.add("hidden");
         });
 
         input.addEventListener("input", () => filterOptions(input.value));
@@ -171,7 +171,7 @@
           opt.addEventListener("click", () => {
             const id = opt.dataset.id;
             input.value = "";
-            dropdown.classList.add("is-hidden");
+            dropdown.classList.add("hidden");
 
             const w = document.getElementById(widgetId);
             if (!w) return;
