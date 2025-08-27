@@ -1,6 +1,8 @@
 :root {
   --primaryColor: #1c2b39;
   --secondaryColor: #62bb46;
+  --skel-base: #b3b3b3;
+  --skel-sheen: rgba(168, 168, 168, 0.55);
 }
 
 #groupFinder {
@@ -34,6 +36,33 @@
 
 .hidden {
   display: none;
+}
+
+/* ===== Skeleton Loading ===== */
+.skel {
+  position: relative;
+  overflow: hidden;
+  background: var(--skel-base);
+  border-radius: 6px;
+}
+.skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--skel-sheen),
+    transparent
+  );
+  animation: skel-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes skel-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 #groupFinder .titleHeadingContainer {
@@ -1482,4 +1511,62 @@ body.preview .filterBtn {
 body.preview .btn {
   font-size: 0.75rem !important;
   padding: 0.4em 1em !important;
+}
+
+/* utility sizes (keep tiny & generic) */
+.h-8 {
+  height: 8px;
+}
+.h-14 {
+  height: 14px;
+}
+.h-16 {
+  height: 16px;
+}
+.h-20 {
+  height: 20px;
+}
+.h-24 {
+  height: 24px;
+}
+.h-28 {
+  height: 28px;
+}
+.h-44 {
+  height: 44px;
+}
+.w-25 {
+  width: 25%;
+}
+.w-35 {
+  width: 35%;
+}
+.w-50 {
+  width: 50%;
+}
+.w-60 {
+  width: 60%;
+}
+.w-70 {
+  width: 70%;
+}
+.w-80 {
+  width: 80%;
+}
+.w-120 {
+  width: 120px;
+}
+
+/* skeleton card uses your grid so layout stays stable */
+div.groupGrid > div:nth-child(2) > div:nth-child(2) {
+  gap: 0.5em;
+}
+
+.skel-card.groupGrid {
+  min-height: 180px;
+}
+.skel-pill {
+  height: 32px;
+  border-radius: 999px;
+  display: inline-block;
 }

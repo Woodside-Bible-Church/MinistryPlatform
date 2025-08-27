@@ -1,10 +1,13 @@
 (function () {
-  // ---------- tiny utils ----------
+  /* ===== Config toggles ===== */
+  const USE_SKELETON_FIRST_LOAD = true; // show skeletons before the very first load
+  const SHOW_SKELETON_ON_CHANGES = false; // keep spinner-only during filter changes
+
+  /* ---------- tiny utils ---------- */
   function ensureStylesheet(href) {
     if (!href) return Promise.resolve();
-    if ([...document.styleSheets].some((s) => s.href === href)) {
+    if ([...document.styleSheets].some((s) => s.href === href))
       return Promise.resolve();
-    }
     return new Promise((res, rej) => {
       const link = document.createElement("link");
       link.rel = "stylesheet";
@@ -15,12 +18,10 @@
       document.head.appendChild(link);
     });
   }
-
   function ensureScript(src) {
     if (!src) return Promise.resolve();
-    if (document.querySelector(`script[src="${src}"]`)) {
+    if (document.querySelector(`script[src="${src}"]`))
       return Promise.resolve();
-    }
     return new Promise((res, rej) => {
       const s = document.createElement("script");
       s.src = src;
@@ -32,43 +33,39 @@
     });
   }
 
-  // ---------- anchors ----------
+  /* ---------- anchors ---------- */
   const mount = document.getElementById("groupFinder");
   if (!mount) return;
 
+  // Resolve asset URLs from this script’s location
   const currentScript =
     document.currentScript ||
     Array.from(document.scripts).find((s) =>
       (s.src || "").includes("/Assets/embed.js")
     );
   if (!currentScript) {
-    console.warn("GroupFinder embed: unable to locate current script tag.");
+    console.warn("GroupFinder embed: script tag not found.");
     return;
   }
 
-  // ---------- build absolute asset URLs from the script's URL ----------
-  // e.g. script: https://…/CustomWidgets/GroupFinder/Assets/embed.js
-  // ASSETS_DIR: https://…/CustomWidgets/GroupFinder/Assets/
   const SCRIPT_URL = new URL(currentScript.src, document.baseURI);
-  const ASSETS_DIR = new URL(".", SCRIPT_URL); // folder containing embed.js
-  const TEMPLATE_URL = new URL("../Template/widget.html", ASSETS_DIR); // sibling /Template/
+  const ASSETS_DIR = new URL(".", SCRIPT_URL); // /Assets/
+  const TEMPLATE_URL = new URL("../Template/widget.html", ASSETS_DIR); // /Template/widget.html
   const CSS_URL = new URL("widget.css", ASSETS_DIR); // /Assets/widget.css
   const WIDGETS_URL = new URL("CustomWidgets.js", ASSETS_DIR); // /Assets/CustomWidgets.js
 
-  // ---------- config ----------
+  /* ---------- config ---------- */
   const host = mount.dataset.host || "woodsidebible";
 
-  // preview flag via URL
   try {
     const params = new URLSearchParams(window.location.search);
     if (params.get("preview") === "true")
       document.body.classList.add("preview");
   } catch {}
 
-  // ---------- deps ----------
+  /* ---------- deps ---------- */
   const FA6 =
     "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css";
-
   Promise.resolve()
     .then(() => ensureStylesheet(FA6))
     .then(() => ensureStylesheet(CSS_URL.href))
@@ -78,7 +75,7 @@
       console.warn("GroupFinder embed failed to load a dependency:", e)
     );
 
-  // ---------- main ----------
+  /* ---------- main ---------- */
   function initWidget() {
     const allowedKeys = [
       "@CongregationID",
@@ -125,22 +122,81 @@
 
     const loader = document.getElementById("loader");
     const widgetId = "GroupFinderWidget";
+    let firstRender = true;
 
-    // first render
-    if (loader) loader.classList.remove("is-hidden");
+    /* ---------- SKELETON HELPERS (optional) ---------- */
+    function makeSkeletonCard() {
+      return `
+        <div class="groupGrid skel-card" data-skel>
+          <h3 class="groupTitle"><span class="skel h-24 w-60"></span></h3>
+          <div class="groupDetailsContainer">
+            <h6>RHYTHM</h6>
+            <div class="groupDetails">
+              <span class="skel h-16 w-120"></span><span class="skel h-16 w-120"></span>
+              <span class="skel h-16 w-60"></span><span class="skel h-16 w-120"></span>
+              <span class="skel h-16 w-70"></span><span class="skel h-16 w-80"></span>
+            </div>
+          </div>
+          <div class="groupLeadersContainer">
+            <h6>LEADERS</h6>
+            <div><span class="skel h-16 w-60"></span></div>
+          </div>
+          <div class="groupAboutContainer">
+            <h6>ABOUT US</h6>
+            <div>
+              <div class="skel h-16 w-80"></div>
+              <div class="skel h-16 w-70" style="margin-top:.4rem"></div>
+              <div class="skel h-16 w-60" style="margin-top:.4rem"></div>
+            </div>
+          </div>
+          <div class="groupTagsContainer">
+            <ul class="groupTags">
+              <li><span class="skel skel-pill w-120"></span></li>
+              <li><span class="skel skel-pill w-120"></span></li>
+              <li><span class="skel skel-pill w-120"></span></li>
+            </ul>
+          </div>
+          <div class="groupSignUpBtn">
+            <div class="skel h-44 w-120"></div>
+          </div>
+        </div>`;
+    }
+    function showSkeletons(count = 5) {
+      const host = document.getElementById(widgetId);
+      if (!host) return;
+      const cards = Array.from({ length: count }, makeSkeletonCard).join("");
+      host.innerHTML = `<section id="groupFinder" class="groupFinderContainer"><h1 class="sectionHeading">Find a Group</h1><div class="filterContainer">
+        <div class="left">
+          <ul class="selectedFilters carousel fadeToBlue">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+          </ul>
+        </div>
+        <button popovertarget="filterMenu" class="right filterIconContainer">
+          <i class="fas fa-filter"></i>
+        </button>
+      </div><div class="groups" data-skel>${cards}</div></section>`;
+    }
+    function clearSkeletons() {
+      document.querySelectorAll("[data-skel]").forEach((el) => el.remove());
+    }
+
+    /* ---------- first render ---------- */
+    if (USE_SKELETON_FIRST_LOAD) showSkeletons();
+    showLoader(); // keep spinner visible too
     if (typeof ReInitWidget === "function") ReInitWidget(widgetId);
 
-    // hide loader + wire interactions after each render
+    /* ---------- after each render ---------- */
     window.addEventListener("widgetLoaded", function (event) {
       if (event.detail?.widgetId !== widgetId) return;
-
+      clearSkeletons();
       closeFilterPopover();
-      if (loader) loader.classList.add("is-hidden");
+      hideLoader();
       document
         .querySelectorAll(".loading-pill")
         .forEach((el) => el.classList.remove("loading-pill"));
+      firstRender = false;
 
-      // typeahead selects
+      // wire typeahead after content paints
       document.querySelectorAll(".search-select").forEach((select) => {
         const input = select.querySelector(".search-input");
         const dropdown = select.querySelector(".search-options");
@@ -149,14 +205,12 @@
 
         input.addEventListener("focus", () => {
           adjustDropdownPosition(dropdown, input);
-          dropdown.classList.remove("hidden");
+          dropdown.classList.remove("is-hidden");
           filterOptions("");
         });
-
         document.addEventListener("click", (e) => {
-          if (!select.contains(e.target)) dropdown.classList.add("hidden");
+          if (!select.contains(e.target)) dropdown.classList.add("is-hidden");
         });
-
         input.addEventListener("input", () => filterOptions(input.value));
 
         function filterOptions(q) {
@@ -171,7 +225,7 @@
           opt.addEventListener("click", () => {
             const id = opt.dataset.id;
             input.value = "";
-            dropdown.classList.add("hidden");
+            dropdown.classList.add("is-hidden");
 
             const w = document.getElementById(widgetId);
             if (!w) return;
@@ -187,19 +241,27 @@
             map.set(filterKey, items.join(","));
             applyParams(map);
             closeFilterPopover();
-            prepReload();
+            prepReload(); // show loader + scroll
+            if (SHOW_SKELETON_ON_CHANGES) showSkeletons();
             ReInitWidget(widgetId);
           });
         });
       });
     });
 
-    // shared helpers
+    /* ---------- helpers ---------- */
+    function showLoader() {
+      loader && loader.classList.remove("is-hidden");
+    }
+    function hideLoader() {
+      loader && loader.classList.add("is-hidden");
+    }
+
     function prepReload() {
-      if (loader) loader.classList.remove("is-hidden");
+      showLoader(); // keep spinner on changes
       const el = document.getElementById("groupFinder") || mount;
       if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        el.scrollIntoView({ behavior: "smooth", block: "start" }); // navigate to #groupFinder
         try {
           const url = new URL(window.location.href);
           url.hash = "groupFinder";
@@ -217,30 +279,26 @@
           .filter(Boolean)
           .map((p) => {
             const clean = p.replace(/^@+/, "");
-            const [key, val] = clean.split("=");
-            return [key, val];
+            const [k, v] = clean.split("=");
+            return [k, v];
           })
       );
     }
-
     function cleanMap(map) {
       for (let [k, v] of map) if (!v || v.trim() === "") map.delete(k);
       return map;
     }
-
     function serializeParams(map) {
       return Array.from(map.entries())
         .map(([k, v]) => `${k}=${v}`)
         .join("&");
     }
-
     function syncParamsToUrl(map) {
       const newUrl = new URL(window.location.href);
       allowedKeys.forEach((key) => newUrl.searchParams.delete(key));
       for (let [k, v] of cleanMap(new Map(map))) newUrl.searchParams.set(k, v);
       history.replaceState({}, "", newUrl);
     }
-
     function applyParams(map) {
       map = cleanMap(new Map(map));
       const newParams = Array.from(map.entries())
@@ -248,14 +306,11 @@
         .join("&");
       const w = document.getElementById(widgetId);
       if (w) w.setAttribute("data-params", newParams);
-
-      // also sync to URL using @-prefixed keys
       const urlMap = new Map(
         Array.from(map.entries()).map(([k, v]) => [`@${k}`, v])
       );
       syncParamsToUrl(urlMap);
     }
-
     function adjustDropdownPosition(dropdown, input) {
       if (!dropdown || !input) return;
       const rect = input.getBoundingClientRect();
@@ -264,11 +319,10 @@
       else dropdown.classList.remove("flipped");
     }
 
-    // click pills (add/remove)
+    // pills
     document.addEventListener("click", function (e) {
       const w = document.getElementById(widgetId);
       if (!w) return;
-
       const btn = e.target.closest(".filterBtn");
       if (!btn) return;
 
@@ -278,22 +332,22 @@
       const action = btn.dataset.action;
 
       let map = parseParams(w.getAttribute("data-params") || "");
-
       if (action === "remove") {
-        const current = map.get(filter) || "";
-        const updated = current
+        const updated = (map.get(filter) || "")
           .split(",")
           .map((s) => s.trim())
           .filter((val) => val !== id);
-        if (updated.length) map.set(filter, updated.join(","));
-        else map.delete(filter);
+        updated.length
+          ? map.set(filter, updated.join(","))
+          : map.delete(filter);
       } else if (action === "add" && filter && id && id.trim() !== "") {
         map.set(filter, id);
       }
 
       applyParams(map);
       closeFilterPopover();
-      prepReload();
+      prepReload(); // loader + jump
+      if (SHOW_SKELETON_ON_CHANGES) showSkeletons();
 
       const clone = btn.cloneNode(true);
       btn.parentNode.replaceChild(clone, btn);
@@ -302,11 +356,10 @@
       setTimeout(() => ReInitWidget(widgetId), 20);
     });
 
-    // select dropdowns
+    // selects
     document.addEventListener("change", function (e) {
       const w = document.getElementById(widgetId);
       if (!w) return;
-
       const select = e.target.closest(".filterSelect");
       if (!select) return;
 
@@ -314,16 +367,16 @@
       const id = select.value;
 
       let map = parseParams(w.getAttribute("data-params") || "");
-      if (id) map.set(filter, id);
-      else map.delete(filter);
+      id ? map.set(filter, id) : map.delete(filter);
 
       applyParams(map);
       closeFilterPopover();
       prepReload();
+      if (SHOW_SKELETON_ON_CHANGES) showSkeletons();
       ReInitWidget(widgetId);
     });
 
-    // enter in search inputs
+    // search enter
     document.addEventListener("keydown", function (e) {
       if (e.key !== "Enter") return;
       const input = e.target.closest(".filterSearch");
@@ -331,21 +384,20 @@
 
       const filter = (input.name || "").replace(/^@+/, "");
       const value = input.value;
-
       const w = document.getElementById(widgetId);
       if (!w || !filter) return;
 
       let map = parseParams(w.getAttribute("data-params") || "");
-      if (value) map.set(filter, value);
-      else map.delete(filter);
+      value ? map.set(filter, value) : map.delete(filter);
 
       applyParams(map);
       closeFilterPopover();
       prepReload();
+      if (SHOW_SKELETON_ON_CHANGES) showSkeletons();
       ReInitWidget(widgetId);
     });
 
-    // cookie helpers
+    /* ---------- cookie + popover ---------- */
     function getCookie(name) {
       const value = `; ${document.cookie}`;
       const parts = value.split(`; ${name}=`);
