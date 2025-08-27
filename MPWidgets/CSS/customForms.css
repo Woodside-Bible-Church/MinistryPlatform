@@ -20,6 +20,8 @@
   --form-field-border--active: var(--primaryColor);
 
   --form-border-color: var(--primaryColor);
+
+  --footer-fg: currentColor;
 }
 
 * {
@@ -243,7 +245,7 @@ input[data-input-text-counter="true"] {
 }
 
 #submitButton {
-  margin: 2em auto;
+  margin: 4em auto 1em auto;
 }
 
 .mppw-form-field__message_container {
@@ -303,4 +305,22 @@ h3,
   font-size: 1.1rem;
   font-weight: 650;
   margin: 0;
+}
+
+.mppw-form-field__control:focus + .mppw-form-field__label {
+  background: none;
+}
+
+/* Use footer color for the component by default */
+:host {
+  color: var(--footer-fg);
+}
+:host * {
+  color: inherit !important;
+}
+
+/* …but NOT for form controls */
+:host
+  :is(input, select, textarea, button, option, optgroup, .multiselectTextbox) {
+  color: revert !important; /* falls back to UA/site default */
 }
