@@ -246,6 +246,7 @@ input[data-input-text-counter="true"] {
 
 #submitButton {
   margin: 4em auto 1em auto;
+  color: white !important;
 }
 
 .mppw-form-field__message_container {
