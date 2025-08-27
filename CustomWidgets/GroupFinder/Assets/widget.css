@@ -1,7 +1,7 @@
 :root {
   --primaryColor: #1c2b39;
   --secondaryColor: #62bb46;
-  --skel-base: #b3b3b3;
+  --skel-base: #c1c2c7;
   --skel-sheen: rgba(168, 168, 168, 0.55);
 }
 
@@ -36,33 +36,6 @@
 
 .hidden {
   display: none;
-}
-
-/* ===== Skeleton Loading ===== */
-.skel {
-  position: relative;
-  overflow: hidden;
-  background: var(--skel-base);
-  border-radius: 6px;
-}
-.skel::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--skel-sheen),
-    transparent
-  );
-  animation: skel-shimmer 1.2s ease-in-out infinite;
-}
-
-@keyframes skel-shimmer {
-  100% {
-    transform: translateX(100%);
-  }
 }
 
 #groupFinder .titleHeadingContainer {
@@ -1569,4 +1542,31 @@ div.groupGrid > div:nth-child(2) > div:nth-child(2) {
   height: 32px;
   border-radius: 999px;
   display: inline-block;
+}
+
+/* ===== Skeleton Loading ===== */
+.skel {
+  position: relative;
+  overflow: hidden;
+  background: var(--skel-base);
+  border-radius: 6px;
+}
+.skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--skel-sheen),
+    transparent
+  );
+  animation: skel-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes skel-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }
