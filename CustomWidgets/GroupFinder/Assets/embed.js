@@ -2,65 +2,61 @@
   // ---------- tiny utils ----------
   function ensureStylesheet(href) {
     if (!href) return Promise.resolve();
-    const already = Array.from(document.styleSheets).some(
-      (s) => s.href && s.href.includes(href)
-    );
-    if (already) return Promise.resolve();
+    if ([...document.styleSheets].some((s) => s.href === href)) {
+      return Promise.resolve();
+    }
     return new Promise((res, rej) => {
       const link = document.createElement("link");
       link.rel = "stylesheet";
       link.href = href;
       link.crossOrigin = "anonymous";
-      link.onload = () => res();
+      link.onload = res;
       link.onerror = rej;
       document.head.appendChild(link);
     });
   }
+
   function ensureScript(src) {
     if (!src) return Promise.resolve();
-    if (document.querySelector(`script[src*="${src}"]`))
+    if (document.querySelector(`script[src="${src}"]`)) {
       return Promise.resolve();
+    }
     return new Promise((res, rej) => {
       const s = document.createElement("script");
       s.src = src;
       s.defer = true;
       s.crossOrigin = "anonymous";
-      s.onload = () => res();
+      s.onload = res;
       s.onerror = rej;
       document.head.appendChild(s);
     });
   }
-  const joinPath = (root, seg) =>
-    root.replace(/\/+$/, "") + "/" + String(seg || "").replace(/^\/+/, "");
 
   // ---------- anchors ----------
   const mount = document.getElementById("groupFinder");
   if (!mount) return;
+
   const currentScript =
     document.currentScript ||
     Array.from(document.scripts).find((s) =>
-      (s.src || "").includes("Assets/embed.js")
+      (s.src || "").includes("/Assets/embed.js")
     );
-
-  // ---------- root inference ----------
-  function inferRootFromScript() {
-    if (!currentScript || !currentScript.src) return "";
-    const url = new URL(currentScript.src, document.baseURI);
-    // strip "/Assets/<file>.js"
-    return url.pathname.replace(/\/Assets\/[^/]+\.js$/, "");
+  if (!currentScript) {
+    console.warn("GroupFinder embed: unable to locate current script tag.");
+    return;
   }
-  const inferred = inferRootFromScript();
-  const isVercel = /\.vercel\.app$/i.test(location.hostname);
 
-  // On Vercel, assets live at /Assets & /Template (root),
-  // otherwise use the folder the script is in (e.g. /CustomWidgets/GroupFinder)
-  const ROOT = isVercel ? "" : inferred;
+  // ---------- build absolute asset URLs from the script's URL ----------
+  // e.g. script: https://…/CustomWidgets/GroupFinder/Assets/embed.js
+  // ASSETS_DIR: https://…/CustomWidgets/GroupFinder/Assets/
+  const SCRIPT_URL = new URL(currentScript.src, document.baseURI);
+  const ASSETS_DIR = new URL(".", SCRIPT_URL); // folder containing embed.js
+  const TEMPLATE_URL = new URL("../Template/widget.html", ASSETS_DIR); // sibling /Template/
+  const CSS_URL = new URL("widget.css", ASSETS_DIR); // /Assets/widget.css
+  const WIDGETS_URL = new URL("CustomWidgets.js", ASSETS_DIR); // /Assets/CustomWidgets.js
 
   // ---------- config ----------
   const host = mount.dataset.host || "woodsidebible";
-  const templatePath = joinPath(ROOT, "/Template/widget.html");
-  const cssUrl = joinPath(ROOT, "/Assets/widget.css");
-  const widgetsUrl = joinPath(ROOT, "/Assets/CustomWidgets.js");
 
   // preview flag via URL
   try {
@@ -72,10 +68,11 @@
   // ---------- deps ----------
   const FA6 =
     "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css";
+
   Promise.resolve()
     .then(() => ensureStylesheet(FA6))
-    .then(() => ensureStylesheet(cssUrl))
-    .then(() => ensureScript(widgetsUrl))
+    .then(() => ensureStylesheet(CSS_URL.href))
+    .then(() => ensureScript(WIDGETS_URL.href))
     .then(initWidget)
     .catch((e) =>
       console.warn("GroupFinder embed failed to load a dependency:", e)
@@ -119,7 +116,7 @@
            data-component="CustomWidget"
            data-sp="api_custom_GroupFinderWidget_JSON"
            data-params="${serializeParams(paramMap)}"
-           data-template="${templatePath}"
+           data-template="${TEMPLATE_URL.href}"
            data-requireUser="false"
            data-cache="false"
            data-host="${host}"
@@ -133,9 +130,10 @@
     if (loader) loader.classList.remove("is-hidden");
     if (typeof ReInitWidget === "function") ReInitWidget(widgetId);
 
-    // hide loader + wire interactions
+    // hide loader + wire interactions after each render
     window.addEventListener("widgetLoaded", function (event) {
       if (event.detail?.widgetId !== widgetId) return;
+
       closeFilterPopover();
       if (loader) loader.classList.add("is-hidden");
       document
@@ -154,9 +152,11 @@
           dropdown.classList.remove("is-hidden");
           filterOptions("");
         });
+
         document.addEventListener("click", (e) => {
           if (!select.contains(e.target)) dropdown.classList.add("is-hidden");
         });
+
         input.addEventListener("input", () => filterOptions(input.value));
 
         function filterOptions(q) {
@@ -186,8 +186,7 @@
 
             map.set(filterKey, items.join(","));
             applyParams(map);
-
-            closeFilterPopover(); // ← add this line so the popover closes immediately
+            closeFilterPopover();
             prepReload();
             ReInitWidget(widgetId);
           });
@@ -208,6 +207,7 @@
         } catch {}
       }
     }
+
     function parseParams(str = "") {
       return new Map(
         str
@@ -222,21 +222,25 @@
           })
       );
     }
+
     function cleanMap(map) {
       for (let [k, v] of map) if (!v || v.trim() === "") map.delete(k);
       return map;
     }
+
     function serializeParams(map) {
       return Array.from(map.entries())
         .map(([k, v]) => `${k}=${v}`)
         .join("&");
     }
+
     function syncParamsToUrl(map) {
       const newUrl = new URL(window.location.href);
       allowedKeys.forEach((key) => newUrl.searchParams.delete(key));
       for (let [k, v] of cleanMap(new Map(map))) newUrl.searchParams.set(k, v);
       history.replaceState({}, "", newUrl);
     }
+
     function applyParams(map) {
       map = cleanMap(new Map(map));
       const newParams = Array.from(map.entries())
@@ -251,6 +255,7 @@
       );
       syncParamsToUrl(urlMap);
     }
+
     function adjustDropdownPosition(dropdown, input) {
       if (!dropdown || !input) return;
       const rect = input.getBoundingClientRect();
@@ -368,13 +373,11 @@
     function closeFilterPopover() {
       const fm = document.getElementById("filterMenu");
       if (!fm) return;
-      // Standards-compliant close
       if (typeof fm.hidePopover === "function" && fm.matches(":popover-open")) {
         try {
           fm.hidePopover();
         } catch {}
       } else {
-        // Fallback for older browsers / non-popover impls
         fm.classList.remove("is-open");
         fm.removeAttribute("open");
       }
