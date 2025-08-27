@@ -179,6 +179,10 @@ input[data-input-text-counter="true"] {
   padding-bottom: 100px;
 }
 
+.mppw-form-field_instruction_font {
+  font-size: var(--innerPage-fontSize) !important;
+}
+
 .mpp-innerpage > img {
   display: none;
 }
@@ -270,8 +274,10 @@ select {
 .mppw-form-field__label {
   padding: 0px !important;
   position: absolute !important;
-  top: -24px !important;
+  top: -2rem !important;
   left: 0px !important;
+  font-weight: 600;
+  font-size: 1.1rem !important;
 }
 
 .mppw-form-field__control {
@@ -303,7 +309,7 @@ select {
 .mppw-form-field__alt-label-content,
 h3,
 .multiselect {
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   font-weight: 650;
   margin: 0;
 }
