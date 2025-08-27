@@ -111,7 +111,7 @@
 
     mount.style.position = "relative";
     mount.innerHTML = `
-      <div id="loader" class="loader-container">
+      <div id="loader" class="fade-hide loader-container">
         <div class="loader-bg"></div>
         <div class="loader"></div>
       </div>
@@ -130,13 +130,14 @@
     const widgetId = "GroupFinderWidget";
 
     // first render
-    if (loader) loader.classList.remove("hidden");
+    if (loader) loader.classList.remove("is-hidden");
     if (typeof ReInitWidget === "function") ReInitWidget(widgetId);
 
     // hide loader + wire interactions
     window.addEventListener("widgetLoaded", function (event) {
       if (event.detail?.widgetId !== widgetId) return;
-      if (loader) loader.classList.add("hidden");
+      closeFilterPopover();
+      if (loader) loader.classList.add("is-hidden");
       document
         .querySelectorAll(".loading-pill")
         .forEach((el) => el.classList.remove("loading-pill"));
@@ -150,11 +151,11 @@
 
         input.addEventListener("focus", () => {
           adjustDropdownPosition(dropdown, input);
-          dropdown.classList.remove("hidden");
+          dropdown.classList.remove("is-hidden");
           filterOptions("");
         });
         document.addEventListener("click", (e) => {
-          if (!select.contains(e.target)) dropdown.classList.add("hidden");
+          if (!select.contains(e.target)) dropdown.classList.add("is-hidden");
         });
         input.addEventListener("input", () => filterOptions(input.value));
 
@@ -170,7 +171,7 @@
           opt.addEventListener("click", () => {
             const id = opt.dataset.id;
             input.value = "";
-            dropdown.classList.add("hidden");
+            dropdown.classList.add("is-hidden");
 
             const w = document.getElementById(widgetId);
             if (!w) return;
@@ -185,6 +186,8 @@
 
             map.set(filterKey, items.join(","));
             applyParams(map);
+
+            closeFilterPopover(); // ← add this line so the popover closes immediately
             prepReload();
             ReInitWidget(widgetId);
           });
@@ -194,7 +197,7 @@
 
     // shared helpers
     function prepReload() {
-      if (loader) loader.classList.remove("hidden");
+      if (loader) loader.classList.remove("is-hidden");
       const el = document.getElementById("groupFinder") || mount;
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -284,6 +287,7 @@
       }
 
       applyParams(map);
+      closeFilterPopover();
       prepReload();
 
       const clone = btn.cloneNode(true);
@@ -309,6 +313,7 @@
       else map.delete(filter);
 
       applyParams(map);
+      closeFilterPopover();
       prepReload();
       ReInitWidget(widgetId);
     });
@@ -330,6 +335,7 @@
       else map.delete(filter);
 
       applyParams(map);
+      closeFilterPopover();
       prepReload();
       ReInitWidget(widgetId);
     });
@@ -357,6 +363,20 @@
         return decoded?.location_id || null;
       } catch {
         return null;
+      }
+    }
+    function closeFilterPopover() {
+      const fm = document.getElementById("filterMenu");
+      if (!fm) return;
+      // Standards-compliant close
+      if (typeof fm.hidePopover === "function" && fm.matches(":popover-open")) {
+        try {
+          fm.hidePopover();
+        } catch {}
+      } else {
+        // Fallback for older browsers / non-popover impls
+        fm.classList.remove("is-open");
+        fm.removeAttribute("open");
       }
     }
   }

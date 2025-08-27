@@ -1137,6 +1137,29 @@ li:has(.blur) {
   display: none !important;
 }
 
+/* New: add this class to anything you want to fade */
+.fade-hide {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 180ms ease, visibility 0s linear 0ms; /* show: no delay */
+}
+
+/* Add .is-hidden to fade out */
+.fade-hide.is-hidden {
+  opacity: 0;
+  visibility: hidden; /* becomes hidden AFTER the fade */
+  transition: opacity 180ms ease, visibility 0s linear 180ms;
+  pointer-events: none; /* don't trap clicks while fading */
+}
+
+/* nice-to-have for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .fade-hide,
+  .fade-hide.is-hidden {
+    transition: none;
+  }
+}
+
 /* Anchor the overlay at the top INSIDE the finder */
 #groupFinder {
   position: relative;
