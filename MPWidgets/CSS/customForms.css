@@ -319,6 +319,10 @@ h3,
   font-size: var(--innerPage-fontSize) !important;
 }
 
+#completeFormAs {
+  line-height: 2rem;
+}
+
 /* Use footer color for the component by default */
 :host {
   color: var(--footer-fg);
