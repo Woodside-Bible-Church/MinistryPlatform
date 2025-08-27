@@ -1203,8 +1203,8 @@ li:has(.blur) {
 /* Spinning border */
 #groupFinder .loader-container .loader {
   position: absolute;
-  width: 86px;
-  height: 86px;
+  width: 100px;
+  height: 100px;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%); /* center it */
