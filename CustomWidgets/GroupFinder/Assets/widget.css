@@ -252,6 +252,7 @@ section {
 .groupGrid .groupTitle {
   font-weight: 600;
   font-size: calc(1.275rem + 0.3vw);
+  margin: 0 !important;
 }
 
 @media (min-width: 1200px) {
