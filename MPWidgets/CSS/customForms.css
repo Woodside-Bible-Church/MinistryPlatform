@@ -46,10 +46,8 @@
   display: none;
 }
 
-.mppw-form-field-alt:not(:has(.multiselectTextbox))
-  > label
-  + input[type="text"],
-input[type="date"] {
+.mppw-form-field-alt:not(:has(.multiselectTextbox)) > label + input,
+select:not(:has(.multiselectTextbox)) {
   border: 1px solid var(--form-field-border) !important;
 }
 
