@@ -24,6 +24,7 @@
 
 * {
   color: #565656;
+  font-family: "Montserrat", Helvetica, Arial, sans-serif !important;
 }
 
 .hide {
@@ -169,10 +170,6 @@ input[data-input-text-counter="true"] {
   display: none !important;
 }
 
-* {
-  font-family: "Montserrat", Helvetica, Arial, sans-serif !important;
-}
-
 .mppw-component-container {
   width: 1160px;
   margin: 0 auto;
@@ -228,6 +225,17 @@ input[data-input-text-counter="true"] {
   color: black;
 }
 
+#customFormTitle::after {
+  content: "";
+  display: block;
+  width: 275px;
+  height: 6px;
+  position: absolute;
+  bottom: 10px;
+  right: -310px;
+  background: #62bb46;
+}
+
 #customForm {
   display: flex;
   flex-direction: column;
@@ -235,29 +243,7 @@ input[data-input-text-counter="true"] {
 }
 
 #submitButton {
-  margin: auto;
-}
-
-#completeFormAs {
-  border: none;
-}
-
-#completeFormAs + label {
-  color: #1c2b39 !important;
-}
-
-#firstName,
-#lastName,
-#emailAddress,
-#mobilePhone,
-#Country,
-#addressLine1,
-#addressLine2,
-#city,
-#stateRegion,
-#postalCode {
-  background-color: rgb(246, 247, 249) !important;
-  border: none !important;
+  margin: 2em auto;
 }
 
 .mppw-form-field__message_container {
@@ -270,4 +256,51 @@ input[data-input-text-counter="true"] {
     width: 90%;
     margin-top: 3em;
   }
+}
+
+input,
+select {
+  border-radius: 0 !important;
+}
+
+.mppw-form-field__label,
+.mppw-form-field__label {
+  padding: 0px !important;
+  position: absolute !important;
+  top: -24px !important;
+  left: 0px !important;
+}
+
+.mppw-form-field__control {
+  padding: 24px !important;
+}
+
+.mppw-form-field:not(:has(.multiselectOption)) {
+  margin-top: 24px;
+}
+
+.mppw-form-field__control:has(.multiselectOption) {
+  padding: 0 !important;
+}
+
+.mppw-row {
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.mppw-form-field__control:focus,
+.mppw-form-field:focus-visible {
+  background: var(--form-field-bgcolor--active);
+  border-color: var(--form-field-border--active);
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.mppw-form-field__alt-label-content,
+h3,
+.multiselect {
+  font-size: 1.1rem;
+  font-weight: 650;
+  margin: 0;
 }
