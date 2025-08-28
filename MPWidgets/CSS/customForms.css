@@ -321,6 +321,19 @@ h3,
   line-height: 2rem;
 }
 
+#addressFormContainer .mppw-row,
+#addressFormContainer .mppw-form-field {
+  margin-top: 40px;
+}
+
+#addressFormContainer .mppw-form-field:has(#addressLine2) {
+  margin-top: 50px;
+}
+
+.mpp-customform-col-4 {
+  width: 100% !important;
+}
+
 /* Use footer color for the component by default */
 :host {
   color: var(--footer-fg);
