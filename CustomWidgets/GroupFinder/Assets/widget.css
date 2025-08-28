@@ -501,6 +501,13 @@ section:focus :has(.needHelpContainer) .btn::after {
     justify-content: flex-end;
     align-items: flex-end;
 
+    .btn {
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
     .btn:hover {
       background-color: var(--primaryColor);
       color: #ffffff;
