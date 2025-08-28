@@ -1,0 +1,128 @@
+/* =========================================
+   Theme variables
+   ========================================= */
+:root {
+  /* Colors */
+  --primary: #1c2b39;
+  --secondary: #62bb46;
+  --text: #111;
+  --text-muted: #333;
+  --card-bg: #fff;
+  --border: #dcdcdc;
+
+  /* Layout */
+  --radius: 0; /* square corners by default */
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --gap-lg: 2rem;
+  --gap-md: 0.75rem;
+  --gap-sm: 0.5rem;
+
+  /* Typography */
+  --title-size: 1.25rem;
+
+  /* Sticky headings (should roughly match summary height) */
+  --sticky-offset: 2rem;
+}
+
+.hidden {
+  display: none;
+}
+
+.bannerContainer {
+  container: bannerWidget / inline-size;
+
+  * {
+    font-family: Montserrat, Helvetica, Arial, sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-transform: uppercase;
+  }
+
+  h4 {
+    font-size: calc(1.275rem + 0.3vw);
+  }
+
+  .banner {
+    background-color: #62bb46;
+    background: linear-gradient(
+      318deg,
+      rgba(98, 187, 70, 1) 0%,
+      rgba(70, 187, 130, 1) 50%,
+      rgba(28, 43, 57, 1) 100%
+    );
+    border-radius: 0;
+    color: #ffffff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1em;
+    padding: 2em;
+    outline: 1px solid #ffffff;
+    outline-offset: -10px;
+    text-decoration: none;
+    -webkit-transition: outline-offset 0.25s ease-out,
+      outline-width 0.25s ease-out, outline-color 0.25s ease-out,
+      filter 0.25s ease-out;
+    -moz-transition: outline-offset 0.25s ease-out, outline-width 0.25s ease-out,
+      outline-color 0.25s ease-out, filter 0.25s ease-out;
+    -o-transition: outline-offset 0.25s ease-out, outline-width 0.25s ease-out,
+      outline-color 0.25s ease-out, filter 0.25s ease-out;
+    transition: outline-offset 0.25s ease-out, outline-width 0.25s ease-out,
+      outline-color 0.25s ease-out, filter 0.25s ease-out;
+
+    h4 {
+      font-weight: 600;
+    }
+
+    .btnContainer {
+      display: flex;
+      gap: 1em;
+
+      .btn {
+        color: #ffffff;
+        border-radius: 0;
+        text-transform: uppercase;
+        font-weight: 600;
+        padding: 0.5em 2em;
+        background-color: #1c2b39;
+        background: linear-gradient(
+          225deg,
+          rgb(28, 43, 57) 0%,
+          rgb(57, 115, 170) 100%
+        );
+        position: relative;
+        border: none;
+      }
+    }
+  }
+
+  .banner:hover,
+  .banner:focus,
+  .banner:focus-within,
+  .bannerContainer:focus,
+  .bannerContainer:hover,
+  .bannerContainer:focus-within {
+    outline-offset: -1px;
+    outline-color: #1c2b39;
+    outline-width: 1px;
+    filter: brightness(1.025);
+  }
+}
+
+@container bannerWidget (width < 900px) {
+  .banner {
+    flex-direction: column;
+    text-align: center;
+
+    .btnContainer {
+      flex-direction: column;
+      width: 100%;
+    }
+  }
+}

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Banner Widget</title>
+    <link rel="stylesheet" href="Assets/widget.css" />
+    <link rel="icon" href="Assets/favicon.png" />
+  </head>
+  <body
+    style="margin: auto; margin-top: 4rem; padding: 1rem; max-width: 1400px"
+  >
+    <div
+      id="BannerWidget"
+      data-component="CustomWidget"
+      data-sp="api_Custom_BannerWidget_JSON"
+      data-params="@BannerID=1"
+      data-template="CustomWidgets/Banner/Template/widget.html"
+      data-requireUser="false"
+      data-cache="false"
+      data-host="woodsidebible"
+      data-debug="true"
+    ></div>
+
+    <script src="Assets/CustomWidgets.js"></script>
+  </body>
+</html>

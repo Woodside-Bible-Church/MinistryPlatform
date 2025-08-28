@@ -1,0 +1,23 @@
+{% if Banner %}
+<div class="bannerContainer">
+  {% assign href = Banner.Button.Url %}
+  {% if href %}
+  <a href="{{ href }}" class="banner">
+  {% else %}
+  <div class="banner">
+  {% endif %}
+
+    <span>
+      {% if Banner.Title %}<h4>{{ Banner.Title }}</h4>{% endif %}
+      {% if Banner.Subtitle %}<p>{{ Banner.Subtitle }}</p>{% endif %}
+    </span>
+
+    {% if Banner.Button and Banner.Button.Text %}
+      <div class="btnContainer">
+        <div class="btn">{{ Banner.Button.Text }}</div>
+      </div>
+    {% endif %}
+
+  {% if href %}</a>{% else %}</div>{% endif %}
+</div>
+{% endif %}
