@@ -79,6 +79,7 @@
       outline-color 0.25s ease-out, filter 0.25s ease-out;
 
     h4 {
+      color: #ffffff !important;
       font-weight: 600;
     }
 
