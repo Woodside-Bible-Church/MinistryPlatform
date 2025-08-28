@@ -1179,7 +1179,7 @@ li:has(.blur) {
 #groupFinder .loader-container {
   position: absolute;
   top: 6%;
-  left: calc(50% - 200px);
+  left: calc(50% - 100px);
   height: 200px;
   width: 200px;
   z-index: 10000;
