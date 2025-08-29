@@ -18,7 +18,7 @@
 
   <!-- Rhythm / Meeting Details -->
   <section class="group-rhythm">
-    <h3>{{ Settings.Time_And_Location_Details_Heading }}</h3>
+    <h6>{{ Settings.Time_And_Location_Details_Heading }}</h6>
     <ul>
       {% if g.Meeting_Details.Occurrence %}
       <li><i class="fa fa-calendar"></i> {{ g.Meeting_Details.Occurrence }}</li>
@@ -35,7 +35,7 @@
   <!-- Leaders -->
   {% if g.Leaders and g.Leaders.size > 0 %}
   <section class="group-leaders">
-    <h3>{{ Settings.Leaders_List_Heading }}</h3>
+    <h6>{{ Settings.Leaders_List_Heading }}</h6>
     <ul>
       {% for leader in g.Leaders %}
       <li>{{ leader }}</li>
@@ -47,7 +47,7 @@
   <!-- About -->
   {% if g.Description %}
   <section class="group-about">
-    <h3>{{ Settings.Description_Heading }}</h3>
+    <h6>{{ Settings.Description_Heading }}</h6>
     <p>{{ g.Description }}</p>
   </section>
   {% endif %}
