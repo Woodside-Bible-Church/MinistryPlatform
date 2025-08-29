@@ -95,11 +95,13 @@
         font-weight: 600;
         padding: 1em 2em;
         background-color: #1c2b39;
+        /*
         background: linear-gradient(
           225deg,
           rgb(28, 43, 57) 0%,
           rgb(57, 115, 170) 100%
         );
+        */
         position: relative;
         border: none;
       }
