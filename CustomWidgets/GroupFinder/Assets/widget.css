@@ -841,33 +841,34 @@ li:has(.blur) {
   }
 }
 
+/* Always keep the popover on-screen (viewport pinned) */
 #filterMenu {
+  position: fixed; /* pin to viewport (works in native & fallback) */
+  inset: 0; /* allow centering via margin auto */
+  margin: auto; /* center within the viewport */
+  max-width: min(95%, 900px);
+  max-height: 90dvh; /* keep it within viewport */
+  width: 100%;
+  overflow: auto; /* scroll inside the modal if needed */
+  border: none;
+
+  /* your existing visuals kept as-is */
+  display: flex; /* you already set display:flex on :popover-open */
   flex-direction: column;
-  /*justify-content: center;*/
   align-items: center;
   gap: 1em;
-  background-color: var(--primaryColor);
-  color: #ffffff;
-  border: none;
-  padding: 1em 2em;
   background: linear-gradient(
     135deg,
     rgb(28, 43, 57) 0%,
     rgb(57, 115, 170) 100%
   );
+  color: #fff;
   padding: 2em;
-  transition: opacity 0.15s ease-out, filter 0.15s ease-out;
   border-width: 3px;
   border-style: solid;
   border-image: linear-gradient(to right, #699ddf, #62bb46) 1;
   opacity: 0.925;
-  transition-property: overlay display opacity;
-  transition-duration: 0.5s;
-  transition-behavior: allow-discrete;
-  max-width: MIN(95%, 900px);
-  min-height: 50%;
-  width: 100%;
-  z-index: 10000;
+  z-index: 100000; /* high in fallback; ignored by native top-layer */
 }
 
 #filterMenu::backdrop {
@@ -1019,7 +1020,7 @@ li:has(.blur) {
 
 /* ========== Filter popover close button ========== */
 #groupFinder .filterPopover {
-  position: relative; /* anchor the absolute close button */
+  position: fixed; /* anchor the absolute close button */
   padding-top: 3.25rem; /* room so the button doesn't overlap heading */
 }
 
