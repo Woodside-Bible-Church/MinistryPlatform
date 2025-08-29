@@ -172,3 +172,33 @@
   margin: 0 !important;
   padding: 0 !important;
 }
+
+/* --- Rhythm: center the icons in a fixed column (like Group Finder) --- */
+.group-details .group-rhythm ul {
+  display: grid; /* stack items with tidy spacing */
+}
+
+.group-details .group-rhythm li {
+  display: grid;
+  grid-template-columns: 1.7rem auto; /* icon col | text col */
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* icon cell: same width, centered */
+.group-details .group-rhythm li > i {
+  grid-column: 1;
+  justify-self: center;
+  width: 1.7rem; /* matches the column width */
+  text-align: center;
+  font-size: 1.25rem !important;
+  line-height: 1; /* tight alignment */
+  color: currentColor; /* keep rhythm icons dark like Group Finder */
+}
+
+/* Keep tag pill icons brand-colored while rhythm icons stay dark */
+.group-details .group-tags .group-tag i {
+  color: var(--primaryColor);
+  font-size: 0.95em; /* scale nicely inside pill */
+  margin-right: 0.6em;
+}
