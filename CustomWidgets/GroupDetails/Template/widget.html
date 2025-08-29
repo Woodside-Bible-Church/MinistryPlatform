@@ -9,8 +9,11 @@
   <div class="group-tags">
     {% for tag in g.Tags %}
     <span class="group-tag">
-      {% if tag.Icon %}<i class="fa {{ tag.Icon }}"></i>{% endif %} {{ tag.Text
-      }}
+      {% if tag.Icon %}
+      <i class="fa {{ tag.Icon }}"></i>
+      {% elsif tag.Text == "Multi-Generational" or tag.ID == -999 %}
+      <i class="fa fa-people-group"></i>
+      {% endif %} {{ tag.Text }}
     </span>
     {% endfor %}
   </div>
