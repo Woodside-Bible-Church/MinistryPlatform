@@ -34,6 +34,11 @@
   font-family: "Montserrat", Helvetica, Arial, sans-serif;
 }
 
+.group-details * {
+  margin: 0;
+  padding: 0;
+}
+
 /* Title */
 .group-details h1 {
   font-weight: 700;
