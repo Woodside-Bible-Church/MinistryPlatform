@@ -591,7 +591,7 @@ li:has(.blur) {
 }
 
 .selectedFilters > li > .filterBtn {
-  padding: 11px 2em;
+  padding: 0.5em 1em;
 }
 
 .tag,
