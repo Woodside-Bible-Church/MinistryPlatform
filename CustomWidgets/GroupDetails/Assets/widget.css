@@ -163,11 +163,3 @@
   margin: 0 !important;
   padding: 0 !important;
 }
-
-.group-details i {
-  font-family: "Font Awesome 6 Free" !important;
-  font-weight: 900; /* solid style */
-  color: var(--secondaryColor);
-  font-size: 0.9rem;
-  flex-shrink: 0;
-}
