@@ -994,7 +994,7 @@ li:has(.blur) {
   padding: 1rem;
   background: rgba(0, 0, 0, 0.8);
   color: white;
-  max-height: 80vh;
+  max-height: 95dvh;
   overflow-y: auto;
   border-radius: 10px;
   width: 90%;
