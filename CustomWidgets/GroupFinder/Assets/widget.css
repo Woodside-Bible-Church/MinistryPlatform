@@ -931,18 +931,6 @@ li:has(.blur) {
   appearance: auto;
 }
 
-.filterGroup .filterSelect,
-.filterGroup .filterSearch {
-  width: 100%;
-  height: 2.5rem;
-  border-radius: 0;
-  border: none;
-  background-color: #fff;
-  color: #888aa9;
-  padding: 0.25rem 0.75rem;
-  font-size: 1rem;
-}
-
 .filterGroup .filterSearch::placeholder {
   color: #888aa9;
 }
@@ -1043,6 +1031,45 @@ li:has(.blur) {
 
 .filterOptionsList li {
   display: inline-block;
+}
+
+/* your existing rule */
+.filterGroup .filterSelect,
+.filterGroup .filterSearch,
+.filterGroup .search-input {
+  width: 100%;
+  border-radius: 0;
+  border: none;
+  background-color: #fff;
+  color: #303038; /* normal text */
+  padding: 1.5rem;
+  font-size: 1.125rem;
+}
+
+/* 1) Inputs: don’t color the placeholder */
+.filterGroup .filterSearch::placeholder,
+.filterGroup .search-input::placeholder {
+  color: revert; /* use UA/site default */
+  opacity: 1; /* ensure visibility in Firefox */
+}
+
+/* 2) Selects: when the “null”/placeholder option is selected, use a muted color */
+.filterGroup .filterSelect:has(option:checked[value=""]),
+.filterGroup .filterSelect option[value=""] {
+  color: var(
+    --placeholder-color,
+    #9aa0a6
+  ); /* pick your grey; or change the var */
+}
+
+/* Optional: if your placeholder option is disabled, include this too */
+.filterGroup .filterSelect:has(option:checked:disabled) {
+  color: var(--placeholder-color, #9aa0a6);
+}
+
+/* Fallback if you can mark selects required (no :has needed) */
+.filterGroup .filterSelect[required]:invalid {
+  color: var(--placeholder-color, #9aa0a6);
 }
 
 .groupGrid:has(.leaderBadge) {
