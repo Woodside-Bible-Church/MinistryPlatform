@@ -144,3 +144,30 @@
     width: 100%;
   }
 }
+
+.group-details {
+  width: 1160px;
+  margin: 0 auto;
+  margin-top: 8em;
+}
+
+@media screen and (max-width: 1300px) {
+  .group-details {
+    width: 90%;
+    margin-top: 3em;
+  }
+}
+
+.group-details ul {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.group-details i {
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900; /* solid style */
+  color: var(--secondaryColor);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
