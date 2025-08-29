@@ -422,10 +422,40 @@
         return null;
       }
     }
+
+    // Feature-detect the native Popover API
+    const SUPPORTS_POPOVER = "showPopover" in HTMLElement.prototype;
+
+    function openFilterPopover() {
+      const fm = document.getElementById("filterMenu");
+      if (!fm) return;
+
+      if (SUPPORTS_POPOVER && typeof fm.showPopover === "function") {
+        try {
+          fm.showPopover();
+        } catch {}
+      } else {
+        // Fallback: emulate popover
+        fm.classList.add("is-open");
+        fm.setAttribute("open", ""); // for :has([open]) CSS or future hooks
+      }
+
+      // move focus to the first actionable field
+      const first = fm.querySelector(
+        ".search-input, .filterSelect, .filterSearch, button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"
+      );
+      if (first) first.focus({ preventScroll: true });
+    }
+
     function closeFilterPopover() {
       const fm = document.getElementById("filterMenu");
       if (!fm) return;
-      if (typeof fm.hidePopover === "function" && fm.matches(":popover-open")) {
+
+      if (
+        SUPPORTS_POPOVER &&
+        typeof fm.hidePopover === "function" &&
+        fm.matches(":popover-open")
+      ) {
         try {
           fm.hidePopover();
         } catch {}
@@ -434,5 +464,45 @@
         fm.removeAttribute("open");
       }
     }
+
+    // Global open/close triggers (works for native + fallback)
+    document.addEventListener("click", (e) => {
+      // any opener with popovertarget="filterMenu" (but not explicit hide)
+      const openTrigger = e.target.closest(
+        '[popovertarget="filterMenu"]:not([popovertargetaction="hide"])'
+      );
+      if (openTrigger) {
+        e.preventDefault();
+        openFilterPopover();
+        return;
+      }
+
+      // our X button or any element explicitly marked to hide
+      const closeTrigger = e.target.closest(
+        '.popoverClose, [popovertarget="filterMenu"][popovertargetaction="hide"]'
+      );
+      if (closeTrigger) {
+        e.preventDefault();
+        closeFilterPopover();
+      }
+    });
+
+    // Click outside to close (fallback only; native popover handles its own light-dismiss)
+    document.addEventListener("mousedown", (e) => {
+      const fm = document.getElementById("filterMenu");
+      if (!fm) return;
+      if (
+        !SUPPORTS_POPOVER &&
+        fm.classList.contains("is-open") &&
+        !fm.contains(e.target)
+      ) {
+        closeFilterPopover();
+      }
+    });
+
+    // Escape to close (both modes)
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeFilterPopover();
+    });
   }
 })();

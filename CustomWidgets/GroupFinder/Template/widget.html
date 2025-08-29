@@ -60,6 +60,15 @@ endif %} {% endif %}
       anyFiltersSelected = true %} {% endif %} {% endfor %}
 
       <div popover id="filterMenu" class="filterPopover" popover="manual">
+        <button
+          class="popoverClose"
+          popovertarget="filterMenu"
+          popovertargetaction="hide"
+          aria-label="Close filters"
+          title="Close"
+        >
+          <i class="fas fa-times"></i>
+        </button>
         {% if anyFiltersSelected %}
         <h5>Current Filters</h5>
         <ul class="selectedFilters">

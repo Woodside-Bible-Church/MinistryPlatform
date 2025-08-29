@@ -1002,8 +1002,108 @@ li:has(.blur) {
   margin: auto;
 }
 
+/* Hide scrollbars in the filter popover but keep scrolling */
+#groupFinder .filterPopover {
+  overflow: auto; /* allow scrolling if content exceeds height */
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+#groupFinder .filterPopover::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
 .popoverSection {
   margin-bottom: 2rem;
+}
+
+/* ========== Filter popover close button ========== */
+#groupFinder .filterPopover {
+  position: relative; /* anchor the absolute close button */
+  padding-top: 3.25rem; /* room so the button doesn't overlap heading */
+}
+
+/* the button itself */
+#groupFinder .popoverClose {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+
+  /* touch-friendly size */
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+
+  display: grid;
+  place-items: center;
+
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+
+  /* blends with your frosted/blue popover */
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(4px);
+
+  /* accessibility */
+  outline: none;
+  outline-offset: 2px;
+  z-index: 2; /* above headings/content */
+}
+
+/* icon sizing (FA5) */
+#groupFinder .popoverClose .fa-times {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* hover & focus */
+#groupFinder .popoverClose:hover,
+#groupFinder .popoverClose:focus-visible {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+/* active press */
+#groupFinder .popoverClose:active {
+  transform: translateY(0);
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* high-contrast fallback for very light popover themes (optional) */
+@media (prefers-contrast: more) {
+  #groupFinder .popoverClose {
+    background: rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* motion sensitivity */
+@media (prefers-reduced-motion: reduce) {
+  #groupFinder .popoverClose {
+    transition: none;
+    transform: none !important;
+  }
+}
+
+/* small screens: nudge in a hair more so it doesn't hug the edge */
+@media (max-width: 480px) {
+  #groupFinder .popoverClose {
+    top: 0.5rem;
+    right: 0.5rem;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+  }
+}
+
+/* hide only when it's NOT open natively AND NOT open via fallback */
+#groupFinder .filterPopover:not(:popover-open):not(.is-open) {
+  display: none;
+}
+
+/* when we emulate (fallback) */
+#groupFinder .filterPopover.is-open {
+  display: block;
 }
 
 .popoverHeader {
