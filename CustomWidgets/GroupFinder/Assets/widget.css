@@ -1072,6 +1072,29 @@ li:has(.blur) {
   color: var(--placeholder-color, #9aa0a6);
 }
 
+/* iOS/mobile-safe select sizing */
+.filterGroup .filterSelect {
+  --control-h: 3.5rem; /* tweak to taste */
+  -webkit-appearance: none;
+  appearance: none;
+  padding-inline: 1.5rem; /* keep left/right padding */
+  padding-block: 0; /* iOS ignores this anyway */
+  height: var(--control-h); /* enforce visual height */
+  line-height: var(
+    --control-h
+  ); /* vertically center text in the closed state */
+  /* if you have a chevron inside, give a bit more right padding: */
+  padding-right: 2.75rem;
+}
+
+/* Extra nudge specifically for iOS Safari */
+@supports (-webkit-touch-callout: none) {
+  .filterGroup .filterSelect {
+    height: calc(var(--control-h) + 2px);
+    line-height: calc(var(--control-h) + 2px);
+  }
+}
+
 .groupGrid:has(.leaderBadge) {
   border-color: #61bb46 !important;
 }
