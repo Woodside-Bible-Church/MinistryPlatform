@@ -47,7 +47,7 @@
   background-clip: text;
   -webkit-background-clip: text;
   margin: 0 0 0.5em 0;
-  font-size: 2rem;
+  font-size: 2.25rem;
   line-height: 1.2;
 }
 
@@ -56,7 +56,7 @@
   color: var(--secondaryColor);
   margin-bottom: 0.5em;
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 1.5rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -73,21 +73,25 @@
   align-items: center;
   gap: 0.5em;
   margin-bottom: 0.5em;
-  font-size: 0.95rem;
+  font-size: 1.1rem !important;
 }
 
 /* Icons */
 .group-details i {
   color: var(--secondaryColor);
-  font-size: 0.9rem;
+  font-size: 1.25rem !important;
   flex-shrink: 0;
 }
 
 /* About section */
 .group-details .group-about {
-  font-size: 1rem;
+  font-size: 1.25rem !important;
   color: #303038;
   line-height: 1.7;
+}
+
+.group-details .group-about > p {
+  font-size: 1.15rem !important;
 }
 
 /* Tag pills */
@@ -99,7 +103,7 @@
 
 .group-details .group-tag {
   padding: calc(0.5em + 6px) 1em;
-  font-size: 0.75rem;
+  font-size: 1rem;
   text-decoration: none;
   color: var(--primaryColor);
   background-color: #e4e7ea;
