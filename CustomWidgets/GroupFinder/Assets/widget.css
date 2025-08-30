@@ -251,9 +251,9 @@ section {
 
 .groupGrid .groupTitle {
   font-weight: 600;
-  font-size: calc(1.4rem + 0.4vw);
+  font-size: calc(1.5rem + 0.65vw);
   margin: 0 !important;
-  line-height: 1;
+  line-height: 1.5;
   letter-spacing: -1px;
 }
 
