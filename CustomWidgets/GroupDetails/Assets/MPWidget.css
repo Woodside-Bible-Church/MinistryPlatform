@@ -236,6 +236,7 @@ input[data-input-text-counter="true"] {
 #contactGroupButton {
   margin: 4em auto 1em auto;
   color: white !important;
+  text-transform: uppercase;
 }
 
 .mppw-form-field__message_container {
