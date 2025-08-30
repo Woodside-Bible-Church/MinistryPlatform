@@ -201,6 +201,7 @@
   grid-template-columns: 1.7rem auto; /* icon col | text col */
   align-items: center;
   gap: 0.75rem;
+  margin: 0 !important;
 }
 
 /* icon cell: same width, centered */
