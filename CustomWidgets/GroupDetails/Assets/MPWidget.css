@@ -36,7 +36,9 @@
 }
 
 .hide,
-#detailsContainer {
+#detailsContainer,
+#formContainer #formTabs,
+.mpp-innerpage--map-container {
   display: none !important;
 }
 
