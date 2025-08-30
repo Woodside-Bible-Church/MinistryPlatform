@@ -512,8 +512,9 @@ section:focus :has(.needHelpContainer) .btn::after {
       align-items: center;
     }
 
-    .btn:hover {
+    #groupFinder .btn:hover {
       background-color: var(--primaryColor);
+      border-color: var(--primaryColor);
       color: #ffffff;
     }
   }
