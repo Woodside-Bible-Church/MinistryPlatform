@@ -256,18 +256,13 @@ endif %} {% endif %}
 
           <div class="groupSignUpBtn">
             {% if group.User_In_Group %}
-            <a
-              class="btn"
-              href="{{ Settings.ViewGroupBaseURL }}{{ group.ID }}"
-              target="_blank"
-            >
+            <a class="btn" href="{{ Settings.ViewGroupBaseURL }}{{ group.ID }}">
               {{ Settings.View_Group_Button_Label }}
             </a>
             {% elsif group.Paused != true and group.Full != true %}
             <a
               class="btn"
               href="{{ Settings.GroupDetailsBaseURL }}{{ group.ID }}"
-              target="_blank"
             >
               {{ Settings.Register_Button_Label }}
             </a>

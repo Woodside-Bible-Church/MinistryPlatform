@@ -251,13 +251,13 @@ section {
 
 .groupGrid .groupTitle {
   font-weight: 600;
-  font-size: calc(1.275rem + 0.3vw);
+  font-size: calc(1.4rem + 0.4vw);
   margin: 0 !important;
 }
 
 @media (min-width: 1200px) {
   .groupGrid .groupTitle {
-    font-size: 1.5rem;
+    font-size: 2rem;
   }
 }
 
@@ -1409,7 +1409,6 @@ li:has(.blur) {
     }
 
     .groupTitle {
-      text-align: center;
       flex-direction: column;
       gap: 0.5em !important;
       width: calc(100% - 50px);
