@@ -411,6 +411,7 @@ section:focus :has(.needHelpContainer) .btn::after {
     width: 25px;
     height: 25px;
     background-color: #c1c1c1;
+    border: none;
     color: #ffffff;
     text-align: center;
     display: flex;
@@ -420,9 +421,39 @@ section:focus :has(.needHelpContainer) .btn::after {
     text-decoration: none;
   }
 
+  /* Share menu (reusable) */
+  .share-menu {
+    position: fixed; /* position relative to viewport */
+    inset: auto auto; /* let JS set top/left */
+    z-index: 999999;
+    display: none;
+    min-width: 210px;
+    border: 1px solid #3b699d;
+    background: #1c2b39;
+    color: #fff;
+    border-radius: 12px;
+    padding: 0.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+
+  .share-menu.is-open {
+    display: block;
+  }
+
+  .share-menu a {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+  }
+  .share-menu a:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
   .groupTitle {
     grid-area: header;
-    font-weight: 700;
+    font-weight: 800;
     background-image: linear-gradient(135deg, #1c2b39, #2f8184);
     color: transparent;
     background-clip: text;

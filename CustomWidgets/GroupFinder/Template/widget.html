@@ -69,6 +69,7 @@ endif %} {% endif %}
         >
           <i class="fas fa-times"></i>
         </button>
+
         {% if anyFiltersSelected %}
         <h5>Current Filters</h5>
         <ul class="selectedFilters">
@@ -164,12 +165,33 @@ endif %} {% endif %}
       <div class="groups">
         {% for group in Groups %}
         <div class="groupGrid{% if group.Paused %} groupPaused{% endif %}">
-          <a
+          {%- assign group_url = Settings.GroupDetailsBaseURL | replace: '{id}',
+          group.ID -%} {%- assign share_url = group_url | url_encode -%} {%-
+          assign share_title = group.Title | url_encode -%} {%- assign fb_href =
+          Settings.FacebookShareBaseURL | replace: '{URL}', share_url | replace:
+          '{Title}', share_title -%} {%- assign tw_href =
+          Settings.TwitterShareBaseURL | replace: '{URL}', share_url | replace:
+          '{Title}', share_title -%} {%- assign em_href =
+          Settings.EmailShareBaseURL | replace: '{URL}', share_url | replace:
+          '{Title}', share_title | replace: '{title}', share_title -%}
+
+          <button
+            id="sharebtn-{{ group.ID }}"
             class="shareBtn"
-            data-url="{{ Settings.GroupDetailsBaseURL }}{{ group.ID }}"
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded="false"
+            aria-label="Share {{ group.Title }}"
+            title="Share"
+            data-fb="{{ fb_href }}"
+            data-tw="{{ tw_href }}"
+            data-em="{{ em_href }}"
+            data-details="{{ group_url }}"
+            data-title="{{ group.Title | escape }}"
           >
             <i class="fas fa-share"></i>
-          </a>
+          </button>
+
           <h4 class="groupTitle">
             {% if group.User_Is_Leader %}<i class="fas fa-star leaderBadge"></i
             >{% endif %} {{ group.Title }}
@@ -209,8 +231,7 @@ endif %} {% endif %}
                   class="filterBtn tag specialTag groupFull"
                   aria-disabled="true"
                 >
-                  <i class="fas fa-ban"></i>
-                  <span>Group Full</span>
+                  <i class="fas fa-ban"></i><span>Group Full</span>
                 </a>
               </li>
               {% endif %} {% if group.Paused %}
@@ -219,8 +240,7 @@ endif %} {% endif %}
                   class="filterBtn tag specialTag groupPaused"
                   aria-disabled="true"
                 >
-                  <i class="fas fa-pause"></i>
-                  <span>Group Paused</span>
+                  <i class="fas fa-pause"></i><span>Group Paused</span>
                 </a>
               </li>
               {% endif %} {% for tag in group.Tags %} {% assign matchingFilter =
@@ -256,16 +276,15 @@ endif %} {% endif %}
 
           <div class="groupSignUpBtn">
             {% if group.User_In_Group %}
-            <a class="btn" href="{{ Settings.ViewGroupBaseURL }}{{ group.ID }}">
-              {{ Settings.View_Group_Button_Label }}
-            </a>
+            <a class="btn" href="{{ Settings.ViewGroupBaseURL }}{{ group.ID }}"
+              >{{ Settings.View_Group_Button_Label }}</a
+            >
             {% elsif group.Paused != true and group.Full != true %}
             <a
               class="btn"
               href="{{ Settings.GroupDetailsBaseURL }}{{ group.ID }}"
+              >{{ Settings.Register_Button_Label }}</a
             >
-              {{ Settings.Register_Button_Label }}
-            </a>
             {% endif %}
           </div>
         </div>
@@ -276,27 +295,26 @@ endif %} {% endif %}
     <p id="copyMessage" class="copy-message">🔗 Link copied to clipboard!</p>
 
     <script>
+      // existing typeahead helpers...
       document.addEventListener("DOMContentLoaded", function () {
         const dropdowns = document.querySelectorAll(".multiSelectDropdown");
         dropdowns.forEach((dropdown) => {
           const input = dropdown.querySelector(".multiSelectInput");
           const list = dropdown.querySelector(".multiSelectOptions");
-
+          if (!input || !list) return;
           input.addEventListener("focus", () => {
             list.style.display = "block";
           });
-
           input.addEventListener("blur", () => {
             setTimeout(() => {
               list.style.display = "none";
             }, 150);
           });
-
           input.addEventListener("input", () => {
-            const query = input.value.toLowerCase();
+            const q = input.value.toLowerCase();
             list.querySelectorAll("li").forEach((li) => {
-              const text = li.textContent.toLowerCase();
-              li.style.display = text.includes(query) ? "block" : "none";
+              const t = li.textContent.toLowerCase();
+              li.style.display = t.includes(q) ? "block" : "none";
             });
           });
         });
