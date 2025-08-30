@@ -204,3 +204,15 @@
   font-size: 0.95em; /* scale nicely inside pill */
   margin-right: 0.6em;
 }
+
+.backBtn {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  opacity: 0.75;
+
+  span {
+    color: var(--secondaryColor);
+  }
+}
