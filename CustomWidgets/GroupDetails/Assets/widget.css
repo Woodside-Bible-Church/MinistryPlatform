@@ -1,8 +1,10 @@
 @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
 
-:host {
+:root {
   --primaryColor: #1c2b39;
   --secondaryColor: #62bb46;
+  --skel-base: #c1c2c7;
+  --skel-sheen: rgba(168, 168, 168, 0.55);
 
   --innerPage-primaryColor: var(--secondaryColor);
   --innerPage-h3color: var(--primaryColor);
