@@ -1416,7 +1416,6 @@ li:has(.blur) {
     .groupTitle {
       flex-direction: column;
       gap: 0.5em !important;
-      width: calc(100% - 50px);
       margin: auto;
     }
 
