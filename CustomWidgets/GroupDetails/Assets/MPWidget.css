@@ -199,6 +199,7 @@ input[data-input-text-counter="true"] {
 
 #inquiryContainer {
   display: block !important;
+  margin-top: 40px;
 }
 
 #mapContainer {
