@@ -231,3 +231,39 @@
     color: var(--secondaryColor);
   }
 }
+
+/* iOS Safari: kill the default blue tint on the select */
+.group-details select#inquireAs {
+  color: #303038 !important; /* text color */
+  -webkit-text-fill-color: #303038; /* iOS autofill/tint override */
+  background-color: #fff !important; /* keep white background */
+  border: 1px solid #cdd6de; /* match your inputs */
+  border-radius: 0;
+  padding: 0.75rem 2.5rem 0.75rem 1rem; /* room for chevron */
+  line-height: 1.2;
+  font-weight: 600;
+  -webkit-appearance: none; /* remove native styling */
+  appearance: none;
+}
+
+/* option text color when the list opens */
+.group-details select#inquireAs option {
+  color: #303038;
+}
+
+/* focus style to match brand */
+.group-details select#inquireAs:focus {
+  outline: none;
+  border-color: var(--secondaryColor);
+  box-shadow: 0 0 0 2px
+    color-mix(in oklab, var(--secondaryColor) 25%, transparent);
+}
+
+/* optional: custom chevron (pure CSS) */
+.group-details select#inquireAs {
+  background-image: linear-gradient(45deg, transparent 50%, #303038 50%),
+    linear-gradient(-45deg, transparent 50%, #303038 50%);
+  background-position: right 1rem center, right 0.75rem center;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
