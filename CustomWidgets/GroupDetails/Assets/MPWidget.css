@@ -195,6 +195,7 @@ input[data-input-text-counter="true"] {
   margin-top: 25px;
   border-radius: 0;
   box-shadow: none;
+  transition: background 0.3s, color 0.3s, border-color 0.3s;
 }
 
 #inquiryContainer {
