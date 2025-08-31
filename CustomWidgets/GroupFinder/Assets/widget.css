@@ -1484,7 +1484,6 @@ li:has(.blur) {
       flex-direction: column;
       gap: 0.5em !important;
       margin: auto;
-      margin-top: 0.75em !important;
     }
 
     .groupTags {
