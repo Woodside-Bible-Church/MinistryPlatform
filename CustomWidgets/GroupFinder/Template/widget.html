@@ -165,33 +165,6 @@ endif %} {% endif %}
       <div class="groups">
         {% for group in Groups %}
         <div class="groupGrid{% if group.Paused %} groupPaused{% endif %}">
-          {%- assign group_url = Settings.GroupDetailsBaseURL | replace: '{id}',
-          group.ID -%} {%- assign share_url = group_url | url_encode -%} {%-
-          assign share_title = group.Title | url_encode -%} {%- assign fb_href =
-          Settings.FacebookShareBaseURL | replace: '{URL}', share_url | replace:
-          '{Title}', share_title -%} {%- assign tw_href =
-          Settings.TwitterShareBaseURL | replace: '{URL}', share_url | replace:
-          '{Title}', share_title -%} {%- assign em_href =
-          Settings.EmailShareBaseURL | replace: '{URL}', share_url | replace:
-          '{Title}', share_title | replace: '{title}', share_title -%}
-
-          <button
-            id="sharebtn-{{ group.ID }}"
-            class="shareBtn"
-            type="button"
-            aria-haspopup="menu"
-            aria-expanded="false"
-            aria-label="Share {{ group.Title }}"
-            title="Share"
-            data-fb="{{ fb_href }}"
-            data-tw="{{ tw_href }}"
-            data-em="{{ em_href }}"
-            data-details="{{ group_url }}"
-            data-title="{{ group.Title | escape }}"
-          >
-            <i class="fas fa-share"></i>
-          </button>
-
           <h4 class="groupTitle">
             {% if group.User_Is_Leader %}<i class="fas fa-star leaderBadge"></i
             >{% endif %} {{ group.Title }}
