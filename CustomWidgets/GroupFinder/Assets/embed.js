@@ -86,7 +86,8 @@
       "@Search",
       "@LifeStageID",
       "@FamilyAccommodationID",
-      "@IntendedAudienceID"
+      "@IntendedAudienceID",
+      "@GenderID"
     ];
 
     const urlParams = new URLSearchParams(window.location.search);
