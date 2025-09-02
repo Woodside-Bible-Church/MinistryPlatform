@@ -1,0 +1,466 @@
+:root {
+  --font-family: "Montserrat", sans-serif;
+  --spacing: 0.25em;
+
+  --bg-color: #ffffff;
+  --text-color: #000000;
+  --section-title-color: #111;
+  --accent-color: #5ac67d;
+  --special-label-color: #5ac67d;
+
+  --inverted-text-color-light: #ffffff;
+  --inverted-text-color-dark: #000000;
+
+  --header-bg-light: url("LightMarble.jpg");
+  --header-bg-dark: url("DarkMarble.jpg");
+  --footer-bg-light: url("DarkMarble.jpg");
+  --footer-bg-dark: url("LightMarble.jpg");
+}
+
+html {
+  overscroll-behavior-y: none;
+}
+
+html:has(body[data-theme="dark"]),
+body[data-theme="dark"] {
+  --bg-color: #161616;
+  --text-color: #dddddd;
+  --section-title-color: #ffffff;
+  --accent-color: #5ac67d;
+  --special-label-color: #5ac67d;
+}
+
+/* === Themed Backgrounds with Gradient === */
+body[data-theme="light"] .cafe-header,
+body[data-theme="light"] .footer-strip {
+  background-image: linear-gradient(
+      rgba(255, 255, 255, 0.825),
+      rgba(255, 255, 255, 0.825)
+    ),
+    var(--header-bg-light);
+  color: var(--text-color);
+}
+
+body[data-theme="dark"] .cafe-header,
+body[data-theme="dark"] .footer-strip {
+  background-image: linear-gradient(
+      rgba(20, 20, 20, 0.95),
+      rgba(20, 20, 20, 0.95)
+    ),
+    var(--header-bg-dark);
+  color: var(--inverted-text-color-light);
+}
+
+body[data-theme="dark"] .footer-strip a {
+  color: var(--text-color);
+}
+
+body[data-theme="light"] .footer-strip a {
+  color: var(--text-color);
+}
+
+/* === Base === */
+html,
+body {
+  overflow: auto;
+  scrollbar-width: none;
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-family);
+  letter-spacing: var(--spacing);
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+}
+
+/* === Main Container === */
+#WoodsideCafeWidgetContent {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  justify-content: space-between;
+}
+
+/* === Header === */
+.cafe-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2rem 3rem;
+  position: relative;
+  flex-wrap: wrap;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.back-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  position: relative;
+  display: inline-block;
+}
+.back-button img {
+  height: 36px;
+}
+
+.back-button::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  bottom: -100%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  background: #333;
+  color: white;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+}
+
+.back-button:hover::after {
+  opacity: 1;
+}
+
+/* === Cafe Logo === */
+.cafe-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  width: fit-content;
+  text-align: center;
+  gap: 0.2rem;
+}
+
+.logo-top {
+  height: clamp(44px, 8vw, 60px);
+}
+
+.logo-bottom {
+  height: clamp(20px, 5vw, 36px);
+  opacity: 0.9;
+}
+
+body[data-theme="dark"] .logo-bottom {
+  filter: invert(1);
+}
+
+/* === Header Times === */
+.hours-inline {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+.hours-table {
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.hours-table td {
+  padding: 0.25rem 0.5rem;
+  vertical-align: top;
+  white-space: nowrap;
+  text-align: left;
+}
+.hours-table td:last-child {
+  text-align: right;
+}
+.hours-table td:first-child {
+  font-weight: 600;
+  padding-right: 1rem;
+}
+
+/* === Section Title === */
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 200;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--section-title-color);
+}
+
+/* === Cafe Main Wrapper === */
+.cafe-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4rem;
+  justify-content: center;
+  align-items: flex-start;
+  margin: 4rem 1rem;
+  padding: 0 1rem;
+}
+
+/* === Cafe Section === */
+.cafe-main--section {
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* === Menu Grid === */
+.cafe-menu-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4rem;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+/* === Menu Box === */
+.menu-box {
+  flex: 0 0 300px;
+  padding: 1.5rem;
+  min-width: 240px;
+  max-width: 100%;
+}
+
+/* === Table Styles === */
+.menu-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+thead {
+  text-transform: uppercase;
+}
+.menu-table thead tr {
+  vertical-align: middle;
+}
+.menu-table thead th,
+.menu-box-title {
+  text-align: left;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  color: var(--text-color);
+  border-bottom: 1px solid #666;
+}
+.menu-table td {
+  font-size: 0.95rem;
+  padding: 0.4rem 0.75rem;
+  color: var(--text-color);
+  border-bottom: 1px solid #444;
+  vertical-align: middle;
+}
+.menu-table tr:last-child td {
+  border-bottom: none;
+}
+.menu-table i {
+  font-size: 0.8rem;
+  color: #888;
+  font-weight: 400;
+}
+
+/* === Specials === */
+.menu-table tr.special td:first-child::before {
+  content: "Special: ";
+  color: var(--special-label-color);
+  font-weight: 500;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+}
+.menu-table tr.special td {
+  display: flex;
+  flex-direction: column;
+}
+.menu-table .item-description {
+  font-size: 0.6rem;
+  color: #888;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+/* === Barista Section === */
+.cafe-team {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  height: 100%;
+  width: min(95%, 1000px);
+  flex-direction: column;
+  margin: auto;
+  padding: 0.5rem 1rem;
+}
+
+.barista-card {
+  padding: 1rem;
+  display: flex;
+  gap: calc(16 * (var(--spacing)));
+  text-align: right;
+}
+
+.barista-card:nth-child(even) {
+  flex-direction: row-reverse;
+  text-align: left;
+}
+
+.barista-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.barista-photo {
+  width: 100%;
+  max-width: 180px;
+  aspect-ratio: 1 / 1;
+  border-radius: 100%;
+  object-fit: cover;
+}
+.barista-name {
+  margin: 0.5rem 0 0.25rem;
+}
+.barista-role {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.barista-bio {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.back-to-menu {
+  display: block;
+  margin: 2rem auto 0;
+  text-align: center;
+  font-weight: bold;
+  text-decoration: none;
+  color: var(--text-color);
+  border-bottom: 1px solid transparent;
+  transition: color 0.3s ease, border-color 0.3s ease,
+    background-color 0.3s ease;
+  padding: 0.5rem 1rem;
+}
+
+.back-to-menu:hover,
+.back-to-menu:focus {
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+  outline: none;
+}
+
+/* === Footer === */
+.footer-strip {
+  display: flex;
+  justify-content: center;
+  gap: 4rem;
+  padding: 0.5rem 1rem;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.footer-strip a {
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: var(--spacing);
+  text-transform: uppercase;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  color: var(--text-color);
+  border-bottom: 1px solid transparent;
+  transition: color 0.3s ease, border-color 0.3s ease,
+    background-color 0.3s ease;
+  position: relative;
+}
+
+.footer-strip a:hover,
+.footer-strip a:focus {
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+  outline: none;
+}
+
+.cafe-header,
+.footer-strip {
+  color: var(--text-color);
+}
+
+/* === Responsive Adjustments === */
+@media (max-width: 1300px) {
+  .cafe-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .hours-inline {
+    align-items: center;
+    text-align: center;
+  }
+
+  .header-time-row {
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .cafe-logo {
+    margin: 1rem 0;
+  }
+
+  .back-button {
+    order: -1;
+    margin-bottom: 1rem;
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    font-size: 1.1rem;
+  }
+
+  .menu-table td,
+  .menu-table th {
+    font-size: 1rem;
+  }
+
+  .section-title {
+    font-size: 1.75rem;
+  }
+
+  .menu-box {
+    padding: 1rem;
+    flex: 1 1 100%;
+  }
+
+  .cafe-main {
+    padding: 0;
+  }
+
+  .cafe-header {
+    padding: 1rem 0.5rem;
+  }
+
+  .cafe-logo {
+    margin: 0;
+  }
+
+  .barista-card,
+  .barista-card:nth-child(even) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .barista-photo {
+    max-width: 120px;
+  }
+
+  .cafe-team {
+    margin: 4rem 0;
+  }
+}
