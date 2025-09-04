@@ -304,6 +304,20 @@ section:focus :has(.needHelpContainer) .btn::after {
   position: relative;
 }
 
+.filterIconContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25em;
+  flex-direction: column;
+
+  span {
+    font-family: Montserrat, Helvetica, Arial, sans-serif;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+  }
+}
+
 .filterContainer {
   background-color: var(--primaryColor);
   color: #ffffff;

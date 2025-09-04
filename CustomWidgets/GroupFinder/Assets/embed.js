@@ -173,7 +173,7 @@
           </ul>
         </div>
         <button popovertarget="filterMenu" class="right filterIconContainer">
-          <i class="fas fa-filter"></i>
+          <i class="fas fa-filter"></i><span class="filterLabel">Filter</span>
         </button>
       </div><div class="groups" data-skel>${cards}</div></section>`;
     }
