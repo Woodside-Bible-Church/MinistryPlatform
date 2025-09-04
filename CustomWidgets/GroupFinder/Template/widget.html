@@ -102,16 +102,25 @@ endif %} {% endif %}
         <div class="filterFields">
           {% for filter in Filters %} {% if filter.Type %}
           <div class="filterGroup">
-            <h6>{{ filter.Label }}</h6>
-
             {% if filter.Type == "Text" %}
+            <h6>{{ filter.Label }}</h6>
             <input
               type="text"
               class="filterSearch"
               name="{{ filter.Filter }}"
               placeholder="Type to search..."
             />
-            {% elsif filter.Type == "Dropdown" %}
+            {% elsif filter.Type == "Checkbox" %} {% assign cbId = filter.Filter
+            | remove: "@" | append: "-cb" %}
+
+            <label for="{{ cbId }}" class="filterCheckboxLabel"
+              ><h6>{{ filter.Label }}</h6></label
+            >
+            <input type="checkbox" id="{{ cbId }}" name="{{ filter.Filter }}"
+            value="1" class="filterCheckbox" {% if filter.Selected == true or
+            filter.Selected == 1 or filter.Selected == "1" %}checked{% endif %}
+            /> {% elsif filter.Type == "Dropdown" %}
+            <h6>{{ filter.Label }}</h6>
             <select class="filterSelect" name="{{ filter.Filter }}">
               <option value="">{{ filter.Placeholder }}</option>
               {% for option in filter.Options %}
@@ -129,6 +138,7 @@ endif %} {% endif %}
               {% endfor %}
             </select>
             {% elsif filter.Type == "MultiSelect" %}
+            <h6>{{ filter.Label }}</h6>
             <div class="search-select" data-filter="{{ filter.Filter }}">
               <input
                 type="text"

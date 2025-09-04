@@ -1077,6 +1077,27 @@ li:has(.blur) {
   text-align: start;
 }
 
+/* Layout the label + checkbox on one row */
+.filterGroup:has(.filterCheckbox) {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.filterCheckboxLabel {
+  margin: 0;
+}
+.filterGroup h6 {
+  margin: 0;
+}
+
+/* Make the native checkbox a touch bigger & brand-colored */
+.filterCheckbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--secondaryColor);
+}
+
 .filterPopover {
   padding: 1rem;
   background: rgba(0, 0, 0, 0.8);
