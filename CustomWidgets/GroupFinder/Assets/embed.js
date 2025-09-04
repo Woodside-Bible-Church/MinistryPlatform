@@ -87,6 +87,7 @@
       "@LifeStageID",
       "@FamilyAccommodationID",
       "@IntendedAudienceID",
+      "@KidsWelcome",
       "@GenderID"
     ];
 
