@@ -248,17 +248,14 @@ endif %} {% endif %}
               {% endif %} {% for tag in group.Tags %} {% assign matchingFilter =
               Filters | where: "Filter", tag.Filter | first %} {% assign
               isSelected = false %} {% if matchingFilter and
-              matchingFilter.Options %} {% assign tagId = tag.ID | append: '' %}
-              {% assign tagText = tag.Text | append: '' %} {% for option in
-              matchingFilter.Options %} {% assign optId = option.ID | append: ''
-              %} {% assign optText = option.Text | append: '' %} {% if (optId ==
-              tagId or optText == tagText) and option.Selected %} {% assign
-              isSelected = true %} {% endif %} {% endfor %} {% elsif
-              matchingFilter and matchingFilter.Selected %} {% assign sel =
-              matchingFilter.Selected | append: '' %} {% if sel == (tag.ID |
-              append: '') or sel == (tag.Text | append: '') %} {% assign
-              isSelected = true %} {% endif %} {% endif %}
-
+              matchingFilter.Options %} {% for option in matchingFilter.Options
+              %} {% if option.ID == tag.ID or option.Text == tag.Text %} {% if
+              option.Selected %}{% assign isSelected = true %}{% endif %} {%
+              endif %} {% endfor %} {% elsif matchingFilter and
+              matchingFilter.Selected %} {% if matchingFilter.Selected == tag.ID
+              or matchingFilter.Selected == tag.Text %} {% assign isSelected =
+              true %} {% endif %} {% endif %} {% assign icon = tag.Icon |
+              default: matchingFilter.Icon | default: 'fa-tag' %}
               <li>
                 <a
                   class="filterBtn tag"
