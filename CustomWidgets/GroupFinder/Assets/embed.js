@@ -358,6 +358,34 @@
       setTimeout(() => ReInitWidget(widgetId), 20);
     });
 
+    // checkboxes
+    document.addEventListener("change", function (e) {
+      const w = document.getElementById(widgetId);
+      if (!w) return;
+
+      const cb = e.target.closest(".filterCheckbox");
+      if (!cb) return; // ignore other changes
+
+      const filter = (cb.name || "").replace(/^@+/, ""); // e.g. "@KidsWelcome" -> "KidsWelcome"
+      if (!filter) return;
+
+      let map = parseParams(w.getAttribute("data-params") || "");
+
+      if (cb.checked) {
+        // Checked => set to "1"
+        map.set(filter, "1");
+      } else {
+        // Unchecked => remove the key entirely
+        map.delete(filter);
+      }
+
+      applyParams(map);
+      closeFilterPopover();
+      prepReload();
+      if (SHOW_SKELETON_ON_CHANGES) showSkeletons();
+      ReInitWidget(widgetId);
+    });
+
     // selects
     document.addEventListener("change", function (e) {
       const w = document.getElementById(widgetId);
