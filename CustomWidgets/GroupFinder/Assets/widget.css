@@ -1245,7 +1245,10 @@ li:has(.blur) {
   display: inline-block;
 }
 
-/* your existing rule */
+.filterGroup h6 {
+  margin-bottom: 0.5em;
+}
+
 .filterGroup .filterSelect,
 .filterGroup .filterSearch,
 .filterGroup .search-input {
