@@ -1,6 +1,21 @@
 :root {
   --primaryColor: #1c2b39;
   --secondaryColor: #00a0e3; /*#62bb46;*/
+  --tertiaryColor: #e3b400;
+
+  --blue: #00a0e3;
+  --blue-text-safe: #0078aa;
+
+  --comp: #e34300;
+  --comp-text-safe: #d84000;
+  --comp-muted: #b74d20;
+  --comp-soft: #e0a085;
+
+  --split-raspberry: #e3002e;
+  --split-amber: #e3b400;
+
+  --neutral-ink: #1c2b39;
+  --neutral-bg: #f5f7fa;
 }
 
 * {

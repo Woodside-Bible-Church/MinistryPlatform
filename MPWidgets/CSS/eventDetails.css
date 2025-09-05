@@ -39,6 +39,10 @@
   --form-field-border--active: #1c2b39;
 }
 
+:host([hide-title]) #customFormTitle {
+  display: none !important;
+}
+
 /* PRODUCT HANDLING */
 .mppw-product-options > tbody > tr:first-child > th {
   visibility: hidden;
@@ -294,9 +298,10 @@ h6 {
 }
 
 .mppw-component-container {
-  width: 1160px;
+  width: 100%;
   margin: 0 auto;
-  padding-bottom: 100px;
+  padding: 0;
+  max-width: none;
 }
 
 .mpp-innerpage > img {
@@ -971,7 +976,7 @@ select {
 }
 
 .mppw-form-field__control {
-  padding: 24px !important;
+  padding: 15px !important;
 }
 
 .mppw-form-field:not(:has(.multiselectOption)) {
