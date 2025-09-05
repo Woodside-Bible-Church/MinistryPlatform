@@ -190,6 +190,7 @@
     /* ---------- after each render ---------- */
     window.addEventListener("widgetLoaded", function (event) {
       if (event.detail?.widgetId !== widgetId) return;
+
       clearSkeletons();
       closeFilterPopover();
       hideLoader();
@@ -198,23 +199,33 @@
         .forEach((el) => el.classList.remove("loading-pill"));
       firstRender = false;
 
-      // wire typeahead after content paints
+      // ---------- helpers for multiselect UI (no immediate apply) ----------
+      function csvToList(str) {
+        return (str || "")
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
+      function listToCsv(list) {
+        return Array.from(new Set(list)).join(",");
+      }
+
+      // Wire every .search-select
       document.querySelectorAll(".search-select").forEach((select) => {
         const input = select.querySelector(".search-input");
         const dropdown = select.querySelector(".search-options");
         const options = dropdown.querySelectorAll(".search-option");
-        const filterKey = (select.dataset.filter || "").replace(/^@+/, "");
+        const hidden = select.querySelector(".filterMultiValue"); // <input type="hidden" name="@X" ...>
 
-        input.addEventListener("focus", () => {
-          adjustDropdownPosition(dropdown, input);
-          dropdown.classList.remove("hidden");
-          filterOptions("");
-        });
-        document.addEventListener("click", (e) => {
-          if (!select.contains(e.target)) dropdown.classList.add("hidden");
-        });
-        input.addEventListener("input", () => filterOptions(input.value));
+        // mark currently selected options from hidden value
+        const selectedSet = new Set(csvToList(hidden?.value));
 
+        function renderSelectionState() {
+          options.forEach((opt) => {
+            const id = opt.dataset.id;
+            opt.classList.toggle("is-selected", selectedSet.has(id));
+          });
+        }
         function filterOptions(q) {
           const lower = (q || "").toLowerCase();
           options.forEach((opt) => {
@@ -223,32 +234,109 @@
           });
         }
 
+        // open/close + filter typing
+        input.addEventListener("focus", () => {
+          adjustDropdownPosition(dropdown, input);
+          dropdown.classList.remove("hidden");
+          filterOptions("");
+          renderSelectionState();
+        });
+        document.addEventListener("click", (e) => {
+          if (!select.contains(e.target)) dropdown.classList.add("hidden");
+        });
+        input.addEventListener("input", () => filterOptions(input.value));
+
+        // toggle selections (just update hidden value, do not apply yet)
         options.forEach((opt) => {
           opt.addEventListener("click", () => {
             const id = opt.dataset.id;
-            input.value = "";
-            dropdown.classList.add("hidden");
+            if (selectedSet.has(id)) selectedSet.delete(id);
+            else selectedSet.add(id);
+            hidden.value = listToCsv([...selectedSet]);
+            renderSelectionState();
+          });
+        });
 
+        // initial paint
+        renderSelectionState();
+      });
+
+      // ---------- form submit (apply all filters at once) ----------
+      const form = document.getElementById("filtersForm");
+      if (form) {
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+
+          const w = document.getElementById(widgetId);
+          if (!w) return;
+
+          // Start from scratch, but preserve any params that aren't represented
+          // in the form (e.g., @GroupIDs coming from a link)
+          const existing = parseParams(w.getAttribute("data-params") || "");
+          const next = new Map();
+
+          // TEXT inputs
+          form.querySelectorAll("input.filterSearch").forEach((inp) => {
+            const name = (inp.name || "").replace(/^@+/, "");
+            const val = inp.value.trim();
+            if (name && val) next.set(name, val);
+          });
+
+          // DROPDOWNS
+          form.querySelectorAll("select.filterSelect").forEach((sel) => {
+            const name = (sel.name || "").replace(/^@+/, "");
+            const val = sel.value;
+            if (name && val !== "") next.set(name, val);
+          });
+
+          // MULTISELECTS (hidden comma-separated values)
+          form.querySelectorAll("input.filterMultiValue").forEach((hid) => {
+            const name = (hid.name || "").replace(/^@+/, "");
+            const val = (hid.value || "").trim();
+            if (name && val) next.set(name, val);
+          });
+
+          // CHECKBOXES (if you still have any)
+          form.querySelectorAll("input.filterCheckbox").forEach((cb) => {
+            const name = (cb.name || "").replace(/^@+/, "");
+            if (name && cb.checked) next.set(name, "1");
+          });
+
+          // Carry over non-form params from existing (e.g., @GroupIDs)
+          for (const [k, v] of existing) if (!next.has(k)) next.set(k, v);
+
+          applyParams(next);
+          closeFilterPopover();
+          prepReload();
+          if (SHOW_SKELETON_ON_CHANGES) showSkeletons();
+          ReInitWidget(widgetId);
+        });
+
+        // Clear button
+        const clearBtn = form.querySelector('[data-action="clear-filters"]');
+        if (clearBtn) {
+          clearBtn.addEventListener("click", () => {
             const w = document.getElementById(widgetId);
             if (!w) return;
 
-            let map = parseParams(w.getAttribute("data-params"));
-            let existing = map.get(filterKey) || "";
-            const items = existing
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean);
-            if (!items.includes(id)) items.push(id);
+            // Preserve congregation if present (or cookie fallback)
+            const keep = new Map();
+            const existing = parseParams(w.getAttribute("data-params") || "");
+            if (existing.has("CongregationID")) {
+              keep.set("CongregationID", existing.get("CongregationID"));
+            } else {
+              const cookieJwt = getCookie("tbx-ws__selected-location");
+              const fallback = safeDecodeLocation(cookieJwt);
+              if (fallback) keep.set("CongregationID", String(fallback));
+            }
 
-            map.set(filterKey, items.join(","));
-            applyParams(map);
-            closeFilterPopover();
-            prepReload(); // show loader + scroll
+            applyParams(keep);
+            prepReload();
             if (SHOW_SKELETON_ON_CHANGES) showSkeletons();
             ReInitWidget(widgetId);
           });
-        });
-      });
+        }
+      }
     });
 
     /* ---------- helpers ---------- */
