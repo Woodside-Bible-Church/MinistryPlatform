@@ -17,7 +17,6 @@
 {% if DataSet2.size > 0 %}
   {% for person in DataSet2 %}
     {% if person.Event_ID != currentEventID %}
-      {%- comment -%} Close the previous section when we hit a new event {%- endcomment -%}
       {% if forloop.index != 1 %}
           </div> <!-- .new-person-cards -->
         </section>
@@ -37,9 +36,27 @@
     {% endif %}
 
     <article class="person-card">
-      
+
       <div class="name">
-        <span class="badge">{{ person.New_Type_Label }}</span>
+        {%- comment -%} Badge with FA icon based on New_Type {%- endcomment -%}
+        {% assign badge_text = person.New_Type_Label %}
+        {% if badge_text == blank %}
+          {% if person.New_Type == 1 %}
+            {% assign badge_text = "New Person" %}
+          {% elsif person.New_Type == 2 %}
+            {% assign badge_text = "New Again" %}
+          {% endif %}
+        {% endif %}
+
+        <span class="badge" role="note" aria-label="{{ badge_text }}">
+          {% if person.New_Type == 1 %}
+            <i class="fas fa-user-plus" aria-hidden="true"></i>
+          {% elsif person.New_Type == 2 %}
+              <i class="fas fa-redo" aria-hidden="true"></i>
+          {% endif %}
+          {{ badge_text }}
+        </span>
+
         <h2>{{ person.Display_Name }}</h2>
       </div>
 
