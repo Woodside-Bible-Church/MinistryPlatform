@@ -56,6 +56,7 @@ h4 {
 }
 
 .person-card .badge {
+  /*
   font-size: 0.8rem;
   background: var(--secondaryColor);
   color: white;
@@ -65,13 +66,93 @@ h4 {
   text-transform: uppercase;
   margin-top: 0.5em;
   border-radius: 100px;
+  */
+  text-align: right;
+  position: relative;
+  font-size: 1rem;
+  color: var(--secondaryColor);
+  white-space: nowrap;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin-top: 0.5em;
+  border-radius: 100px;
+
+  /* animations: quick entrance, then a slow idle breathe */
+  animation: badge-pop 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both,
+    badge-breathe 6s ease-in-out 1s infinite;
+}
+
+/* underline that “draws in” once */
+.person-card .badge::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.1em;
+  height: 0.1em;
+  background: var(--secondaryColor);
+  opacity: 0.35;
+  border-radius: 999px;
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: badge-underline 700ms cubic-bezier(0.25, 0.8, 0.25, 1) 120ms both;
+}
+
+/* entrance pop (no layout shift, transform only) */
+@keyframes badge-pop {
+  0% {
+    transform: translateY(-2px) scale(0.98);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* idle breathe: very light glow so it “lives” */
+@keyframes badge-breathe {
+  0%,
+  100% {
+    text-shadow: none;
+  }
+  50% {
+    text-shadow: 0 0 0.35rem
+      color-mix(in srgb, var(--secondaryColor) 45%, transparent);
+  }
+}
+
+/* underline draw */
+@keyframes badge-underline {
+  to {
+    transform: scaleX(1);
+    opacity: 0.45;
+  }
+}
+
+/* accessibility: honor reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .person-card .badge,
+  .person-card .badge::after {
+    animation: none !important;
+  }
+}
+
+.person-card .name {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  transform: translateY(-0.75rem);
+}
+
+.person-card .name .badge {
+  align-self: flex-end;
 }
 
 /* Optional: tidy typical heading spacing in the name block */
 .person-card .name > h2,
 .person-card .name > h3 {
   margin: 0;
-  margin-bottom: 0.25em;
 }
 
 .person-card h3 {
