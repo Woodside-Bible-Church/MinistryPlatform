@@ -43,27 +43,25 @@
         <span class="badge">{{ person.New_Type_Label }}</span>
       </div>
 
-      <div class="details">
-        <div class="group">
-          <h6>Group</h6>
-          {{ person.Group_Name }}
-          <p>Start: {{ person.Participant_Start_Date | date: "%-m/%-d/%Y" }}</p>
-        </div>
-
-        {% if person.Last_Event %}
-        <div class="last-event">
-          <h6>Last Event</h6>
-          <p>{{ person.Last_Event }}</p>
-        </div>
-        {% endif %}
-
-        {% if person.Last_Congregation_Event %}
-        <div class="last-location-event">
-          <h6>Last Location Event</h6>
-          <p>{{ person.Last_Congregation_Event }}</p>
-        </div>
-        {% endif %}
+      <div class="group">
+        <h6>Group</h6>
+        {{ person.Group_Name }}
+        <p>Start: {{ person.Participant_Start_Date | date: "%-m/%-d/%Y" }}</p>
       </div>
+
+      {% if person.Last_Event %}
+      <div class="last-event">
+        <h6>Last Event</h6>
+        <p>{{ person.Last_Event }}</p>
+      </div>
+      {% endif %}
+
+      {% if person.Last_Congregation_Event %}
+      <div class="last-location-event">
+        <h6>Last Location Event</h6>
+        <p>{{ person.Last_Congregation_Event }}</p>
+      </div>
+      {% endif %}
 
       {% if person.Head_1 or person.Head_2 %}
       <div class="household">

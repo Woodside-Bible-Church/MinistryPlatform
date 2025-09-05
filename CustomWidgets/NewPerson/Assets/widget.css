@@ -36,20 +36,19 @@ h4 {
   background: #f5f5f5;
   padding: 1em;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-areas:
-    "name"
-    "details"
-    "household";
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
   align-items: start;
 }
 
 /* Map children to areas */
 .person-card * {
-  grid-area: name;
   margin: 0;
+}
+
+.person-card > div {
+  width: 100%;
 }
 
 .person-card h6 {
@@ -60,18 +59,12 @@ h4 {
   font-size: 0.8rem;
   background: var(--secondaryColor);
   color: white;
-  padding: 0.25em 0.6em;
+  padding: 0.25em 1.5em;
   white-space: nowrap;
   font-weight: 600;
   text-transform: uppercase;
   margin-top: 0.5em;
   border-radius: 100px;
-}
-.person-card .details {
-  grid-area: details;
-}
-.person-card .household {
-  grid-area: household;
 }
 
 /* Optional: tidy typical heading spacing in the name block */
