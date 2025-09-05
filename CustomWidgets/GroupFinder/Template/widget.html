@@ -111,24 +111,7 @@ endif %} {% endif %}
               <span class="blur"><i class="fas fa-trash"></i></span>
             </a>
           </li>
-          {% endif %} {% endfor %} {% elsif filter.Type == "Checkbox" %} {% if
-          filter.Selected == true or filter.Selected == 1 or filter.Selected ==
-          "1" %}
-          <li>
-            <a
-              class="filterBtn"
-              data-filter="{{ filter.Filter }}"
-              data-id="1"
-              data-action="remove"
-            >
-              <i
-                class="fa-solid {{ filter.Icon | default: 'fa-square-check' }}"
-              ></i>
-              <span>{{ filter.Label }}</span>
-              <span class="blur"><i class="fas fa-trash"></i></span>
-            </a>
-          </li>
-          {% endif %} {% endif %} {% endunless %} {% endfor %}
+          {% endif %} {% endfor %} {% endif %} {% endunless %} {% endfor %}
         </ul>
         {% endif %}
 
@@ -144,9 +127,9 @@ endif %} {% endif %}
               name="{{ filter.Filter }}"
               placeholder="Type to search..."
             />
+
             {% elsif filter.Type == "Checkbox" %} {% assign cbId = filter.Filter
             | remove: "@" | append: "-cb" %}
-
             <label for="{{ cbId }}" class="filterCheckboxLabel"
               ><h6>{{ filter.Label }}</h6></label
             >
@@ -171,6 +154,7 @@ endif %} {% endif %}
               </option>
               {% endfor %}
             </select>
+
             {% elsif filter.Type == "MultiSelect" %}
             <h6>{{ filter.Label }}</h6>
             <div class="search-select" data-filter="{{ filter.Filter }}">
@@ -264,14 +248,17 @@ endif %} {% endif %}
               {% endif %} {% for tag in group.Tags %} {% assign matchingFilter =
               Filters | where: "Filter", tag.Filter | first %} {% assign
               isSelected = false %} {% if matchingFilter and
-              matchingFilter.Options %} {% for option in matchingFilter.Options
-              %} {% if option.ID == tag.ID or option.Text == tag.Text %} {% if
-              option.Selected %}{% assign isSelected = true %}{% endif %} {%
-              endif %} {% endfor %} {% elsif matchingFilter and
-              matchingFilter.Selected %} {% if matchingFilter.Selected == tag.ID
-              or matchingFilter.Selected == tag.Text %} {% assign isSelected =
-              true %} {% endif %} {% endif %} {% assign icon = tag.Icon |
-              default: matchingFilter.Icon | default: 'fa-tag' %}
+              matchingFilter.Options %} {% assign tagId = tag.ID | append: '' %}
+              {% assign tagText = tag.Text | append: '' %} {% for option in
+              matchingFilter.Options %} {% assign optId = option.ID | append: ''
+              %} {% assign optText = option.Text | append: '' %} {% if (optId ==
+              tagId or optText == tagText) and option.Selected %} {% assign
+              isSelected = true %} {% endif %} {% endfor %} {% elsif
+              matchingFilter and matchingFilter.Selected %} {% assign sel =
+              matchingFilter.Selected | append: '' %} {% if sel == (tag.ID |
+              append: '') or sel == (tag.Text | append: '') %} {% assign
+              isSelected = true %} {% endif %} {% endif %}
+
               <li>
                 <a
                   class="filterBtn tag"
