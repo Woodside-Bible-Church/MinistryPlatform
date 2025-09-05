@@ -51,7 +51,7 @@
          data-template="${templatePath}" 
          data-requireUser="false" 
          data-cache="false" 
-         data-host="woodsidebible" 
+         data-host="mcleanbible" 
          data-debug="true">
     </div>`;
 
@@ -132,7 +132,7 @@
          data-template="${templatePath}" 
          data-requireUser="false" 
          data-cache="false" 
-         data-host="woodsidebible" 
+         data-host="mcleanbible" 
          data-debug="true">
     </div>`;
 

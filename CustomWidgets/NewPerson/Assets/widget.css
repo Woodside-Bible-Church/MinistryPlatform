@@ -33,36 +33,57 @@ h4 {
 }
 
 .person-card {
-  background: #f0f3f8;
+  background: #f5f5f5;
   padding: 1em;
-  padding-top: 2.5em !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  gap: 0.25em;
-  position: relative;
-  height: 100%; /* 🧱 Stretch to match tallest card */
-  box-sizing: border-box; /* 📦 Important for consistent sizing */
-  overflow-wrap: break-word; /* 🧼 Prevent badge or long text issues */
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "name"
+    "details"
+    "household";
+  gap: 1rem;
+  align-items: start;
+}
+
+/* Map children to areas */
+.person-card * {
+  grid-area: name;
+  margin: 0;
+}
+
+.person-card h6 {
+  color: var(--secondaryColor);
+}
+
+.person-card .badge {
+  font-size: 0.8rem;
+  background: var(--secondaryColor);
+  color: white;
+  padding: 0.25em 0.6em;
+  white-space: nowrap;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-top: 0.5em;
+  border-radius: 100px;
+}
+.person-card .details {
+  grid-area: details;
+}
+.person-card .household {
+  grid-area: household;
+}
+
+/* Optional: tidy typical heading spacing in the name block */
+.person-card .name > h2,
+.person-card .name > h3 {
+  margin: 0;
+  margin-bottom: 0.25em;
 }
 
 .person-card h3 {
   margin: 0;
   font-size: 1.1em;
-}
-
-.person-card .badge {
-  background: var(--secondaryColor);
-  color: white;
-  font-size: 1rem;
-  padding: 0.25em 0.6em;
-  white-space: nowrap;
-  width: fit-content;
-  position: absolute;
-  top: 0.75em;
-  right: 0.75em;
-  z-index: 1;
-  font-weight: 600;
 }
 
 .person-card p {
@@ -94,9 +115,15 @@ h4 {
 
 .household-contact {
   display: flex;
-  gap: 0.5em;
   justify-content: space-between;
+  align-items: center;
+  gap: 0.5em;
   width: 100%;
+}
+
+.household .household-contact + .household-contact {
+  border-top: 1px solid var(--secondaryColor);
+  border-color: color-mix(in srgb, var(--secondaryColor) 15%, transparent);
 }
 
 .empty-state {
