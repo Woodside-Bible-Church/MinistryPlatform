@@ -38,14 +38,31 @@ endif %} {% endif %}
                 data-action="remove"
               >
                 <i class="fa-solid {{ option.Icon }}"></i>
-                <span>
-                  {% if filter.Use_Prefix == true %}{{ filter.Label }}: {% endif
-                  %} {{ option.Text }}
-                </span>
+                <span
+                  >{% if filter.Use_Prefix == true %}{{ filter.Label }}: {%
+                  endif %}{{ option.Text }}</span
+                >
                 <span class="blur"><i class="fas fa-trash"></i></span>
               </a>
             </li>
-            {% endif %} {% endfor %} {% endif %} {% endunless %} {% endfor %}
+            {% endif %} {% endfor %} {% elsif filter.Type == "Checkbox" %} {% if
+            filter.Selected == true or filter.Selected == 1 or filter.Selected
+            == "1" %}
+            <li>
+              <a
+                class="filterBtn"
+                data-filter="{{ filter.Filter }}"
+                data-id="1"
+                data-action="remove"
+              >
+                <i
+                  class="fa-solid {{ filter.Icon | default: 'fa-square-check' }}"
+                ></i>
+                <span>{{ filter.Label }}</span>
+                <span class="blur"><i class="fas fa-trash"></i></span>
+              </a>
+            </li>
+            {% endif %} {% endif %} {% endunless %} {% endfor %}
           </ul>
         </div>
         <button popovertarget="filterMenu" class="right filterIconContainer">
@@ -87,14 +104,31 @@ endif %} {% endif %}
               data-action="remove"
             >
               <i class="fa-solid {{ option.Icon }}"></i>
-              <span>
-                {% if filter.Use_Prefix == true %}{{ filter.Label }}: {% endif
-                %} {{ option.Text }}
-              </span>
+              <span
+                >{% if filter.Use_Prefix == true %}{{ filter.Label }}: {% endif
+                %}{{ option.Text }}</span
+              >
               <span class="blur"><i class="fas fa-trash"></i></span>
             </a>
           </li>
-          {% endif %} {% endfor %} {% endif %} {% endunless %} {% endfor %}
+          {% endif %} {% endfor %} {% elsif filter.Type == "Checkbox" %} {% if
+          filter.Selected == true or filter.Selected == 1 or filter.Selected ==
+          "1" %}
+          <li>
+            <a
+              class="filterBtn"
+              data-filter="{{ filter.Filter }}"
+              data-id="1"
+              data-action="remove"
+            >
+              <i
+                class="fa-solid {{ filter.Icon | default: 'fa-square-check' }}"
+              ></i>
+              <span>{{ filter.Label }}</span>
+              <span class="blur"><i class="fas fa-trash"></i></span>
+            </a>
+          </li>
+          {% endif %} {% endif %} {% endunless %} {% endfor %}
         </ul>
         {% endif %}
 
