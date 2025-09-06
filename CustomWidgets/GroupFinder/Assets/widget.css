@@ -1002,11 +1002,12 @@ li:has(.blur) {
   margin-bottom: 2rem;
 }
 
-#filterMenu > #filterForm {
+#filterMenu > #filtersForm {
   display: flex;
   flex-direction: column;
   gap: 2em;
   width: 100%;
+  margin-top: 2em;
 }
 
 #filterMenu > #filterForm > select:not(#dayOfWeek) {
@@ -1288,6 +1289,8 @@ li:has(.blur) {
 }
 
 /* iOS/mobile-safe select sizing */
+.filterGroup .filterSearch,
+.filterGroup .search-input,
 .filterGroup .filterSelect {
   --control-h: 3.5rem; /* tweak to taste */
   -webkit-appearance: none;
