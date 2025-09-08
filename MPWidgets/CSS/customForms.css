@@ -28,6 +28,12 @@
   display: none !important;
 }
 
+:host([hide-contact-heading])
+  #contactDetailsDiv
+  > .mppw-row:nth-child(1):has(> .mppw-col:nth-child(1) > h3:nth-child(1)) {
+  display: none !important;
+}
+
 * {
   color: #565656;
   font-family: "Montserrat", Helvetica, Arial, sans-serif !important;
