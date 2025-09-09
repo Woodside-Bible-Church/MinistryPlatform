@@ -375,3 +375,7 @@ h3,
 .mpp-card--footer {
   text-align: center;
 }
+
+.buildDetailsButton {
+  margin: 0;
+}
