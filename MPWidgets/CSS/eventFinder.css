@@ -338,8 +338,8 @@ h3,
 /* …but NOT for form controls */
 :host
   :is(
-    input,
-    select:not(.mppw-btn .primary),
+    input:not(.mppw-btn.primary),
+    select,
     textarea,
     button,
     option,

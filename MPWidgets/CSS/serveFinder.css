@@ -337,7 +337,15 @@ h3,
 
 /* …but NOT for form controls */
 :host
-  :is(input, select, textarea, button, option, optgroup, .multiselectTextbox) {
+  :is(
+    input:not(.mppw-btn.primary),
+    select,
+    textarea,
+    button,
+    option,
+    optgroup,
+    .multiselectTextbox
+  ) {
   color: revert !important; /* falls back to UA/site default */
 }
 
