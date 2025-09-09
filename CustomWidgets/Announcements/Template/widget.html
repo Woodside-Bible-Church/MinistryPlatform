@@ -40,13 +40,6 @@
         {% assign blurb = a.Body | default: "" | strip_html | strip %} {% if
         blurb != "" %}
         <p class="ann-blurb">{{ blurb | truncate: 140 }}</p>
-        {% endif %} {% if a.CallToAction and a.CallToAction.Link and
-        a.CallToAction.Text %}
-        <div class="ann-cta">
-          <a class="btn" href="{{ a.CallToAction.Link }}"
-            >{{ a.CallToAction.Text }}</a
-          >
-        </div>
         {% endif %}
       </div>
     </article>
@@ -90,13 +83,6 @@
         {% assign blurb = a.Body | default: "" | strip_html | strip %} {% if
         blurb != "" %}
         <p class="ann-blurb">{{ blurb | truncate: 140 }}</p>
-        {% endif %} {% if a.CallToAction and a.CallToAction.Link and
-        a.CallToAction.Text %}
-        <div class="ann-cta">
-          <a class="btn" href="{{ a.CallToAction.Link }}"
-            >{{ a.CallToAction.Text }}</a
-          >
-        </div>
         {% endif %}
       </div>
     </article>
