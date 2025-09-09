@@ -47,8 +47,11 @@
             {% assign badge_text = "New Again" %}
           {% endif %}
         {% endif %}
-
-        <span class="badge" role="note" aria-label="{{ badge_text }}">
+        <h2>{{ person.Display_Name }}</h2>
+       <span class="badge badge--type{{ person.New_Type }}"
+      data-type="{{ person.New_Type }}"
+      role="note"
+      aria-label="{{ badge_text }}">
           {% if person.New_Type == 1 %}
             <i class="fas fa-user-plus" aria-hidden="true"></i>
           {% elsif person.New_Type == 2 %}
@@ -58,8 +61,6 @@
           {% endif %}
           {{ badge_text }}
         </span>
-
-        <h2>{{ person.Display_Name }}</h2>
       </div>
 
       <div class="group">

@@ -1,9 +1,12 @@
+/* =========================================================
+   Theme tokens
+   ========================================================= */
 :root {
   --primaryColor: #1c2b39;
-  --secondaryColor: #00a0e3; /*#62bb46;*/
+  --secondaryColor: #00a0e3;
   --tertiaryColor: #e3b400;
 
-  --blue: #00a0e3;
+  --blue: #00a0e3; /* type 1 default */
   --blue-text-safe: #0078aa;
 
   --comp: #e34300;
@@ -11,15 +14,18 @@
   --comp-muted: #b74d20;
   --comp-soft: #e0a085;
 
-  --split-raspberry: #e3002e;
-  --split-amber: #e3b400;
+  --split-violet: #7f19ba; /* type 2 */
+  --split-amber: #e3b400; /* type 3 */
 
   --neutral-ink: #1c2b39;
   --neutral-bg: #f5f7fa;
 }
 
+/* =========================================================
+   Base / Typography
+   ========================================================= */
 * {
-  font-family: "gotham", sans-serif; /*Montserrat, Helvetica, Arial, sans-serif;*/
+  font-family: "gotham", sans-serif;
 }
 
 h1,
@@ -30,11 +36,13 @@ h5,
 h6 {
   text-transform: uppercase;
 }
-
 h4 {
   margin-bottom: 0.25em;
 }
 
+/* =========================================================
+   Layout containers
+   ========================================================= */
 #NewPersonWidget section {
   margin-top: 4em;
 }
@@ -44,24 +52,25 @@ h4 {
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1em;
   margin-top: 1em;
-  align-items: stretch; /* 🧱 Ensure cards fill their row */
+  align-items: stretch;
 }
 
+/* =========================================================
+   Person cards
+   ========================================================= */
 .person-card {
-  background: #f5f5f5;
+  background: #edeff4;
   padding: 1em;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(74, 74, 75, 0.24);
   display: flex;
   flex-direction: column;
   gap: 1rem;
   align-items: start;
 }
 
-/* Map children to areas */
 .person-card * {
   margin: 0;
 }
-
 .person-card > div {
   width: 100%;
 }
@@ -70,53 +79,69 @@ h4 {
   color: var(--secondaryColor);
 }
 
+.person-card .name {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 0.25em;
+}
+
+.person-card .name > h2,
+.person-card .name > h3 {
+  margin: 0;
+}
+
+.person-card h3 {
+  font-size: 1.1em;
+}
+.person-card p {
+  margin: 0;
+}
+
+/* =========================================================
+   Badge (driven by --badge-color)
+   ========================================================= */
+/* Map types to a color variable */
+#NewPersonWidget .badge--type1 {
+  --badge-color: var(--blue);
+} /* New Person */
+#NewPersonWidget .badge--type2 {
+  --badge-color: var(--split-amber);
+} /* New Again */
+#NewPersonWidget .badge--type3 {
+  --badge-color: var(--split-violet);
+} /* New to Program or 3rd state */
+
+/* Base badge styles; keep this after the type classes */
 .person-card .badge {
-  /*
-  font-size: 0.8rem;
-  background: var(--secondaryColor);
-  color: white;
-  padding: 0.25em 1.5em;
-  white-space: nowrap;
-  font-weight: 600;
-  text-transform: uppercase;
-  margin-top: 0.5em;
-  border-radius: 100px;
-  */
+  --badge-color: var(--secondaryColor);
   display: flex;
   align-items: center;
-  gap: 0.25em;
-  text-align: right;
+  gap: 0.35em;
   position: relative;
   font-size: 1rem;
-  color: var(--secondaryColor);
-  white-space: nowrap;
   font-weight: 900;
+  white-space: nowrap;
   text-transform: uppercase;
-  margin-top: 0.5em;
-  border-radius: 100px;
-
-  /* animations: quick entrance, then a slow idle breathe */
+  color: var(--badge-color);
+  padding: 0.25em 0.75em;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--badge-color) 12%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--badge-color) 35%, transparent);
   animation: badge-pop 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both,
     badge-breathe 6s ease-in-out 1s infinite;
+  width: min-content;
 }
 
-/* underline that “draws in” once */
-.person-card .badge::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -0.1em;
-  height: 0.1em;
-  background: var(--secondaryColor);
-  opacity: 0.35;
-  border-radius: 999px;
-  transform: scaleX(0);
-  transform-origin: left;
-  animation: badge-underline 700ms cubic-bezier(0.25, 0.8, 0.25, 1) 120ms both;
+/* Icon inside badge uses currentColor */
+.person-card .badge i {
+  margin-right: 0.4em;
+  vertical-align: -0.12em;
+  color: currentColor;
+  opacity: 0.9;
 }
 
-/* entrance pop (no layout shift, transform only) */
+/* Motion keyframes (no underline version) */
 @keyframes badge-pop {
   0% {
     transform: translateY(-2px) scale(0.98);
@@ -128,7 +153,6 @@ h4 {
   }
 }
 
-/* idle breathe: very light glow so it “lives” */
 @keyframes badge-breathe {
   0%,
   100% {
@@ -136,63 +160,20 @@ h4 {
   }
   50% {
     text-shadow: 0 0 0.35rem
-      color-mix(in srgb, var(--secondaryColor) 45%, transparent);
+      color-mix(in srgb, var(--badge-color) 45%, transparent);
   }
 }
 
-/* underline draw */
-@keyframes badge-underline {
-  to {
-    transform: scaleX(1);
-    opacity: 0.45;
-  }
-}
-
-/* accessibility: honor reduced motion */
+/* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .person-card .badge,
-  .person-card .badge::after {
+  .person-card .badge {
     animation: none !important;
   }
 }
 
-.person-card .name {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  transform: translateY(-0.75rem);
-}
-
-.person-card .name .badge {
-  align-self: flex-end;
-}
-
-/* Optional: tidy typical heading spacing in the name block */
-.person-card .name > h2,
-.person-card .name > h3 {
-  margin: 0;
-}
-
-.person-card h3 {
-  margin: 0;
-  font-size: 1.1em;
-}
-
-.person-card p {
-  margin: 0;
-}
-
-.household ul {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
-}
-
-.household li {
-  margin: 0.25em 0;
-  font-size: 0.9em;
-}
-
+/* =========================================================
+   Household contacts / icons
+   ========================================================= */
 .icons {
   display: flex;
   align-items: flex-end;
@@ -214,10 +195,19 @@ h4 {
 }
 
 .household .household-contact + .household-contact {
-  border-top: 1px solid var(--secondaryColor);
-  border-color: color-mix(in srgb, var(--secondaryColor) 15%, transparent);
+  border-top: 1px solid
+    color-mix(in srgb, var(--secondaryColor) 15%, transparent);
 }
 
+.household ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* =========================================================
+   Empty state and date picker
+   ========================================================= */
 .empty-state {
   background: #fff4f4;
   border: 1px solid #ffcccc;
@@ -240,24 +230,13 @@ h4 {
   font-size: 1em;
 }
 
-.person-card .badge i {
-  margin-right: 0.4em;
-  vertical-align: -0.12em;
-}
-
-.person-card .badge .fa-user {
-  color: currentColor;
-  opacity: 0.25;
-}
-
-/* If FA v6: replace .fas with .fa-solid in the HTML above */
-
-/* Responsive Layouts */
+/* =========================================================
+   Responsive
+   ========================================================= */
 @media (max-width: 768px) {
   .new-person-cards {
     grid-template-columns: 1fr;
   }
-
   .person-card {
     width: 100%;
   }
@@ -267,13 +246,11 @@ h4 {
   .person-card {
     padding: 0.75em;
   }
-
   .person-card h3 {
     font-size: 1em;
   }
-
-  .badge {
-    font-size: 0.7em;
-    padding: 0.2em 0.5em;
+  .person-card .badge {
+    font-size: 0.75em;
+    padding: 0.2em 0.6em;
   }
 }
