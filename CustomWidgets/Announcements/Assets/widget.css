@@ -23,7 +23,6 @@ h6 {
   --ann-card-bg: #fff;
   --ann-radius: 16px;
   --ann-gap: 24px;
-  --ann-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
   color: var(--ann-text);
 }
 
@@ -70,7 +69,6 @@ h6 {
 .ann-card {
   background: var(--ann-card-bg);
   overflow: hidden;
-  box-shadow: var(--ann-shadow);
   display: flex;
   flex-direction: column;
 }
@@ -165,7 +163,6 @@ h6 {
   --ann-card-bg: #fff;
   --ann-radius: 16px;
   --ann-gap: 24px;
-  --ann-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
   color: var(--ann-text);
 }
 
@@ -212,7 +209,6 @@ h6 {
 .ann-card {
   background: var(--ann-card-bg);
   overflow: hidden;
-  box-shadow: var(--ann-shadow);
   display: flex;
   flex-direction: column;
 }
