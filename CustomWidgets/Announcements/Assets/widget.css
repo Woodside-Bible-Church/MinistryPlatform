@@ -15,134 +15,287 @@ h5,
 h6 {
   text-transform: uppercase;
 }
-
-h4 {
-  margin-bottom: 0.25em;
+/* ------- layout shell ------- */
+.ann-wrap {
+  --ann-green: var(--secondaryColor);
+  --ann-text: var(--primaryColor);
+  --ann-muted: #6b7280;
+  --ann-card-bg: #fff;
+  --ann-radius: 16px;
+  --ann-gap: 24px;
+  --ann-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  color: var(--ann-text);
 }
 
-.hidden {
-  display: none;
+.ann-section-title {
+  margin: 32px 0 16px;
+  font: 700 20px/1.15 system-ui, -apple-system, Segoe UI, Roboto,
+    "Helvetica Neue", Arial;
+  letter-spacing: 0.02em;
+  color: var(--ann-green);
+  text-transform: uppercase;
 }
 
-.new-person-cards {
+/* ------- grids ------- */
+.ann-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1em;
-  margin-top: 1em;
-  align-items: stretch; /* 🧱 Ensure cards fill their row */
+  gap: var(--ann-gap);
+}
+.ann-grid--featured {
+  grid-template-columns: 2fr 1fr;
+  grid-auto-rows: 1fr;
+}
+.ann-grid--featured .ann-card.is-featured {
+  grid-column: 1 / span 1;
+  grid-row: 1 / span 2;
+}
+.ann-grid--featured .ann-card:not(.is-featured) {
+  grid-column: 2 / span 1;
+}
+.ann-grid--campus {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.person-card {
-  background: #f0f3f8;
-  padding: 1em;
-  padding-top: 2.5em !important;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  gap: 0.25em;
-  position: relative;
-  height: 100%; /* 🧱 Stretch to match tallest card */
-  box-sizing: border-box; /* 📦 Important for consistent sizing */
-  overflow-wrap: break-word; /* 🧼 Prevent badge or long text issues */
-}
-
-.person-card h3 {
-  margin: 0;
-  font-size: 1.1em;
-}
-
-.person-card .badge {
-  background: var(--secondaryColor);
-  color: white;
-  font-size: 0.75em;
-  padding: 0.25em 0.6em;
-  border-radius: 4px;
-  white-space: nowrap;
-  width: fit-content;
-  position: absolute;
-  top: 0.75em;
-  right: 0.75em;
-  z-index: 1;
-}
-
-.person-card p {
-  margin: 0;
-}
-
-.household ul {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
-}
-
-.household li {
-  margin: 0.25em 0;
-  font-size: 0.9em;
-}
-
-.icons {
-  display: flex;
-  align-items: flex-end;
-  gap: 0.5em;
-}
-
-.icons i {
-  margin-right: 0.4em;
-  color: var(--secondaryColor);
-}
-
-.household-contact {
-  display: flex;
-  gap: 0.5em;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.empty-state {
-  background: #fff4f4;
-  border: 1px solid #ffcccc;
-  padding: 1em;
-  border-radius: 4px;
-  margin: 1em 0;
-  text-align: center;
-}
-
-.date-picker-container {
-  margin-bottom: 1em;
-  font-size: 1em;
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-}
-
-.date-picker-container input[type="date"] {
-  padding: 0.4em;
-  font-size: 1em;
-}
-
-/* Responsive Layouts */
-@media (max-width: 768px) {
-  .new-person-cards {
+@media (max-width: 900px) {
+  .ann-grid--featured,
+  .ann-grid--campus {
     grid-template-columns: 1fr;
   }
-
-  .person-card {
-    width: 100%;
+  .ann-grid--featured .ann-card.is-featured {
+    grid-row: auto;
   }
 }
 
-@media (max-width: 480px) {
-  .person-card {
-    padding: 0.75em;
-  }
+/* ------- card ------- */
+.ann-card {
+  background: var(--ann-card-bg);
+  overflow: hidden;
+  box-shadow: var(--ann-shadow);
+  display: flex;
+  flex-direction: column;
+}
+.ann-media {
+  display: block;
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: #f3f4f6;
+}
+.ann-media img,
+.ann-img.placeholder {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
 
-  .person-card h3 {
-    font-size: 1em;
-  }
+/* Placeholder when no image */
+.ann-img.placeholder {
+  background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+  display: grid;
+  place-items: center;
+}
+.placeholder-text {
+  color: var(--ann-green);
+  font-weight: 700;
+  text-align: center;
+  padding: 0 12px;
+}
 
-  .badge {
-    font-size: 0.7em;
-    padding: 0.2em 0.5em;
+/* body */
+.ann-body {
+  padding: 16px 18px 20px;
+}
+.ann-kicker {
+  font: 700 12px/1.3 system-ui;
+  color: var(--ann-green);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.ann-title {
+  margin: 0 0 8px;
+  font: 800 22px/1.2 system-ui, -apple-system, Segoe UI, Roboto,
+    "Helvetica Neue", Arial;
+}
+.ann-title a {
+  color: inherit;
+  text-decoration: none;
+}
+.ann-title a:hover {
+  text-decoration: underline;
+}
+.ann-blurb {
+  margin: 0 0 12px;
+  color: var(--ann-muted);
+  line-height: 1.5;
+}
+
+/* CTA */
+.ann-cta .btn {
+  display: inline-block;
+  padding: 10px 14px;
+  background: var(--ann-green);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+.ann-cta .btn:hover {
+  filter: brightness(0.95);
+}
+
+/* Empty state */
+.ann-empty {
+  margin: 24px 0 40px;
+  padding: 24px;
+  background: #f9fafb;
+  color: var(--ann-muted);
+  text-align: center;
+}
+:root {
+  --primaryColor: #1c2b39;
+  --secondaryColor: #62bb46;
+}
+
+/* Base font + headings already set globally by you */
+
+.ann-wrap {
+  --ann-text: var(--primaryColor);
+  --ann-accent: var(--secondaryColor);
+  --ann-muted: rgba(28, 43, 57, 0.65); /* soft version of primary */
+  --ann-card-bg: #fff;
+  --ann-radius: 16px;
+  --ann-gap: 24px;
+  --ann-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  color: var(--ann-text);
+}
+
+.ann-section-title {
+  margin: 32px 0 16px;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  color: var(--ann-accent);
+}
+
+/* grids */
+.ann-grid {
+  display: grid;
+  gap: var(--ann-gap);
+}
+.ann-grid--featured {
+  grid-template-columns: 2fr 1fr;
+  grid-auto-rows: 1fr;
+}
+.ann-grid--featured .ann-card.is-featured {
+  grid-column: 1 / span 1;
+  grid-row: 1 / span 2;
+}
+.ann-grid--featured .ann-card:not(.is-featured) {
+  grid-column: 2 / span 1;
+}
+.ann-grid--campus {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .ann-grid--featured,
+  .ann-grid--campus {
+    grid-template-columns: 1fr;
   }
+  .ann-grid--featured .ann-card.is-featured {
+    grid-row: auto;
+  }
+}
+
+/* card */
+.ann-card {
+  background: var(--ann-card-bg);
+  overflow: hidden;
+  box-shadow: var(--ann-shadow);
+  display: flex;
+  flex-direction: column;
+}
+.ann-media {
+  display: block;
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: #f3f4f6;
+}
+.ann-media img,
+.ann-img.placeholder {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Placeholder when no image */
+.ann-img.placeholder {
+  background: linear-gradient(
+    135deg,
+    rgba(98, 187, 70, 0.18),
+    rgba(98, 187, 70, 0.08)
+  );
+  display: grid;
+  place-items: center;
+}
+.placeholder-text {
+  color: var(--ann-accent);
+  font-weight: 700;
+  text-align: center;
+  padding: 0 12px;
+}
+
+/* body */
+.ann-body {
+  padding: 16px 18px 20px;
+}
+.ann-kicker {
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--ann-accent);
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.ann-title {
+  margin: 0 0 8px;
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1.2;
+}
+.ann-title a {
+  color: inherit;
+  text-decoration: none;
+}
+.ann-title a:hover {
+  text-decoration: underline;
+}
+.ann-blurb {
+  margin: 0 0 12px;
+  color: var(--ann-muted);
+  line-height: 1.5;
+}
+
+/* CTA */
+.ann-cta .btn {
+  display: inline-block;
+  padding: 10px 14px;
+  background: var(--ann-accent);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+.ann-cta .btn:hover {
+  filter: brightness(0.95);
+}
+
+/* Empty state */
+.ann-empty {
+  margin: 24px 0 40px;
+  padding: 24px;
+  background: #f9fafb;
+  color: var(--ann-muted);
+  text-align: center;
 }

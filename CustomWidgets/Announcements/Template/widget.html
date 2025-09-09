@@ -1,0 +1,108 @@
+<section id="announcements" class="ann-wrap">
+  {% assign announcements = Announcements | default: empty %} {% if
+  announcements and announcements.size > 0 %} {% assign has_churchwide = false
+  %} {% for a in announcements %} {% if a.Campus and a.Campus.ID == 1 %}{%
+  assign has_churchwide = true %}{% break %}{% endif %} {% endfor %} {% if
+  has_churchwide %}
+  <h2 class="ann-section-title">HAPPENING AT WOODSIDE</h2>
+  <div class="ann-grid ann-grid--featured">
+    {% assign first_cw_rendered = false %} {% for a in announcements %} {% if
+    a.Campus and a.Campus.ID == 1 %}
+    <article
+      class="ann-card {% unless first_cw_rendered %}is-featured{% endunless %}"
+    >
+      {% assign cta_link = a.CallToAction.Link | default: "" %}
+      <a
+        class="ann-media"
+        {%
+        if
+        cta_link
+        !=""
+        %}href="{{ cta_link }}"
+        {%
+        endif
+        %}
+        aria-label="{{ a.Title }}"
+      >
+        {% if a.Image %}
+        <img src="{{ a.Image }}" alt="{{ a.Title | escape }}" loading="lazy" />
+        {% else %}
+        <div class="ann-img placeholder">
+          <span class="placeholder-text">{{ a.Title }}</span>
+        </div>
+        {% endif %}
+      </a>
+      <div class="ann-body">
+        <h3 class="ann-title">
+          {% if cta_link != "" %}<a href="{{ cta_link }}">{{ a.Title }}</a>{%
+          else %}{{ a.Title }}{% endif %}
+        </h3>
+        {% assign blurb = a.Body | default: "" | strip_html | strip %} {% if
+        blurb != "" %}
+        <p class="ann-blurb">{{ blurb | truncate: 140 }}</p>
+        {% endif %} {% if a.CallToAction and a.CallToAction.Link and
+        a.CallToAction.Text %}
+        <div class="ann-cta">
+          <a class="btn" href="{{ a.CallToAction.Link }}"
+            >{{ a.CallToAction.Text }}</a
+          >
+        </div>
+        {% endif %}
+      </div>
+    </article>
+    {% unless first_cw_rendered %}{% assign first_cw_rendered = true %}{%
+    endunless %} {% endif %} {% endfor %}
+  </div>
+  {% endif %} {% assign has_other = false %} {% for a in announcements %} {% if
+  a.Campus and a.Campus.ID != 1 %}{% assign has_other = true %}{% break %}{%
+  endif %} {% endfor %} {% if has_other %}
+  <h2 class="ann-section-title">CAMPUS ANNOUNCEMENTS</h2>
+  <div class="ann-grid ann-grid--campus">
+    {% for a in announcements %} {% if a.Campus and a.Campus.ID != 1 %}
+    <article class="ann-card">
+      {% assign cta_link = a.CallToAction.Link | default: "" %}
+      <a
+        class="ann-media"
+        {%
+        if
+        cta_link
+        !=""
+        %}href="{{ cta_link }}"
+        {%
+        endif
+        %}
+        aria-label="{{ a.Title }}"
+      >
+        {% if a.Image %}
+        <img src="{{ a.Image }}" alt="{{ a.Title | escape }}" loading="lazy" />
+        {% else %}
+        <div class="ann-img placeholder">
+          <span class="placeholder-text">{{ a.Title }}</span>
+        </div>
+        {% endif %}
+      </a>
+      <div class="ann-body">
+        <div class="ann-kicker">{{ a.Campus.Name }}</div>
+        <h3 class="ann-title">
+          {% if cta_link != "" %}<a href="{{ cta_link }}">{{ a.Title }}</a>{%
+          else %}{{ a.Title }}{% endif %}
+        </h3>
+        {% assign blurb = a.Body | default: "" | strip_html | strip %} {% if
+        blurb != "" %}
+        <p class="ann-blurb">{{ blurb | truncate: 140 }}</p>
+        {% endif %} {% if a.CallToAction and a.CallToAction.Link and
+        a.CallToAction.Text %}
+        <div class="ann-cta">
+          <a class="btn" href="{{ a.CallToAction.Link }}"
+            >{{ a.CallToAction.Text }}</a
+          >
+        </div>
+        {% endif %}
+      </div>
+    </article>
+    {% endif %} {% endfor %}
+  </div>
+  {% endif %} {% else %}
+  <div class="ann-empty">No announcements to show.</div>
+  {% endif %}
+</section>

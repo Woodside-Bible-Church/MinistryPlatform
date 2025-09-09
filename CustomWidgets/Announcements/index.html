@@ -51,7 +51,10 @@
       <li>@Username - Automatically passed by the Login Widget</li>
     </ul>
 
-    <div id="Announcements"></div>
+    <!-- Host page: add this container where you want the widget -->
+    <div id="Announcements" data-host="woodsidebible"></div>
+    <script src="/CustomWidgets/Announcements/Assets/embed.js" defer></script>
+
     <h2 style="margin-top: 2em">Live JSON Output</h2>
     <div id="loader" class="hidden">Loading...</div>
     <div
@@ -66,8 +69,7 @@
       "
     ></div>
 
-    <script src="Assets/CustomWidgets.js"></script>
-    <script src="Assets/Widget.Init.js"></script>
+    <script src="Assets/embed.js"></script>
 
     <script>
       window.addEventListener("widgetLoaded", function (event) {

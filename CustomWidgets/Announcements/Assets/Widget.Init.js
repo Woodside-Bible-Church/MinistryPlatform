@@ -2,19 +2,20 @@
   const widgetId = "Announcements";
   const storedProc = "api_custom_AnnouncementsWidget_JSON";
 
+  // --- Environment detection ---
   const hostname = location.hostname;
   const isLocalDev =
     hostname.includes("localhost") || hostname.includes("127.0.0.1");
-  const isHostedApp = hostname.includes(
-    "https://announcements-black.vercel.app/"
-  );
+  const isHostedApp = /(^|\.)announcements-black\.vercel\.app$/i.test(hostname);
 
+  // Where to load the Liquid template from
   const templatePath = isLocalDev
-    ? `/CustomWidgets/${widgetId.replace("Widget", "")}/Template/widget.html`
+    ? `/CustomWidgets/${widgetId}/Template/widget.html`
     : isHostedApp
-    ? "/Template/widget.html"
-    : "https://announcements-black.vercel.app//Template/widget.html";
+    ? `/Template/widget.html`
+    : `https://announcements-black.vercel.app/Template/widget.html`;
 
+  // --- Accepted query params to forward to the SP ---
   const allowedKeys = [
     "@CongregationID",
     "@GroupID",
@@ -28,7 +29,6 @@
   ];
 
   const urlParams = new URLSearchParams(window.location.search);
-
   const paramMap = new Map(
     Array.from(urlParams.entries()).filter(
       ([k, v]) => allowedKeys.includes(k) && v?.trim()
@@ -39,15 +39,17 @@
     .map(([k, v]) => `${k}=${v}`)
     .join("&");
 
+  // NOTE: render the inner widget with a different id to avoid duplicate #Announcements
+  const innerId = `${widgetId}Inner`;
   const tag = `
-    <div id="${widgetId}" 
-         data-component="CustomWidget" 
-         data-sp="${storedProc}" 
-         data-params="${filteredParams}" 
-         data-template="${templatePath}" 
-         data-requireUser="false" 
-         data-cache="false" 
-         data-host="woodsidebible" 
+    <div id="${innerId}"
+         data-component="CustomWidget"
+         data-sp="${storedProc}"
+         data-params="${filteredParams}"
+         data-template="${templatePath}"
+         data-requireUser="false"
+         data-cache="false"
+         data-host="woodsidebible"
          data-debug="true">
     </div>`;
 
@@ -61,38 +63,32 @@
     const waitForReInit = setInterval(() => {
       if (typeof window.ReInitWidget === "function") {
         clearInterval(waitForReInit);
-        window.ReInitWidget(widgetId);
+        window.ReInitWidget(widgetId); // keep passing the outer container id
       }
     }, 50);
   }
 
   window.addEventListener("widgetLoaded", function (event) {
-    loader?.classList.add("hidden");
+    if (loader) loader.classList.add("hidden");
     if (event.detail?.widgetId !== widgetId) return;
     console.log("✅ Widget loaded:", event.detail);
 
-    setTimeout(() => {
-      if (typeof initDatePicker === "function") {
-        initDatePicker();
-      }
-    }, 100);
+    // Optional: any post-load hooks
+    if (typeof initDatePicker === "function") {
+      setTimeout(initDatePicker, 100);
+    }
   });
 
+  // ---------- helpers ----------
   function cleanMap(map) {
-    for (let [k, v] of map) {
-      if (!v?.trim()) {
-        map.delete(k);
-      }
-    }
+    for (const [k, v] of map) if (!v?.trim()) map.delete(k);
     return map;
   }
 
   function syncParamsToUrl(paramMap) {
     const newUrl = new URL(window.location.href);
     allowedKeys.forEach((key) => newUrl.searchParams.delete(key));
-    for (let [k, v] of cleanMap(paramMap)) {
-      newUrl.searchParams.set(k, v);
-    }
+    for (const [k, v] of cleanMap(paramMap)) newUrl.searchParams.set(k, v);
     window.history.replaceState({}, "", newUrl);
   }
 
@@ -118,22 +114,22 @@
       .map(([k, v]) => `@${k}=${v}`)
       .join("&");
 
-    const widgetRoot = document.getElementById(widgetId);
-    if (!widgetRoot) return;
+    const root = document.getElementById(widgetId);
+    if (!root) return;
 
     const tag = `
-      <div id="${widgetId}" 
-           data-component="CustomWidget" 
-           data-sp="${storedProc}" 
-           data-params="${newParams}" 
-           data-template="${templatePath}" 
-           data-requireUser="false" 
-           data-cache="false" 
-           data-host="woodsidebible" 
+      <div id="${innerId}"
+           data-component="CustomWidget"
+           data-sp="${storedProc}"
+           data-params="${newParams}"
+           data-template="${templatePath}"
+           data-requireUser="false"
+           data-cache="false"
+           data-host="woodsidebible"
            data-debug="true">
       </div>`;
 
-    widgetRoot.innerHTML = tag;
+    root.innerHTML = tag;
     syncParamsToUrl(paramMap);
 
     if (typeof ReInitWidget === "function") {
@@ -141,6 +137,6 @@
     }
   }
 
-  // Optional: expose helper if needed elsewhere
-  window.applyEventFinderParams = applyParams;
+  // expose (optional)
+  window.applyAnnouncementsParams = applyParams;
 })();
