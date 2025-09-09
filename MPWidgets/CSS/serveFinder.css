@@ -24,6 +24,10 @@
   --footer-fg: currentColor;
 }
 
+:host([hide-title]) .mppw-form-wrapper > h1:nth-child(1) {
+  display: none !important;
+}
+
 * {
   color: #565656;
   font-family: "Montserrat", Helvetica, Arial, sans-serif !important;
