@@ -1,16 +1,15 @@
 /* =========================================================
-   Announcements Widget — Clean CSS
-   Uses your base theme variables:
-   --primaryColor, --secondaryColor
+   Announcements Widget — Tightened Featured Grid
+   Uses site variables: --primaryColor, --secondaryColor
    ========================================================= */
 
-/* Base theme hooks */
+/* ---- Theme hooks ---- */
 :root {
   --primaryColor: #1c2b39;
   --secondaryColor: #62bb46;
 }
 
-/* Global typography hooks you already use */
+/* ---- Global typography (your base) ---- */
 * {
   font-family: Montserrat, Helvetica, Arial, sans-serif;
 }
@@ -29,7 +28,7 @@ h6 {
   --ann-accent: var(--secondaryColor);
   --ann-muted: rgba(28, 43, 57, 0.65);
   --ann-card-bg: #fff;
-  --ann-gap: 24px;
+  --ann-gap: 24px; /* default gap for non-featured grids */
   color: var(--ann-text);
 }
 
@@ -48,17 +47,27 @@ h6 {
   gap: var(--ann-gap);
 }
 
-/* Featured mosaic (desktop) */
+/* ===== Featured mosaic (desktop) =====
+   - smaller gap than the rest
+   - hero left spans 2 rows; two cards stack on the right
+   - make right cards a touch taller to align bottoms nicely */
 .ann-grid--featured {
+  --ann-feature-gap: clamp(12px, 1.4vw, 18px);
+  --ann-featured-small-ratio: 16 / 8.8; /* <— make right cards slightly taller; tweak if needed */
+
   grid-template-columns: 2fr 1fr;
-  grid-auto-rows: 1fr;
+  grid-auto-rows: auto;
+  gap: var(--ann-feature-gap);
+  align-items: stretch;
 }
+
 .ann-grid--featured > .ann-card.is-featured {
   grid-column: 1 / span 1;
-  grid-row: 1 / span 2; /* tall hero on the left */
+  grid-row: 1 / span 2;
 }
+
 .ann-grid--featured > .ann-card:not(.is-featured) {
-  grid-column: 2 / span 1; /* two stacked on the right */
+  grid-column: 2 / span 1;
 }
 
 /* Campus grid (desktop) */
@@ -74,12 +83,16 @@ h6 {
   overflow: hidden;
 }
 
+/* Media box */
 .ann-media {
   position: relative;
   display: block;
   aspect-ratio: 16 / 9;
   background: #f3f4f6;
+  overflow: hidden;
+  text-decoration: none;
 }
+
 .ann-media img,
 .ann-img.placeholder {
   width: 100%;
@@ -88,27 +101,49 @@ h6 {
   display: block;
 }
 
-/* Placeholder when no image */
-.ann-img.placeholder {
-  background: linear-gradient(
-    135deg,
-    rgba(98, 187, 70, 0.18),
-    rgba(98, 187, 70, 0.08)
-  );
-  display: grid;
-  place-items: center;
-}
-.placeholder-text {
-  color: var(--ann-accent);
-  font-weight: 700;
-  text-align: center;
-  padding: 0 12px;
+/* Taller media for the two small cards on the right to better align bottoms */
+.ann-grid--featured > .ann-card:not(.is-featured) .ann-media {
+  aspect-ratio: var(--ann-featured-small-ratio);
 }
 
-/* Card body */
+/* Placeholder when no image — “banner” look */
+.ann-img.placeholder {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+
+  background-color: var(--secondaryColor);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23ffffff' fill-opacity='0.15'/%3E%3Ccircle cx='12' cy='12' r='1' fill='%23ffffff' fill-opacity='0.25'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 20px 20px;
+
+  padding: clamp(14px, 2vw, 28px);
+  outline: 1px solid rgba(255, 255, 255, 0.95);
+  outline-offset: -10px;
+}
+
+.placeholder-text {
+  color: #fff;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  text-align: center;
+  line-height: 1.15;
+  font-size: clamp(1.25rem, 3.8vw, 1.75rem);
+}
+
+/* ---------------- Card body ---------------- */
 .ann-body {
   padding: 16px 18px 20px;
 }
+
+/* Tighter body only in the featured grid to reduce total height */
+.ann-grid--featured .ann-body {
+  padding: 12px 14px 14px;
+}
+
 .ann-kicker {
   font-weight: 700;
   font-size: 12px;
@@ -117,12 +152,14 @@ h6 {
   letter-spacing: 0.06em;
   margin-bottom: 6px;
 }
+
 .ann-title {
   margin: 0 0 8px;
   font-weight: 800;
   font-size: 22px;
   line-height: 1.2;
 }
+
 .ann-title a {
   color: inherit;
   text-decoration: none;
@@ -130,6 +167,7 @@ h6 {
 .ann-title a:hover {
   text-decoration: underline;
 }
+
 .ann-blurb {
   margin: 0 0 12px;
   color: var(--ann-muted);
@@ -160,20 +198,24 @@ h6 {
 
 /* ---------------- Responsive ---------------- */
 @media (max-width: 900px) {
-  /* Single-column for both sections */
   .ann-grid--featured,
   .ann-grid--campus {
     grid-template-columns: 1fr;
-    grid-auto-rows: auto;
+    gap: 18px; /* slightly tighter on small screens */
   }
 
-  /* Cancel desktop placements for ALL featured grid cards */
+  /* Cancel desktop placements for featured cards */
   .ann-grid--featured > .ann-card,
   .ann-grid--featured > .ann-card.is-featured,
   .ann-grid--featured > .ann-card:not(.is-featured) {
     grid-column: 1 / -1;
     grid-row: auto;
     width: 100%;
+  }
+
+  /* Back to regular ratio for small cards on mobile */
+  .ann-grid--featured > .ann-card:not(.is-featured) .ann-media {
+    aspect-ratio: 16 / 9;
   }
 }
 
@@ -184,49 +226,7 @@ h6 {
   .ann-title {
     font-size: 20px;
   }
-}
 
-/* keep media box from spilling */
-.ann-media {
-  position: relative;
-  display: block;
-  aspect-ratio: 16 / 9;
-  background: #f3f4f6;
-  overflow: hidden; /* NEW */
-  text-decoration: none;
-}
-
-/* make the placeholder respect the parent's height */
-.ann-img.placeholder {
-  box-sizing: border-box; /* NEW: include padding inside the height */
-  width: 100%;
-  height: 100%;
-  display: grid;
-  place-items: center;
-
-  /* your banner look stays the same */
-  background-color: var(--secondaryColor);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23ffffff' fill-opacity='0.15'/%3E%3Ccircle cx='12' cy='12' r='1' fill='%23ffffff' fill-opacity='0.25'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 20px 20px;
-
-  padding: clamp(16px, 2.5vw, 32px); /* keep responsive but inside the box */
-  outline: 1px solid rgba(255, 255, 255, 0.95);
-  outline-offset: -10px;
-}
-
-.ann-img :is(.placeholder-text) {
-  color: #fff;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: -0.02em;
-  text-align: center;
-  line-height: 1.15;
-  font-size: clamp(1.5rem, 4.5vw, 1.75rem);
-}
-
-/* optional: tighter on very small screens */
-@media (max-width: 600px) {
   .ann-img.placeholder {
     padding: clamp(12px, 3vw, 20px);
     outline-offset: -8px;
