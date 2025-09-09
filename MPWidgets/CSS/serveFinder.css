@@ -272,7 +272,7 @@ select {
 }
 
 .mppw-form-field:not(:has(.multiselectOption)) {
-  margin-top: 24px;
+  margin-top: 44px;
 }
 
 .mppw-form-field__control:has(.multiselectOption) {
@@ -339,4 +339,10 @@ h3,
 :host
   :is(input, select, textarea, button, option, optgroup, .multiselectTextbox) {
   color: revert !important; /* falls back to UA/site default */
+}
+
+:is(.mppw-btn .primary) {
+  background: var(--secondaryColor) !important;
+  border: none !important;
+  color: white !important;
 }
