@@ -103,13 +103,13 @@ h4 {
    ========================================================= */
 /* Map types to a color variable */
 #NewPersonWidget .badge--type1 {
-  --badge-color: var(--blue);
+  --badge-color: var(--split-amber);
 } /* New Person */
 #NewPersonWidget .badge--type2 {
-  --badge-color: var(--split-amber);
+  --badge-color: var(--split-violet);
 } /* New Again */
 #NewPersonWidget .badge--type3 {
-  --badge-color: var(--split-violet);
+  --badge-color: var(--blue);
 } /* New to Program or 3rd state */
 
 /* Base badge styles; keep this after the type classes */
