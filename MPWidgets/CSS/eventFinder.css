@@ -355,9 +355,14 @@ h3,
   color: white !important;
   margin: 0;
   transition: background 0.3s, color 0.3s, border-color 0.3s;
+  width: 100%;
 }
 
 .mppw-btn.primary:hover {
   background-color: var(--primaryColor) !important;
   border-color: var(--primaryColor) !important;
+}
+
+.mpp-card--footer {
+  text-align: center;
 }
