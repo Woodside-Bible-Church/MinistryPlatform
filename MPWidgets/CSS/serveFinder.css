@@ -341,8 +341,15 @@ h3,
   color: revert !important; /* falls back to UA/site default */
 }
 
-:is(.mppw-btn .primary) {
+.mppw-btn.primary {
   background: var(--secondaryColor) !important;
   border: none !important;
   color: white !important;
+  margin: 0;
+  transition: background 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.mppw-btn.primary:hover {
+  background-color: var(--primaryColor) !important;
+  border-color: var(--primaryColor) !important;
 }
