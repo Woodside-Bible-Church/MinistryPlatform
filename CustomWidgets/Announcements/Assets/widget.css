@@ -55,7 +55,7 @@ h6 {
   --ann-feature-gap: clamp(12px, 1.4vw, 18px);
   --ann-featured-small-ratio: 16 / 9; /* <— make right cards slightly taller; tweak if needed */
 
-  grid-template-columns: 2fr 0.835fr;
+  grid-template-columns: 2fr 0.85fr;
   grid-auto-rows: auto;
   gap: var(--ann-feature-gap);
   align-items: stretch;
@@ -179,6 +179,10 @@ h6 {
 /* Tighter body only in the featured grid to reduce total height */
 .ann-grid--featured .ann-body {
   padding: 12px 14px 14px;
+}
+
+.ann-body > * {
+  margin: 0 !important;
 }
 
 .ann-kicker {
