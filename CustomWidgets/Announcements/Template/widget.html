@@ -1,15 +1,16 @@
 <section id="announcements" class="ann-wrap">
   {% assign announcements = Announcements | default: empty %} {% if
   announcements and announcements.size > 0 %} {% assign has_churchwide = false
-  %} {% for a in announcements %} {% if a.Campus and a.Campus.ID == 1 %}{%
-  assign has_churchwide = true %}{% break %}{% endif %} {% endfor %} {% if
+  %} {% for a in announcements %} {% if a.Campus and a.Campus.ID == 1 %} {%
+  assign has_churchwide = true %} {% break %} {% endif %} {% endfor %} {% if
   has_churchwide %}
-  <h2 class="ann-section-title">HAPPENING AT WOODSIDE</h2>
+  <h2 class="ann-section-title">Happening At Woodside</h2>
   <div class="ann-grid ann-grid--featured">
     {% assign first_cw_rendered = false %} {% for a in announcements %} {% if
     a.Campus and a.Campus.ID == 1 %}
     <article
       class="ann-card {% unless first_cw_rendered %}is-featured{% endunless %}"
+      data-announcement-id="{{ a.ID }}"
     >
       {% assign cta_link = a.CallToAction.Link | default: "" %}
       <a
@@ -47,12 +48,18 @@
     endunless %} {% endif %} {% endfor %}
   </div>
   {% endif %} {% assign has_other = false %} {% for a in announcements %} {% if
-  a.Campus and a.Campus.ID != 1 %}{% assign has_other = true %}{% break %}{%
-  endif %} {% endfor %} {% if has_other %}
-  <h2 class="ann-section-title">CAMPUS ANNOUNCEMENTS</h2>
+  a.Campus and a.Campus.ID != 1 %} {% assign has_other = true %} {% break %} {%
+  endif %} {% endfor %} {% if has_other %} {% assign campus_name = "" %} {% for
+  a in announcements %} {% if a.Campus and a.Campus.ID != 1 %} {% assign
+  campus_name = a.Campus.Name %} {% break %} {% endif %} {% endfor %}
+
+  <h2 class="ann-section-title">
+    {{ campus_name | default: "Campus" }} Announcements
+  </h2>
+
   <div class="ann-grid ann-grid--campus">
     {% for a in announcements %} {% if a.Campus and a.Campus.ID != 1 %}
-    <article class="ann-card">
+    <article class="ann-card" data-announcement-id="{{ a.ID }}">
       {% assign cta_link = a.CallToAction.Link | default: "" %}
       <a
         class="ann-media"

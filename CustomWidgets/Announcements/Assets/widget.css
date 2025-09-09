@@ -53,9 +53,9 @@ h6 {
    - make right cards a touch taller to align bottoms nicely */
 .ann-grid--featured {
   --ann-feature-gap: clamp(12px, 1.4vw, 18px);
-  --ann-featured-small-ratio: 16 / 8.8; /* <— make right cards slightly taller; tweak if needed */
+  --ann-featured-small-ratio: 16 / 9; /* <— make right cards slightly taller; tweak if needed */
 
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 2fr 0.835fr;
   grid-auto-rows: auto;
   gap: var(--ann-feature-gap);
   align-items: stretch;
@@ -99,6 +99,43 @@ h6 {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+/* --- Image zoom on hover/focus --- */
+.ann-media {
+  overflow: hidden;
+} /* already set, keep it */
+
+.ann-media > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
+  transform: translateZ(0); /* avoids blurriness on some GPUs */
+  transition: transform 0.65s ease; /* smooth zoom */
+  will-change: transform;
+}
+
+/* Global: zoom every card on hover/focus */
+.ann-card:hover .ann-media > img,
+.ann-media:focus-visible > img {
+  transform: scale(1.025);
+}
+
+/* Respect reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .ann-media > img {
+    transition: none;
+  }
+}
+
+/* ---- OPTIONAL: target a single announcement only ---- */
+/* Replace 342 with the ID you want to zoom; remove the global rules above
+   if you ONLY want per-ID zoom behavior. */
+.ann-card[data-announcement-id="342"]:hover .ann-media > img,
+.ann-card[data-announcement-id="342"] .ann-media:focus-visible > img {
+  transform: scale(1.08);
 }
 
 /* Taller media for the two small cards on the right to better align bottoms */
