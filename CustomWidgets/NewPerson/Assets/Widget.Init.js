@@ -24,78 +24,70 @@
   ];
   const urlParams = new URLSearchParams(window.location.search);
 
-  const paramMap = new Map(
-    Array.from(urlParams.entries()).filter(
-      ([k, v]) => allowedKeys.includes(k) && v?.trim()
-    )
-  );
+  // ----- tiny utils -----
+  const REFRESH_MS = 30_000;
+  let refreshTimerId = null;
 
-  // ✅ Inject today's date if @Date is not present
-  if (!paramMap.has("@Date")) {
-    const today = new Date();
-    const mm = today.getMonth() + 1;
-    const dd = today.getDate();
-    const yyyy = today.getFullYear();
-    paramMap.set("@Date", `${mm}/${dd}/${yyyy}`);
+  function clearRefreshTimer() {
+    if (refreshTimerId) {
+      clearInterval(refreshTimerId);
+      refreshTimerId = null;
+    }
   }
 
-  const filteredParams = Array.from(paramMap.entries())
-    .map(([k, v]) => `${k}=${v}`)
-    .join("&");
-
-  const tag = `
-    <div id="${widgetId}" 
-         data-component="CustomWidget" 
-         data-sp="${storedProc}" 
-         data-params="${filteredParams}" 
-         data-template="${templatePath}" 
-         data-requireUser="false" 
-         data-cache="false" 
-         data-host="mcleanbible" 
-         data-debug="true">
-    </div>`;
-
-  const widgetRoot = document.getElementById(containerId);
-  const loader = document.getElementById("loader");
-
-  if (widgetRoot) {
-    if (loader) loader.classList.remove("hidden");
-    widgetRoot.innerHTML = tag;
-
-    const waitForReInit = setInterval(() => {
+  function startRefreshTimer() {
+    clearRefreshTimer();
+    refreshTimerId = setInterval(() => {
+      // Skip while tab is hidden to avoid meaningless refreshes
+      if (document.hidden) return;
       if (typeof window.ReInitWidget === "function") {
-        clearInterval(waitForReInit);
         window.ReInitWidget(widgetId);
       }
-    }, 50);
+    }, REFRESH_MS);
   }
 
-  window.addEventListener("widgetLoaded", function (event) {
-    if (event.detail?.widgetId !== widgetId) return;
-    console.log("✅ Widget loaded:", event.detail);
+  // "M/D/YYYY" (or "MM/DD/YYYY") -> true if same local calendar day as now
+  function isTodayParamDate(dateStr) {
+    if (!dateStr) return false;
+    const parts = (dateStr + "").split("/");
+    if (parts.length !== 3) return false;
+    const m = parseInt(parts[0], 10);
+    const d = parseInt(parts[1], 10);
+    const y = parseInt(parts[2], 10);
+    if (!m || !d || !y) return false;
 
-    // 🟢 Initialize the date picker *after* widget is fully rendered
-    setTimeout(() => {
-      initDatePicker();
-      initEventPicker(); // 👈 new
-    }, 100);
-  });
+    const today = new Date();
+    return (
+      y === today.getFullYear() &&
+      m === today.getMonth() + 1 &&
+      d === today.getDate()
+    );
+  }
+
+  function decideAutoRefreshFromParams(paramMap) {
+    const selected = paramMap.get("Date");
+    if (isTodayParamDate(selected)) {
+      startRefreshTimer();
+    } else {
+      clearRefreshTimer();
+    }
+  }
+
+  function formatDateToParamFromPickerValue(dateStr) {
+    // picker value "YYYY-MM-DD" -> "M/D/YYYY"
+    const [yyyy, mm, dd] = dateStr.split("-");
+    return `${parseInt(mm, 10)}/${parseInt(dd, 10)}/${yyyy}`;
+  }
 
   function cleanMap(map) {
-    for (let [k, v] of map) {
-      if (!v?.trim()) {
-        map.delete(k);
-      }
-    }
+    for (let [k, v] of map) if (!v?.trim()) map.delete(k);
     return map;
   }
 
   function syncParamsToUrl(paramMap) {
     const newUrl = new URL(window.location.href);
     allowedKeys.forEach((key) => newUrl.searchParams.delete(key));
-    for (let [k, v] of cleanMap(paramMap)) {
-      newUrl.searchParams.set("@" + k, v);
-    }
+    for (let [k, v] of cleanMap(paramMap)) newUrl.searchParams.set("@" + k, v);
     window.history.replaceState({}, "", newUrl);
   }
 
@@ -117,6 +109,9 @@
   function applyParams(paramMap) {
     cleanMap(paramMap);
 
+    // decide before rebuild to avoid duplicate timers during re-init
+    decideAutoRefreshFromParams(paramMap);
+
     const newParams = Array.from(paramMap.entries())
       .map(([k, v]) => `@${k}=${v}`)
       .join("&");
@@ -124,19 +119,17 @@
     const widgetRoot = document.getElementById(containerId);
     if (!widgetRoot) return;
 
-    const tag = `
-    <div id="${widgetId}" 
-         data-component="CustomWidget" 
-         data-sp="${storedProc}" 
-         data-params="${newParams}" 
-         data-template="${templatePath}" 
-         data-requireUser="false" 
-         data-cache="false" 
-         data-host="mcleanbible" 
-         data-debug="true">
-    </div>`;
+    widgetRoot.innerHTML = `
+      <div id="${widgetId}"
+           data-component="CustomWidget"
+           data-sp="${storedProc}"
+           data-params="${newParams}"
+           data-template="${templatePath}"
+           data-requireUser="false"
+           data-cache="false"
+           data-host="mcleanbible"
+           data-debug="true"></div>`;
 
-    widgetRoot.innerHTML = tag;
     syncParamsToUrl(paramMap);
 
     if (typeof ReInitWidget === "function") {
@@ -144,12 +137,80 @@
     }
   }
 
-  // 📅 Date Picker Logic
-  function formatDateToParam(dateStr) {
-    const [yyyy, mm, dd] = dateStr.split("-");
-    return `${parseInt(mm)}/${parseInt(dd)}/${yyyy}`;
+  // ----- bootstrap params -----
+  const paramMap = new Map(
+    Array.from(urlParams.entries()).filter(
+      ([k, v]) => allowedKeys.includes(k) && v?.trim()
+    )
+  );
+
+  // Inject today's date if @Date missing
+  if (!paramMap.has("@Date")) {
+    const t = new Date();
+    const mm = t.getMonth() + 1;
+    const dd = t.getDate();
+    const yyyy = t.getFullYear();
+    paramMap.set("@Date", `${mm}/${dd}/${yyyy}`);
   }
 
+  const filteredParams = Array.from(paramMap.entries())
+    .map(([k, v]) => `${k}=${v}`)
+    .join("&");
+
+  // Mount widget
+  const tag = `
+    <div id="${widgetId}"
+         data-component="CustomWidget"
+         data-sp="${storedProc}"
+         data-params="${filteredParams}"
+         data-template="${templatePath}"
+         data-requireUser="false"
+         data-cache="false"
+         data-host="mcleanbible"
+         data-debug="true"></div>`;
+
+  const widgetRoot = document.getElementById(containerId);
+  const loader = document.getElementById("loader");
+  if (widgetRoot) {
+    if (loader) loader.classList.remove("hidden");
+    widgetRoot.innerHTML = tag;
+
+    const waitForReInit = setInterval(() => {
+      if (typeof window.ReInitWidget === "function") {
+        clearInterval(waitForReInit);
+        window.ReInitWidget(widgetId);
+      }
+    }, 50);
+  }
+
+  // Pause/resume auto refresh based on tab visibility
+  document.addEventListener("visibilitychange", () => {
+    const widget = document.getElementById(widgetId);
+    if (!widget) return;
+    const p = parseParams(widget.getAttribute("data-params") || "");
+    if (document.hidden) {
+      clearRefreshTimer();
+    } else if (isTodayParamDate(p.get("Date"))) {
+      startRefreshTimer();
+    }
+  });
+
+  // ----- widgetLoaded -> wire pickers + (re)decide auto-refresh -----
+  window.addEventListener("widgetLoaded", function (event) {
+    if (event.detail?.widgetId !== widgetId) return;
+    console.log("✅ Widget loaded:", event.detail);
+
+    setTimeout(() => {
+      initDatePicker();
+      initEventPicker();
+
+      const widget = document.getElementById(widgetId);
+      const p = parseParams(widget?.getAttribute("data-params") || "");
+      decideAutoRefreshFromParams(p);
+    }, 100);
+  });
+
+  // ----- UI: Date Picker -----
   function initDatePicker() {
     const picker = document.getElementById("datePicker");
     if (!picker) return;
@@ -157,30 +218,29 @@
     const widget = document.getElementById(widgetId);
     if (!widget) return;
 
-    const paramMap = parseParams(widget.getAttribute("data-params") || "");
-    const currentDate = paramMap.get("Date");
+    const p = parseParams(widget.getAttribute("data-params") || "");
+    const currentDate = p.get("Date");
 
     if (currentDate) {
-      const parsed = new Date(currentDate);
-      if (!isNaN(parsed)) {
-        const yyyy = parsed.getFullYear();
-        const mm = String(parsed.getMonth() + 1).padStart(2, "0");
-        const dd = String(parsed.getDate()).padStart(2, "0");
+      const parts = currentDate.split("/");
+      if (parts.length === 3) {
+        const yyyy = parts[2];
+        const mm = String(parseInt(parts[0], 10)).padStart(2, "0");
+        const dd = String(parseInt(parts[1], 10)).padStart(2, "0");
         picker.value = `${yyyy}-${mm}-${dd}`;
       }
     }
 
     picker.addEventListener("change", () => {
-      console.log(
-        "📅 Picker changed, reloading widget with date:",
-        picker.value
-      );
-      const formatted = formatDateToParam(picker.value);
-      paramMap.set("Date", formatted);
-      applyParams(paramMap); // 🚀 rebuilds + re-inits
+      const formatted = formatDateToParamFromPickerValue(picker.value);
+      p.set("Date", formatted);
+      // stop any running timer before we rebuild
+      clearRefreshTimer();
+      applyParams(p);
     });
   }
 
+  // ----- UI: Event Picker -----
   function initEventPicker() {
     const picker = document.getElementById("eventPicker");
     if (!picker) return;
@@ -188,21 +248,15 @@
     const widget = document.getElementById(widgetId);
     if (!widget) return;
 
-    const paramMap = parseParams(widget.getAttribute("data-params") || "");
-    const currentEventID = paramMap.get("EventID");
-
-    if (currentEventID) {
-      picker.value = currentEventID;
-    }
+    const p = parseParams(widget.getAttribute("data-params") || "");
+    const currentEventID = p.get("EventID");
+    if (currentEventID) picker.value = currentEventID;
 
     picker.addEventListener("change", () => {
-      const selectedEventID = picker.value;
-      if (selectedEventID) {
-        paramMap.set("EventID", selectedEventID);
-      } else {
-        paramMap.delete("EventID");
-      }
-      applyParams(paramMap); // 🚀 rebuilds + re-inits
+      const selected = picker.value;
+      if (selected) p.set("EventID", selected);
+      else p.delete("EventID");
+      applyParams(p);
     });
   }
 })();
