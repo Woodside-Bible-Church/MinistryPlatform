@@ -415,6 +415,10 @@ h6 {
   display: none !important;
 }
 
+.mpp-innerpage--contacts {
+  padding: 0 !important;
+}
+
 .mppw-form-field--is-valid .mppw-form-field__control {
   background: none;
 }
