@@ -209,6 +209,10 @@
       function listToCsv(list) {
         return Array.from(new Set(list)).join(",");
       }
+      function markFormDirty() {
+        const applyBtn = document.querySelector("#filtersForm .applyFilters");
+        if (applyBtn) applyBtn.classList.add("is-dirty");
+      }
 
       // Wire every .search-select
       document.querySelectorAll(".search-select").forEach((select) => {
@@ -446,73 +450,42 @@
       setTimeout(() => ReInitWidget(widgetId), 20);
     });
 
-    // checkboxes
+    // Deferred CHECKBOX: just changes the field value; no apply
     document.addEventListener("change", function (e) {
-      const w = document.getElementById(widgetId);
-      if (!w) return;
-
       const cb = e.target.closest(".filterCheckbox");
-      if (!cb) return; // ignore other changes
+      if (!cb) return;
 
-      const filter = (cb.name || "").replace(/^@+/, ""); // e.g. "@KidsWelcome" -> "KidsWelcome"
-      if (!filter) return;
-
-      let map = parseParams(w.getAttribute("data-params") || "");
-
-      if (cb.checked) {
-        // Checked => set to "1"
-        map.set(filter, "1");
-      } else {
-        // Unchecked => remove the key entirely
-        map.delete(filter);
-      }
-
-      applyParams(map);
-      closeFilterPopover();
-      prepReload();
-      if (SHOW_SKELETON_ON_CHANGES) showSkeletons();
-      ReInitWidget(widgetId);
+      // Nothing to do: the checkbox's checked state will be read on submit.
+      markFormDirty();
     });
 
-    // selects
+    // Deferred SELECT: just changes the field value; no apply
     document.addEventListener("change", function (e) {
-      const w = document.getElementById(widgetId);
-      if (!w) return;
       const select = e.target.closest(".filterSelect");
       if (!select) return;
 
-      const filter = (select.name || "").replace(/^@+/, "");
-      const id = select.value;
-
-      let map = parseParams(w.getAttribute("data-params") || "");
-      id ? map.set(filter, id) : map.delete(filter);
-
-      applyParams(map);
-      closeFilterPopover();
-      prepReload();
-      if (SHOW_SKELETON_ON_CHANGES) showSkeletons();
-      ReInitWidget(widgetId);
+      // Nothing to do: the select's value will be read on submit.
+      markFormDirty();
     });
 
-    // search enter
+    // Deferred TEXT SEARCH: allow Enter to submit the form (natural UX),
+    // but do not auto-apply outside of the form submit.
     document.addEventListener("keydown", function (e) {
-      if (e.key !== "Enter") return;
       const input = e.target.closest(".filterSearch");
       if (!input) return;
 
-      const filter = (input.name || "").replace(/^@+/, "");
-      const value = input.value;
-      const w = document.getElementById(widgetId);
-      if (!w || !filter) return;
-
-      let map = parseParams(w.getAttribute("data-params") || "");
-      value ? map.set(filter, value) : map.delete(filter);
-
-      applyParams(map);
-      closeFilterPopover();
-      prepReload();
-      if (SHOW_SKELETON_ON_CHANGES) showSkeletons();
-      ReInitWidget(widgetId);
+      if (e.key === "Enter") {
+        // Let the form submit (default behavior) — your submit handler will run.
+        // If for some reason the input isn't inside #filtersForm, fall back to manual:
+        const form = document.getElementById("filtersForm");
+        if (form && !form.contains(input)) {
+          e.preventDefault();
+          form.requestSubmit?.() || form.submit();
+        }
+      } else {
+        // Any typing marks the form dirty
+        markFormDirty();
+      }
     });
 
     /* ---------- cookie + popover ---------- */
@@ -582,6 +555,45 @@
         fm.removeAttribute("open");
       }
     }
+
+    // ---- Submit on Enter when the filter form is open ----
+    function isFilterMenuOpen() {
+      const fm = document.getElementById("filterMenu");
+      if (!fm) return false;
+      if ("showPopover" in HTMLElement.prototype) {
+        // Native popover
+        try {
+          return fm.matches(":popover-open");
+        } catch {
+          /* older browsers */
+        }
+      }
+      // Fallback popover
+      return fm.classList.contains("is-open") || fm.hasAttribute("open");
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter" && e.key !== "NumpadEnter") return;
+      if (!isFilterMenuOpen()) return;
+
+      // Don't hijack Enter inside textareas (allow newline)
+      const tag = (e.target.tagName || "").toLowerCase();
+      if (tag === "textarea") return;
+
+      // If the multiselect dropdown is open, don't submit on Enter
+      // (prevents accidental submit while picking an option)
+      const openMS = e.target
+        .closest(".search-select")
+        ?.querySelector(".search-options");
+      if (openMS && !openMS.classList.contains("hidden")) return;
+
+      // Submit the form
+      const form = document.getElementById("filtersForm");
+      if (!form) return;
+
+      e.preventDefault();
+      form.requestSubmit?.() || form.submit();
+    });
 
     // Global open/close triggers (works for native + fallback)
     document.addEventListener("click", (e) => {

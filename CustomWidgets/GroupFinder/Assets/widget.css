@@ -23,15 +23,44 @@
   margin: 1em 0;
 }
 
-#groupFinder .btn {
-  color: #ffffff;
-  background-color: var(--secondaryColor);
+.filterActions {
+  display: flex;
+  gap: 1em;
+  flex-wrap: wrap;
+}
+
+.filterActions .btn {
+  flex: 1 1 12rem;
+  min-inline-size: max-content;
+  white-space: nowrap;
   border-radius: 0;
   text-transform: uppercase;
   font-weight: 600;
   padding: 11px 2em;
   min-width: 100px;
   border-width: 2px;
+}
+
+#groupFinder .btn {
+  color: #ffffff;
+  background-color: var(--secondaryColor);
+}
+
+#groupFinder .btn:hover {
+  color: #ffffff;
+  background-color: var(--primaryColor);
+}
+
+#groupFinder .secondaryBtn {
+  color: #ffffff;
+  background-color: transparent;
+  border-color: #ffffff;
+}
+
+#groupFinder .secondaryBtn:hover {
+  color: #ffffff;
+  background-color: var(--primaryColor);
+  border-color: var(--primaryColor);
 }
 
 .hidden {
@@ -1111,16 +1140,17 @@ li:has(.blur) {
   margin: auto;
 }
 
-/* Hide scrollbars in the filter popover but keep scrolling */
+/*
 #groupFinder .filterPopover {
-  overflow: auto; /* allow scrolling if content exceeds height */
-  -ms-overflow-style: none; /* IE/Edge */
-  scrollbar-width: none; /* Firefox */
+  overflow: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 #groupFinder .filterPopover::-webkit-scrollbar {
-  display: none; /* Chrome, Safari */
+  display: none;
 }
+*/
 
 .popoverSection {
   margin-bottom: 2rem;
@@ -1409,6 +1439,11 @@ li:has(.blur) {
 
 .search-option:hover {
   background-color: #f0f0f0;
+}
+
+.search-option.is-selected {
+  background-color: var(--secondaryColor);
+  color: white;
 }
 
 .hidden {

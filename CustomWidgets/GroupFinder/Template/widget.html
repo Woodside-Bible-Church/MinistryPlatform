@@ -88,33 +88,6 @@ endif %} {% endif %}
           <i class="fas fa-times"></i>
         </button>
 
-        {% if anyFiltersSelected %}
-        <h5>Current Filters</h5>
-        <ul class="selectedFilters">
-          {% for filter in Filters %} {% assign isDaysOfWeek = filter.Filter ==
-          "@DaysOfWeek" %} {% assign skipFilter = isDaysOfWeek and
-          hideDaysOfWeek %} {% unless skipFilter %} {% if filter.Options %} {%
-          for option in filter.Options %} {% if option.Selected and option.Text
-          != blank %}
-          <li>
-            <a
-              class="filterBtn"
-              data-filter="{{ filter.Filter }}"
-              data-id="{{ option.ID | default: option.Text }}"
-              data-action="remove"
-            >
-              <i class="fa-solid {{ option.Icon }}"></i>
-              <span
-                >{% if filter.Use_Prefix == true %}{{ filter.Label }}: {% endif
-                %}{{ option.Text }}</span
-              >
-              <span class="blur"><i class="fas fa-trash"></i></span>
-            </a>
-          </li>
-          {% endif %} {% endfor %} {% endif %} {% endunless %} {% endfor %}
-        </ul>
-        {% endif %}
-
         <form id="filtersForm" class="filterFields" novalidate>
           {% for filter in Filters %} {% if filter.Type %}
           <div
@@ -190,6 +163,18 @@ endif %} {% endif %}
             /> {% endif %}
           </div>
           {% endif %} {% endfor %}
+          <div class="filterActions">
+            <button
+              type="button"
+              class="btn secondaryBtn clearFilters"
+              data-action="clear-filters"
+            >
+              <i class="fas fa-undo"></i> Clear Filters
+            </button>
+            <button type="submit" class="btn applyFilters">
+              <i class="fas fa-check"></i> Apply Filters
+            </button>
+          </div>
         </form>
       </div>
 
