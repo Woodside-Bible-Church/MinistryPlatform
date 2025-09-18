@@ -1036,7 +1036,6 @@ li:has(.blur) {
   flex-direction: column;
   gap: 2em;
   width: 100%;
-  margin-top: 2em;
 }
 
 #filterMenu > #filterForm > select:not(#dayOfWeek) {
