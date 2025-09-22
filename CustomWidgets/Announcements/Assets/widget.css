@@ -1,6 +1,7 @@
 /* =========================================================
-   Announcements Widget — Tightened Featured Grid
-   Uses site variables: --primaryColor, --secondaryColor
+   Announcements Widget — FULL DROP-IN CSS
+   Grid-template-areas layout (mobile-first → desktop mosaic)
+   All images locked to 16:9
    ========================================================= */
 
 /* ---- Theme hooks ---- */
@@ -9,7 +10,7 @@
   --secondaryColor: #62bb46;
 }
 
-/* ---- Global typography (your base) ---- */
+/* ---- Base typography ---- */
 * {
   font-family: Montserrat, Helvetica, Arial, sans-serif;
 }
@@ -22,13 +23,15 @@ h6 {
   text-transform: uppercase;
 }
 
-/* ---------------- Layout shell ---------------- */
+/* ---- Shell ---- */
 .ann-wrap {
   --ann-text: var(--primaryColor);
   --ann-accent: var(--secondaryColor);
   --ann-muted: rgba(28, 43, 57, 0.65);
   --ann-card-bg: #fff;
-  --ann-gap: 24px; /* default gap for non-featured grids */
+
+  --ann-gap: 24px; /* default grid gap for non-featured */
+  --ann-body-h: 72px; /* fixed CTA height (tweak if needed) */
   color: var(--ann-text);
 }
 
@@ -41,36 +44,75 @@ h6 {
   color: var(--ann-accent);
 }
 
-/* ---------------- Grids ---------------- */
+/* ---- Generic grid ---- */
 .ann-grid {
   display: grid;
   gap: var(--ann-gap);
 }
 
-/* ===== Featured mosaic (desktop) =====
-   - smaller gap than the rest
-   - hero left spans 2 rows; two cards stack on the right
-   - make right cards a touch taller to align bottoms nicely */
+/* =========================================================
+   FEATURED (grid areas)
+   Mobile DOM order: i1, d1, i2, d2, i3, d3
+   Desktop areas remap to:
+     i1  i2
+     i1  d2
+     i1  i3
+     d1  d3
+   Math (gap-aware) guarantees bottoms align with all images 16:9.
+   ========================================================= */
 .ann-grid--featured {
-  --ann-feature-gap: clamp(12px, 1.4vw, 18px);
-  --ann-featured-small-ratio: 16 / 9; /* <— make right cards slightly taller; tweak if needed */
+  --g: clamp(12px, 1.4vw, 18px); /* use same gap inside & outside */
+  --H: var(--ann-body-h);
 
-  grid-template-columns: 2fr 0.85fr;
-  grid-auto-rows: auto;
-  gap: var(--ann-feature-gap);
-  align-items: stretch;
+  /* Column math:
+     Wr = (((100% - g)) - (16/9) * (H + 2g)) / 3
+     Wl = 2*Wr + (16/9) * (H + 2g)
+  */
+  grid-template-columns:
+    calc(
+      (2 * (((100% - var(--g)) - (16 / 9) * (var(--H) + 2 * var(--g))) / 3)) +
+        (16 / 9) * (var(--H) + 2 * var(--g))
+    )
+    calc(((100% - var(--g)) - (16 / 9) * (var(--H) + 2 * var(--g))) / 3);
+
+  /* Four rows: i2, d2, i3, bottom CTAs */
+  grid-template-rows: auto var(--H) auto auto;
+  column-gap: var(--g);
+  row-gap: var(--g);
+
+  /* Desktop areas */
+  grid-template-areas:
+    "i1 i2"
+    "i1 d2"
+    "i1 i3"
+    "d1 d3";
 }
 
-.ann-grid--featured > .ann-card.is-featured {
-  grid-column: 1 / span 1;
-  grid-row: 1 / span 2;
+/* Area hooks */
+.feat-i1 {
+  grid-area: i1;
+}
+.feat-d1 {
+  grid-area: d1;
+}
+.feat-i2 {
+  grid-area: i2;
+}
+.feat-d2 {
+  grid-area: d2;
+}
+.feat-i3 {
+  grid-area: i3;
+}
+.feat-d3 {
+  grid-area: d3;
 }
 
-.ann-grid--featured > .ann-card:not(.is-featured) {
-  grid-column: 2 / span 1;
-}
+/* Right stack children naturally occupy their rows because of areas above */
 
-/* Campus grid (desktop) */
+/* =========================================================
+   CAMPUS GRID
+   ========================================================= */
 .ann-grid--campus {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -83,7 +125,7 @@ h6 {
   overflow: hidden;
 }
 
-/* Media box */
+/* ---------------- Media (16:9 everywhere) ---------------- */
 .ann-media {
   position: relative;
   display: block;
@@ -92,7 +134,6 @@ h6 {
   overflow: hidden;
   text-decoration: none;
 }
-
 .ann-media img,
 .ann-img.placeholder {
   width: 100%;
@@ -101,66 +142,35 @@ h6 {
   display: block;
 }
 
-/* --- Image zoom on hover/focus --- */
-.ann-media {
-  overflow: hidden;
-} /* already set, keep it */
-
+/* Hover zoom (respect reduced-motion) */
 .ann-media > img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-
-  transform: translateZ(0); /* avoids blurriness on some GPUs */
-  transition: transform 0.65s ease; /* smooth zoom */
+  transform: translateZ(0);
+  transition: transform 0.65s ease;
   will-change: transform;
 }
-
-/* Global: zoom every card on hover/focus */
 .ann-card:hover .ann-media > img,
 .ann-media:focus-visible > img {
   transform: scale(1.025);
 }
-
-/* Respect reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   .ann-media > img {
     transition: none;
   }
 }
 
-/* ---- OPTIONAL: target a single announcement only ---- */
-/* Replace 342 with the ID you want to zoom; remove the global rules above
-   if you ONLY want per-ID zoom behavior. */
-.ann-card[data-announcement-id="342"]:hover .ann-media > img,
-.ann-card[data-announcement-id="342"] .ann-media:focus-visible > img {
-  transform: scale(1.08);
-}
-
-/* Taller media for the two small cards on the right to better align bottoms */
-.ann-grid--featured > .ann-card:not(.is-featured) .ann-media {
-  aspect-ratio: var(--ann-featured-small-ratio);
-}
-
-/* Placeholder when no image — “banner” look */
+/* ---------------- Placeholder banner ---------------- */
 .ann-img.placeholder {
   box-sizing: border-box;
-  width: 100%;
-  height: 100%;
   display: grid;
   place-items: center;
-
   background-color: var(--secondaryColor);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23ffffff' fill-opacity='0.15'/%3E%3Ccircle cx='12' cy='12' r='1' fill='%23ffffff' fill-opacity='0.25'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 20px 20px;
-
   padding: clamp(14px, 2vw, 28px);
   outline: 1px solid rgba(255, 255, 255, 0.95);
   outline-offset: -10px;
 }
-
 .placeholder-text {
   color: #fff;
   font-weight: 800;
@@ -171,36 +181,29 @@ h6 {
   font-size: clamp(1.25rem, 3.8vw, 1.75rem);
 }
 
-/* ---------------- Card body ---------------- */
+/* ---------------- CTA text blocks ---------------- */
 .ann-body {
-  padding: 16px 18px 20px;
+  padding: 12px 14px;
+  height: var(--ann-body-h); /* fixed height keeps math stable */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
-
-/* Tighter body only in the featured grid to reduce total height */
-.ann-grid--featured .ann-body {
-  padding: 12px 14px 14px;
-}
-
 .ann-body > * {
   margin: 0 !important;
 }
 
-.ann-kicker {
-  font-weight: 700;
-  font-size: 12px;
-  line-height: 1.3;
-  color: var(--ann-accent);
-  letter-spacing: 0.06em;
-  margin-bottom: 6px;
-}
-
 .ann-title {
-  margin: 0 0 8px;
   font-weight: 800;
-  font-size: 22px;
-  line-height: 1.2;
+  font-size: 20px;
+  line-height: 1.25;
+  margin: 0 0 4px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
 }
-
 .ann-title a {
   color: inherit;
   text-decoration: none;
@@ -210,13 +213,18 @@ h6 {
 }
 
 .ann-blurb {
-  margin: 0 0 12px;
   color: var(--ann-muted);
-  line-height: 1.5;
+  line-height: 1.35;
+  font-size: 14px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
-/* CTA */
-.ann-cta .btn {
+/* Optional buttons inside CTAs */
+.ann-cta .btn,
+.ann-body .btn {
   display: inline-block;
   padding: 10px 14px;
   background: var(--ann-accent);
@@ -224,11 +232,12 @@ h6 {
   font-weight: 700;
   text-decoration: none;
 }
-.ann-cta .btn:hover {
+.ann-cta .btn:hover,
+.ann-body .btn:hover {
   filter: brightness(0.95);
 }
 
-/* Empty state */
+/* ---------------- Empty state ---------------- */
 .ann-empty {
   margin: 24px 0 40px;
   padding: 24px;
@@ -237,39 +246,49 @@ h6 {
   text-align: center;
 }
 
-/* ---------------- Responsive ---------------- */
+/* =========================================================
+   Responsive
+   ========================================================= */
 @media (max-width: 900px) {
-  .ann-grid--featured,
-  .ann-grid--campus {
+  /* One column; order follows DOM (i1, d1, i2, d2, i3, d3) */
+  .ann-grid--featured {
     grid-template-columns: 1fr;
-    gap: 18px; /* slightly tighter on small screens */
+    grid-template-rows: auto;
+    column-gap: 0;
+    row-gap: 18px;
+    grid-template-areas:
+      "i1"
+      "d1"
+      "i2"
+      "d2"
+      "i3"
+      "d3";
   }
-
-  /* Cancel desktop placements for featured cards */
-  .ann-grid--featured > .ann-card,
-  .ann-grid--featured > .ann-card.is-featured,
-  .ann-grid--featured > .ann-card:not(.is-featured) {
-    grid-column: 1 / -1;
-    grid-row: auto;
-    width: 100%;
-  }
-
-  /* Back to regular ratio for small cards on mobile */
-  .ann-grid--featured > .ann-card:not(.is-featured) .ann-media {
-    aspect-ratio: 16 / 9;
-  }
+  .ann-body {
+    height: auto;
+  } /* let CTAs grow on small screens */
 }
 
 @media (max-width: 600px) {
-  .ann-body {
-    padding: 14px 14px 16px;
-  }
   .ann-title {
-    font-size: 20px;
+    font-size: 18px;
   }
-
   .ann-img.placeholder {
     padding: clamp(12px, 3vw, 20px);
     outline-offset: -8px;
+  }
+}
+
+/* Campus grid (desktop) */
+.ann-grid--campus {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Campus grid → one column on small screens */
+@media (max-width: 900px) {
+  .ann-grid--campus {
+    grid-template-columns: 1fr;
+    row-gap: 18px; /* match featured’s mobile gap */
+    column-gap: 0;
   }
 }
