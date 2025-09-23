@@ -184,12 +184,16 @@ h6 {
 /* ---------------- CTA text blocks ---------------- */
 .ann-body {
   padding: 12px 14px;
-  height: var(--ann-body-h); /* fixed height keeps math stable */
+  height: auto;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
+feat-d2 {
+  height: var(--ann-body-h); /* fixed height keeps math stable */
+}
+
 .ann-body > * {
   margin: 0 !important;
 }
