@@ -82,6 +82,10 @@
   order: 1000;
 }
 
+#logoutButton {
+  color: red;
+}
+
 #userAccountLink {
   font-size: 0; /* hide the existing text visually */
 }
