@@ -1,0 +1,111 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;900&display=swap");
+
+* {
+  font-family: "Montserrat", Helvetica, sans-serif !important;
+}
+
+#loginButton {
+  appearance: none;
+  display: inline-block;
+  vertical-align: middle;
+  min-width: 100px;
+  border: 2px solid #62bb46;
+  outline: 0;
+  border-radius: 0;
+  padding: 11px 10px;
+  margin: 0;
+  cursor: pointer;
+
+  font-size: 14px;
+  line-height: 1em;
+  font-weight: 700;
+  color: #62bb46 !important;
+  text-transform: uppercase;
+  text-decoration: none;
+  text-align: center !important;
+
+  transition: color 0.3s, background 0.3s;
+}
+
+#loginButton:hover {
+  background: #62bb46;
+  color: #fff !important;
+}
+
+#loginButton .mppw-icon-unlock {
+  display: none;
+}
+
+#userNameContainer {
+  outline: 0;
+  cursor: pointer;
+
+  font-size: 14px;
+  line-height: 1em;
+  font-weight: 700;
+  color: #62bb46;
+  text-decoration: none;
+}
+
+#userNameContainer .mppw-user-photo {
+  border-radius: 100%;
+  overflow: hidden;
+  background-color: #62bb46;
+}
+
+#userMenu {
+  position: absolute !important;
+  min-width: 150px;
+  border-radius: 0;
+
+  font-size: 14px;
+  line-height: 1em;
+  font-weight: 700;
+  color: #465362;
+}
+
+#userMenu .mppw-login--list-item a:hover {
+  color: #62bb46;
+  text-decoration: none;
+}
+
+#userImage {
+  background-size: cover;
+}
+
+.mppw-login--list {
+  display: flex;
+  flex-direction: column;
+}
+
+.mppw-login--list .mppw-login--list-item:has(#logoutButton) {
+  order: 1000;
+}
+
+@media screen and (max-width: 1400px) {
+  #userDisplayName {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 1160px) {
+  #loginButton {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-indent: 200%;
+    display: block;
+    min-width: 0;
+    border: 0;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    background: url("src/svg/login-green.svg") center no-repeat;
+    background-size: contain;
+  }
+
+  #loginButton:hover {
+    background: url("src/svg/login-green.svg") center no-repeat;
+    background-size: contain;
+  }
+}
