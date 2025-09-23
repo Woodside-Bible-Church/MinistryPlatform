@@ -82,6 +82,26 @@
   order: 1000;
 }
 
+#userAccountLink {
+  font-size: 0; /* hide the existing text visually */
+}
+
+#userAccountLink::after {
+  content: "Profile";
+  font-size: 14px;
+}
+
+#securedMenuItems::before {
+  content: "View My";
+  padding: 0 16px;
+  width: 100%;
+  color: #62bb46;
+}
+
+#securedMenuItemList {
+  margin-top: 6px;
+}
+
 @media screen and (max-width: 1400px) {
   #userDisplayName {
     display: none;
