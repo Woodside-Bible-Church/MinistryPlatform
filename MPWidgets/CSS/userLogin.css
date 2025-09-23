@@ -95,6 +95,10 @@
   font-size: 14px;
 }
 
+#securedMenuItems {
+  padding-top: 8px;
+}
+
 #securedMenuItems::before {
   content: "View My ——";
   padding: 0 16px;
@@ -103,7 +107,7 @@
 }
 
 #securedMenuItemList {
-  margin-top: 6px;
+  padding-top: 8px;
 }
 
 @media screen and (max-width: 1400px) {
