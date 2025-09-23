@@ -96,7 +96,7 @@
 }
 
 #securedMenuItems::before {
-  content: "View My";
+  content: "View My ——";
   padding: 0 16px;
   width: 100%;
   color: #62bb46;
