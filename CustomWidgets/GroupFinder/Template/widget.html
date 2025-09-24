@@ -178,7 +178,7 @@ endif %} {% endif %}
         </form>
       </div>
 
-      {% if Groups.size == 0 %}
+      {% if Groups == blank %}
       <div class="noResultsFound">
         <span>No groups found</span>
         <a class="btn" href="{{ Settings.GroupInquiryFormBaseURL }}">

@@ -1374,6 +1374,15 @@ li:has(.blur) {
   font-size: 1.5rem;
   padding: 2em;
 
+  .btn {
+    border-radius: 0;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 11px 2em;
+    min-width: 100px;
+    border-width: 2px;
+  }
+
   .btn:hover,
   .btn:focus {
     background-color: var(--primaryColor);
