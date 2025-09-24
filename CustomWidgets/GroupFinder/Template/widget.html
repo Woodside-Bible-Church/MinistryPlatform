@@ -180,7 +180,7 @@ endif %} {% endif %}
 
       {% if Groups == blank %}
       <div class="noResultsFound">
-        <span>No groups found</span>
+        <span>{{ Settings.No_Groups_Found_Label }}</span>
         <a class="btn" href="{{ Settings.GroupInquiryFormBaseURL }}">
           {{ Settings.joinAGroupFormRedirectButton }}
         </a>
