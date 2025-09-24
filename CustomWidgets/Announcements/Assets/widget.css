@@ -189,7 +189,14 @@ h6 {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  color: inherit;
+  text-decoration: none;
 }
+
+.ann-body:hover {
+  text-decoration: underline;
+}
+
 feat-d2 {
   height: var(--ann-body-h); /* fixed height keeps math stable */
 }
@@ -207,13 +214,6 @@ feat-d2 {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
   overflow: hidden;
-}
-.ann-title a {
-  color: inherit;
-  text-decoration: none;
-}
-.ann-title a:hover {
-  text-decoration: underline;
 }
 
 .ann-blurb {

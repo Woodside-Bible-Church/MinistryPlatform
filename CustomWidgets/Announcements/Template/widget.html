@@ -36,18 +36,21 @@
     </article>
 
     <!-- text cell -->
-    <div class="ann-body feat-d{{ forloop.index }}">
+    <a
+      class="ann-body feat-d{{ forloop.index }}"
+      href="{{ a.CallToAction.Link }}"
+    >
       <h3 class="ann-title">
         {% assign heading = a.CallToAction.Heading | default: a.Title %} {% if
         a.CallToAction and a.CallToAction.Link %}
-        <a href="{{ a.CallToAction.Link }}">{{ heading }}</a>
+        <div>{{ heading }}</div>
         {% else %} {{ heading }} {% endif %}
       </h3>
       {% assign sub = a.CallToAction.SubHeading | default: a.Body %} {% if sub
       %}
       <p class="ann-blurb">{{ sub | strip_html | strip | truncate: 140 }}</p>
       {% endif %}
-    </div>
+    </a>
     {% endfor %}
   </div>
   {% endif %} {%- comment -%} ========= CAMPUS ANNOUNCEMENTS ========= {%-
@@ -81,18 +84,18 @@
         </div>
         {% endif %}
       </a>
-      <div class="ann-body">
+      <a class="ann-body" href="{{ a.CallToAction.Link }}">
         <h3 class="ann-title">
           {% assign heading = a.CallToAction.Heading | default: a.Title %} {% if
           a.CallToAction and a.CallToAction.Link %}
-          <a href="{{ a.CallToAction.Link }}">{{ heading }}</a>
+          <div>{{ heading }}</div>
           {% else %} {{ heading }} {% endif %}
         </h3>
         {% assign sub = a.CallToAction.SubHeading | default: a.Body %} {% if sub
         %}
         <p class="ann-blurb">{{ sub | strip_html | strip | truncate: 140 }}</p>
         {% endif %}
-      </div>
+      </a>
     </article>
     {% endfor %}
   </div>
