@@ -606,6 +606,7 @@ section:focus :has(.needHelpContainer) .btn::after {
         white-space: nowrap;
         height: 100%;
         display: inline-block;
+        cursor: pointer;
       }
     }
   }
