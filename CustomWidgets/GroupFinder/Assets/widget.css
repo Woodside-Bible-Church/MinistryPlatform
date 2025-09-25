@@ -720,6 +720,7 @@ li:has(.blur) {
   padding: 0.5em 1em;
   border-radius: 100px;
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .tag i,
