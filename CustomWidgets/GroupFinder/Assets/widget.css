@@ -392,6 +392,7 @@ section:focus :has(.needHelpContainer) .btn::after {
     align-items: center;
     gap: 0.25em;
     flex-direction: column;
+    cursor: pointer;
 
     span {
       font-family: Montserrat, Helvetica, Arial, sans-serif;
