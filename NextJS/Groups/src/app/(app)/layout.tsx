@@ -1,6 +1,5 @@
-import Header from "@/components/Header";
+import { Navigation } from "@/components/Navigation";
 import AuthWrapper from "@/components/AuthWrapper";
-import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
 
 export default async function AppLayout({
   children,
@@ -8,14 +7,10 @@ export default async function AppLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col min-h-screen">
       <AuthWrapper>
-        <Header />
-
-        <main className="flex-1 mt-16">
-        <div className="px-4 py-3 border-b bg-muted/30">
-          <DynamicBreadcrumb />
-        </div>
+        <Navigation />
+        <main className="flex-1">
           {children}
         </main>
       </AuthWrapper>

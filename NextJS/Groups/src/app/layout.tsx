@@ -14,13 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Template for Ministry Platform NextJS",
-  description: "Ministry Platform NextJS Template",
+  title: "Church Groups | Connect & Grow Together",
+  description: "Find and join small groups, bible studies, and community gatherings at our church. Connect with others and grow in faith together.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "NextJS Template"
+    title: "Church Groups"
   },
   icons: {
     apple: "/assets/icons/android-chrome-192x192.png"
@@ -49,7 +49,7 @@ export default async function RootLayout({
           name="apple-mobile-web-app-status-bar-style"
           content="black-translucent"
         />
-        <meta name="apple-mobile-web-app-title" content="Pastor App" />
+        <meta name="apple-mobile-web-app-title" content="Church Groups" />
         <meta name="mobile-web-app-capable" content="yes" />
         <link
           rel="icon"
@@ -60,7 +60,7 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" href="/assets/icons/apple-icon-180.png" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
         {children}
         <PWAInstallPrompt />
