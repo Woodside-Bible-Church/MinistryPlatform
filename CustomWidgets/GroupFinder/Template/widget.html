@@ -1,11 +1,12 @@
-{% assign hideDaysOfWeek = false %} {% assign dayFilter = Filters | where:
-"Filter", "@DaysOfWeek" | first %} {% if dayFilter and dayFilter.Selected %} {%
-assign selectedDaysArray = dayFilter.Selected | split: ", " | sort %} {% assign
-allDaysArray = "Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday" |
-split: "," | sort %} {% assign selectedDaysJoined = selectedDaysArray | join:
-"," %} {% assign allDaysJoined = allDaysArray | join: "," %} {% if
-selectedDaysJoined == allDaysJoined %} {% assign hideDaysOfWeek = true %} {%
-endif %} {% endif %}
+{% assign isAuthed = userAuthenticated == true or userAuthenticated == 'true' or
+userAuthenticated == 1 %} {% assign hideDaysOfWeek = false %} {% assign
+dayFilter = Filters | where: "Filter", "@DaysOfWeek" | first %} {% if dayFilter
+and dayFilter.Selected %} {% assign selectedDaysArray = dayFilter.Selected |
+split: ", " | sort %} {% assign allDaysArray =
+"Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday" | split: "," | sort
+%} {% assign selectedDaysJoined = selectedDaysArray | join: "," %} {% assign
+allDaysJoined = allDaysArray | join: "," %} {% if selectedDaysJoined ==
+allDaysJoined %} {% assign hideDaysOfWeek = true %} {% endif %} {% endif %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -201,7 +202,11 @@ endif %} {% endif %}
               <div class="iconContainer"><i class="fas fa-calendar"></i></div>
               <div>{{ group.Meeting_Details.Occurrence }}</div>
               <div class="iconContainer"><i class="fas fa-clock"></i></div>
+              {% if isAuthed %}
               <div>{{ group.Meeting_Details.Time }}</div>
+              {% else %}
+              <div class="requiresAuth">Log in for more details</div>
+              {% endif %}
               <div class="iconContainer">
                 <i class="fas fa-map-marker-alt"></i>
               </div>
@@ -213,7 +218,11 @@ endif %} {% endif %}
 
           <div class="groupLeadersContainer">
             <h6>{{ Settings.Leaders_List_Heading }}</h6>
+            {% if isAuthed %}
             <div>{{ group.Leaders | join: ", " }}</div>
+            {% else %}
+            <div class="requiresAuth">Log in to see leaders</div>
+            {% endif %}
           </div>
 
           <div class="groupAboutContainer">

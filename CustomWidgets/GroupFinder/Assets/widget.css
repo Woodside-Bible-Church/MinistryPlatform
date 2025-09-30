@@ -1560,6 +1560,11 @@ li:has(.blur) {
     }
   }
 
+  #groupFinder .requiresAuth {
+    opacity: 0.8;
+    font-style: italic;
+  }
+
   .groupGrid {
     grid-template-areas: "header  header " "details leaders" "about about" "tags tags" "button button";
     gap: 1em;
