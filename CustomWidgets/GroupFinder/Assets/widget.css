@@ -23,6 +23,11 @@
   margin: 1em 0;
 }
 
+#groupFinder .requiresAuth {
+  opacity: 0.8;
+  font-style: italic;
+}
+
 .filterActions {
   display: flex;
   gap: 1em;
@@ -1558,11 +1563,6 @@ li:has(.blur) {
       flex-direction: column;
       width: 100%;
     }
-  }
-
-  #groupFinder .requiresAuth {
-    opacity: 0.8;
-    font-style: italic;
   }
 
   .groupGrid {
