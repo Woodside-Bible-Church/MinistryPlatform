@@ -1,0 +1,34 @@
+{
+  "Campus": {
+    "Name": "Troy",
+    "Address": {
+      "Street": "6600 Rochester Rd",
+      "City": "Troy",
+      "State": "MI",
+      "Zip": "48085",
+      "Links": {
+        "GoogleMaps": "https://maps.google.com/?q=6600+Rochester+Rd,+Troy,+MI+48085",
+        "AppleMaps": "http://maps.apple.com/?q=6600+Rochester+Rd,+Troy,+MI+48085",
+        "Waze": "https://www.waze.com/ul?ll=42.606,-83.149&navigate=yes"
+      }
+    },
+    "Pastor": {
+      "Name": "Steve Zarilli",
+      "Email": "SteveZarilli@woodsidebible.org",
+      "Image": "https://woodsidebible.org/wp-content/uploads/2020/09/Steve-Zarilli.jpg",
+      "Title": "Campus Pastor"
+    },
+    "Services": [
+      {
+        "Day": "Sunday",
+        "Times": ["9:00 AM", "10:30 AM", "12:00 PM"]
+      },
+      {
+        "Day": "Wednesday",
+        "Times": ["7:00 PM"]
+      }
+    ],
+    "Phone": "(248) 879-2252",
+    "AnnouncementsLink": "https://woodsidebible.org/troy/announcements"
+  }
+}

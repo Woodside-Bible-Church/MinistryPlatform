@@ -1,0 +1,107 @@
+<div class="campus-widget">
+  {% assign campus = Campus %} {% assign heroUrl = campus.Image | %}
+
+  <!-- Hero -->
+  <section class="campus-hero" style="--hero:url('{{ heroUrl }}')">
+    <div class="overlay"></div>
+    <div class="hero-inner">
+      <h2 class="hero-title">{{ campus.Name }}</h2>
+    </div>
+  </section>
+
+  <!-- Summary band -->
+  <section class="campus-summary">
+    <div class="pastor-card">
+      {% if campus.Pastor.Image %}
+      <img
+        class="pastor-photo"
+        src="{{ campus.Pastor.Image }}"
+        alt="{{ campus.Pastor.Name }}"
+      />
+      {% endif %}
+      <div class="pastor-meta">
+        <div class="pastor-role">{{ campus.Pastor.Title }}</div>
+        <div class="pastor-name">{{ campus.Pastor.Name }}</div>
+      </div>
+    </div>
+
+    <div class="facts">
+      {% for svc in campus.Services %}
+      <div class="fact">
+        <div class="icon" aria-hidden="true">
+          <span class="fa fa-clock"></span>
+        </div>
+        <div class="content">
+          <div class="label">{{ svc.Day }}</div>
+          <div class="value">{{ svc.Times | join: " • " }}</div>
+        </div>
+      </div>
+      {% endfor %}
+
+      <div class="fact">
+        <div class="icon" aria-hidden="true">
+          <span class="fa fa-map-marker-alt"></span>
+        </div>
+        <div class="content">
+          <div class="label">Address</div>
+          <div class="value">
+            {{ campus.Address.Street }}<br />
+            {{ campus.Address.City }}, {{ campus.Address.State }} {{
+            campus.Address.Zip }}
+          </div>
+          <div class="links map-links icon-only">
+            <a
+              class="btn-icon gmaps"
+              href="{{ campus.Address.Links.GoogleMaps }}"
+              target="_blank"
+              rel="noopener"
+              aria-label="Open in Google Maps"
+              title="Google Maps"
+            >
+              <i class="fa-brands fa-google"></i>
+            </a>
+
+            <a
+              class="btn-icon amap"
+              href="{{ campus.Address.Links.AppleMaps }}"
+              target="_blank"
+              rel="noopener"
+              aria-label="Open in Apple Maps"
+              title="Apple Maps"
+            >
+              <i class="fa-brands fa-apple"></i>
+            </a>
+
+            <a
+              class="btn-icon waze"
+              href="{{ campus.Address.Links.Waze }}"
+              target="_blank"
+              rel="noopener"
+              aria-label="Open in Waze"
+              title="Waze"
+            >
+              <i class="fa-brands fa-waze"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {% if campus.Phone %}
+      <div class="fact">
+        <div class="icon" aria-hidden="true">
+          <span class="fa fa-mobile-screen-button"></span>
+        </div>
+        <div class="content">
+          <div class="label">Phone</div>
+          <div class="value">
+            <a
+              href="tel:{{ campus.Phone | replace: '(', '' | replace: ')', '' | replace: ' ', '' | replace: '-', '' }}"
+              >{{ campus.Phone }}</a
+            >
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+</div>

@@ -1,0 +1,270 @@
+/* =========================================
+   Theme variables
+   ========================================= */
+:root {
+  /* Colors */
+  --primary: #1c2b39;
+  --secondary: #62bb46;
+  --text: #111;
+  --text-muted: #333;
+  --card-bg: #fff;
+  --border: #dcdcdc;
+
+  /* Layout */
+  --radius: 0;
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --gap-lg: 2rem;
+  --gap-md: 0.75rem;
+  --gap-sm: 0.5rem;
+
+  /* Typography */
+  --title-size: 1.25rem;
+
+  /* Heights / Offsets */
+  --hero-h: clamp(390px, 35vw, 600px); /* used by hero + squiggle position */
+  --sticky-offset: 2rem;
+}
+
+#CampusDetailsWidget {
+  font-family: Montserrat, Helvetica, Arial, sans-serif;
+  color: var(--text);
+  padding: 0;
+  margin: 0;
+}
+
+#CampusDetailsWidget h1,
+#CampusDetailsWidget h2,
+#CampusDetailsWidget h3,
+#CampusDetailsWidget h4,
+#CampusDetailsWidget h5,
+#CampusDetailsWidget h6 {
+  text-transform: uppercase;
+}
+
+/* =========================================
+   Widget-level squiggly background layer
+   (sits behind hero + summary)
+   ========================================= */
+#CampusDetailsWidget .campus-widget {
+  position: relative;
+  z-index: 0; /* base layer for ::before */
+}
+
+/* Put the squiggly on the widget itself, not inside .facts */
+#CampusDetailsWidget .campus-widget::before {
+  content: "";
+  position: absolute;
+  inset: 0; /* cover the whole widget */
+  pointer-events: none;
+  /* Position the image so its top sits near the bottom of the hero.
+     Tweak the -80px to slide it up/down over the seam. */
+  background: url("./Squiggly Line BG.png") no-repeat right
+    calc(var(--hero-h) - 80px) / 1036px 220px;
+  z-index: 0; /* lowest */
+  transform: translateY(-30px);
+  opacity: 0.5;
+}
+
+/* ----------------------------
+   HERO
+----------------------------- */
+#CampusDetailsWidget .campus-hero {
+  position: relative;
+  height: var(--hero-h);
+  background: center/cover no-repeat var(--card-bg);
+  background-image: var(--hero);
+  border-radius: var(--radius);
+  overflow: hidden;
+  z-index: 1; /* above squiggly */
+}
+#CampusDetailsWidget .campus-hero .overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1;
+}
+#CampusDetailsWidget .campus-hero .hero-inner {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  padding: 2rem;
+  z-index: 2;
+}
+#CampusDetailsWidget .campus-hero .hero-title {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1.05;
+}
+
+/* ----------------------------
+   SUMMARY BAND
+----------------------------- */
+#CampusDetailsWidget .campus-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-lg);
+  position: relative;
+  z-index: 1; /* above squiggly */
+  transform: translateY(-75px); /* overlap hero edge */
+}
+
+/* Facts */
+/* Horizontal, wrapping facts */
+#CampusDetailsWidget .facts {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--gap-md);
+  row-gap: 1rem; /* vertical spacing between wrapped rows */
+  padding: 0 2rem; /* keep your existing side padding */
+  align-items: flex-start;
+  justify-content: flex-start; /* ensure no space-between behavior */
+}
+
+/* Each fact is a compact row: icon + text */
+#CampusDetailsWidget .fact {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-lg);
+  /* Let items wrap naturally; tweak base width if you want more consistent wrapping */
+  flex: 0 1 320px; /* try 280–360px to taste, or remove for fully auto width */
+  margin: 0; /* reset any inherited margins from grid layout */
+}
+
+/* Keep icon look the same in the new inline layout */
+#CampusDetailsWidget .fact .icon {
+  justify-self: initial; /* override old grid hints */
+  align-self: center;
+  color: var(--secondaryColor);
+}
+
+/* Text blocks stack label over value as before */
+#CampusDetailsWidget .fact .content {
+  display: block;
+}
+
+#CampusDetailsWidget .fact .icon .fa {
+  font-size: 1.85rem;
+  font-weight: 900;
+}
+#CampusDetailsWidget .fact .content .label {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 0.15rem;
+}
+#CampusDetailsWidget .fact .content .value {
+  font-size: 1rem;
+  line-height: 1.4;
+  margin-top: 0.15rem;
+}
+#CampusDetailsWidget .fact .content .value a {
+  text-decoration: none;
+  color: var(--primary);
+}
+
+/* Map icon buttons (icon-only, brand-colored) */
+#CampusDetailsWidget .map-links.icon-only {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  display: none;
+}
+/* IMPORTANT: do NOT hide .map-links */
+#CampusDetailsWidget .map-links .btn-icon {
+  --size: 40px;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  color: #fff;
+  text-decoration: none;
+  box-shadow: var(--shadow);
+  transition: transform 0.06s ease, filter 0.2s ease, box-shadow 0.2s ease;
+}
+#CampusDetailsWidget .map-links .btn-icon:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+#CampusDetailsWidget .map-links .btn-icon:active {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+#CampusDetailsWidget .map-links .btn-icon i {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+/* Brand backgrounds */
+#CampusDetailsWidget .map-links .gmaps {
+  background: #4285f4;
+}
+#CampusDetailsWidget .map-links .amap {
+  background: #000000;
+}
+#CampusDetailsWidget .map-links .waze {
+  background: #2db8ff;
+}
+
+/* ----------------------------
+   Pastor card
+----------------------------- */
+#CampusDetailsWidget .pastor-card {
+  background: var(--secondary);
+  color: #fff;
+  border-radius: var(--radius);
+  padding: 1.25rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: var(--gap-lg);
+  min-height: 120px;
+  max-width: 600px;
+  width: 100%;
+  margin-left: auto;
+}
+#CampusDetailsWidget .pastor-card .pastor-photo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: var(--shadow);
+}
+#CampusDetailsWidget .pastor-card .pastor-meta {
+  display: grid;
+  gap: 0.25rem;
+}
+#CampusDetailsWidget .pastor-card .pastor-role {
+  text-transform: uppercase;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  opacity: 0.95;
+}
+#CampusDetailsWidget .pastor-card .pastor-name {
+  font-weight: 600;
+  font-size: 1.5rem;
+  letter-spacing: 0.08em;
+}
+
+/* ----------------------------
+   Responsive
+----------------------------- */
+@media (max-width: 900px) {
+  #CampusDetailsWidget .campus-summary {
+    transform: unset;
+  }
+  #CampusDetailsWidget .pastor-card {
+    max-width: 100%;
+  }
+  #CampusDetailsWidget .pastor-card .pastor-photo {
+    width: 105px;
+    height: 105px;
+  }
+  #CampusDetailsWidget .campus-widget::before {
+    display: none;
+  }
+}
