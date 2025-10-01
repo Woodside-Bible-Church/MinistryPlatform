@@ -125,11 +125,13 @@ input[data-input-text-counter="true"] {
     padding-left: 0 !important;
   }
 
-  .mppw-form-field__alt-label:has(+ .mppw-form-field__control__textarea) {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
+  .mppw-form-field-alt:has(.mppw-form-field__control__textarea) {
+    margin-top: 0;
+  }
+
+  .mppw-form-field__alt-label:has(+ .mppw-form-field__control__textarea)
+    .mppw-form-field__alt-label-content {
+    font-size: 1.1rem;
   }
 
   div:has(> div > .mppw-form-field-alt > .mppw-form-field__control__textarea) {
