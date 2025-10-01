@@ -798,6 +798,10 @@ input[data-input-text-counter="true"] {
     display: inline-flex !important;
   }
 
+  .mppw-form-field__control__textarea {
+    width: 100% !important;
+  }
+
   .mppw-form-field-alt:has(> .mppw-form-field__control__textarea),
   div
     :has(
@@ -1052,5 +1056,3 @@ h3,
 :host :is(button.mppw-btn, .mppw-btn) {
   color: #fff !important;
 }
-
-/* */
