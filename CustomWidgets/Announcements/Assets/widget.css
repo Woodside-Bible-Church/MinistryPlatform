@@ -1,7 +1,5 @@
 /* =========================================================
-   Announcements Widget — FULL DROP-IN CSS
-   Grid-template-areas layout (mobile-first → desktop mosaic)
-   All images locked to 16:9
+   Announcements Widget
    ========================================================= */
 
 /* ---- Theme hooks ---- */
@@ -33,6 +31,8 @@ h6 {
   --ann-gap: 24px; /* default grid gap for non-featured */
   --ann-body-h: 72px; /* fixed CTA height (tweak if needed) */
   color: var(--ann-text);
+
+  --carousel-card-size: clamp(250px, 50vw, 400px);
 }
 
 .ann-section-title {
@@ -81,11 +81,7 @@ h6 {
   row-gap: var(--g);
 
   /* Desktop areas */
-  grid-template-areas:
-    "i1 i2"
-    "i1 d2"
-    "i1 i3"
-    "d1 d3";
+  grid-template-areas: "i1 i2" "i1 d2" "i1 i3" "d1 d3";
 }
 
 /* Area hooks */
@@ -294,5 +290,83 @@ feat-d2 {
     grid-template-columns: 1fr;
     row-gap: 18px; /* match featured’s mobile gap */
     column-gap: 0;
+  }
+}
+
+/* If it is a carousel */
+#AnnouncementsWidget.carousel {
+  overflow-x: scroll;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+  padding: 2em;
+  box-sizing: border-box;
+}
+
+#AnnouncementsWidget.carousel::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+#AnnouncementsWidget.carousel > .ann-wrap {
+  display: inline-flex;
+
+  .ann-section-title {
+    writing-mode: sideways-lr;
+    text-orientation: sideways;
+    font-size: clamp(0.65rem, 1.5vw, 1rem);
+    text-align: end;
+    margin: 0;
+    padding-right: var(--ann-gap);
+    color: var(--ann-muted);
+    opacity: 0.65;
+  }
+
+  .ann-section-title:nth-of-type(2) {
+    margin-left: calc(1.5 * var(--ann-gap));
+  }
+
+  .ann-grid--featured {
+    grid-template-areas: "i1 i2 i3" "d1 d2 d3";
+  }
+
+  .ann-grid--campus {
+    display: flex;
+    gap: var(--ann-gap);
+
+    .ann-body {
+      margin-top: calc(0.5 * var(--ann-gap)) !important;
+    }
+  }
+
+  .ann-grid {
+    grid-template-columns: unset;
+
+    grid-template-rows: unset;
+    column-gap: var(--ann-gap);
+    row-gap: calc(0.5 * var(--ann-gap));
+
+    .ann-card {
+      width: var(--carousel-card-size);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ann-body {
+      padding: 0.5rem;
+      margin: 0;
+    }
+
+    .ann-body * {
+      padding: 0;
+      margin: 0;
+      width: var(--carousel-card-size);
+    }
+
+    .ann-title {
+      font-size: 1rem !important;
+    }
+
+    .ann-blurb {
+      font-size: 0.8rem;
+    }
   }
 }
