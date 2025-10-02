@@ -224,6 +224,7 @@
   max-width: 600px;
   width: 100%;
   margin-left: auto;
+  box-sizing: border-box;
 }
 #CampusDetailsWidget .pastor-card .pastor-photo {
   width: 120px;

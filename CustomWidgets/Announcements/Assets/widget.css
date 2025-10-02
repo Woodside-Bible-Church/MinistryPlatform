@@ -362,11 +362,11 @@ feat-d2 {
     }
 
     .ann-title {
-      font-size: 1rem !important;
+      font-size: clamp(0.8rem, 1vw, 1rem) !important;
     }
 
     .ann-blurb {
-      font-size: 0.8rem;
+      font-size: clamp(0.75rem, 0.9vw, 0.8rem);
     }
   }
 }
