@@ -105,3 +105,44 @@
     </div>
   </section>
 </div>
+
+{%- comment -%} Progress bar for horizontal carousel scroll Paste anywhere in
+this Liquid template (ideally near the end). It only runs if
+#AnnouncementsWidget has the "carousel" class. {%- endcomment -%}
+
+<script>
+  (function () {
+    // Find the widget container by id (adjust if your outer id differs)
+    const w = document.getElementById("AnnouncementsWidget");
+    if (!w || !w.classList.contains("carousel")) return;
+
+    // Avoid duplicates if this template renders more than once
+    if (!w.querySelector(".ann-progress")) {
+      const track = document.createElement("div");
+      track.className = "ann-progress";
+      track.setAttribute("aria-hidden", "true");
+
+      const bar = document.createElement("div");
+      bar.className = "ann-progress__bar";
+      track.appendChild(bar);
+      w.appendChild(track);
+    }
+
+    const bar = w.querySelector(".ann-progress__bar");
+
+    function update() {
+      const max = w.scrollWidth - w.clientWidth;
+      const pct = max > 0 ? w.scrollLeft / max : 0;
+      bar.style.transform = `scaleX(${pct})`;
+    }
+
+    // Initial paint + listeners
+    update();
+    w.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+
+    // If images load later and change width, update once more
+    const ro = new ResizeObserver(update);
+    ro.observe(w);
+  })();
+</script>

@@ -5,10 +5,7 @@
     <title>Campus Details Widget</title>
     <link rel="stylesheet" href="Assets/widget.css" />
     <link rel="icon" href="Assets/favicon.png" />
-    <link
-      rel="stylesheet"
-      href="https://announcements-black.vercel.app/Assets/widget.css"
-    />
+    <link rel="stylesheet" href="../Announcements/Assets/widget.css" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
@@ -16,6 +13,88 @@
       referrerpolicy="no-referrer"
     />
     <script src="/CustomWidgets/Assets/CustomWidgets.js"></script>
+
+    <script>
+      (function initAnnouncementsProgress() {
+        function onReady(fn) {
+          if (document.readyState !== "loading") fn();
+          else document.addEventListener("DOMContentLoaded", fn);
+        }
+
+        onReady(() => {
+          const w = document.getElementById("AnnouncementsWidget");
+          if (!w) return; // widget container missing
+
+          // Avoid double init across hot reloads / re-renders
+          if (w.dataset.annProgressInit === "1") return;
+
+          const tryInit = () => {
+            const track = w.querySelector(".ann-progress");
+            const bar = w.querySelector(".ann-progress__bar");
+            if (!track || !bar) return false; // not rendered yet
+
+            // mark as initialized
+            w.dataset.annProgressInit = "1";
+
+            function update() {
+              if (!w.classList.contains("carousel")) return;
+
+              const max = w.scrollWidth - w.clientWidth;
+
+              // If there’s nothing to scroll, show full bar
+              if (max <= 0) {
+                bar.style.transform = "scaleX(1)";
+                return;
+              }
+
+              // Normal progress 0..1
+              const pct = w.scrollLeft / max;
+
+              // Show a little color even at the start.
+              // This scales with your content: ~2–6% of the track,
+              // depending on how wide the viewport is vs total content.
+              const minVisible = Math.min(
+                0.06,
+                Math.max(0.02, (w.clientWidth / w.scrollWidth) * 0.5)
+              );
+
+              // Fill is the larger of actual progress or the minimum visible
+              const fill = Math.max(pct, minVisible);
+
+              // Keep GPU-friendly transform; origin should be left center in CSS
+              bar.style.transform = `scaleX(${fill})`;
+            }
+
+            // listeners (idempotent: remove old if you re-init)
+            w.addEventListener("scroll", update, { passive: true });
+            window.addEventListener("resize", update);
+
+            // watch size/content changes (cards/images loading)
+            const ro = new ResizeObserver(update);
+            ro.observe(w);
+
+            // if your system toggles .carousel later, react
+            const classObs = new MutationObserver(update);
+            classObs.observe(w, {
+              attributes: true,
+              attributeFilter: ["class"]
+            });
+
+            // kick once
+            update();
+            return true;
+          };
+
+          // Try now; if not ready, observe until the bar shows up
+          if (!tryInit()) {
+            const mo = new MutationObserver((muts, obs) => {
+              if (tryInit()) obs.disconnect();
+            });
+            mo.observe(w, { childList: true, subtree: true });
+          }
+        });
+      })();
+    </script>
   </head>
   <body style="padding: 0; margin: 0">
     <div
@@ -35,12 +114,11 @@
       data-component="CustomWidget"
       data-sp="api_custom_AnnouncementsWidget_JSON"
       data-params="@CongregationID=15"
-      data-template="https://announcements-black.vercel.app/Template/widget.html"
+      data-template="CustomWidgets/Announcements/Template/widget.html"
       data-requireuser="false"
       data-cache="false"
       data-host="woodsidebible"
       data-debug="true"
     ></div>
-    <section id="announcements" class="ann-wrap"></section>
   </body>
 </html>

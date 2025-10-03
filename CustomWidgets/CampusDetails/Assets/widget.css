@@ -120,6 +120,7 @@
   padding: 0 2rem; /* keep your existing side padding */
   align-items: flex-start;
   justify-content: flex-start; /* ensure no space-between behavior */
+  margin-top: 3rem;
 }
 
 /* Each fact is a compact row: icon + text */

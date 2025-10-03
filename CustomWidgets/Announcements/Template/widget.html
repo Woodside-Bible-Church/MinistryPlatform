@@ -1,7 +1,18 @@
+<div class="section-header-wrapper">
+  <div>
+    <div class="section-title--small">Upcoming</div>
+    <h2 class="section-title">At Woodside</h2>
+  </div>
+  <a href="https://woodsidebible.org/Announcements" class="btn btn--primary">
+    View All Announcements
+  </a>
+</div>
+
 <section id="announcements" class="ann-wrap">
   {% assign cw = Announcements.ChurchWide %} {% assign campus =
   Announcements.Campus %} {% if cw and cw.size > 0 %} {%- comment -%} =========
   CHURCHWIDE FEATURED (count controlled by SQL) ========= {%- endcomment -%}
+
   <h2 class="ann-section-title">Happening At Woodside</h2>
 
   <!-- MOBILE-FIRST ORDER (then remap with grid-areas on desktop) -->
@@ -106,3 +117,6 @@
   <div class="ann-empty">No announcements to show.</div>
   {% endunless %}
 </section>
+<div class="ann-progress" aria-hidden="true">
+  <div class="ann-progress__bar"></div>
+</div>
