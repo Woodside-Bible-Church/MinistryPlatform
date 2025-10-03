@@ -135,8 +135,6 @@
 
 /* Keep icon look the same in the new inline layout */
 #CampusDetailsWidget .fact .icon {
-  justify-self: initial; /* override old grid hints */
-  align-self: center;
   color: var(--secondaryColor);
 }
 
