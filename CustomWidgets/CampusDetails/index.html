@@ -13,7 +13,6 @@
       referrerpolicy="no-referrer"
     />
     <script src="/CustomWidgets/Assets/CustomWidgets.js"></script>
-
     <script>
       (function initAnnouncementsProgress() {
         function onReady(fn) {
@@ -22,75 +21,48 @@
         }
 
         onReady(() => {
-          const w = document.getElementById("AnnouncementsWidget");
-          if (!w) return; // widget container missing
+          const root = document.getElementById("AnnouncementsWidget");
+          if (!root) return;
 
-          // Avoid double init across hot reloads / re-renders
-          if (w.dataset.annProgressInit === "1") return;
+          let inited = false;
 
           const tryInit = () => {
-            const track = w.querySelector(".ann-progress");
-            const bar = w.querySelector(".ann-progress__bar");
-            if (!track || !bar) return false; // not rendered yet
-
-            // mark as initialized
-            w.dataset.annProgressInit = "1";
+            const scroller = root.querySelector(".ann-scroller");
+            const bar = root.querySelector(".ann-progress__bar");
+            if (!scroller || !bar) return false; // not rendered yet
+            if (inited) return true;
 
             function update() {
-              if (!w.classList.contains("carousel")) return;
-
-              const max = w.scrollWidth - w.clientWidth;
-
-              // If there’s nothing to scroll, show full bar
+              const max = scroller.scrollWidth - scroller.clientWidth;
               if (max <= 0) {
                 bar.style.transform = "scaleX(1)";
                 return;
               }
-
-              // Normal progress 0..1
-              const pct = w.scrollLeft / max;
-
-              // Show a little color even at the start.
-              // This scales with your content: ~2–6% of the track,
-              // depending on how wide the viewport is vs total content.
-              const minVisible = Math.min(
-                0.06,
-                Math.max(0.02, (w.clientWidth / w.scrollWidth) * 0.5)
-              );
-
-              // Fill is the larger of actual progress or the minimum visible
-              const fill = Math.max(pct, minVisible);
-
-              // Keep GPU-friendly transform; origin should be left center in CSS
-              bar.style.transform = `scaleX(${fill})`;
+              const pct = scroller.scrollLeft / max;
+              const minVisible = 0.15; // small head-start so it’s not empty
+              bar.style.transform = `scaleX(${Math.max(pct, minVisible)})`;
             }
 
-            // listeners (idempotent: remove old if you re-init)
-            w.addEventListener("scroll", update, { passive: true });
+            scroller.addEventListener("scroll", update, { passive: true });
             window.addEventListener("resize", update);
+            new ResizeObserver(update).observe(scroller);
 
-            // watch size/content changes (cards/images loading)
-            const ro = new ResizeObserver(update);
-            ro.observe(w);
-
-            // if your system toggles .carousel later, react
-            const classObs = new MutationObserver(update);
-            classObs.observe(w, {
-              attributes: true,
-              attributeFilter: ["class"]
+            // images loading can change widths
+            root.querySelectorAll("img").forEach((img) => {
+              img.addEventListener("load", update);
             });
 
-            // kick once
             update();
+            inited = true;
             return true;
           };
 
-          // Try now; if not ready, observe until the bar shows up
+          // Try immediately; if not ready, watch for injected content
           if (!tryInit()) {
-            const mo = new MutationObserver((muts, obs) => {
-              if (tryInit()) obs.disconnect();
+            const mo = new MutationObserver(() => {
+              if (tryInit()) mo.disconnect();
             });
-            mo.observe(w, { childList: true, subtree: true });
+            mo.observe(root, { childList: true, subtree: true });
           }
         });
       })();

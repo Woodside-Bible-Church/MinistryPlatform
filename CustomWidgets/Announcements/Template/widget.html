@@ -8,94 +8,55 @@
   </a>
 </div>
 
-<section id="announcements" class="ann-wrap">
-  {% assign cw = Announcements.ChurchWide %} {% assign campus =
-  Announcements.Campus %} {% if cw and cw.size > 0 %} {%- comment -%} =========
-  CHURCHWIDE FEATURED (count controlled by SQL) ========= {%- endcomment -%}
+<div class="ann-scroller">
+  <section id="announcements" class="ann-wrap">
+    {% assign cw = Announcements.ChurchWide %} {% assign campus =
+    Announcements.Campus %} {% if cw and cw.size > 0 %} {%- comment -%}
+    ========= CHURCHWIDE FEATURED (count controlled by SQL) ========= {%-
+    endcomment -%}
 
-  <h2 class="ann-section-title">Happening At Woodside</h2>
+    <h2 class="ann-section-title">Happening At Woodside</h2>
 
-  <!-- MOBILE-FIRST ORDER (then remap with grid-areas on desktop) -->
-  <div class="ann-grid ann-grid--featured">
-    {% for a in cw %}
-    <!-- image cell -->
-    <article
-      class="ann-card feat-i{{ forloop.index }}"
-      data-announcement-id="{{ a.ID }}"
-    >
-      <a
-        class="ann-media"
-        {%
-        if
-        a.CallToAction
-        and
-        a.CallToAction.Link
-        %}href="{{ a.CallToAction.Link }}"
-        {%
-        endif
-        %}
-        aria-label="{{ a.Title }}"
+    <!-- MOBILE-FIRST ORDER (then remap with grid-areas on desktop) -->
+    <div class="ann-grid ann-grid--featured">
+      {% for a in cw %}
+      <!-- image cell -->
+      <article
+        class="ann-card feat-i{{ forloop.index }}"
+        data-announcement-id="{{ a.ID }}"
       >
-        {% if a.Image %}
-        <img src="{{ a.Image }}" alt="{{ a.Title | escape }}" loading="lazy" />
-        {% else %}
-        <div class="ann-img placeholder">
-          <span class="placeholder-text">{{ a.Title }}</span>
-        </div>
-        {% endif %}
-      </a>
-    </article>
+        <a
+          class="ann-media"
+          {%
+          if
+          a.CallToAction
+          and
+          a.CallToAction.Link
+          %}href="{{ a.CallToAction.Link }}"
+          {%
+          endif
+          %}
+          aria-label="{{ a.Title }}"
+        >
+          {% if a.Image %}
+          <img
+            src="{{ a.Image }}"
+            alt="{{ a.Title | escape }}"
+            loading="lazy"
+          />
+          {% else %}
+          <div class="ann-img placeholder">
+            <span class="placeholder-text">{{ a.Title }}</span>
+          </div>
+          {% endif %}
+        </a>
+      </article>
 
-    <!-- text cell -->
-    <a
-      class="ann-body feat-d{{ forloop.index }}"
-      href="{{ a.CallToAction.Link }}"
-    >
-      <h3 class="ann-title">
-        {% assign heading = a.CallToAction.Heading | default: a.Title %} {% if
-        a.CallToAction and a.CallToAction.Link %}
-        <div>{{ heading }}</div>
-        {% else %} {{ heading }} {% endif %}
-      </h3>
-      {% assign sub = a.CallToAction.SubHeading | default: a.Body %} {% if sub
-      %}
-      <p class="ann-blurb">{{ sub | strip_html | strip | truncate: 140 }}</p>
-      {% endif %}
-    </a>
-    {% endfor %}
-  </div>
-  {% endif %} {%- comment -%} ========= CAMPUS ANNOUNCEMENTS ========= {%-
-  endcomment -%} {% if campus and campus.Announcements and
-  campus.Announcements.size > 0 %}
-  <h2 class="ann-section-title">
-    {{ campus.Name | default: "Campus" }} Announcements
-  </h2>
-
-  <div class="ann-grid ann-grid--campus">
-    {% for a in campus.Announcements %}
-    <article class="ann-card" data-announcement-id="{{ a.ID }}">
+      <!-- text cell -->
       <a
-        class="ann-media"
-        {%
-        if
-        a.CallToAction
-        and
-        a.CallToAction.Link
-        %}href="{{ a.CallToAction.Link }}"
-        {%
-        endif
-        %}
-        aria-label="{{ a.Title }}"
+        class="ann-body feat-d{{ forloop.index }}"
+        href="{{ a.CallToAction.Link }}"
       >
-        {% if a.Image %}
-        <img src="{{ a.Image }}" alt="{{ a.Title | escape }}" loading="lazy" />
-        {% else %}
-        <div class="ann-img placeholder">
-          <span class="placeholder-text">{{ a.Title }}</span>
-        </div>
-        {% endif %}
-      </a>
-      <a class="ann-body" href="{{ a.CallToAction.Link }}">
         <h3 class="ann-title">
           {% assign heading = a.CallToAction.Heading | default: a.Title %} {% if
           a.CallToAction and a.CallToAction.Link %}
@@ -107,16 +68,69 @@
         <p class="ann-blurb">{{ sub | strip_html | strip | truncate: 140 }}</p>
         {% endif %}
       </a>
-    </article>
-    {% endfor %}
-  </div>
-  {% endif %} {%- comment -%} ========= EMPTY STATE (no parentheses / not)
-  ========= {%- endcomment -%} {% assign has_cw = cw and cw.size > 0 %} {%
-  assign has_campus = campus and campus.Announcements and
-  campus.Announcements.size > 0 %} {% unless has_cw or has_campus %}
-  <div class="ann-empty">No announcements to show.</div>
-  {% endunless %}
-</section>
+      {% endfor %}
+    </div>
+    {% endif %} {%- comment -%} ========= CAMPUS ANNOUNCEMENTS ========= {%-
+    endcomment -%} {% if campus and campus.Announcements and
+    campus.Announcements.size > 0 %}
+    <h2 class="ann-section-title">
+      {{ campus.Name | default: "Campus" }} Announcements
+    </h2>
+
+    <div class="ann-grid ann-grid--campus">
+      {% for a in campus.Announcements %}
+      <article class="ann-card" data-announcement-id="{{ a.ID }}">
+        <a
+          class="ann-media"
+          {%
+          if
+          a.CallToAction
+          and
+          a.CallToAction.Link
+          %}href="{{ a.CallToAction.Link }}"
+          {%
+          endif
+          %}
+          aria-label="{{ a.Title }}"
+        >
+          {% if a.Image %}
+          <img
+            src="{{ a.Image }}"
+            alt="{{ a.Title | escape }}"
+            loading="lazy"
+          />
+          {% else %}
+          <div class="ann-img placeholder">
+            <span class="placeholder-text">{{ a.Title }}</span>
+          </div>
+          {% endif %}
+        </a>
+        <a class="ann-body" href="{{ a.CallToAction.Link }}">
+          <h3 class="ann-title">
+            {% assign heading = a.CallToAction.Heading | default: a.Title %} {%
+            if a.CallToAction and a.CallToAction.Link %}
+            <div>{{ heading }}</div>
+            {% else %} {{ heading }} {% endif %}
+          </h3>
+          {% assign sub = a.CallToAction.SubHeading | default: a.Body %} {% if
+          sub %}
+          <p class="ann-blurb">
+            {{ sub | strip_html | strip | truncate: 140 }}
+          </p>
+          {% endif %}
+        </a>
+      </article>
+      {% endfor %}
+    </div>
+    {% endif %} {%- comment -%} ========= EMPTY STATE (no parentheses / not)
+    ========= {%- endcomment -%} {% assign has_cw = cw and cw.size > 0 %} {%
+    assign has_campus = campus and campus.Announcements and
+    campus.Announcements.size > 0 %} {% unless has_cw or has_campus %}
+    <div class="ann-empty">No announcements to show.</div>
+    {% endunless %}
+  </section>
+</div>
+
 <div class="ann-progress" aria-hidden="true">
   <div class="ann-progress__bar"></div>
 </div>

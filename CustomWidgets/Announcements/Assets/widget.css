@@ -9,15 +9,10 @@
 }
 
 /* ---- Base typography ---- */
-* {
+#AnnouncementsWidget * {
   font-family: Montserrat, Helvetica, Arial, sans-serif;
 }
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+#AnnouncementsWidget :is(h1, h2, h3, h4, h5, h6) {
   text-transform: uppercase;
 }
 
@@ -30,9 +25,9 @@ h6 {
 
   --ann-gap: 24px; /* default grid gap for non-featured */
   --ann-body-h: 72px; /* fixed CTA height (tweak if needed) */
-  color: var(--ann-text);
-
   --carousel-card-size: clamp(250px, 50vw, 400px);
+
+  color: var(--ann-text);
 }
 
 .ann-section-title {
@@ -52,22 +47,11 @@ h6 {
 
 /* =========================================================
    FEATURED (grid areas)
-   Mobile DOM order: i1, d1, i2, d2, i3, d3
-   Desktop areas remap to:
-     i1  i2
-     i1  d2
-     i1  i3
-     d1  d3
-   Math (gap-aware) guarantees bottoms align with all images 16:9.
    ========================================================= */
 .ann-grid--featured {
-  --g: clamp(12px, 1.4vw, 18px); /* use same gap inside & outside */
+  --g: clamp(12px, 1.4vw, 18px);
   --H: var(--ann-body-h);
 
-  /* Column math:
-     Wr = (((100% - g)) - (16/9) * (H + 2g)) / 3
-     Wl = 2*Wr + (16/9) * (H + 2g)
-  */
   grid-template-columns:
     calc(
       (2 * (((100% - var(--g)) - (16 / 9) * (var(--H) + 2 * var(--g))) / 3)) +
@@ -75,13 +59,14 @@ h6 {
     )
     calc(((100% - var(--g)) - (16 / 9) * (var(--H) + 2 * var(--g))) / 3);
 
-  /* Four rows: i2, d2, i3, bottom CTAs */
   grid-template-rows: auto var(--H) auto auto;
   column-gap: var(--g);
   row-gap: var(--g);
-
-  /* Desktop areas */
-  grid-template-areas: "i1 i2" "i1 d2" "i1 i3" "d1 d3";
+  grid-template-areas:
+    "i1 i2"
+    "i1 d2"
+    "i1 i3"
+    "d1 d3";
 }
 
 /* Area hooks */
@@ -96,15 +81,13 @@ h6 {
 }
 .feat-d2 {
   grid-area: d2;
-}
+} /* <- fixed missing dot */
 .feat-i3 {
   grid-area: i3;
 }
 .feat-d3 {
   grid-area: d3;
 }
-
-/* Right stack children naturally occupy their rows because of areas above */
 
 /* =========================================================
    CAMPUS GRID
@@ -188,15 +171,9 @@ h6 {
   color: inherit;
   text-decoration: none;
 }
-
 .ann-body:hover {
   text-decoration: underline;
 }
-
-feat-d2 {
-  height: var(--ann-body-h); /* fixed height keeps math stable */
-}
-
 .ann-body > * {
   margin: 0 !important;
 }
@@ -211,7 +188,6 @@ feat-d2 {
   -webkit-line-clamp: 1;
   overflow: hidden;
 }
-
 .ann-blurb {
   color: var(--ann-muted);
   line-height: 1.35;
@@ -250,25 +226,20 @@ feat-d2 {
    Responsive
    ========================================================= */
 @media (max-width: 900px) {
-  /* One column; order follows DOM (i1, d1, i2, d2, i3, d3) */
   .ann-grid--featured {
     grid-template-columns: 1fr;
     grid-template-rows: auto;
     column-gap: 0;
     row-gap: 18px;
     grid-template-areas:
-      "i1"
-      "d1"
-      "i2"
-      "d2"
-      "i3"
-      "d3";
+      "i1" "d1"
+      "i2" "d2"
+      "i3" "d3";
   }
   .ann-body {
     height: auto;
-  } /* let CTAs grow on small screens */
+  }
 }
-
 @media (max-width: 600px) {
   .ann-title {
     font-size: 18px;
@@ -283,147 +254,179 @@ feat-d2 {
 .ann-grid--campus {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-
 /* Campus grid → one column on small screens */
 @media (max-width: 900px) {
   .ann-grid--campus {
     grid-template-columns: 1fr;
-    row-gap: 18px; /* match featured’s mobile gap */
+    row-gap: 18px;
     column-gap: 0;
   }
 }
 
-/* If it is a carousel */
+//* =========================================================
+Carousel mode (only when .carousel is present)
+   ========================================================= */
+
+/* Outer widget shell provides padding/positioning in carousel */
 #AnnouncementsWidget.carousel {
-  overflow-x: scroll;
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
   padding: 2em;
   box-sizing: border-box;
-}
-
-#AnnouncementsWidget.carousel::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
-}
-
-#AnnouncementsWidget.carousel > .ann-wrap {
-  display: inline-flex;
-
-  .ann-section-title {
-    writing-mode: sideways-lr;
-    text-orientation: sideways;
-    font-size: clamp(0.65rem, 1.5vw, 1rem);
-    text-align: end;
-    margin: 0;
-    padding-right: var(--ann-gap);
-    color: var(--ann-muted);
-    opacity: 0.65;
-  }
-
-  .ann-section-title:nth-of-type(2) {
-    margin-left: calc(1.5 * var(--ann-gap));
-  }
-
-  .ann-grid--featured {
-    grid-template-areas: "i1 i2 i3" "d1 d2 d3";
-  }
-
-  .ann-grid--campus {
-    display: flex;
-    gap: var(--ann-gap);
-
-    .ann-body {
-      margin-top: calc(0.5 * var(--ann-gap)) !important;
-    }
-  }
-
-  .ann-grid {
-    grid-template-columns: unset;
-
-    grid-template-rows: unset;
-    column-gap: var(--ann-gap);
-    row-gap: calc(0.5 * var(--ann-gap));
-    padding-bottom: 2em;
-
-    .ann-card {
-      width: var(--carousel-card-size);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .ann-body {
-      padding: 0.5rem;
-      margin: 0;
-    }
-
-    .ann-body * {
-      padding: 0;
-      margin: 0;
-      width: var(--carousel-card-size);
-    }
-
-    .ann-title {
-      font-size: clamp(0.8rem, 1vw, 1rem) !important;
-    }
-
-    .ann-blurb {
-      font-size: clamp(0.75rem, 0.9vw, 0.8rem);
-    }
-  }
-}
-
-/* Progress bar (hidden unless carousel is active) */
-/* Progress bar (shown only in carousel mode) */
-#AnnouncementsWidget {
   position: relative;
 }
 
+/* Inner horizontal scroller – only scrolls in carousel mode */
+#AnnouncementsWidget.carousel .ann-scroller {
+  overflow-x: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+#AnnouncementsWidget.carousel .ann-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+/* Inline layout inside the scroller */
+#AnnouncementsWidget.carousel .ann-scroller > .ann-wrap {
+  display: inline-flex;
+}
+
+#AnnouncementsWidget.carousel .ann-scroller > .ann-wrap .ann-section-title {
+  writing-mode: sideways-lr;
+  text-orientation: sideways;
+  font-size: clamp(0.65rem, 1.5vw, 1rem);
+  text-align: end;
+  margin: 0;
+  padding-right: var(--ann-gap);
+  color: var(--ann-muted);
+  opacity: 0.65;
+}
+#AnnouncementsWidget.carousel
+  .ann-scroller
+  > .ann-wrap
+  .ann-section-title:nth-of-type(2) {
+  margin-left: calc(1.5 * var(--ann-gap));
+}
+
+/* Grid tweaks only in carousel */
+#AnnouncementsWidget.carousel .ann-scroller .ann-grid--featured {
+  grid-template-areas: "i1 i2 i3" "d1 d2 d3";
+}
+#AnnouncementsWidget.carousel .ann-scroller .ann-grid--campus {
+  display: flex;
+  gap: var(--ann-gap);
+}
+#AnnouncementsWidget.carousel .ann-scroller .ann-grid--campus .ann-body {
+  margin-top: calc(0.5 * var(--ann-gap)) !important;
+}
+
+#AnnouncementsWidget.carousel .ann-scroller .ann-grid {
+  grid-template-columns: unset;
+  grid-template-rows: unset;
+  column-gap: var(--ann-gap);
+  row-gap: calc(0.5 * var(--ann-gap));
+  padding-bottom: 2em;
+}
+#AnnouncementsWidget.carousel .ann-scroller .ann-grid .ann-card {
+  width: var(--carousel-card-size);
+  display: flex;
+  flex-direction: column;
+}
+#AnnouncementsWidget.carousel .ann-scroller .ann-grid .ann-body {
+  padding: 0.5rem;
+  margin: 0;
+}
+#AnnouncementsWidget.carousel .ann-scroller .ann-grid .ann-body * {
+  padding: 0;
+  margin: 0;
+  width: var(--carousel-card-size);
+}
+#AnnouncementsWidget.carousel .ann-scroller .ann-grid .ann-title {
+  font-size: clamp(0.8rem, 1vw, 1rem) !important;
+}
+#AnnouncementsWidget.carousel .ann-scroller .ann-grid .ann-blurb {
+  font-size: clamp(0.75rem, 0.9vw, 0.8rem);
+}
+
+/* Progress bar – visible only in carousel mode */
 #AnnouncementsWidget .ann-progress {
   display: none;
-  position: sticky; /* <<< pin to scrollport */
-  left: 0; /* stick for horizontal axis */
-  bottom: 0.75em; /* vertical placement */
+}
+#AnnouncementsWidget.carousel .ann-progress {
+  display: block;
+  position: absolute;
+  left: 2em;
+  right: 2em;
+  bottom: 0.75em;
   height: 4px;
-  margin: 0 2em; /* match your #AnnouncementsWidget padding */
   background: rgba(0, 0, 0, 0.08);
   border-radius: 999px;
   overflow: hidden;
   pointer-events: none;
   z-index: 2;
 }
-#AnnouncementsWidget.carousel .ann-progress {
-  display: block !important;
-}
-
 #AnnouncementsWidget .ann-progress__bar {
   height: 100%;
   width: 100%;
-  background: var(--ann-accent, #62bb46); /* fallback if CSS var missing */
+  background: var(--ann-accent, #62bb46);
   transform-origin: left center;
   transform: scaleX(0);
   transition: transform 60ms linear;
 }
 
 /* =========================================================
-   Section header (for use above widget)
+   Grid mode defaults (when NOT .carousel)
    ========================================================= */
-#AnnouncementsWidget .section-header-wrapper {
+
+/* Make the wrapper behave like a normal block and don't scroll */
+#AnnouncementsWidget:not(.carousel) .ann-scroller {
+  overflow: visible;
+}
+#AnnouncementsWidget:not(.carousel) .ann-scroller > .ann-wrap {
+  display: block;
+}
+#AnnouncementsWidget:not(.carousel) .ann-progress,
+#AnnouncementsWidget:not(.carousel) .section-header-wrapper {
   display: none;
 }
-#AnnouncementsWidget.carousel .section-header-wrapper {
+
+/* =========================================================
+   Progress bar (outside scroller)
+   ========================================================= */
+#AnnouncementsWidget .ann-progress {
+  position: absolute;
+  left: 2em;
+  right: 2em;
+  bottom: 0.75em;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
+}
+#AnnouncementsWidget .ann-progress__bar {
+  height: 100%;
+  width: 100%;
+  background: var(--ann-accent, #62bb46);
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 60ms linear;
+}
+
+/* =========================================================
+   Section header (outside scroller)
+   ========================================================= */
+#AnnouncementsWidget .section-header-wrapper {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 3rem 0;
   gap: 2rem;
   margin-top: 2rem;
-  position: sticky;
-  left: 0;
 }
 #AnnouncementsWidget .section-title--small {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #666666;
+  color: #666;
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 0.25rem;
@@ -434,8 +437,7 @@ feat-d2 {
   margin: 0 0 1rem 0;
 }
 #AnnouncementsWidget .btn {
-  color: rgb(28, 43, 57);
-  visibility: visible;
+  color: #1c2b39;
   background-color: transparent;
   border-radius: 200px;
   border: 2px solid rgba(28, 43, 57, 0.75);
@@ -443,16 +445,14 @@ feat-d2 {
   padding: 1rem 1.5rem;
   transition: all 0.3s ease;
 }
-
 #AnnouncementsWidget :is(.btn:hover, .btn:focus) {
-  background-color: rgb(28, 43, 57);
-  border: 2px solid rgb(28, 43, 57);
-  text-decoration: none;
+  background-color: #1c2b39;
+  border-color: #1c2b39;
   color: #ffffff;
 }
 
 @media (max-width: 900px) {
-  #AnnouncementsWidget.carousel .section-header-wrapper {
+  #AnnouncementsWidget .section-header-wrapper {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
