@@ -126,7 +126,7 @@
 /* Each fact is a compact row: icon + text */
 #CampusDetailsWidget .fact {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--gap-lg);
   /* Let items wrap naturally; tweak base width if you want more consistent wrapping */
   flex: 0 1 320px; /* try 280–360px to taste, or remove for fully auto width */

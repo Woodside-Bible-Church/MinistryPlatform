@@ -421,7 +421,6 @@ Carousel mode (only when .carousel is present)
   align-items: center;
   padding: 3rem 0;
   gap: 2rem;
-  margin-top: 2rem;
 }
 #AnnouncementsWidget .section-title--small {
   font-size: 0.875rem;
