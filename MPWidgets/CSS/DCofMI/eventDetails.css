@@ -716,9 +716,6 @@ p:has(.viewWaiver:checked) + .hideWhenNotChecked {
 @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
 
 :host {
-  --primaryColor: var(--primaryColor);
-  --secondaryColor: var(--secondaryColor);
-
   --innerPage-primaryColor: var(--secondaryColor);
   --innerPage-h3color: var(--primaryColor);
   --innerPage-buttonHoverBgColor: var(--primaryColor);
