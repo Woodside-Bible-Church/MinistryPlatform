@@ -123,7 +123,7 @@
   position: fixed !important;
   bottom: 0 !important;
   left: 0 !important;
-  background: #62bb46;
+  background: ;
   text-align: center;
   width: 100%;
   z-index: 10000000;
@@ -394,20 +394,20 @@ h6 {
 }
 
 :host {
-  --innerPage-primaryColor: #62bb46;
-  --innerPage-h3color: #1c2b39;
-  --innerPage-buttonHoverBgColor: #1c2b39;
-  --innerPage-buttonActiveBgColor: #1c2b39;
-  --innerPage-progressBarColor: #62bb46;
-  --innerPage-progressBarCompleteColor: #62bb46;
-  --innerPage-linkColor: #62bb46;
-  --innerPage-linkHoverColor: #1c2b39;
-  --innerPage-linkActiveColor: #1c2b39;
-  --primary: #62bb46;
-  --form-btn-primary-bgcolor: #62bb46;
-  --form-btn-primary-hover: #1c2b39;
-  --form-btn-primary-active: #1c2b39;
-  --form-field-border--active: #1c2b39;
+  --innerPage-primaryColor: var(--secondaryColor);
+  --innerPage-h3color: var(--primaryColor);
+  --innerPage-buttonHoverBgColor: var(--primaryColor);
+  --innerPage-buttonActiveBgColor: var(--primaryColor);
+  --innerPage-progressBarColor: var(--secondaryColor);
+  --innerPage-progressBarCompleteColor: var(--secondaryColor);
+  --innerPage-linkColor: var(--secondaryColor);
+  --innerPage-linkHoverColor: var(--primaryColor);
+  --innerPage-linkActiveColor: var(--primaryColor);
+  --primary: var(--secondaryColor);
+  --form-btn-primary-bgcolor: var(--secondaryColor);
+  --form-btn-primary-hover: var(--primaryColor);
+  --form-btn-primary-active: var(--primaryColor);
+  --form-field-border--active: var(--primaryColor);
 }
 
 * {
@@ -642,7 +642,7 @@ h6 {
 }
 
 #completeFormAs + label {
-  color: #1c2b39 !important;
+  color: var(--primaryColor) !important;
 }
 
 .mppw-form-field__message_container {
@@ -697,7 +697,7 @@ div:has(> div > div > .mppw-form-field__control:disabled) {
 
 .viewWaiverLabel {
   font-size: 1.2em;
-  color: #62bb46;
+  color: var(--secondaryColor);
 }
 
 .mppw-form-field:has(> p > .viewWaiver) {
@@ -716,8 +716,8 @@ p:has(.viewWaiver:checked) + .hideWhenNotChecked {
 @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
 
 :host {
-  --primaryColor: #1c2b39;
-  --secondaryColor: #62bb46;
+  --primaryColor: var(--primaryColor);
+  --secondaryColor: var(--secondaryColor);
 
   --innerPage-primaryColor: var(--secondaryColor);
   --innerPage-h3color: var(--primaryColor);
@@ -945,7 +945,7 @@ input[data-input-text-counter="true"] {
   position: absolute;
   bottom: 10px;
   right: -310px;
-  background: #62bb46;
+  background: var(--secondaryColor);
 }
 
 #customForm {
