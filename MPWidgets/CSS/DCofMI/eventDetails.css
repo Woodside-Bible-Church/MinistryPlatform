@@ -23,20 +23,23 @@
 }
 
 :host {
-  --innerPage-primaryColor: #62bb46;
-  --innerPage-h3color: #1c2b39;
-  --innerPage-buttonHoverBgColor: #1c2b39;
-  --innerPage-buttonActiveBgColor: #1c2b39;
-  --innerPage-progressBarColor: #62bb46;
-  --innerPage-progressBarCompleteColor: #62bb46;
-  --innerPage-linkColor: #62bb46;
-  --innerPage-linkHoverColor: #1c2b39;
-  --innerPage-linkActiveColor: #1c2b39;
-  --primary: #62bb46;
-  --form-btn-primary-bgcolor: #62bb46;
-  --form-btn-primary-hover: #1c2b39;
-  --form-btn-primary-active: #1c2b39;
-  --form-field-border--active: #1c2b39;
+  --primaryColor: #13333b;
+  --secondaryColor: #a6d2e3;
+
+  --innerPage-primaryColor: var(--secondaryColor);
+  --innerPage-h3color: var(--primaryColor);
+  --innerPage-buttonHoverBgColor: var(--primaryColor);
+  --innerPage-buttonActiveBgColor: var(--primaryColor);
+  --innerPage-progressBarColor: var(--secondaryColor);
+  --innerPage-progressBarCompleteColor: var(--secondaryColor);
+  --innerPage-linkColor: var(--secondaryColor);
+  --innerPage-linkHoverColor: var(--primaryColor);
+  --innerPage-linkActiveColor: var(--primaryColor);
+  --primary: var(--secondaryColor);
+  --form-btn-primary-bgcolor: var(--secondaryColor);
+  --form-btn-primary-hover: var(--primaryColor);
+  --form-btn-primary-active: var(--primaryColor);
+  --form-field-border--active: var(--primaryColor);
 }
 
 :host([hide-title]) #customFormTitle {

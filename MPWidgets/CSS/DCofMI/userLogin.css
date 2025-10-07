@@ -4,12 +4,17 @@
   font-family: "Montserrat", Helvetica, sans-serif !important;
 }
 
+:host {
+  --primaryColor: #13333b;
+  --secondaryColor: #a6d2e3;
+}
+
 #loginButton {
   appearance: none;
   display: inline-block;
   vertical-align: middle;
   min-width: 100px;
-  border: 2px solid #62bb46;
+  border: 2px solid var(--secondaryColor);
   outline: 0;
   border-radius: 0;
   padding: 11px 10px;
@@ -19,7 +24,7 @@
   font-size: 14px;
   line-height: 1em;
   font-weight: 700;
-  color: #62bb46 !important;
+  color: var(--secondaryColor) !important;
   text-transform: uppercase;
   text-decoration: none;
   text-align: center !important;
@@ -28,7 +33,7 @@
 }
 
 #loginButton:hover {
-  background: #62bb46;
+  background: var(--secondaryColor);
   color: #fff !important;
 }
 
@@ -43,14 +48,14 @@
   font-size: 14px;
   line-height: 1em;
   font-weight: 700;
-  color: #62bb46;
+  color: var(--secondaryColor);
   text-decoration: none;
 }
 
 #userNameContainer .mppw-user-photo {
   border-radius: 100%;
   overflow: hidden;
-  background-color: #62bb46;
+  background-color: var(--secondaryColor);
 }
 
 #userMenu {
@@ -65,7 +70,7 @@
 }
 
 #userMenu .mppw-login--list-item a:hover {
-  color: #62bb46;
+  color: var(--secondaryColor);
   text-decoration: none;
 }
 
@@ -103,7 +108,7 @@
   content: "View My ——";
   padding: 0 16px;
   width: 100%;
-  color: #62bb46;
+  color: var(--secondaryColor);
 }
 
 #securedMenuItemList {
