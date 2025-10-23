@@ -1,5 +1,6 @@
 import { getClientCredentialsToken } from "../clientCredentials";
 import { HttpClient } from "../utils/httpClient";
+import { QueryParams } from "../Interfaces/mpProviderInterfaces";
 
 // Token refresh interval - refresh 5 minutes before actual expiration for safety
 const TOKEN_LIFE = 5 * 60 * 1000; // 5 minutes
@@ -89,7 +90,7 @@ export class MinistryPlatformClient {
      * @param tableName - Name of the table (e.g., 'Feedback_Entries')
      * @param queryParams - OData query parameters ($filter, $select, etc.)
      */
-    public async get<T = unknown>(tableName: string, queryParams?: Record<string, unknown>): Promise<T> {
+    public async get<T = unknown>(tableName: string, queryParams?: QueryParams): Promise<T> {
         await this.ensureValidToken();
         return this.httpClient.get<T>(`/tables/${tableName}`, queryParams);
     }
@@ -100,7 +101,7 @@ export class MinistryPlatformClient {
      * @param body - Data to post (usually an array of objects)
      * @param queryParams - Optional query parameters
      */
-    public async post<T = unknown>(tableName: string, body: unknown, queryParams?: Record<string, unknown>): Promise<T> {
+    public async post<T = unknown>(tableName: string, body: unknown, queryParams?: QueryParams): Promise<T> {
         await this.ensureValidToken();
         return this.httpClient.post<T>(`/tables/${tableName}`, body, queryParams);
     }
@@ -110,7 +111,7 @@ export class MinistryPlatformClient {
      * @param procedureName - Name of the stored procedure (e.g., 'api_Custom_User_Response_Stats_JSON')
      * @param parameters - Parameters to pass to the stored procedure
      */
-    public async callStoredProcedure<T = unknown>(procedureName: string, parameters?: Record<string, unknown>): Promise<T> {
+    public async callStoredProcedure<T = unknown>(procedureName: string, parameters?: QueryParams): Promise<T> {
         await this.ensureValidToken();
         return this.httpClient.post<T>(`/procs/${procedureName}`, parameters);
     }
