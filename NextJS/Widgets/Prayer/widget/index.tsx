@@ -80,13 +80,14 @@ class PrayerWidget {
     if (!this.shadowRoot) return;
 
     // Add CSS reset and Tailwind layer variables for Shadow DOM
+    // IMPORTANT: Use :host instead of * to avoid overriding utility classes
     const resetCSS = `
       *, *::before, *::after {
         box-sizing: border-box;
       }
 
-      /* Initialize Tailwind's layer variables */
-      * {
+      /* Initialize Tailwind's layer variables on :host so utilities can override them */
+      :host {
         --tw-border-spacing-x: 0;
         --tw-border-spacing-y: 0;
         --tw-translate-x: 0;
@@ -118,6 +119,7 @@ class PrayerWidget {
         --tw-shadow-colored: 0 0 #0000;
         --tw-inset-shadow: 0 0 #0000;
         --tw-inset-ring-shadow: 0 0 #0000;
+        --tw-border-style: solid;
         --tw-blur: ;
         --tw-brightness: ;
         --tw-contrast: ;
