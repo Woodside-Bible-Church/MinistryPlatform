@@ -17,8 +17,18 @@ interface WidgetConfig {
   containerId?: string;
 }
 
+// Extend window interface for widget globals
+declare global {
+  interface Window {
+    __PRAYER_WIDGET_CSS__?: string;
+    PRAYER_WIDGET_CONFIG?: WidgetConfig;
+    PrayerWidget?: PrayerWidget;
+  }
+}
+
 class PrayerWidget {
   private root: ReturnType<typeof createRoot> | null = null;
+  private shadowRoot: ShadowRoot | null = null;
   private config: WidgetConfig;
 
   constructor(config: WidgetConfig = {}) {
@@ -40,15 +50,47 @@ class PrayerWidget {
       return;
     }
 
-    // Create React root and render
-    this.root = createRoot(container);
+    // Create Shadow DOM for style encapsulation
+    this.shadowRoot = container.attachShadow({ mode: 'open' });
+
+    // Create a mount point inside shadow DOM
+    const mountPoint = document.createElement('div');
+    mountPoint.id = 'prayer-widget-app';
+    this.shadowRoot.appendChild(mountPoint);
+
+    // Inject styles into shadow DOM
+    // Note: Vite's css-injected-by-js plugin will inject styles into document.head
+    // We need to copy those styles into our shadow DOM
+    this.injectStyles();
+
+    // Create React root and render inside shadow DOM
+    this.root = createRoot(mountPoint);
     this.root.render(
       <React.StrictMode>
         <PrayerPage />
       </React.StrictMode>
     );
 
-    console.log('Prayer Widget initialized');
+    console.log('Prayer Widget initialized with Shadow DOM');
+  }
+
+  /**
+   * Inject styles into Shadow DOM
+   */
+  private injectStyles() {
+    if (!this.shadowRoot) return;
+
+    // Get CSS that was bundled by Vite
+    const cssCode = window.__PRAYER_WIDGET_CSS__;
+
+    if (cssCode) {
+      // Create style element and inject into Shadow DOM
+      const style = document.createElement('style');
+      style.textContent = cssCode;
+      this.shadowRoot.appendChild(style);
+    } else {
+      console.warn('Prayer Widget: CSS not found. Styles may not be applied correctly.');
+    }
   }
 
   /**
@@ -65,30 +107,30 @@ class PrayerWidget {
 // Auto-initialize if config is present
 if (typeof window !== 'undefined') {
   // Set default config if not provided
-  const defaultConfig = {
+  const defaultConfig: WidgetConfig = {
     apiBaseUrl: 'https://prayer-gamma.vercel.app',
     containerId: 'prayer-widget-root'
   };
 
-  const config = {
+  const config: WidgetConfig = {
     ...defaultConfig,
-    ...(window as any).PRAYER_WIDGET_CONFIG || {}
+    ...window.PRAYER_WIDGET_CONFIG || {}
   };
 
   // Store config globally for API client to access
-  (window as any).PRAYER_WIDGET_CONFIG = config;
+  window.PRAYER_WIDGET_CONFIG = config;
 
   // Wait for DOM to be ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       const widget = new PrayerWidget(config);
       widget.init();
-      (window as any).PrayerWidget = widget;
+      window.PrayerWidget = widget;
     });
   } else {
     const widget = new PrayerWidget(config);
     widget.init();
-    (window as any).PrayerWidget = widget;
+    window.PrayerWidget = widget;
   }
 }
 
