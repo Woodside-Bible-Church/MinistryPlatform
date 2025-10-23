@@ -101,9 +101,9 @@ export class MinistryPlatformClient {
      * @param body - Data to post (usually an array of objects)
      * @param queryParams - Optional query parameters
      */
-    public async post<T = unknown>(tableName: string, body?: RequestBody, queryParams?: QueryParams): Promise<T> {
+    public async post<T = unknown>(tableName: string, body?: unknown, queryParams?: QueryParams): Promise<T> {
         await this.ensureValidToken();
-        return this.httpClient.post<T>(`/tables/${tableName}`, body, queryParams);
+        return this.httpClient.post<T>(`/tables/${tableName}`, body as RequestBody, queryParams);
     }
 
     /**
