@@ -12,11 +12,8 @@ export async function GET() {
     // Authenticate the request
     const { token } = await authenticateRequest();
 
-    // Create MP client
-    const client = new MinistryPlatformClient(
-      process.env.MINISTRY_PLATFORM_BASE_URL!,
-      () => token
-    );
+    // Create MP client with the user's token
+    const client = new MinistryPlatformClient(token);
 
     const tableService = new TableService(client);
 
