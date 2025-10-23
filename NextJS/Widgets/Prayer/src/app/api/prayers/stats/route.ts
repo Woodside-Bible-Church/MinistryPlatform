@@ -32,7 +32,7 @@ export async function GET() {
     // Call the stored procedure to get user prayer stats
     // ResponseTypeID defaults to 1 ("Prayed")
     // Stored proc uses JsonResult pattern: returns [{"JsonResult": {...}}]
-    const result = await mpClient.callStoredProcedure<{ JsonResult: PrayerStats }>(
+    const result = await mpClient.callStoredProcedure<Array<Array<{ JsonResult: string }>>>(
       'api_Custom_User_Response_Stats_JSON',
       {
         '@ContactID': user.contactId,
