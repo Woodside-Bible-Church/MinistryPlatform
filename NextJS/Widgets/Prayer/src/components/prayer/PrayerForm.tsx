@@ -37,7 +37,7 @@ const prayerFormSchema = z.object({
   Entry_Title: z.string().min(1, 'Title is required').max(255, 'Title is too long'),
   Description: z.string().min(10, 'Prayer request must be at least 10 characters').max(4000, 'Prayer request is too long'),
   Feedback_Type_ID: z.string().min(1, 'Please select a category'),
-  Ongoing_Need: z.boolean().default(false),
+  Ongoing_Need: z.boolean(),
 });
 
 type PrayerFormValues = z.infer<typeof prayerFormSchema>;
