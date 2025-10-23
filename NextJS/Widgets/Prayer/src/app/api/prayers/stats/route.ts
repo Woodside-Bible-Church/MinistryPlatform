@@ -8,17 +8,6 @@ import { NextResponse } from 'next/server';
 import { authenticateRequest } from '@/lib/mpWidgetAuth';
 import { MinistryPlatformClient } from '@/providers/MinistryPlatform/core/ministryPlatformClient';
 
-interface PrayerStats {
-  Contact_ID: number;
-  Response_Type_ID: number;
-  Response_Type_Name: string;
-  Total_Responses: number;
-  Responses_Today: number;
-  Current_Streak: number;
-  Last_Response_Date: string | null;
-  Unique_Entries_Responded: number;
-}
-
 /**
  * GET /api/prayers/stats
  * Get prayer statistics for the authenticated user
