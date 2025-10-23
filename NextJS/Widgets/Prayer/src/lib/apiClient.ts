@@ -6,6 +6,17 @@
 
 'use client';
 
+interface PrayerWidgetConfig {
+  apiBaseUrl?: string;
+  containerId?: string;
+}
+
+declare global {
+  interface Window {
+    PRAYER_WIDGET_CONFIG?: PrayerWidgetConfig;
+  }
+}
+
 /**
  * Get the API base URL
  * In production widget mode, use the configured base URL
@@ -13,8 +24,8 @@
  */
 function getApiBaseUrl(): string {
   // Check if we're running as an embedded widget (not in Next.js)
-  if (typeof window !== 'undefined' && (window as any).PRAYER_WIDGET_CONFIG) {
-    return (window as any).PRAYER_WIDGET_CONFIG.apiBaseUrl || 'https://prayer-gamma.vercel.app';
+  if (typeof window !== 'undefined' && window.PRAYER_WIDGET_CONFIG) {
+    return window.PRAYER_WIDGET_CONFIG.apiBaseUrl || 'https://prayer-gamma.vercel.app';
   }
 
   // For Next.js app, use relative URLs
