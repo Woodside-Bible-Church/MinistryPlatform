@@ -4,7 +4,6 @@
  */
 
 import { NextResponse } from 'next/server';
-import { authenticateRequest } from '@/lib/mpWidgetAuth';
 import { PrayerService } from '@/services/prayerService';
 
 /**

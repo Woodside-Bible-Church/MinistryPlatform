@@ -9,9 +9,9 @@
  * This middleware just allows all requests to pass through.
  */
 
-import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function middleware(request: NextRequest) {
+export async function middleware() {
   // Allow all requests - client-side auth is handled by MPWidgetAuthWrapper
   return NextResponse.next();
 }

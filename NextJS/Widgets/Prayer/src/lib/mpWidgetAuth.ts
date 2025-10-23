@@ -81,7 +81,7 @@ export async function validateMPWidgetToken(token: string): Promise<MPWidgetUser
       try {
         errorBody = await response.text();
         console.error('MP Auth Error Response:', errorBody);
-      } catch (e) {
+      } catch {
         console.error('Could not parse MP auth error response');
       }
       throw new Error(`Auth validation failed: ${response.status} ${response.statusText} - ${errorBody}`);

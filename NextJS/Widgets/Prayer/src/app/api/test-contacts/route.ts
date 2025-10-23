@@ -7,7 +7,7 @@ import { authenticateRequest } from '@/lib/mpWidgetAuth';
 import { MinistryPlatformClient } from '@/providers/MinistryPlatform/core/ministryPlatformClient';
 import { TableService } from '@/providers/MinistryPlatform/services/tableService';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Authenticate the request
     const { token } = await authenticateRequest();
@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
     console.log('Testing Contacts table access...');
 
     // Try to fetch just a few contacts with basic fields
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const contacts = await tableService.getTableRecords<any>(
       'Contacts',
       {

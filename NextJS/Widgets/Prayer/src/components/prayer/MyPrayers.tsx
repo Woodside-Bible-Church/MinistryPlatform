@@ -83,9 +83,9 @@ export function MyPrayers() {
   if (prayers.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-lg text-muted-foreground mb-2">You haven't submitted any prayer requests yet</p>
+        <p className="text-lg text-muted-foreground mb-2">You haven&apos;t submitted any prayer requests yet</p>
         <p className="text-sm text-muted-foreground">
-          Click "Submit Prayer" above to share your first request
+          Click &quot;Submit Prayer&quot; above to share your first request
         </p>
       </div>
     );

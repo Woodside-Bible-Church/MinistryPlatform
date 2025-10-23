@@ -28,6 +28,7 @@ export function DevLoginWidget() {
 
     // Check if MP Widgets script is loaded
     const checkScript = setInterval(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (typeof window !== 'undefined' && (window as any).MPWidgets) {
         setIsScriptLoaded(true);
         clearInterval(checkScript);
