@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { authenticatedFetch } from '@/lib/mpWidgetAuthClient';
+import { apiFetch } from '@/lib/apiClient';
 import { PrayerCard } from './PrayerCard';
 import { Input } from '@/components/ui/input';
 import {
@@ -69,7 +70,7 @@ export function PrayerList({ mode = 'stack', onlyApproved = true, showMyPrayers 
         const prayersUrl = `/api/prayers?${onlyApproved ? 'approved=true&' : ''}${showMyPrayers ? 'mine=true' : ''}`;
         const prayersResponse = showMyPrayers
           ? await authenticatedFetch(prayersUrl)
-          : await fetch(prayersUrl);
+          : await apiFetch(prayersUrl);
 
         if (!prayersResponse.ok) {
           throw new Error('Failed to fetch prayers');
@@ -80,7 +81,7 @@ export function PrayerList({ mode = 'stack', onlyApproved = true, showMyPrayers 
         setFilteredPrayers(prayersData);
 
         // Fetch categories - public endpoint, no auth needed
-        const categoriesResponse = await fetch('/api/categories');
+        const categoriesResponse = await apiFetch('/api/categories');
 
         if (!categoriesResponse.ok) {
           throw new Error('Failed to fetch categories');

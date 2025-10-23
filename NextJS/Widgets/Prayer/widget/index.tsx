@@ -64,7 +64,19 @@ class PrayerWidget {
 
 // Auto-initialize if config is present
 if (typeof window !== 'undefined') {
-  const config = (window as any).PRAYER_WIDGET_CONFIG || {};
+  // Set default config if not provided
+  const defaultConfig = {
+    apiBaseUrl: 'https://prayer-gamma.vercel.app',
+    containerId: 'prayer-widget-root'
+  };
+
+  const config = {
+    ...defaultConfig,
+    ...(window as any).PRAYER_WIDGET_CONFIG || {}
+  };
+
+  // Store config globally for API client to access
+  (window as any).PRAYER_WIDGET_CONFIG = config;
 
   // Wait for DOM to be ready
   if (document.readyState === 'loading') {

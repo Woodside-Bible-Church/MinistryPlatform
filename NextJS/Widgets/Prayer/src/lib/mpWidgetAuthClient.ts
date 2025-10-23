@@ -50,7 +50,10 @@ export async function authenticatedFetch(
 ): Promise<Response> {
   const headers = getAuthHeaders();
 
-  return fetch(url, {
+  // Use apiFetch to automatically add base URL for widget mode
+  const { apiFetch } = await import('./apiClient');
+
+  return apiFetch(url, {
     ...options,
     headers: {
       ...headers,
