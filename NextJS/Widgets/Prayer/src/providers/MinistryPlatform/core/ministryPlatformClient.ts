@@ -1,6 +1,6 @@
 import { getClientCredentialsToken } from "../clientCredentials";
 import { HttpClient } from "../utils/httpClient";
-import { QueryParams } from "../Interfaces/mpProviderInterfaces";
+import { QueryParams, RequestBody } from "../Interfaces/mpProviderInterfaces";
 
 // Token refresh interval - refresh 5 minutes before actual expiration for safety
 const TOKEN_LIFE = 5 * 60 * 1000; // 5 minutes
@@ -101,7 +101,7 @@ export class MinistryPlatformClient {
      * @param body - Data to post (usually an array of objects)
      * @param queryParams - Optional query parameters
      */
-    public async post<T = unknown>(tableName: string, body: unknown, queryParams?: QueryParams): Promise<T> {
+    public async post<T = unknown>(tableName: string, body?: RequestBody, queryParams?: QueryParams): Promise<T> {
         await this.ensureValidToken();
         return this.httpClient.post<T>(`/tables/${tableName}`, body, queryParams);
     }
