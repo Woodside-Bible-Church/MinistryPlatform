@@ -30,13 +30,15 @@
   // Get MP Widget auth token from parent page localStorage
   const authToken = localStorage.getItem('mpp-widgets_AuthToken');
 
-  // Create iframe
+  // Create iframe with no scrollbars - parent page handles all scrolling
   const iframe = document.createElement('iframe');
   iframe.src = WIDGET_BASE_URL;
   iframe.style.width = '100%';
   iframe.style.border = 'none';
-  iframe.style.minHeight = '600px';
   iframe.style.overflow = 'hidden';
+  iframe.style.display = 'block';
+  iframe.style.minHeight = '800px'; // Initial height, will be adjusted
+  iframe.setAttribute('scrolling', 'no');
   iframe.id = 'prayer-widget-iframe';
 
   // Send auth token to iframe when it loads

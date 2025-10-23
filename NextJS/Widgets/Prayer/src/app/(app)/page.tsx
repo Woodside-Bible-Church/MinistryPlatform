@@ -53,9 +53,35 @@ export default function PrayerPage() {
 
     window.addEventListener('message', handleMessage);
 
+    // Auto-resize iframe if embedded
+    const sendHeightToParent = () => {
+      if (window.self !== window.top) {
+        const height = document.documentElement.scrollHeight;
+        window.parent.postMessage({
+          type: 'RESIZE',
+          height: height
+        }, '*');
+      }
+    };
+
+    // Send initial height
+    sendHeightToParent();
+
+    // Watch for content changes and update height
+    const resizeObserver = new ResizeObserver(() => {
+      sendHeightToParent();
+    });
+
+    resizeObserver.observe(document.body);
+
+    // Also check on interval as fallback
+    const intervalId = setInterval(sendHeightToParent, 1000);
+
     return () => {
       window.removeEventListener('focus', checkLogin);
       window.removeEventListener('message', handleMessage);
+      resizeObserver.disconnect();
+      clearInterval(intervalId);
     };
   }, []);
 
