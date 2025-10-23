@@ -2,7 +2,7 @@
  * Test API endpoint to verify MP API access with Contacts table
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { authenticateRequest } from '@/lib/mpWidgetAuth';
 import { MinistryPlatformClient } from '@/providers/MinistryPlatform/core/ministryPlatformClient';
 import { TableService } from '@/providers/MinistryPlatform/services/tableService';
