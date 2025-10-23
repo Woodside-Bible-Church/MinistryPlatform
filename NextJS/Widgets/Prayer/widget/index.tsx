@@ -79,9 +79,16 @@ class PrayerWidget {
   private injectStyles() {
     if (!this.shadowRoot) return;
 
-    // Inject imported CSS into Shadow DOM
+    // Replace :root and body selectors for Shadow DOM compatibility
+    // :host in Shadow DOM is equivalent to :root in regular DOM
+    // #prayer-widget-app is our mount point, equivalent to body
+    let shadowCSS = styleText
+      .replace(/:root\b/g, ':host')
+      .replace(/\bbody\b/g, '#prayer-widget-app');
+
+    // Inject modified CSS into Shadow DOM
     const style = document.createElement('style');
-    style.textContent = styleText;
+    style.textContent = shadowCSS;
     this.shadowRoot.appendChild(style);
   }
 
