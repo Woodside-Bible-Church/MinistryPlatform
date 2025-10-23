@@ -10,14 +10,7 @@ import { authenticatedFetch } from '@/lib/mpWidgetAuthClient';
 import { apiFetch } from '@/lib/apiClient';
 import { PrayerCard } from './PrayerCard';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Search, Filter, Loader2 } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Prayer {
@@ -37,11 +30,6 @@ interface Prayer {
   };
 }
 
-interface Category {
-  Feedback_Type_ID: number;
-  Feedback_Type: string;
-}
-
 interface PrayerListProps {
   mode?: 'stack' | 'list';
   onlyApproved?: boolean;
@@ -51,15 +39,15 @@ interface PrayerListProps {
 export function PrayerList({ mode = 'stack', onlyApproved = true, showMyPrayers = false }: PrayerListProps) {
   const [prayers, setPrayers] = useState<Prayer[]>([]);
   const [filteredPrayers, setFilteredPrayers] = useState<Prayer[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [totalPrayed, setTotalPrayed] = useState(0);
+  const [showCelebration, setShowCelebration] = useState(false);
 
-  // Fetch prayers and categories
+  // Fetch prayers
   useEffect(() => {
     async function fetchData() {
       setIsLoading(true);
@@ -79,16 +67,6 @@ export function PrayerList({ mode = 'stack', onlyApproved = true, showMyPrayers 
         const prayersData = await prayersResponse.json();
         setPrayers(prayersData);
         setFilteredPrayers(prayersData);
-
-        // Fetch categories - public endpoint, no auth needed
-        const categoriesResponse = await apiFetch('/api/categories');
-
-        if (!categoriesResponse.ok) {
-          throw new Error('Failed to fetch categories');
-        }
-
-        const categoriesData = await categoriesResponse.json();
-        setCategories(categoriesData);
       } catch (err) {
         console.error('Error fetching data:', err);
         setError(err instanceof Error ? err.message : 'An error occurred');
@@ -100,16 +78,9 @@ export function PrayerList({ mode = 'stack', onlyApproved = true, showMyPrayers 
     fetchData();
   }, [onlyApproved, showMyPrayers]);
 
-  // Apply filters
+  // Apply search filter
   useEffect(() => {
     let filtered = [...prayers];
-
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(
-        p => p.Feedback_Type_ID.toString() === selectedCategory
-      );
-    }
 
     // Filter by search term
     if (searchTerm) {
@@ -123,14 +94,16 @@ export function PrayerList({ mode = 'stack', onlyApproved = true, showMyPrayers 
 
     setFilteredPrayers(filtered);
     setCurrentIndex(0);
-  }, [prayers, selectedCategory, searchTerm]);
+  }, [prayers, searchTerm]);
 
   const handlePrayedFor = (id: number) => {
+    // Show celebration
+    setTotalPrayed(prev => prev + 1);
+    setShowCelebration(true);
+    setTimeout(() => setShowCelebration(false), 2000);
+
     // Remove the prayer from the list
     setFilteredPrayers(prev => prev.filter(p => p.Feedback_Entry_ID !== id));
-
-    // Optionally, you could make an API call here to track the prayer action
-    // await authenticatedFetch(`/api/prayers/${id}/pray`, { method: 'POST' });
   };
 
   const handleDismiss = (id: number) => {
@@ -155,34 +128,17 @@ export function PrayerList({ mode = 'stack', onlyApproved = true, showMyPrayers 
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      {/* Filters */}
+    <div className="w-full">
+      {/* Search */}
       <div className="mb-6 space-y-4">
-        <div className="flex gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search prayers..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-[200px]">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="All Categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category.Feedback_Type_ID} value={category.Feedback_Type_ID.toString()}>
-                  {category.Feedback_Type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search prayers..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
         </div>
 
         <div className="text-sm text-muted-foreground">
@@ -195,8 +151,8 @@ export function PrayerList({ mode = 'stack', onlyApproved = true, showMyPrayers 
         <div className="text-center py-12">
           <p className="text-lg text-muted-foreground mb-4">No prayers found</p>
           <p className="text-sm text-muted-foreground">
-            {searchTerm || selectedCategory !== 'all'
-              ? 'Try adjusting your filters'
+            {searchTerm
+              ? 'Try a different search term'
               : 'Be the first to submit a prayer request'}
           </p>
         </div>
@@ -225,10 +181,15 @@ export function PrayerList({ mode = 'stack', onlyApproved = true, showMyPrayers 
             ))}
           </div>
 
-          {/* Progress indicator */}
-          <div className="mt-6 text-center text-sm text-muted-foreground">
-            {currentIndex + 1} of {filteredPrayers.length}
-          </div>
+          {/* Prayer Counter - Always Visible */}
+          {totalPrayed > 0 && (
+            <div className="mt-6 text-center">
+              <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">{totalPrayed}</span>
+                <span>{totalPrayed === 1 ? 'prayer' : 'prayers'} today</span>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="space-y-4">

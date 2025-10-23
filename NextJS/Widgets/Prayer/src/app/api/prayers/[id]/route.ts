@@ -101,6 +101,7 @@ export async function PATCH(
       Ongoing_Need: body.Ongoing_Need,
       Approved: body.Approved,
       Entry_Title: body.Entry_Title,
+      Target_Date: body.Target_Date || undefined,
     });
 
     const updatedPrayer = await prayerService.updatePrayer(updateData);

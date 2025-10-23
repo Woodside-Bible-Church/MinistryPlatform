@@ -1,8 +1,24 @@
 # Prayer Widget - Claude Instructions
 
+## 📚 Essential Reading
+
+**Before working on this project, read these guides:**
+
+1. **[MINISTRY_PLATFORM_INTEGRATION.md](./MINISTRY_PLATFORM_INTEGRATION.md)** - **READ THIS FIRST!**
+   Critical patterns for MP integration including:
+   - JsonResult stored procedure pattern
+   - @ parameter prefix requirement
+   - Double-nested array responses
+   - Caching issues and solutions
+   - Common errors and fixes
+
+2. This document (CLAUDE.md) - Project-specific architecture and features
+
 ## Project Overview
 
 This is a Next.js-based prayer request widget that integrates with MinistryPlatform's Feedback table. It can be embedded on WordPress sites without iframes and provides a modern, mobile-friendly interface for submitting and viewing prayer requests.
+
+**Key Innovation:** Uses custom `Feedback_Entry_User_Responses` table to track who prayed for what, enabling personalized features like prayer counts, streaks, and prayer history.
 
 ## Architecture
 
@@ -48,8 +64,10 @@ This is a Next.js-based prayer request widget that integrates with MinistryPlatf
 ## MinistryPlatform Integration
 
 ### Database Tables
-- **Feedback** - Stores prayer requests
-  - `Feedback_ID` (Primary Key)
+
+**Core Tables (Built into MP):**
+- **Feedback_Entries** - Stores prayer requests and praise reports
+  - `Feedback_Entry_ID` (Primary Key)
   - `Contact_ID` (Foreign Key to Contacts)
   - `Feedback_Type_ID` (Foreign Key to Feedback_Types/Categories)
   - `Description` (Prayer text)
@@ -61,6 +79,31 @@ This is a Next.js-based prayer request widget that integrates with MinistryPlatf
 - **Feedback_Types** - Prayer categories
   - `Feedback_Type_ID` (Primary Key)
   - `Feedback_Type` (Category name, e.g., "Prayer Request", "Praise Report")
+
+**Custom Tables (Created by this widget - see `/database/schema.sql`):**
+- **Feedback_Entry_User_Responses** - Tracks who prayed for what
+  - `Feedback_Entry_User_Response_ID` (Primary Key)
+  - `Feedback_Entry_ID` (Foreign Key to Feedback_Entries)
+  - `Contact_ID` (Who prayed)
+  - `Response_Type_ID` (1=Prayed, 2=Still Praying, 3=Celebrate, etc.)
+  - `Response_Date` (When they prayed)
+  - `Response_Text` (Optional encouraging message)
+  - Enables features: prayer counts, streaks, prayer history, encouraging messages
+
+- **Feedback_Response_Types** - Types of responses (lookup table)
+  - `Response_Type_ID` (Primary Key)
+  - `Response_Type` (e.g., "Prayed", "Celebrate", "Amen")
+  - `Applicable_To_Feedback_Types` (Which categories can use this response)
+
+- **Feedback_Entry_Updates** - Updates from prayer requesters
+  - `Feedback_Entry_Update_ID` (Primary Key)
+  - `Feedback_Entry_ID` (Which prayer)
+  - `Update_Text` (Update/testimony text)
+  - `Is_Answered` (Mark prayer as answered)
+
+**Custom Stored Procedures:**
+- `api_Custom_Feedback_With_Responses_JSON` - Get prayers with response counts
+- `api_Custom_User_Response_Stats_JSON` - Get user prayer stats (total, streak, today)
 
 ### API Patterns
 
@@ -88,17 +131,30 @@ $top: 10
 
 2. **Prayer Wall**
    - Two view modes: Stack (swipe) and List
-   - Swipe right to mark as "prayed for"
+   - Swipe right to mark as "prayed for" with optional encouraging message
    - Swipe left to dismiss/skip
    - Filter by category and search
    - Only shows approved prayers
+   - Real-time prayer counts from database
 
-3. **Approval Workflow**
+3. **Prayer Tracking & Stats**
+   - **Prayer Stats Dashboard**: Total prayers, current streak, prayers today
+   - **My Prayers**: View your submitted prayers and how many people prayed
+   - **People I've Prayed For**: History of prayers you've prayed for with your messages
+   - All powered by custom `Feedback_Entry_User_Responses` table
+
+4. **Encouraging Messages**
+   - Optional message when clicking "Pray"
+   - Dialog appears before submitting prayer
+   - Stored in `Response_Text` field
+   - Displayed in "People I've Prayed For" section
+
+5. **Approval Workflow**
    - New prayers start with `Approved = false`
    - Staff can approve via API: `POST /api/prayers/[id]/approve`
    - Only staff members (checked via `isStaff()` function) can approve
 
-4. **Responsive Design**
+6. **Responsive Design**
    - Mobile-first with Tailwind CSS v4
    - Smooth animations with Framer Motion
    - Touch-friendly swipe gestures

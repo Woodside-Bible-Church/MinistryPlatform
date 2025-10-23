@@ -29,18 +29,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(prayers);
     }
 
-    // Public access for approved prayers - use OAuth client credentials
+    // Public access for approved prayers
     // Create a PrayerService without user token (will use OAuth)
     const prayerService = new PrayerService('');
 
-    // Build filters - always filter to approved for public access
-    const filters = {
+    // TEMPORARY: Use regular table query instead of stored procedure to debug
+    // TODO: Switch back to getPrayersWithCounts once SP is working
+    const prayers = await prayerService.getPrayers({
       categoryId: categoryId ? parseInt(categoryId) : undefined,
       onlyApproved: true, // Force approved for public access
       search: search || undefined,
-    };
+    });
 
-    const prayers = await prayerService.getPrayers(filters);
+    console.error('[GET /api/prayers] Table query response count:', prayers.length);
 
     return NextResponse.json(prayers);
   } catch (error) {

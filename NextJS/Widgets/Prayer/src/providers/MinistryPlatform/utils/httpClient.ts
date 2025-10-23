@@ -70,7 +70,13 @@ export class HttpClient {
             throw new Error(errorMessage);
         }
 
-        return await response.json() as T;
+        // Log raw response text for debugging stored procedures
+        const responseText = await response.text();
+        if (endpoint.includes('/procs/')) {
+            console.error('[HttpClient.post] Raw response text:', responseText);
+        }
+
+        return JSON.parse(responseText) as T;
     }
 
     async postFormData<T = unknown>(endpoint: string, formData: FormData, queryParams?: QueryParams): Promise<T> {

@@ -29,15 +29,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // Form validation schema
 const prayerFormSchema = z.object({
   Entry_Title: z.string().min(1, 'Title is required').max(255, 'Title is too long'),
   Description: z.string().min(10, 'Prayer request must be at least 10 characters').max(4000, 'Prayer request is too long'),
-  Feedback_Type_ID: z.string().min(1, 'Please select a category'),
-  Ongoing_Need: z.boolean(),
+  Feedback_Type_ID: z.string().min(1, 'Please select a type'),
+  Target_Date: z.string().optional(), // Optional target date for the prayer
 });
 
 type PrayerFormValues = z.infer<typeof prayerFormSchema>;
@@ -51,21 +51,30 @@ interface Category {
 interface PrayerFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+  initialData?: {
+    Feedback_Entry_ID?: number;
+    Feedback_Type_ID: number;
+    Entry_Title: string;
+    Description: string;
+    Ongoing_Need: boolean;
+    Target_Date?: string;
+  };
 }
 
-export function PrayerForm({ onSuccess, onCancel }: PrayerFormProps) {
+export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const isEditing = !!initialData?.Feedback_Entry_ID;
 
   const form = useForm<PrayerFormValues>({
     resolver: zodResolver(prayerFormSchema),
     defaultValues: {
-      Entry_Title: '',
-      Description: '',
-      Feedback_Type_ID: '',
-      Ongoing_Need: false,
+      Entry_Title: initialData?.Entry_Title || '',
+      Description: initialData?.Description || '',
+      Feedback_Type_ID: initialData?.Feedback_Type_ID?.toString() || '1',
+      Target_Date: initialData?.Target_Date || '',
     },
   });
 
@@ -96,28 +105,38 @@ export function PrayerForm({ onSuccess, onCancel }: PrayerFormProps) {
     setSuccess(false);
 
     try {
-      const response = await authenticatedFetch('/api/prayers', {
-        method: 'POST',
+      const url = isEditing
+        ? `/api/prayers/${initialData!.Feedback_Entry_ID}`
+        : '/api/prayers';
+
+      const method = isEditing ? 'PATCH' : 'POST';
+
+      const response = await authenticatedFetch(url, {
+        method,
         body: JSON.stringify({
           ...values,
           Feedback_Type_ID: parseInt(values.Feedback_Type_ID),
+          Target_Date: values.Target_Date || null, // Send null if empty
+          Ongoing_Need: !values.Target_Date, // If no target date, mark as ongoing
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to submit prayer request');
+        throw new Error(errorData.message || `Failed to ${isEditing ? 'update' : 'submit'} prayer request`);
       }
 
       setSuccess(true);
-      form.reset();
+      if (!isEditing) {
+        form.reset();
+      }
 
       if (onSuccess) {
         onSuccess();
       }
     } catch (err) {
-      console.error('Error submitting prayer:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred while submitting your prayer request');
+      console.error(`Error ${isEditing ? 'updating' : 'submitting'} prayer:`, err);
+      setError(err instanceof Error ? err.message : `An error occurred while ${isEditing ? 'updating' : 'submitting'} your prayer request`);
     } finally {
       setIsSubmitting(false);
     }
@@ -128,7 +147,9 @@ export function PrayerForm({ onSuccess, onCancel }: PrayerFormProps) {
       {success && (
         <Alert className="mb-6 bg-green-50 border-green-200">
           <AlertDescription className="text-green-800">
-            Your prayer request has been submitted and is pending approval. You will be notified once it is reviewed.
+            {isEditing
+              ? 'Your prayer request has been updated successfully!'
+              : 'Your prayer request has been submitted! It will be reviewed before being posted to the Prayer Wall.'}
           </AlertDescription>
         </Alert>
       )}
@@ -165,27 +186,42 @@ export function PrayerForm({ onSuccess, onCancel }: PrayerFormProps) {
             name="Feedback_Type_ID"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Category</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem
-                        key={category.Feedback_Type_ID}
-                        value={category.Feedback_Type_ID.toString()}
-                      >
-                        {category.Feedback_Type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  Select the category that best fits your prayer request
-                </FormDescription>
+                <FormLabel>Type</FormLabel>
+                <FormControl>
+                  <div className="flex items-center gap-4 p-4 border rounded-lg bg-muted/30">
+                    <div className="flex-1 text-center">
+                      <div className={`text-sm font-medium transition-colors ${field.value === '1' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                        Prayer Request
+                      </div>
+                      <div className={`text-xs transition-colors ${field.value === '1' ? 'text-muted-foreground' : 'text-muted-foreground/60'}`}>
+                        Ask for prayer support
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => field.onChange(field.value === '1' ? '2' : '1')}
+                      className={`relative inline-flex h-10 w-20 shrink-0 cursor-pointer items-center rounded-full border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                        field.value === '2' ? 'bg-primary border-primary' : 'bg-input border-input'
+                      }`}
+                    >
+                      <span
+                        className={`pointer-events-none block h-8 w-8 rounded-full bg-background shadow-lg ring-0 transition-transform ${
+                          field.value === '2' ? 'translate-x-10' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+
+                    <div className="flex-1 text-center">
+                      <div className={`text-sm font-medium transition-colors ${field.value === '2' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                        Praise Report
+                      </div>
+                      <div className={`text-xs transition-colors ${field.value === '2' ? 'text-muted-foreground' : 'text-muted-foreground/60'}`}>
+                        Share answered prayers
+                      </div>
+                    </div>
+                  </div>
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -214,28 +250,31 @@ export function PrayerForm({ onSuccess, onCancel }: PrayerFormProps) {
 
           <FormField
             control={form.control}
-            name="Ongoing_Need"
+            name="Target_Date"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">Ongoing Need</FormLabel>
-                  <FormDescription>
-                    Mark this if your prayer request is ongoing
-                  </FormDescription>
-                </div>
+              <FormItem>
+                <FormLabel>Target Date (Optional)</FormLabel>
                 <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
+                  <Input
+                    type="date"
+                    {...field}
+                    min={new Date().toISOString().split('T')[0]} // Today or later
                   />
                 </FormControl>
+                <FormDescription>
+                  If there's a specific date related to this prayer (e.g., surgery date, job interview), set it here.
+                  Leave blank for ongoing needs.
+                </FormDescription>
+                <FormMessage />
               </FormItem>
             )}
           />
 
           <div className="flex gap-4">
             <Button type="submit" disabled={isSubmitting} className="flex-1">
-              {isSubmitting ? 'Submitting...' : 'Submit Prayer Request'}
+              {isSubmitting
+                ? (isEditing ? 'Updating...' : 'Submitting...')
+                : (isEditing ? 'Update Prayer Request' : 'Submit Prayer Request')}
             </Button>
 
             {onCancel && (

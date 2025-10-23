@@ -20,16 +20,18 @@ export interface PrayerFilters {
   search?: string;
   startDate?: string;
   endDate?: string;
+  visibilityLevel?: number; // 1=Private, 2=Staff Only, 3=Staff & Church, 4=Public, 5=Hidden: URL Required
 }
 
 export class PrayerService {
   private feedbackEntity: FeedbackEntity;
   private feedbackTypesEntity: FeedbackTypesEntity;
+  private client: MinistryPlatformClient;
 
   constructor(accessToken: string) {
-    const client = new MinistryPlatformClient(accessToken);
-    this.feedbackEntity = new FeedbackEntity(client);
-    this.feedbackTypesEntity = new FeedbackTypesEntity(client);
+    this.client = new MinistryPlatformClient(accessToken);
+    this.feedbackEntity = new FeedbackEntity(this.client);
+    this.feedbackTypesEntity = new FeedbackTypesEntity(this.client);
   }
 
   /**
@@ -68,6 +70,12 @@ export class PrayerService {
     if (filters?.search) {
       const searchTerm = filters.search.replace(/'/g, "''");
       filterParts.push(`(Description LIKE '%${searchTerm}%' OR Entry_Title LIKE '%${searchTerm}%')`);
+    }
+
+    // Filter by visibility level if specified
+    // TODO: Re-enable default visibility filtering once Visibility_Level_ID is populated in Feedback_Entries
+    if (filters?.visibilityLevel !== undefined) {
+      filterParts.push(`Visibility_Level_ID >= ${filters.visibilityLevel}`);
     }
 
     const $filter = filterParts.length > 0 ? filterParts.join(' AND ') : undefined;
@@ -172,5 +180,42 @@ export class PrayerService {
       Feedback_Entry_ID: feedbackId,
       Ongoing_Need: false,
     });
+  }
+
+  /**
+   * Get prayers with dynamic response counts using stored procedure
+   * This provides real-time prayer counts from Feedback_Entry_User_Responses
+   */
+  async getPrayersWithCounts(filters?: {
+    categoryId?: number;
+    onlyApproved?: boolean;
+    contactId?: number;
+    userContactId?: number; // For User_Has_Prayed flag
+    visibilityLevel?: number;
+    daysToShow?: number;
+  }): Promise<unknown> {
+    return this.client.callStoredProcedure('api_Custom_Feedback_With_Responses_JSON', {
+      '@FeedbackTypeID': filters?.categoryId || null,
+      '@OnlyApproved': filters?.onlyApproved !== false,
+      '@UserContactID': filters?.userContactId || null,
+      '@VisibilityLevelID': filters?.visibilityLevel !== undefined ? filters.visibilityLevel : null,
+      '@DaysToShow': filters?.daysToShow || 60,
+    });
+  }
+
+  /**
+   * Get prayers that a specific user has prayed for
+   */
+  async getPrayersUserPrayedFor(contactId: number): Promise<unknown> {
+    // Query Feedback_Entry_User_Responses and join to get prayer details
+    // Note: MP doesn't support nested joins (e.g., Feedback_Entry_ID_Table.Contact_ID_Table.Display_Name)
+    // So we only get the prayer details, not the contact who submitted it
+    const responses = await this.client.get('Feedback_Entry_User_Responses', {
+      $filter: `Feedback_Entry_User_Responses.Contact_ID = ${contactId} AND Feedback_Entry_User_Responses.Response_Type_ID = 1`,
+      $select: 'Feedback_Entry_User_Responses.Feedback_Entry_User_Response_ID,Feedback_Entry_User_Responses.Feedback_Entry_ID,Feedback_Entry_User_Responses.Response_Date,Feedback_Entry_User_Responses.Response_Text,Feedback_Entry_ID_Table.Entry_Title,Feedback_Entry_ID_Table.Description,Feedback_Entry_ID_Table.Date_Submitted',
+      $orderby: 'Feedback_Entry_User_Responses.Response_Date DESC',
+    });
+
+    return responses;
   }
 }

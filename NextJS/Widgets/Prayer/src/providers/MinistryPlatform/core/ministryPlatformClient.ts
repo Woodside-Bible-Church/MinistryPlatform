@@ -83,4 +83,35 @@ export class MinistryPlatformClient {
     public getHttpClient(): HttpClient {
         return this.httpClient;
     }
+
+    /**
+     * GET request to MinistryPlatform API tables
+     * @param tableName - Name of the table (e.g., 'Feedback_Entries')
+     * @param queryParams - OData query parameters ($filter, $select, etc.)
+     */
+    public async get<T = unknown>(tableName: string, queryParams?: Record<string, unknown>): Promise<T> {
+        await this.ensureValidToken();
+        return this.httpClient.get<T>(`/tables/${tableName}`, queryParams);
+    }
+
+    /**
+     * POST request to MinistryPlatform API tables
+     * @param tableName - Name of the table
+     * @param body - Data to post (usually an array of objects)
+     * @param queryParams - Optional query parameters
+     */
+    public async post<T = unknown>(tableName: string, body: unknown, queryParams?: Record<string, unknown>): Promise<T> {
+        await this.ensureValidToken();
+        return this.httpClient.post<T>(`/tables/${tableName}`, body, queryParams);
+    }
+
+    /**
+     * Call a MinistryPlatform stored procedure
+     * @param procedureName - Name of the stored procedure (e.g., 'api_Custom_User_Response_Stats_JSON')
+     * @param parameters - Parameters to pass to the stored procedure
+     */
+    public async callStoredProcedure<T = unknown>(procedureName: string, parameters?: Record<string, unknown>): Promise<T> {
+        await this.ensureValidToken();
+        return this.httpClient.post<T>(`/procs/${procedureName}`, parameters);
+    }
 }

@@ -9,8 +9,10 @@ import { useState, useEffect } from 'react';
 import { PrayerList } from '@/components/prayer/PrayerList';
 import { MyPrayers } from '@/components/prayer/MyPrayers';
 import { PrayerForm } from '@/components/prayer/PrayerForm';
+import { PrayerStats } from '@/components/prayer/PrayerStats';
+import { PeoplePrayedFor } from '@/components/prayer/PeoplePrayedFor';
 import { Button } from '@/components/ui/button';
-import { Plus, List, Layers, User2, LogIn } from 'lucide-react';
+import { Plus, List, Layers, User2, Heart } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -19,14 +21,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { requireLogin, isLoggedIn } from '@/lib/mpLogin';
 
 export default function PrayerPage() {
   const [showForm, setShowForm] = useState(false);
   const [viewMode, setViewMode] = useState<'stack' | 'list'>('stack');
   const [refreshKey, setRefreshKey] = useState(0);
-  const [activeTab, setActiveTab] = useState('wall');
   const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -96,48 +96,30 @@ export default function PrayerPage() {
     }
   };
 
-  const handleMyPrayersClick = (value: string) => {
-    if (value === 'mine') {
-      if (requireLogin()) {
-        setActiveTab('mine');
-      }
-    } else {
-      setActiveTab(value);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-        {/* Header */}
-        <header className="bg-card border-b border-border sticky top-0 z-10 shadow-sm">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-foreground">Prayer Wall</h1>
-                <p className="text-sm text-muted-foreground">Share and pray for one another</p>
-              </div>
+    <div className="bg-gradient-to-b from-background to-muted/20">
+        {/* Simplified Header */}
+        <div className="py-6 text-center">
+          <h1 className="text-3xl font-bold text-primary">Prayer & Praise</h1>
+          <p className="text-sm text-muted-foreground mt-1">Share burdens, celebrate victories</p>
+        </div>
 
-              <div className="flex items-center gap-2">
-                {/* View Mode Toggle */}
-                <div className="hidden sm:flex items-center gap-1 bg-muted rounded-lg p-1">
-                  <Button
-                    variant={viewMode === 'stack' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('stack')}
-                    className="h-8"
-                  >
-                    <Layers className="w-4 h-4 mr-1" />
-                    Stack
-                  </Button>
-                  <Button
-                    variant={viewMode === 'list' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('list')}
-                    className="h-8"
-                  >
-                    <List className="w-4 h-4 mr-1" />
-                    List
-                  </Button>
+        {/* Main Content */}
+        <main className="container mx-auto px-4 space-y-12">
+          {/* Prayer Stats - Only show if logged in */}
+          {loggedIn && (
+            <div className="max-w-2xl mx-auto">
+              <PrayerStats key={refreshKey} />
+            </div>
+          )}
+
+          {/* My Prayers Section - Only show if logged in */}
+          {loggedIn && (
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <User2 className="w-5 h-5 text-primary" />
+                  <h2 className="text-2xl font-bold text-foreground">My Requests</h2>
                 </div>
 
                 {/* Submit Prayer Button */}
@@ -145,15 +127,14 @@ export default function PrayerPage() {
                   <DialogTrigger asChild>
                     <Button className="gap-2" onClick={handleSubmitClick}>
                       <Plus className="w-4 h-4" />
-                      <span className="hidden sm:inline">Submit Prayer</span>
-                      <span className="sm:hidden">Submit</span>
+                      Submit Prayer
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Submit a Prayer Request</DialogTitle>
                       <DialogDescription>
-                        Share your prayer request with the community. Your request will be reviewed before being posted.
+                        Share your prayer request with the community.
                       </DialogDescription>
                     </DialogHeader>
                     <PrayerForm
@@ -163,57 +144,61 @@ export default function PrayerPage() {
                   </DialogContent>
                 </Dialog>
               </div>
-            </div>
-          </div>
-        </header>
+              <p className="text-muted-foreground text-sm">
+                Track your prayer requests and see who's lifting you up.
+              </p>
+              <MyPrayers key={`my-${refreshKey}`} />
+            </section>
+          )}
 
-        {/* Main Content */}
-        <main className="container mx-auto px-4 py-8">
-          <Tabs value={activeTab} onValueChange={handleMyPrayersClick} className="w-full">
-            <div className="flex justify-center mb-6">
-              <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="wall" className="gap-2">
-                  <Layers className="w-4 h-4" />
-                  Prayer Wall
-                </TabsTrigger>
-                <TabsTrigger value="mine" className="gap-2">
-                  {!loggedIn && <LogIn className="w-4 h-4" />}
-                  {loggedIn && <User2 className="w-4 h-4" />}
-                  My Prayers
-                </TabsTrigger>
-              </TabsList>
-            </div>
+          {/* People I've Prayed For Section - Only show if logged in */}
+          {loggedIn && (
+            <section className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Heart className="w-5 h-5 text-primary" />
+                <h2 className="text-2xl font-bold text-foreground">Prayer Partners</h2>
+              </div>
+              <p className="text-muted-foreground text-sm">
+                See who you've been standing with in prayer.
+              </p>
+              <PeoplePrayedFor key={`prayed-${refreshKey}`} />
+            </section>
+          )}
 
-            <TabsContent value="wall" className="mt-0">
-              <div className="mb-6 text-center">
-                <p className="text-muted-foreground max-w-2xl mx-auto">
-                  Swipe right to pray for a request, or swipe left to see the next one.
-                  Join us in lifting up our community in prayer.
-                </p>
+          {/* Prayer Wall Section */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Layers className="w-5 h-5 text-primary" />
+                <h2 className="text-2xl font-bold text-foreground">Community Needs</h2>
               </div>
 
-              <PrayerList key={refreshKey} mode={viewMode} onlyApproved={true} />
-            </TabsContent>
-
-            <TabsContent value="mine" className="mt-0">
-              <div className="mb-6 text-center">
-                <p className="text-muted-foreground max-w-2xl mx-auto">
-                  View all your submitted prayer requests and see how many people have prayed for them.
-                </p>
-              </div>
-
-              <MyPrayers key={refreshKey} />
-            </TabsContent>
-          </Tabs>
+              {/* View Mode Toggle - Desktop Only */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setViewMode(viewMode === 'stack' ? 'list' : 'stack')}
+                className="hidden sm:flex gap-2 h-8"
+              >
+                {viewMode === 'stack' ? (
+                  <>
+                    <List className="w-4 h-4" />
+                    List
+                  </>
+                ) : (
+                  <>
+                    <Layers className="w-4 h-4" />
+                    Stack
+                  </>
+                )}
+              </Button>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              Join others in lifting up these requests and celebrating answered prayers.
+            </p>
+            <PrayerList key={`wall-${refreshKey}`} mode={viewMode} onlyApproved={true} />
+          </section>
         </main>
-
-        {/* Footer */}
-        <footer className="bg-card border-t border-border mt-12">
-          <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-            <p>Prayer requests are reviewed before posting</p>
-            <p className="mt-1">Made with ❤️ for ministry</p>
-          </div>
-        </footer>
       </div>
   );
 }
