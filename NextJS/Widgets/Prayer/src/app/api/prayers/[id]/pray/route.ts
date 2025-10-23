@@ -35,14 +35,14 @@ export async function POST(
     const encouragingMessage = body.message?.trim() || null;
 
     // Check if user already prayed for this request
-    const existingResponse = await mpClient.get('Feedback_Entry_User_Responses', {
+    const existingResponse = await mpClient.get<unknown[]>('Feedback_Entry_User_Responses', {
       $filter: `Feedback_Entry_ID = ${prayerId} AND Contact_ID = ${user.contactId} AND Response_Type_ID = 1`,
       $top: 1,
     });
 
-    if (existingResponse && existingResponse.length > 0) {
+    if (existingResponse && Array.isArray(existingResponse) && existingResponse.length > 0) {
       // User already prayed for this - get current count
-      const countResponse = await mpClient.get('Feedback_Entry_User_Responses', {
+      const countResponse = await mpClient.get<unknown[]>('Feedback_Entry_User_Responses', {
         $filter: `Feedback_Entry_ID = ${prayerId} AND Response_Type_ID = 1`,
         $select: 'Feedback_Entry_User_Response_ID',
       });
@@ -50,7 +50,7 @@ export async function POST(
       return NextResponse.json({
         success: true,
         already_prayed: true,
-        prayer_count: countResponse?.length ?? 0,
+        prayer_count: Array.isArray(countResponse) ? countResponse.length : 0,
       });
     }
 
@@ -66,7 +66,7 @@ export async function POST(
     }]);
 
     // Get updated prayer count (total number of "Prayed" responses for this entry)
-    const countResponse = await mpClient.get('Feedback_Entry_User_Responses', {
+    const countResponse = await mpClient.get<unknown[]>('Feedback_Entry_User_Responses', {
       $filter: `Feedback_Entry_ID = ${prayerId} AND Response_Type_ID = 1`,
       $select: 'Feedback_Entry_User_Response_ID',
     });
@@ -74,7 +74,7 @@ export async function POST(
     return NextResponse.json({
       success: true,
       already_prayed: false,
-      prayer_count: countResponse?.length ?? 1,
+      prayer_count: Array.isArray(countResponse) ? countResponse.length : 1,
     });
   } catch (error) {
     console.error('POST /api/prayers/[id]/pray error:', error);
