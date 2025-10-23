@@ -5,7 +5,7 @@
  * Allows users to submit new prayer requests
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -23,6 +23,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
 
 // Form validation schema
 const prayerFormSchema = z.object({
@@ -52,6 +53,7 @@ export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const isEditing = !!initialData?.Feedback_Entry_ID;
+  const alertRef = useRef<HTMLDivElement>(null);
 
   const form = useForm<PrayerFormValues>({
     resolver: zodResolver(prayerFormSchema),
@@ -62,6 +64,13 @@ export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps
       Target_Date: initialData?.Target_Date || '',
     },
   });
+
+  // Scroll to alert when success or error changes
+  useEffect(() => {
+    if ((success || error) && alertRef.current) {
+      alertRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [success, error]);
 
 
   async function onSubmit(values: PrayerFormValues) {
@@ -118,20 +127,26 @@ export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps
   return (
     <div className="w-full max-w-2xl mx-auto">
       {success && (
-        <Alert className="mb-6 bg-green-50 border-green-200">
-          <AlertDescription className="text-green-800">
-            {isEditing
-              ? 'Your prayer request has been updated successfully!'
-              : 'Your prayer request has been submitted! It will be reviewed before being posted to the Prayer Wall.'}
-          </AlertDescription>
+        <Alert ref={alertRef} className="mb-6 bg-green-50 border-green-200 border-2">
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <AlertDescription className="text-green-800 font-medium">
+              {isEditing
+                ? 'Your prayer request has been updated successfully!'
+                : 'Your prayer request has been submitted! It will be reviewed before being posted to the Prayer Wall.'}
+            </AlertDescription>
+          </div>
         </Alert>
       )}
 
       {error && (
-        <Alert className="mb-6 bg-red-50 border-red-200">
-          <AlertDescription className="text-red-800">
-            {error}
-          </AlertDescription>
+        <Alert ref={alertRef} className="mb-6 bg-red-50 border-red-200 border-2">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <AlertDescription className="text-red-800 font-medium">
+              {error}
+            </AlertDescription>
+          </div>
         </Alert>
       )}
 
