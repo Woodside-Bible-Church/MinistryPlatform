@@ -1,5 +1,5 @@
 import { MinistryPlatformClient } from "../core/ministryPlatformClient";
-import { TableQueryParams, TableRecord, QueryParams } from "../Interfaces/mpProviderInterfaces";
+import { TableQueryParams, TableRecord, QueryParams, RequestBody } from "../Interfaces/mpProviderInterfaces";
 
 export class TableService {
     private client: MinistryPlatformClient;
@@ -46,7 +46,7 @@ export class TableService {
 
             const endpoint = `/tables/${encodeURIComponent(table)}`;
             // MP API expects the array directly, NOT wrapped in { records: [...] }
-            const result = await this.client.getHttpClient().post<T[]>(endpoint, records, params);
+            const result = await this.client.getHttpClient().post<T[]>(endpoint, records as unknown as RequestBody, params);
             return result;
         } catch (error) {
             console.error(`Error creating records in table ${table}:`, error);
@@ -66,7 +66,7 @@ export class TableService {
 
             const endpoint = `/tables/${encodeURIComponent(table)}`;
             // MP API expects the array directly, NOT wrapped in { records: [...] }
-            const result = await this.client.getHttpClient().put<T[]>(endpoint, records, params);
+            const result = await this.client.getHttpClient().put<T[]>(endpoint, records as unknown as RequestBody, params);
             return result;
         } catch (error) {
             console.error(`Error updating records in table ${table}:`, error);
