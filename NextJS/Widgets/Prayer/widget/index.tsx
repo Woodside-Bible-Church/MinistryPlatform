@@ -79,6 +79,13 @@ class PrayerWidget {
   private injectStyles() {
     if (!this.shadowRoot) return;
 
+    // Add CSS reset for Shadow DOM
+    const resetCSS = `
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+    `;
+
     // Replace :root and body selectors for Shadow DOM compatibility
     // :host in Shadow DOM is equivalent to :root in regular DOM
     // #prayer-widget-app is our mount point, equivalent to body
@@ -86,9 +93,9 @@ class PrayerWidget {
       .replace(/:root\b/g, ':host')
       .replace(/\bbody\b/g, '#prayer-widget-app');
 
-    // Inject modified CSS into Shadow DOM
+    // Inject reset first, then Tailwind styles
     const style = document.createElement('style');
-    style.textContent = shadowCSS;
+    style.textContent = resetCSS + '\n' + shadowCSS;
     this.shadowRoot.appendChild(style);
   }
 
