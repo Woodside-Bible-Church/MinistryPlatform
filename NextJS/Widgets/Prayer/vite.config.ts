@@ -47,7 +47,11 @@ export default defineConfig({
     },
   },
   define: {
-    // Define environment variables for the widget
+    // Define all environment variables used in the widget
     'process.env.NODE_ENV': JSON.stringify('production'),
+    'process.env.NEXT_PUBLIC_MP_WIDGETS_AUTH_ENDPOINT': JSON.stringify(process.env.NEXT_PUBLIC_MP_WIDGETS_AUTH_ENDPOINT || 'https://my.woodsidebible.org/widgets/Api/Auth/User'),
+    'process.env.NEXT_PUBLIC_APP_NAME': JSON.stringify(process.env.NEXT_PUBLIC_APP_NAME || 'Prayer'),
+    // Replace any other process.env references
+    'process.env': JSON.stringify({}),
   },
 });
