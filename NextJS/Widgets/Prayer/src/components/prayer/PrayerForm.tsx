@@ -65,6 +65,7 @@ export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps
 
 
   async function onSubmit(values: PrayerFormValues) {
+    console.log('[PrayerForm] Submit started', { values, isEditing });
     setIsSubmitting(true);
     setError(null);
     setSuccess(false);
@@ -76,6 +77,8 @@ export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps
 
       const method = isEditing ? 'PATCH' : 'POST';
 
+      console.log('[PrayerForm] Making request to:', url, { method });
+
       const response = await authenticatedFetch(url, {
         method,
         body: JSON.stringify({
@@ -86,11 +89,15 @@ export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps
         }),
       });
 
+      console.log('[PrayerForm] Response received:', { status: response.status, ok: response.ok });
+
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status}: ${response.statusText}` }));
+        console.error('[PrayerForm] Error response:', errorData);
         throw new Error(errorData.message || `Failed to ${isEditing ? 'update' : 'submit'} prayer request`);
       }
 
+      console.log('[PrayerForm] Success!');
       setSuccess(true);
       if (!isEditing) {
         form.reset();
@@ -100,10 +107,11 @@ export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps
         onSuccess();
       }
     } catch (err) {
-      console.error(`Error ${isEditing ? 'updating' : 'submitting'} prayer:`, err);
+      console.error(`[PrayerForm] Error ${isEditing ? 'updating' : 'submitting'} prayer:`, err);
       setError(err instanceof Error ? err.message : `An error occurred while ${isEditing ? 'updating' : 'submitting'} your prayer request`);
     } finally {
       setIsSubmitting(false);
+      console.log('[PrayerForm] Submit completed');
     }
   }
 

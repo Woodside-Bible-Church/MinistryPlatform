@@ -12,10 +12,13 @@ const MP_WIDGET_TOKEN_KEY = 'mpp-widgets_AuthToken';
  */
 export function getAuthToken(): string | null {
   if (typeof window === 'undefined') {
+    console.log('[mpWidgetAuthClient] getAuthToken: window is undefined (SSR)');
     return null;
   }
 
-  return localStorage.getItem(MP_WIDGET_TOKEN_KEY);
+  const token = localStorage.getItem(MP_WIDGET_TOKEN_KEY);
+  console.log('[mpWidgetAuthClient] getAuthToken:', token ? `Found token (${token.substring(0, 20)}...)` : 'No token found');
+  return token;
 }
 
 /**
@@ -32,9 +35,11 @@ export function getAuthHeaders(): HeadersInit {
   const token = getAuthToken();
 
   if (!token) {
-    throw new Error('No authentication token found');
+    console.error('[mpWidgetAuthClient] getAuthHeaders: No token found, throwing error');
+    throw new Error('No authentication token found. Please log in with the Ministry Platform login widget.');
   }
 
+  console.log('[mpWidgetAuthClient] getAuthHeaders: Creating headers with token');
   return {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
