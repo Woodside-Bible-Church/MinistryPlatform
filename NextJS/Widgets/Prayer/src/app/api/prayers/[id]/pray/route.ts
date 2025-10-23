@@ -13,13 +13,14 @@ import { PrayerService } from '@/services/prayerService';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { token } = await authenticateRequest();
     const prayerService = new PrayerService(token);
 
-    const prayerId = parseInt(params.id);
+    const { id } = await params;
+    const prayerId = parseInt(id);
 
     if (isNaN(prayerId)) {
       return NextResponse.json(
@@ -51,7 +52,7 @@ export async function POST(
       prayer_count: updatedPrayer.Prayer_Count,
     });
   } catch (error) {
-    console.error(`POST /api/prayers/${params.id}/pray error:`, error);
+    console.error('POST /api/prayers/[id]/pray error:', error);
 
     if (error instanceof Error && error.message.includes('authentication')) {
       return NextResponse.json(

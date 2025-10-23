@@ -44,7 +44,7 @@ export async function POST(
 
     return NextResponse.json(approvedPrayer);
   } catch (error) {
-    console.error(`POST /api/prayers/${(await params).id}/approve error:`, error);
+    console.error('POST /api/prayers/[id]/approve error:', error);
 
     if (error instanceof Error && error.message.includes('authentication')) {
       return NextResponse.json(

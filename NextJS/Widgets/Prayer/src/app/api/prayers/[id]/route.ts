@@ -33,7 +33,7 @@ export async function GET(
 
     return NextResponse.json(prayer);
   } catch (error) {
-    console.error(`GET /api/prayers/${(await params).id} error:`, error);
+    console.error('GET /api/prayers/[id] error:', error);
 
     if (error instanceof Error && error.message.includes('authentication')) {
       return NextResponse.json(
@@ -107,7 +107,7 @@ export async function PATCH(
 
     return NextResponse.json(updatedPrayer);
   } catch (error) {
-    console.error(`PATCH /api/prayers/${(await params).id} error:`, error);
+    console.error('PATCH /api/prayers/[id] error:', error);
 
     if (error instanceof Error && error.message.includes('authentication')) {
       return NextResponse.json(
@@ -168,7 +168,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true, message: 'Prayer deleted successfully' });
   } catch (error) {
-    console.error(`DELETE /api/prayers/${(await params).id} error:`, error);
+    console.error('DELETE /api/prayers/[id] error:', error);
 
     if (error instanceof Error && error.message.includes('authentication')) {
       return NextResponse.json(
