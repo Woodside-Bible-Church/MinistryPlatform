@@ -62,7 +62,7 @@ export function DevLoginWidget() {
 
           <div className="flex items-center gap-4">
             {isScriptLoaded ? (
-              <mpp-user-login></mpp-user-login>
+              <div dangerouslySetInnerHTML={{ __html: '<mpp-user-login></mpp-user-login>' }} />
             ) : (
               <div className="text-xs text-blue-700 italic">
                 Waiting for MP Widgets...
