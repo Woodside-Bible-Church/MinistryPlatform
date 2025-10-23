@@ -9,7 +9,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import PrayerPage from '../src/app/(app)/page';
-import '../src/app/globals.css';
+import styleText from '../src/app/globals.css?inline';
 
 // Widget configuration
 interface WidgetConfig {
@@ -20,7 +20,6 @@ interface WidgetConfig {
 // Extend window interface for widget globals
 declare global {
   interface Window {
-    __PRAYER_WIDGET_CSS__?: string;
     PRAYER_WIDGET_CONFIG?: WidgetConfig;
     PrayerWidget?: PrayerWidget;
   }
@@ -80,17 +79,10 @@ class PrayerWidget {
   private injectStyles() {
     if (!this.shadowRoot) return;
 
-    // Get CSS that was bundled by Vite
-    const cssCode = window.__PRAYER_WIDGET_CSS__;
-
-    if (cssCode) {
-      // Create style element and inject into Shadow DOM
-      const style = document.createElement('style');
-      style.textContent = cssCode;
-      this.shadowRoot.appendChild(style);
-    } else {
-      console.warn('Prayer Widget: CSS not found. Styles may not be applied correctly.');
-    }
+    // Inject imported CSS into Shadow DOM
+    const style = document.createElement('style');
+    style.textContent = styleText;
+    this.shadowRoot.appendChild(style);
   }
 
   /**

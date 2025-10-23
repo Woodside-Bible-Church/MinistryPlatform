@@ -6,22 +6,6 @@ import path from 'path';
 export default defineConfig({
   plugins: [
     react(),
-    // Inject CSS into the JS bundle so it's all in one file
-    // Use manual injection so we can control where CSS goes (Shadow DOM)
-    cssInjectedByJsPlugin({
-      styleId: 'prayer-widget-styles',
-      injectCodeFunction: (cssCode) => {
-        // Return code that immediately stores CSS in global variable
-        // This runs during bundle evaluation, before widget initialization
-        return `(function() {
-  try {
-    window.__PRAYER_WIDGET_CSS__ = ${JSON.stringify(cssCode)};
-  } catch(e) {
-    console.error('Prayer Widget CSS injection error:', e);
-  }
-})();`;
-      },
-    }),
   ],
   css: {
     postcss: {
