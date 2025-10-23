@@ -145,7 +145,7 @@ export default function PrayerPage() {
                 </Dialog>
               </div>
               <p className="text-muted-foreground text-sm">
-                Track your prayer requests and see who's lifting you up.
+                Track your prayer requests and see who&apos;s lifting you up.
               </p>
               <MyPrayers key={`my-${refreshKey}`} />
             </section>
@@ -159,7 +159,7 @@ export default function PrayerPage() {
                 <h2 className="text-2xl font-bold text-foreground">Prayer Partners</h2>
               </div>
               <p className="text-muted-foreground text-sm">
-                See who you've been standing with in prayer.
+                See who you&apos;ve been standing with in prayer.
               </p>
               <PeoplePrayedFor key={`prayed-${refreshKey}`} />
             </section>

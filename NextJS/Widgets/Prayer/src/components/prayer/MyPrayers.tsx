@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Calendar, Heart, CheckCircle, Clock, Edit, MessageCircle } from 'lucide-react';
+import { Loader2, Calendar, CheckCircle, Clock, Edit, MessageCircle } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsPraying } from '@fortawesome/free-solid-svg-icons';
 import { PrayerForm } from './PrayerForm';

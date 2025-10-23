@@ -45,7 +45,6 @@ export function PrayerList({ mode = 'stack', onlyApproved = true, showMyPrayers 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [totalPrayed, setTotalPrayed] = useState(0);
-  const [showCelebration, setShowCelebration] = useState(false);
 
   // Fetch prayers
   useEffect(() => {
@@ -97,10 +96,8 @@ export function PrayerList({ mode = 'stack', onlyApproved = true, showMyPrayers 
   }, [prayers, searchTerm]);
 
   const handlePrayedFor = (id: number) => {
-    // Show celebration
+    // Increment counter
     setTotalPrayed(prev => prev + 1);
-    setShowCelebration(true);
-    setTimeout(() => setShowCelebration(false), 2000);
 
     // Remove the prayer from the list
     setFilteredPrayers(prev => prev.filter(p => p.Feedback_Entry_ID !== id));

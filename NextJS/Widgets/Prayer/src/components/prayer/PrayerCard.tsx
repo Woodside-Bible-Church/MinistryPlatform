@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
-import { X, Calendar, User } from 'lucide-react';
+import { X, Calendar } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsPraying } from '@fortawesome/free-solid-svg-icons';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';

@@ -4,7 +4,7 @@
  * Uses the api_Custom_User_Response_Stats_JSON stored procedure
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { authenticateRequest } from '@/lib/mpWidgetAuth';
 import { MinistryPlatformClient } from '@/providers/MinistryPlatform/core/ministryPlatformClient';
 
@@ -24,7 +24,7 @@ interface PrayerStats {
  * Get prayer statistics for the authenticated user
  * Returns total prayers, current streak, prayers today, etc.
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const { user, token } = await authenticateRequest();
     const mpClient = new MinistryPlatformClient(token);

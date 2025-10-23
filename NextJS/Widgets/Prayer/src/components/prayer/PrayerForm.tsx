@@ -5,7 +5,7 @@
  * Allows users to submit new prayer requests
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -22,14 +22,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // Form validation schema
@@ -41,12 +33,6 @@ const prayerFormSchema = z.object({
 });
 
 type PrayerFormValues = z.infer<typeof prayerFormSchema>;
-
-interface Category {
-  Feedback_Type_ID: number;
-  Feedback_Type: string;
-  Description: string | null;
-}
 
 interface PrayerFormProps {
   onSuccess?: () => void;
@@ -62,7 +48,6 @@ interface PrayerFormProps {
 }
 
 export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -78,26 +63,6 @@ export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps
     },
   });
 
-  // Fetch categories on mount
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const response = await authenticatedFetch('/api/categories');
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch categories');
-        }
-
-        const data = await response.json();
-        setCategories(data);
-      } catch (err) {
-        console.error('Error fetching categories:', err);
-        setError('Failed to load prayer categories');
-      }
-    }
-
-    fetchCategories();
-  }, []);
 
   async function onSubmit(values: PrayerFormValues) {
     setIsSubmitting(true);
@@ -262,7 +227,7 @@ export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps
                   />
                 </FormControl>
                 <FormDescription>
-                  If there's a specific date related to this prayer (e.g., surgery date, job interview), set it here.
+                  If there&apos;s a specific date related to this prayer (e.g., surgery date, job interview), set it here.
                   Leave blank for ongoing needs.
                 </FormDescription>
                 <FormMessage />

@@ -7,8 +7,6 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHandsPraying } from '@fortawesome/free-solid-svg-icons';
 import { authenticatedFetch } from '@/lib/mpWidgetAuthClient';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -87,7 +85,7 @@ export function PeoplePrayedFor() {
         <Card className="max-w-2xl">
           <CardContent className="py-8">
             <p className="text-sm text-muted-foreground text-center">
-              You haven't prayed for anyone yet. Swipe right on a prayer to start!
+              You haven&apos;t prayed for anyone yet. Swipe right on a prayer to start!
             </p>
           </CardContent>
         </Card>
@@ -128,7 +126,7 @@ export function PeoplePrayedFor() {
                 {prayer.Response_Text && (
                   <div className="bg-primary/5 rounded-md p-3 mt-2 border-l-2 border-primary/30">
                     <p className="text-xs text-muted-foreground mb-1">Your encouraging message:</p>
-                    <p className="text-sm italic">"{prayer.Response_Text}"</p>
+                    <p className="text-sm italic">&quot;{prayer.Response_Text}&quot;</p>
                   </div>
                 )}
               </CardContent>
