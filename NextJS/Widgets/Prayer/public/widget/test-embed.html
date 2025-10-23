@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prayer Widget Test Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .header {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .auth-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn-primary {
+      background: #61BC47;
+      color: white;
+    }
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+    input {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      flex: 1;
+      max-width: 400px;
+    }
+    .status {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .status.logged-in {
+      background: #d4edda;
+      color: #155724;
+    }
+    .status.logged-out {
+      background: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Prayer Widget Test Page</h1>
+    <p>This page simulates a WordPress page with the MP Login Widget.</p>
+
+    <div class="auth-controls">
+      <input type="text" id="tokenInput" placeholder="Paste your MP auth token here for testing">
+      <button class="btn-primary" onclick="setToken()">Set Token</button>
+      <button class="btn-danger" onclick="clearToken()">Clear Token</button>
+      <button class="btn-secondary" onclick="checkStatus()">Check Status</button>
+    </div>
+
+    <div id="status" class="status" style="display:none;"></div>
+
+    <p style="margin-top: 15px; font-size: 14px; color: #666;">
+      In production, the MP Login Widget (<code>&lt;mpp-user-login&gt;</code>) would be here
+      and would automatically set the token in localStorage.
+    </p>
+  </div>
+
+  <!-- Prayer Widget Container -->
+  <div id="prayer-widget-container"></div>
+
+  <!-- Widget Loader Script -->
+  <script>
+    // Point to your local dev server
+    window.PRAYER_WIDGET_URL = 'http://localhost:3002';
+  </script>
+  <script src="http://localhost:3002/widget-loader.js"></script>
+
+  <!-- Test utilities -->
+  <script>
+    function setToken() {
+      const token = document.getElementById('tokenInput').value;
+      if (token) {
+        localStorage.setItem('mpp-widgets_AuthToken', token);
+
+        // Send to iframe
+        const iframe = document.getElementById('prayer-widget-iframe');
+        if (iframe) {
+          iframe.contentWindow.postMessage({
+            type: 'AUTH_TOKEN',
+            token: token
+          }, 'http://localhost:3002');
+        }
+
+        showStatus('Token set successfully!', 'logged-in');
+      }
+    }
+
+    function clearToken() {
+      localStorage.removeItem('mpp-widgets_AuthToken');
+
+      // Send to iframe
+      const iframe = document.getElementById('prayer-widget-iframe');
+      if (iframe) {
+        iframe.contentWindow.postMessage({
+          type: 'AUTH_TOKEN',
+          token: null
+        }, 'http://localhost:3002');
+      }
+
+      showStatus('Token cleared', 'logged-out');
+    }
+
+    function checkStatus() {
+      const token = localStorage.getItem('mpp-widgets_AuthToken');
+      if (token) {
+        showStatus('Logged in - Token present (length: ' + token.length + ')', 'logged-in');
+      } else {
+        showStatus('Not logged in - No token found', 'logged-out');
+      }
+    }
+
+    function showStatus(message, className) {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = 'status ' + className;
+      status.style.display = 'block';
+    }
+
+    // Check status on load
+    window.addEventListener('load', checkStatus);
+  </script>
+</body>
+</html>

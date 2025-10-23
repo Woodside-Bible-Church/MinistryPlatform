@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prayer Widget - Embed Example</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .page-header {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .page-header h1 {
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+    .page-header p {
+      margin: 0;
+      color: #666;
+    }
+    #prayer-widget-root {
+      /* The widget will render here */
+      min-height: 400px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>Prayer Wall</h1>
+    <p>Share your prayers and pray for others in our community</p>
+  </div>
+
+  <!--
+    PRAYER WIDGET EMBED
+
+    This is all you need to embed the prayer widget on your WordPress page!
+  -->
+
+  <!-- 1. Create a container div with id="prayer-widget-root" -->
+  <div id="prayer-widget-root"></div>
+
+  <!-- 2. Load the widget script -->
+  <script>
+    // Optional: Configure the widget (if needed)
+    window.PRAYER_WIDGET_CONFIG = {
+      apiBaseUrl: 'https://prayer-gamma.vercel.app', // Change to your deployed URL
+      containerId: 'prayer-widget-root'
+    };
+  </script>
+  <script src="https://prayer-gamma.vercel.app/widget/prayer-widget.js"></script>
+
+  <!-- That's it! The widget will automatically initialize -->
+
+  <div class="page-header" style="margin-top: 40px;">
+    <h2>How to Embed on WordPress</h2>
+    <pre style="background: #f9f9f9; padding: 15px; border-radius: 4px; overflow-x: auto;"><code>&lt;!-- Add this to your WordPress page/post --&gt;
+&lt;div id="prayer-widget-root"&gt;&lt;/div&gt;
+&lt;script src="https://prayer-gamma.vercel.app/widget/prayer-widget.js"&gt;&lt;/script&gt;</code></pre>
+
+    <h3 style="margin-top: 20px;">Features:</h3>
+    <ul>
+      <li>✅ No iframe - renders directly on your page</li>
+      <li>✅ Automatic token sync with MP Login Widget</li>
+      <li>✅ Responsive design</li>
+      <li>✅ All styles scoped to prevent conflicts</li>
+      <li>✅ Single JavaScript file - no external dependencies to load</li>
+    </ul>
+  </div>
+</body>
+</html>
