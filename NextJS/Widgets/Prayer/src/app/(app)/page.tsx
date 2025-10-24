@@ -82,10 +82,26 @@ export default function PrayerPage() {
 
   useEffect(() => {
     // Check login status on mount and when window gains focus
-    const checkLogin = () => setLoggedIn(isLoggedIn());
+    const checkLogin = () => {
+      const wasLoggedIn = loggedIn;
+      const isNowLoggedIn = isLoggedIn();
+
+      setLoggedIn(isNowLoggedIn);
+
+      // If login status changed, refresh widget data
+      if (wasLoggedIn !== isNowLoggedIn) {
+        console.log('[Prayer Page] Login status changed:', isNowLoggedIn ? 'logged in' : 'logged out');
+        setRefreshKey(prev => prev + 1);
+      }
+    };
+
     checkLogin();
 
     window.addEventListener('focus', checkLogin);
+
+    // Poll for login status changes every second
+    // This detects when MP login widget updates localStorage
+    const pollInterval = setInterval(checkLogin, 1000);
 
     // Listen for auth token from parent window (when embedded as widget)
     const handleMessage = (event: MessageEvent) => {
@@ -131,10 +147,11 @@ export default function PrayerPage() {
     return () => {
       window.removeEventListener('focus', checkLogin);
       window.removeEventListener('message', handleMessage);
+      clearInterval(pollInterval);
       resizeObserver.disconnect();
       clearInterval(intervalId);
     };
-  }, []);
+  }, [loggedIn]); // Add loggedIn to dependencies so we can compare previous state
 
   const handlePrayerSubmitted = () => {
     setShowForm(false);
