@@ -218,4 +218,32 @@ export class PrayerService {
 
     return responses;
   }
+
+  /**
+   * Get actual prayer counts from Feedback_Entry_User_Responses table
+   * Returns a map of Feedback_Entry_ID -> count
+   */
+  async getPrayerCounts(feedbackEntryIds: number[]): Promise<Record<number, number>> {
+    if (feedbackEntryIds.length === 0) {
+      return {};
+    }
+
+    // Query all responses for these prayers
+    const filter = `Feedback_Entry_ID IN (${feedbackEntryIds.join(',')}) AND Response_Type_ID = 1`;
+    const responses = await this.client.get('Feedback_Entry_User_Responses', {
+      $filter: filter,
+      $select: 'Feedback_Entry_ID',
+    });
+
+    // Count responses per prayer
+    const counts: Record<number, number> = {};
+    const responsesArray = Array.isArray(responses) ? responses : [];
+
+    responsesArray.forEach((response: any) => {
+      const id = response.Feedback_Entry_ID;
+      counts[id] = (counts[id] || 0) + 1;
+    });
+
+    return counts;
+  }
 }

@@ -27,9 +27,17 @@ export async function GET(request: NextRequest) {
       const prayerService = new PrayerService(token);
       const prayers = await prayerService.getMyPrayers(user.contactId);
 
-      // Add user's imageUrl to each prayer
+      // Get actual prayer counts from Feedback_Entry_User_Responses
+      const prayerIds = prayers.map(p => p.Feedback_Entry_ID).filter(Boolean);
+      let actualCounts: Record<number, number> = {};
+      if (prayerIds.length > 0) {
+        actualCounts = await prayerService.getPrayerCounts(prayerIds);
+      }
+
+      // Add user's imageUrl and actual prayer count to each prayer
       const prayersWithImage = prayers.map(prayer => ({
         ...prayer,
+        Prayer_Count: actualCounts[prayer.Feedback_Entry_ID] ?? 0,
         userImageUrl: user.imageUrl,
       }));
 

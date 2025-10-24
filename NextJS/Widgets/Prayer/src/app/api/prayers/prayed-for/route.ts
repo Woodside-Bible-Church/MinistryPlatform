@@ -18,10 +18,20 @@ export async function GET() {
 
     const prayers = await prayerService.getPrayersUserPrayedFor(user.contactId);
 
-    // Add contactImageUrl field (null for now - TODO: implement photo lookup)
+    // Get actual prayer counts from Feedback_Entry_User_Responses
     const prayersArray = Array.isArray(prayers) ? prayers : [];
-    const prayersWithPhotos = prayersArray.map(prayer => ({
+    const prayerIds = prayersArray.map((p: any) => p.Feedback_Entry_ID).filter(Boolean);
+
+    let actualCounts: Record<number, number> = {};
+    if (prayerIds.length > 0) {
+      const counts = await prayerService.getPrayerCounts(prayerIds);
+      actualCounts = counts;
+    }
+
+    // Add contactImageUrl and actual prayer count
+    const prayersWithPhotos = prayersArray.map((prayer: any) => ({
       ...prayer,
+      Prayer_Count: actualCounts[prayer.Feedback_Entry_ID] ?? 0,
       contactImageUrl: null, // TODO: Find a way to get contact photos from MP
     }));
 
