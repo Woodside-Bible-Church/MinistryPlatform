@@ -20,7 +20,9 @@ export async function GET() {
 
     // Get actual prayer counts from Feedback_Entry_User_Responses
     const prayersArray = Array.isArray(prayers) ? prayers : [];
-    const prayerIds = prayersArray.map((p: any) => p.Feedback_Entry_ID).filter(Boolean);
+    const prayerIds = prayersArray
+      .map((p: { Feedback_Entry_ID?: number }) => p.Feedback_Entry_ID)
+      .filter((id): id is number => typeof id === 'number');
 
     let actualCounts: Record<number, number> = {};
     if (prayerIds.length > 0) {
@@ -29,7 +31,7 @@ export async function GET() {
     }
 
     // Add contactImageUrl and actual prayer count
-    const prayersWithPhotos = prayersArray.map((prayer: any) => ({
+    const prayersWithPhotos = prayersArray.map((prayer: { Feedback_Entry_ID: number; [key: string]: unknown }) => ({
       ...prayer,
       Prayer_Count: actualCounts[prayer.Feedback_Entry_ID] ?? 0,
       contactImageUrl: null, // TODO: Find a way to get contact photos from MP

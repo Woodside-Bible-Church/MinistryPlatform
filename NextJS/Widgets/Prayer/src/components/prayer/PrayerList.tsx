@@ -6,8 +6,6 @@
  */
 
 import { useState, useEffect } from 'react';
-import { authenticatedFetch, getCurrentUser } from '@/lib/mpWidgetAuthClient';
-import { apiFetch } from '@/lib/apiClient';
 import { PrayerCard } from './PrayerCard';
 import { Input } from '@/components/ui/input';
 import { Search, Loader2 } from 'lucide-react';

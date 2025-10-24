@@ -239,7 +239,7 @@ export class PrayerService {
     const counts: Record<number, number> = {};
     const responsesArray = Array.isArray(responses) ? responses : [];
 
-    responsesArray.forEach((response: any) => {
+    responsesArray.forEach((response: { Feedback_Entry_ID: number }) => {
       const id = response.Feedback_Entry_ID;
       counts[id] = (counts[id] || 0) + 1;
     });

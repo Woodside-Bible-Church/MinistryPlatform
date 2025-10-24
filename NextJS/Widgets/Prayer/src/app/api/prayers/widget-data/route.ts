@@ -20,7 +20,7 @@ import { MinistryPlatformClient } from '@/providers/MinistryPlatform/core/minist
  * SQL Server's FOR JSON PATH returns nested objects as JSON strings
  * This function walks the object tree and parses any string values that are valid JSON
  */
-function deepParseJson(obj: any): any {
+function deepParseJson(obj: unknown): unknown {
   if (obj === null || obj === undefined) {
     return obj;
   }
@@ -44,10 +44,10 @@ function deepParseJson(obj: any): any {
 
   // If it's an object, recursively parse each property
   if (typeof obj === 'object') {
-    const result: any = {};
+    const result: Record<string, unknown> = {};
     for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        result[key] = deepParseJson(obj[key]);
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        result[key] = deepParseJson((obj as Record<string, unknown>)[key]);
       }
     }
     return result;
@@ -81,7 +81,7 @@ export async function GET() {
       token = authResult.token;
       contactId = user.contactId;
       console.log('[Widget Data API] Authenticated user, contact:', contactId);
-    } catch (authError) {
+    } catch {
       console.log('[Widget Data API] No valid authentication, returning public data only');
 
       // Return minimal public-only data structure without calling stored procedure

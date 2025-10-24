@@ -5,11 +5,9 @@
  * Shows list of prayer requests the user has prayed for
  */
 
-import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { authenticatedFetch } from '@/lib/mpWidgetAuthClient';
 import { Clock, Heart } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsPraying } from '@fortawesome/free-solid-svg-icons';
