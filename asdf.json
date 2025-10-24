@@ -1,34 +1,431 @@
 {
-  "Campus": {
-    "Name": "Troy",
-    "Address": {
-      "Street": "6600 Rochester Rd",
-      "City": "Troy",
-      "State": "MI",
-      "Zip": "48085",
-      "Links": {
-        "GoogleMaps": "https://maps.google.com/?q=6600+Rochester+Rd,+Troy,+MI+48085",
-        "AppleMaps": "http://maps.apple.com/?q=6600+Rochester+Rd,+Troy,+MI+48085",
-        "Waze": "https://www.waze.com/ul?ll=42.606,-83.149&navigate=yes"
-      }
+  "Widget_Title": "Prayer & Praise",
+  "Widget_Subtitle": "Share burdens, celebrate victories",
+  "Configuration": {
+    "Default_Card_Layout": "stack",
+    "Allow_Anonymous": false,
+    "Show_Contact_Names": true,
+    "Require_Approval": true
+  },
+  "User_Stats": {
+    "Total_Prayers": {
+      "Label": "Total Prayers",
+      "Count": 2
     },
-    "Pastor": {
-      "Name": "Steve Zarilli",
-      "Email": "SteveZarilli@woodsidebible.org",
-      "Image": "https://woodsidebible.org/wp-content/uploads/2020/09/Steve-Zarilli.jpg",
-      "Title": "Campus Pastor"
+    "Prayer_Streak": {
+      "Label": "Day Streak",
+      "Count": 0
     },
-    "Services": [
+    "Prayers_Today": {
+      "Label": "Today",
+      "Count": 0
+    }
+  },
+  "My_Requests": {
+    "Title": "My Requests",
+    "Description": "Track your prayer requests and see who's lifting you up.",
+    "Total_Count": 3,
+    "Items": [
       {
-        "Day": "Sunday",
-        "Times": ["9:00 AM", "10:30 AM", "12:00 PM"]
+        "Feedback_Entry_ID": 123,
+        "Title": "Lions Bye Week",
+        "Description": "Pray that the Lions stay healthy this bye week",
+        "Type": {
+          "Label": "Prayer Request",
+          "ID": 1
+        },
+        "Visibility": {
+          "Level_ID": 4,
+          "Label": "Public"
+        },
+        "Status": {
+          "Approved": false,
+          "Approval_Badge": "Pending Review",
+          "Ongoing_Need": true,
+          "Is_Answered": false
+        },
+        "Dates": {
+          "Submitted": "2025-10-23T10:30:00",
+          "Target": null
+        },
+        "Counts": {
+          "Prayers": 0,
+          "Celebrations": 0
+        },
+        "Latest_Update": {
+          "Text": null,
+          "Date": null
+        },
+        "Actions": {
+          "Can_Edit": true,
+          "Can_Add_Update": false,
+          "Can_Mark_Answered": false
+        }
       },
       {
-        "Day": "Wednesday",
-        "Times": ["7:00 PM"]
+        "Feedback_Entry_ID": 124,
+        "Title": "Lions vs Vikings",
+        "Description": "Pray that the Lions whoop the Vikings",
+        "Type": {
+          "Label": "Prayer Request",
+          "ID": 1
+        },
+        "Visibility": {
+          "Level_ID": 4,
+          "Label": "Public"
+        },
+        "Status": {
+          "Approved": true,
+          "Approval_Badge": null,
+          "Ongoing_Need": true,
+          "Is_Answered": false
+        },
+        "Dates": {
+          "Submitted": "2025-10-22T14:00:00",
+          "Target": null
+        },
+        "Counts": {
+          "Prayers": 0,
+          "Celebrations": 0
+        },
+        "Latest_Update": {
+          "Text": null,
+          "Date": null
+        },
+        "Actions": {
+          "Can_Edit": true,
+          "Can_Add_Update": true,
+          "Can_Mark_Answered": true
+        }
+      },
+      {
+        "Feedback_Entry_ID": 125,
+        "Title": "The Lions Won!",
+        "Description": "I am so happy :)",
+        "Type": {
+          "Label": "Praise Report",
+          "ID": 2
+        },
+        "Visibility": {
+          "Level_ID": 4,
+          "Label": "Public"
+        },
+        "Status": {
+          "Approved": true,
+          "Approval_Badge": null,
+          "Ongoing_Need": true,
+          "Is_Answered": false
+        },
+        "Dates": {
+          "Submitted": "2025-10-21T09:00:00",
+          "Target": null
+        },
+        "Counts": {
+          "Prayers": 0,
+          "Celebrations": 0
+        },
+        "Latest_Update": {
+          "Text": null,
+          "Date": null
+        },
+        "Actions": {
+          "Can_Edit": true,
+          "Can_Add_Update": true,
+          "Can_Mark_Answered": true
+        }
       }
-    ],
-    "Phone": "(248) 879-2252",
-    "AnnouncementsLink": "https://woodsidebible.org/troy/announcements"
+    ]
+  },
+  "Prayer_Partners": {
+    "Title": "Prayer Partners",
+    "Description": "See who you've been standing with in prayer.",
+    "Total_Count": 2,
+    "Items": [
+      {
+        "Feedback_Entry_ID": 456,
+        "Title": "Test",
+        "Description": "This is a test",
+        "Requester": {
+          "Display_Name": "Anonymous",
+          "First_Name": null,
+          "Last_Name": null,
+          "Image": null
+        },
+        "Type": {
+          "Label": "Prayer Request",
+          "ID": 1
+        },
+        "Visibility": {
+          "Level_ID": 4,
+          "Label": "Public"
+        },
+        "Dates": {
+          "Submitted": "2025-10-20T12:00:00",
+          "My_Prayer": "2025-10-22T08:30:00"
+        },
+        "My_Response": {
+          "Message": null
+        },
+        "Counts": {
+          "Prayers": 1,
+          "Celebrations": 0
+        },
+        "Latest_Update": {
+          "Text": null,
+          "Date": null
+        },
+        "Actions": {
+          "Can_Pray_Again": true
+        }
+      },
+      {
+        "Feedback_Entry_ID": 457,
+        "Title": "Prayer Request from Richardson, Carla",
+        "Description": "Requested prayer for her health",
+        "Requester": {
+          "Display_Name": "Richardson, Carla",
+          "First_Name": "Carla",
+          "Last_Name": "Richardson",
+          "Image": null
+        },
+        "Type": {
+          "Label": "Prayer Request",
+          "ID": 1
+        },
+        "Visibility": {
+          "Level_ID": 3,
+          "Label": "Members Only"
+        },
+        "Dates": {
+          "Submitted": "2025-10-19T15:00:00",
+          "My_Prayer": "2025-10-23T11:00:00"
+        },
+        "My_Response": {
+          "Message": "Praying for healing and strength!"
+        },
+        "Counts": {
+          "Prayers": 1,
+          "Celebrations": 0
+        },
+        "Latest_Update": {
+          "Text": null,
+          "Date": null
+        },
+        "Actions": {
+          "Can_Pray_Again": true
+        }
+      }
+    ]
+  },
+  "Community_Needs": {
+    "Title": "Community Needs",
+    "Description": "Join others in lifting up these requests and celebrating answered prayers.",
+    "Total_Count": 37,
+    "Items": [
+      {
+        "Feedback_Entry_ID": 124,
+        "Title": "Lions vs Vikings",
+        "Description": "Pray that the Lions whoop the Vikings",
+        "Requester": {
+          "Display_Name": "Anonymous",
+          "First_Name": null,
+          "Last_Name": null,
+          "Image": null
+        },
+        "Type": {
+          "Label": "Prayer Request",
+          "ID": 1
+        },
+        "Visibility": {
+          "Level_ID": 4,
+          "Label": "Public"
+        },
+        "Dates": {
+          "Submitted": "2025-10-22T14:00:00",
+          "Target": null
+        },
+        "Status": {
+          "Ongoing_Need": true
+        },
+        "Counts": {
+          "Prayers": 0,
+          "Celebrations": 0
+        },
+        "Latest_Update": {
+          "Text": null,
+          "Date": null
+        }
+      },
+      {
+        "Feedback_Entry_ID": 125,
+        "Title": "The Lions Won!",
+        "Description": "I am so happy :)",
+        "Requester": {
+          "Display_Name": "Anonymous",
+          "First_Name": null,
+          "Last_Name": null,
+          "Image": null
+        },
+        "Type": {
+          "Label": "Praise Report",
+          "ID": 2
+        },
+        "Visibility": {
+          "Level_ID": 4,
+          "Label": "Public"
+        },
+        "Dates": {
+          "Submitted": "2025-10-21T09:00:00",
+          "Target": null
+        },
+        "Status": {
+          "Ongoing_Need": true
+        },
+        "Counts": {
+          "Prayers": 0,
+          "Celebrations": 0
+        },
+        "Latest_Update": {
+          "Text": null,
+          "Date": null
+        }
+      },
+      {
+        "Feedback_Entry_ID": 456,
+        "Title": "Test",
+        "Description": "This is a test",
+        "Requester": {
+          "Display_Name": "Anonymous",
+          "First_Name": null,
+          "Last_Name": null,
+          "Image": null
+        },
+        "Type": {
+          "Label": "Prayer Request",
+          "ID": 1
+        },
+        "Visibility": {
+          "Level_ID": 4,
+          "Label": "Public"
+        },
+        "Dates": {
+          "Submitted": "2025-10-20T12:00:00",
+          "Target": null
+        },
+        "Status": {
+          "Ongoing_Need": false
+        },
+        "Counts": {
+          "Prayers": 0,
+          "Celebrations": 0
+        },
+        "Latest_Update": {
+          "Text": null,
+          "Date": null
+        }
+      },
+      {
+        "Feedback_Entry_ID": 457,
+        "Title": "Prayer Request from Richardson, Carla",
+        "Description": "Requested prayer for her health",
+        "Requester": {
+          "Display_Name": "Richardson, Carla",
+          "First_Name": "Carla",
+          "Last_Name": "Richardson",
+          "Image": null
+        },
+        "Type": {
+          "Label": "Prayer Request",
+          "ID": 1
+        },
+        "Visibility": {
+          "Level_ID": 3,
+          "Label": "Members Only"
+        },
+        "Dates": {
+          "Submitted": "2025-10-19T15:00:00",
+          "Target": null
+        },
+        "Status": {
+          "Ongoing_Need": false
+        },
+        "Counts": {
+          "Prayers": 3,
+          "Celebrations": 0
+        },
+        "Latest_Update": {
+          "Text": null,
+          "Date": null
+        }
+      },
+      {
+        "Feedback_Entry_ID": 458,
+        "Title": "Prayer Request from Conner, Evona",
+        "Description": "Requested prayer for a list of loved ones",
+        "Requester": {
+          "Display_Name": "Conner, Evona",
+          "First_Name": "Evona",
+          "Last_Name": "Conner",
+          "Image": null
+        },
+        "Type": {
+          "Label": "Prayer Request",
+          "ID": 1
+        },
+        "Visibility": {
+          "Level_ID": 4,
+          "Label": "Public"
+        },
+        "Dates": {
+          "Submitted": "2025-10-18T10:00:00",
+          "Target": null
+        },
+        "Status": {
+          "Ongoing_Need": false
+        },
+        "Counts": {
+          "Prayers": 1,
+          "Celebrations": 0
+        },
+        "Latest_Update": {
+          "Text": null,
+          "Date": null
+        }
+      },
+      {
+        "Feedback_Entry_ID": 459,
+        "Title": "Prayer Request from Pearson, Janaye",
+        "Description": "Requested prayer for healthy birth of son and employment opportunities afterward",
+        "Requester": {
+          "Display_Name": "Pearson, Janaye",
+          "First_Name": "Janaye",
+          "Last_Name": "Pearson",
+          "Image": null
+        },
+        "Type": {
+          "Label": "Prayer Request",
+          "ID": 1
+        },
+        "Visibility": {
+          "Level_ID": 4,
+          "Label": "Public"
+        },
+        "Dates": {
+          "Submitted": "2025-10-17T14:30:00",
+          "Target": null
+        },
+        "Status": {
+          "Ongoing_Need": false
+        },
+        "Counts": {
+          "Prayers": 2,
+          "Celebrations": 0
+        },
+        "Latest_Update": {
+          "Text": null,
+          "Date": null
+        }
+      }
+    ]
   }
 }

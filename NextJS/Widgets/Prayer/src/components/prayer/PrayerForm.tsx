@@ -32,7 +32,7 @@ const prayerFormSchema = z.object({
   Description: z.string().min(10, 'Prayer request must be at least 10 characters').max(4000, 'Prayer request is too long'),
   Feedback_Type_ID: z.string().min(1, 'Please select a type'),
   Target_Date: z.string().optional(), // Optional target date for the prayer
-  Anonymous_Share: z.boolean().default(false), // Whether to submit anonymously
+  Anonymous_Share: z.boolean(), // Whether to submit anonymously
 });
 
 type PrayerFormValues = z.infer<typeof prayerFormSchema>;

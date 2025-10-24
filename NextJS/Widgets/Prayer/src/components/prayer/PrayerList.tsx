@@ -24,6 +24,7 @@ interface Prayer {
   Contact_ID_Table?: {
     Display_Name: string;
     First_Name: string;
+    Last_Name: string;
     Contact_Photo?: string | null;
   };
   Feedback_Type_ID_Table?: {

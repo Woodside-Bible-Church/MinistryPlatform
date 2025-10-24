@@ -29,6 +29,9 @@ import {
   adaptCommunityNeedItem,
 } from '@/lib/widgetDataAdapter';
 
+// Force dynamic rendering - this page uses browser APIs (localStorage, window, etc.)
+export const dynamic = 'force-dynamic';
+
 export default function PrayerPage() {
   const [showForm, setShowForm] = useState(false);
   const [viewMode, setViewMode] = useState<'stack' | 'list'>('stack');
