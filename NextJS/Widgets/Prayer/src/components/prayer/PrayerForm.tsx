@@ -193,16 +193,33 @@ export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps
                     <button
                       type="button"
                       onClick={() => field.onChange(field.value === '1' ? '2' : '1')}
-                      className={`relative inline-flex h-10 w-20 shrink-0 cursor-pointer items-center rounded-full border-2 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
-                        field.value === '2' ? 'bg-[#61BC47] border-[#61BC47]' : 'bg-gray-200 border-gray-300'
-                      }`}
-                      style={{ backgroundColor: field.value === '2' ? '#61BC47' : '#e5e7eb', borderColor: field.value === '2' ? '#61BC47' : '#d1d5db' }}
+                      className="relative inline-flex shrink-0 cursor-pointer items-center rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      style={{
+                        height: '40px',
+                        width: '80px',
+                        backgroundColor: field.value === '2' ? '#61BC47' : '#e5e7eb',
+                        borderWidth: '2px',
+                        borderStyle: 'solid',
+                        borderColor: field.value === '2' ? '#61BC47' : '#d1d5db',
+                        padding: 0,
+                        margin: 0,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        boxSizing: 'border-box',
+                      }}
                     >
                       <span
-                        className={`pointer-events-none block h-8 w-8 rounded-full shadow-lg ring-0 transition-all duration-300 ${
-                          field.value === '2' ? 'translate-x-10 bg-white' : 'translate-x-1 bg-white'
-                        }`}
-                        style={{ backgroundColor: '#ffffff' }}
+                        className="pointer-events-none block rounded-full shadow-lg ring-0 transition-all duration-300"
+                        style={{
+                          height: '32px',
+                          width: '32px',
+                          backgroundColor: '#ffffff',
+                          transform: field.value === '2' ? 'translateX(40px)' : 'translateX(4px)',
+                          transitionProperty: 'transform',
+                          transitionDuration: '300ms',
+                          borderRadius: '9999px',
+                          display: 'block',
+                        }}
                       />
                     </button>
 
