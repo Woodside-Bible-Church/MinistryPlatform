@@ -16,6 +16,7 @@ import { Loader2, Calendar, CheckCircle, Clock, Edit, MessageCircle, Plus, User2
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsPraying } from '@fortawesome/free-solid-svg-icons';
 import { PrayerForm } from './PrayerForm';
+import { PrayerUpdateForm } from './PrayerUpdateForm';
 
 interface MyPrayer {
   Feedback_Entry_ID: number;
@@ -109,6 +110,21 @@ export function MyPrayers({ prayers: initialPrayers, isLoading = false, error = 
     if (prayer) {
       setEditingPrayer(prayer);
       setShowUpdateDialog(true);
+    }
+  };
+
+  const handleUpdateSuccess = async () => {
+    setShowUpdateDialog(false);
+    setEditingPrayer(null);
+    // Refresh the prayers list after update
+    try {
+      const response = await authenticatedFetch('/api/prayers?mine=true');
+      if (response.ok) {
+        const data = await response.json();
+        setPrayers(data);
+      }
+    } catch (err) {
+      console.error('Error refreshing prayers:', err);
     }
   };
 
@@ -379,19 +395,26 @@ export function MyPrayers({ prayers: initialPrayers, isLoading = false, error = 
         </DialogContent>
       </Dialog>
 
-      {/* Add Update Dialog - Placeholder for now */}
+      {/* Add Update Dialog */}
       <Dialog open={showUpdateDialog} onOpenChange={setShowUpdateDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Prayer Update</DialogTitle>
             <DialogDescription>
               Share an update or testimony about this prayer.
             </DialogDescription>
           </DialogHeader>
-          <div className="text-center py-8 text-muted-foreground">
-            Update functionality coming soon!
-          </div>
-          <Button onClick={() => setShowUpdateDialog(false)}>Close</Button>
+          {editingPrayer && (
+            <PrayerUpdateForm
+              prayerId={editingPrayer.Feedback_Entry_ID}
+              prayerTitle={editingPrayer.Entry_Title || editingPrayer.Description.substring(0, 100) + '...'}
+              onSuccess={handleUpdateSuccess}
+              onCancel={() => {
+                setShowUpdateDialog(false);
+                setEditingPrayer(null);
+              }}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
