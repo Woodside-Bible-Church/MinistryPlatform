@@ -3,76 +3,21 @@
 /**
  * Prayer Stats Component
  * Displays user's prayer statistics including total prayers, streak, and today's count
+ * Now powered by unified widget data endpoint
  */
 
-import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsPraying, faFire, faCalendarDay } from '@fortawesome/free-solid-svg-icons';
-import { authenticatedFetch } from '@/lib/mpWidgetAuthClient';
+import type { UserStats } from '@/types/widgetData';
 
-interface PrayerStatsData {
-  Total_Responses: number;
-  Responses_Today: number;
-  Current_Streak: number;
-  Last_Response_Date: string | null;
-  Unique_Entries_Responded: number;
+interface PrayerStatsProps {
+  stats: UserStats | null;
+  isLoading?: boolean;
 }
 
-export function PrayerStats() {
-  const [stats, setStats] = useState<PrayerStatsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchStats() {
-      try {
-        const response = await authenticatedFetch('/api/prayers/stats');
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          // If SQL not run yet, don't show error to user
-          if (errorData.error === 'Stored procedure not found' || errorData.error === 'Database table not found') {
-            console.warn('Prayer stats not available yet - SQL schema needs to be run');
-            setStats({
-              Total_Responses: 0,
-              Responses_Today: 0,
-              Current_Streak: 0,
-              Last_Response_Date: null,
-              Unique_Entries_Responded: 0,
-            });
-            setLoading(false);
-            return;
-          }
-          throw new Error(errorData.message || 'Failed to fetch stats');
-        }
-
-        const data = await response.json();
-        setStats(data);
-      } catch (err) {
-        console.error('Error fetching prayer stats:', err);
-        // If stored procedure not found (404), just show zeros
-        if (err instanceof Error && err.message.includes('404')) {
-          console.warn('Prayer stats stored procedure not available yet - showing zeros');
-          setStats({
-            Total_Responses: 0,
-            Responses_Today: 0,
-            Current_Streak: 0,
-            Last_Response_Date: null,
-            Unique_Entries_Responded: 0,
-          });
-        } else {
-          setError(err instanceof Error ? err.message : 'Failed to load stats');
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchStats();
-  }, []);
-
-  if (loading) {
+export function PrayerStats({ stats, isLoading = false }: PrayerStatsProps) {
+  if (isLoading) {
     return (
       <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
         <CardContent className="py-4">
@@ -86,8 +31,8 @@ export function PrayerStats() {
     );
   }
 
-  if (error || !stats) {
-    return null; // Don't show error UI, just hide the component
+  if (!stats) {
+    return null; // Don't show if no stats available
   }
 
   return (
@@ -98,27 +43,27 @@ export function PrayerStats() {
           <div className="flex flex-col items-center gap-1">
             <div className="flex items-center gap-2">
               <FontAwesomeIcon icon={faHandsPraying} className="w-5 h-5 text-primary" />
-              <span className="text-2xl font-bold text-foreground">{stats.Total_Responses}</span>
+              <span className="text-2xl font-bold text-foreground">{stats.Total_Prayers.Count}</span>
             </div>
-            <span className="text-xs text-muted-foreground">Total Prayers</span>
+            <span className="text-xs text-muted-foreground">{stats.Total_Prayers.Label}</span>
           </div>
 
           {/* Current Streak */}
           <div className="flex flex-col items-center gap-1">
             <div className="flex items-center gap-2">
               <FontAwesomeIcon icon={faFire} className="w-5 h-5 text-orange-500" />
-              <span className="text-2xl font-bold text-foreground">{stats.Current_Streak}</span>
+              <span className="text-2xl font-bold text-foreground">{stats.Prayer_Streak.Count}</span>
             </div>
-            <span className="text-xs text-muted-foreground">Day Streak</span>
+            <span className="text-xs text-muted-foreground">{stats.Prayer_Streak.Label}</span>
           </div>
 
           {/* Today's Prayers */}
           <div className="flex flex-col items-center gap-1">
             <div className="flex items-center gap-2">
               <FontAwesomeIcon icon={faCalendarDay} className="w-5 h-5 text-blue-500" />
-              <span className="text-2xl font-bold text-foreground">{stats.Responses_Today}</span>
+              <span className="text-2xl font-bold text-foreground">{stats.Prayers_Today.Count}</span>
             </div>
-            <span className="text-xs text-muted-foreground">Today</span>
+            <span className="text-xs text-muted-foreground">{stats.Prayers_Today.Label}</span>
           </div>
         </div>
       </CardContent>

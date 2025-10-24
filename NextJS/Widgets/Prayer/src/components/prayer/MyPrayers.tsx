@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Calendar, CheckCircle, Clock, Edit, MessageCircle } from 'lucide-react';
+import { Loader2, Calendar, CheckCircle, Clock, Edit, MessageCircle, Plus, User2 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsPraying } from '@fortawesome/free-solid-svg-icons';
 import { PrayerForm } from './PrayerForm';
@@ -36,44 +36,28 @@ interface MyPrayer {
   Contact_ID_Table?: {
     Display_Name?: string;
     First_Name?: string;
+    Last_Name?: string;
     Contact_Photo?: string | null;
   };
   userImageUrl?: string; // Added by API route from auth callback
 }
 
-export function MyPrayers() {
-  const [prayers, setPrayers] = useState<MyPrayer[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface MyPrayersProps {
+  prayers: MyPrayer[];
+  isLoading?: boolean;
+  error?: string | null;
+}
+
+export function MyPrayers({ prayers: initialPrayers, isLoading = false, error = null }: MyPrayersProps) {
+  const [prayers, setPrayers] = useState<MyPrayer[]>(initialPrayers);
   const [editingPrayer, setEditingPrayer] = useState<MyPrayer | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
 
+  // Update local prayers when props change
   useEffect(() => {
-    async function fetchMyPrayers() {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const response = await authenticatedFetch('/api/prayers?mine=true');
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch your prayers');
-        }
-
-        const data = await response.json();
-        console.log('[MyPrayers] Fetched prayers:', data);
-        setPrayers(data);
-      } catch (err) {
-        console.error('Error fetching my prayers:', err);
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchMyPrayers();
-  }, []);
+    setPrayers(initialPrayers);
+  }, [initialPrayers]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -108,7 +92,7 @@ export function MyPrayers() {
   const handleEditSuccess = async () => {
     setShowEditDialog(false);
     setEditingPrayer(null);
-    // Refresh the prayers list
+    // Refresh the prayers list after edit
     try {
       const response = await authenticatedFetch('/api/prayers?mine=true');
       if (response.ok) {
@@ -152,8 +136,37 @@ export function MyPrayers() {
   }
 
   if (error) {
+    // Check if error is authentication-related
+    const isAuthError = error.includes('authentication') ||
+                       error.includes('Unauthorized') ||
+                       error.includes('expired') ||
+                       error.includes('Invalid token');
+
+    if (isAuthError) {
+      return (
+        <Card className="max-w-2xl mx-auto border-blue-200 bg-blue-50">
+          <CardContent className="py-8 text-center">
+            <div className="mb-4">
+              <User2 className="w-12 h-12 mx-auto text-blue-500 mb-2" />
+              <h3 className="text-lg font-semibold text-foreground">Sign In to View Your Requests</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Please sign in to view and manage your prayer requests
+            </p>
+            <Button
+              onClick={() => window.location.reload()}
+              variant="default"
+              className="bg-blue-500 hover:bg-blue-600"
+            >
+              Refresh Page
+            </Button>
+          </CardContent>
+        </Card>
+      );
+    }
+
     return (
-      <Alert className="bg-red-50 border-red-200">
+      <Alert className="bg-red-50 border-red-200 max-w-2xl mx-auto">
         <AlertDescription className="text-red-800">{error}</AlertDescription>
       </Alert>
     );
@@ -161,12 +174,17 @@ export function MyPrayers() {
 
   if (prayers.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-lg text-muted-foreground mb-2">You haven&apos;t submitted any prayer requests yet</p>
-        <p className="text-sm text-muted-foreground">
-          Click &quot;Submit Prayer&quot; above to share your first request
-        </p>
-      </div>
+      <Card className="max-w-2xl mx-auto">
+        <CardContent className="py-8 text-center">
+          <div className="mb-4">
+            <Plus className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
+            <h3 className="text-lg font-semibold text-foreground">No Prayer Requests Yet</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Click &quot;Submit Prayer&quot; above to share your first request with the community
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -184,16 +202,21 @@ export function MyPrayers() {
 
             return (
               <Card key={prayer.Feedback_Entry_ID} className="shadow-sm hover:shadow-md transition-shadow flex-shrink-0 w-[calc(100vw-3rem)] sm:w-[400px] flex flex-col overflow-hidden p-0 snap-start sm:snap-align-none">
-                {/* Colored Header with Image and Status/Prayer Count */}
+                {/* Colored Header with Avatar, Name and Status/Prayer Count */}
                 <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-slate-50 border-b">
-                  {/* Left: User Photo */}
-                  {prayer.userImageUrl && (
-                    <img
-                      src={prayer.userImageUrl}
-                      alt="Your photo"
-                      className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-2 ring-background"
-                    />
-                  )}
+                  {/* Left: Avatar + Your Name */}
+                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                    {prayer.Contact_ID_Table?.Contact_Photo && (
+                      <img
+                        src={prayer.Contact_ID_Table.Contact_Photo}
+                        alt={`${prayer.Contact_ID_Table.First_Name} ${prayer.Contact_ID_Table.Last_Name}`}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    )}
+                    {prayer.Contact_ID_Table?.First_Name && prayer.Contact_ID_Table?.Last_Name && (
+                      <span>{prayer.Contact_ID_Table.First_Name} {prayer.Contact_ID_Table.Last_Name}</span>
+                    )}
+                  </div>
 
                   {/* Right: Status or Prayer Count */}
                   <div className="flex items-center gap-2 text-sm font-medium">

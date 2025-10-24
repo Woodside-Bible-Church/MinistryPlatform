@@ -35,60 +35,24 @@ interface Prayer {
 
 interface PrayerListProps {
   mode?: 'stack' | 'list';
-  onlyApproved?: boolean;
-  showMyPrayers?: boolean;
+  prayers: Prayer[];
+  isLoading?: boolean;
+  error?: string | null;
 }
 
-export function PrayerList({ mode = 'stack', onlyApproved = true, showMyPrayers = false }: PrayerListProps) {
-  const [prayers, setPrayers] = useState<Prayer[]>([]);
-  const [filteredPrayers, setFilteredPrayers] = useState<Prayer[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function PrayerList({ mode = 'stack', prayers: initialPrayers, isLoading = false, error = null }: PrayerListProps) {
+  const [prayers, setPrayers] = useState<Prayer[]>(initialPrayers);
+  const [filteredPrayers, setFilteredPrayers] = useState<Prayer[]>(initialPrayers);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [totalPrayed, setTotalPrayed] = useState(0);
 
-  // Fetch prayers
+  // Update local prayers when props change
   useEffect(() => {
-    async function fetchData() {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        // Fetch prayers - use authenticated fetch only for "My Prayers"
-        const prayersUrl = `/api/prayers?${onlyApproved ? 'approved=true&' : ''}${showMyPrayers ? 'mine=true' : ''}`;
-        const prayersResponse = showMyPrayers
-          ? await authenticatedFetch(prayersUrl)
-          : await apiFetch(prayersUrl);
-
-        if (!prayersResponse.ok) {
-          throw new Error('Failed to fetch prayers');
-        }
-
-        const prayersData = await prayersResponse.json();
-
-        // Filter out own prayers from Community Needs (when not showing "My Prayers")
-        let filteredData = prayersData;
-        if (!showMyPrayers) {
-          const currentUser = await getCurrentUser();
-          if (currentUser?.contactId) {
-            filteredData = prayersData.filter((p: Prayer) => p.Contact_ID !== currentUser.contactId);
-          }
-        }
-
-        setPrayers(filteredData);
-        setFilteredPrayers(filteredData);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchData();
-  }, [onlyApproved, showMyPrayers]);
+    setPrayers(initialPrayers);
+    setFilteredPrayers(initialPrayers);
+  }, [initialPrayers]);
 
   // Apply search filter
   useEffect(() => {

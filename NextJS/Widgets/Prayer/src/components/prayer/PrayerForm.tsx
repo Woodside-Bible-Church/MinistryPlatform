@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 
@@ -31,6 +32,7 @@ const prayerFormSchema = z.object({
   Description: z.string().min(10, 'Prayer request must be at least 10 characters').max(4000, 'Prayer request is too long'),
   Feedback_Type_ID: z.string().min(1, 'Please select a type'),
   Target_Date: z.string().optional(), // Optional target date for the prayer
+  Anonymous_Share: z.boolean().default(false), // Whether to submit anonymously
 });
 
 type PrayerFormValues = z.infer<typeof prayerFormSchema>;
@@ -62,6 +64,7 @@ export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps
       Description: initialData?.Description || '',
       Feedback_Type_ID: initialData?.Feedback_Type_ID?.toString() || '1',
       Target_Date: initialData?.Target_Date || '',
+      Anonymous_Share: false,
     },
   });
 
@@ -95,6 +98,7 @@ export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps
           Feedback_Type_ID: parseInt(values.Feedback_Type_ID),
           Target_Date: values.Target_Date || null, // Send null if empty
           Ongoing_Need: !values.Target_Date, // If no target date, mark as ongoing
+          Anonymous_Share: values.Anonymous_Share,
         }),
       });
 
@@ -234,6 +238,29 @@ export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps
                   Share your prayer request with the community
                 </FormDescription>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="Anonymous_Share"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>
+                    Submit Anonymously
+                  </FormLabel>
+                  <FormDescription>
+                    Your name will not be shown with this prayer request
+                  </FormDescription>
+                </div>
               </FormItem>
             )}
           />

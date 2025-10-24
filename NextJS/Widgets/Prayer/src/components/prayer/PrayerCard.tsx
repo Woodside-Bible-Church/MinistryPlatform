@@ -31,6 +31,7 @@ interface PrayerCardProps {
     Contact_ID_Table?: {
       Display_Name: string;
       First_Name: string;
+      Last_Name: string;
       Contact_Photo?: string | null;
     };
     Feedback_Type_ID_Table?: {
@@ -168,12 +169,23 @@ export function PrayerCard({ prayer, onPrayedFor, onDismiss, showSwipeHint = fal
       )}
 
       <Card className="cursor-grab active:cursor-grabbing shadow-lg hover:shadow-xl transition-shadow overflow-hidden p-0">
-        {/* Colored Header with Name and Prayer Count */}
+        {/* Colored Header with Avatar, Name and Prayer Count */}
         <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-slate-50 border-b">
-          {/* Left: Contact Name (eventually will have photo if not anonymous) */}
-          <p className="text-sm font-medium text-foreground">
-            {prayer.Contact_ID_Table?.Display_Name || 'Anonymous'}
-          </p>
+          {/* Left: Avatar + Contact Name (First Last format) */}
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            {prayer.Contact_ID_Table?.Contact_Photo && (
+              <img
+                src={prayer.Contact_ID_Table.Contact_Photo}
+                alt={`${prayer.Contact_ID_Table.First_Name} ${prayer.Contact_ID_Table.Last_Name}`}
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            )}
+            <span>
+              {prayer.Contact_ID_Table?.First_Name && prayer.Contact_ID_Table?.Last_Name
+                ? `${prayer.Contact_ID_Table.First_Name} ${prayer.Contact_ID_Table.Last_Name}`
+                : prayer.Contact_ID_Table?.Display_Name || 'Anonymous'}
+            </span>
+          </div>
 
           {/* Right: Prayer Count */}
           <div className="flex items-center gap-2 text-sm font-medium text-primary">

@@ -5,14 +5,14 @@
  * Displays prayer requests with swipe functionality and submission form
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { PrayerList } from '@/components/prayer/PrayerList';
 import { MyPrayers } from '@/components/prayer/MyPrayers';
 import { PrayerForm } from '@/components/prayer/PrayerForm';
 import { PrayerStats } from '@/components/prayer/PrayerStats';
 import { PeoplePrayedFor } from '@/components/prayer/PeoplePrayedFor';
 import { Button } from '@/components/ui/button';
-import { Plus, List, Layers, User2, Heart } from 'lucide-react';
+import { Plus, List, Layers, User2, Heart, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -22,12 +22,60 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { requireLogin, isLoggedIn } from '@/lib/mpLogin';
+import { useWidgetData } from '@/hooks/useWidgetData';
+import {
+  adaptMyRequestItem,
+  adaptPrayerPartnerItem,
+  adaptCommunityNeedItem,
+} from '@/lib/widgetDataAdapter';
 
 export default function PrayerPage() {
   const [showForm, setShowForm] = useState(false);
   const [viewMode, setViewMode] = useState<'stack' | 'list'>('stack');
   const [refreshKey, setRefreshKey] = useState(0);
   const [loggedIn, setLoggedIn] = useState(false);
+
+  // Fetch unified widget data
+  const { data: widgetData, isLoading: widgetLoading, error: widgetError } = useWidgetData(refreshKey);
+
+  // Transform unified data to legacy component format
+  const myRequestsData = useMemo(() => {
+    if (!widgetData?.My_Requests?.Items) return [];
+    return widgetData.My_Requests.Items.map(item => adaptMyRequestItem(item, widgetData.User_Info));
+  }, [widgetData]);
+
+  const prayerPartnersData = useMemo(() => {
+    if (!widgetData?.Prayer_Partners?.Items) return [];
+    return widgetData.Prayer_Partners.Items.map(adaptPrayerPartnerItem);
+  }, [widgetData]);
+
+  const communityNeedsData = useMemo(() => {
+    if (!widgetData?.Community_Needs?.Items) return [];
+    return widgetData.Community_Needs.Items.map(adaptCommunityNeedItem);
+  }, [widgetData]);
+
+  // Log unified data when it loads
+  useEffect(() => {
+    if (widgetData) {
+      console.log('[Prayer Page] Unified widget data loaded:', {
+        title: widgetData.Widget_Title,
+        subtitle: widgetData.Widget_Subtitle,
+        userStats: widgetData.User_Stats,
+        myRequestsCount: widgetData.My_Requests.Total_Count,
+        prayerPartnersCount: widgetData.Prayer_Partners.Total_Count,
+        communityNeedsCount: widgetData.Community_Needs.Total_Count,
+      });
+      console.log('[Prayer Page] Full unified data:', widgetData);
+      console.log('[Prayer Page] Transformed data:', {
+        myRequests: myRequestsData,
+        prayerPartners: prayerPartnersData,
+        communityNeeds: communityNeedsData,
+      });
+    }
+    if (widgetError) {
+      console.error('[Prayer Page] Error loading unified data:', widgetError);
+    }
+  }, [widgetData, widgetError, myRequestsData, prayerPartnersData, communityNeedsData]);
 
   useEffect(() => {
     // Check login status on mount and when window gains focus
@@ -96,6 +144,24 @@ export default function PrayerPage() {
     }
   };
 
+  // Show loading state while unified data is being fetched
+  if (widgetLoading) {
+    return (
+      <div className="bg-gradient-to-b from-background to-muted/20 min-h-screen">
+        <div className="py-6 text-center">
+          <h1 className="text-3xl font-bold text-primary">Prayer & Praise</h1>
+          <p className="text-sm text-muted-foreground mt-1">Share burdens, celebrate victories</p>
+        </div>
+        <div className="container mx-auto px-4 py-12">
+          <div className="flex flex-col items-center justify-center gap-4">
+            <Loader2 className="w-12 h-12 animate-spin text-primary" />
+            <p className="text-muted-foreground">Loading prayer data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gradient-to-b from-background to-muted/20">
         {/* Simplified Header */}
@@ -107,9 +173,9 @@ export default function PrayerPage() {
         {/* Main Content */}
         <main className="container mx-auto px-4 space-y-12 pb-12">
           {/* Prayer Stats - Only show if logged in */}
-          {loggedIn && (
+          {loggedIn && widgetData?.User_Stats && (
             <div className="max-w-2xl mx-auto">
-              <PrayerStats key={refreshKey} />
+              <PrayerStats stats={widgetData.User_Stats} isLoading={widgetLoading} />
             </div>
           )}
 
@@ -147,7 +213,10 @@ export default function PrayerPage() {
               <p className="text-muted-foreground text-sm">
                 Track your prayer requests and see who&apos;s lifting you up.
               </p>
-              <MyPrayers key={`my-${refreshKey}`} />
+              <MyPrayers
+                prayers={widgetLoading ? [] : myRequestsData}
+                isLoading={widgetLoading}
+              />
             </section>
           )}
 
@@ -161,7 +230,10 @@ export default function PrayerPage() {
               <p className="text-muted-foreground text-sm">
                 See who you&apos;ve been standing with in prayer.
               </p>
-              <PeoplePrayedFor key={`prayed-${refreshKey}`} />
+              <PeoplePrayedFor
+                prayers={widgetLoading ? [] : prayerPartnersData}
+                isLoading={widgetLoading}
+              />
             </section>
           )}
 
@@ -196,7 +268,11 @@ export default function PrayerPage() {
             <p className="text-muted-foreground text-sm">
               Join others in lifting up these requests and celebrating answered prayers.
             </p>
-            <PrayerList key={`wall-${refreshKey}`} mode={viewMode} onlyApproved={true} />
+            <PrayerList
+              mode={viewMode}
+              prayers={widgetLoading ? [] : communityNeedsData}
+              isLoading={widgetLoading}
+            />
           </section>
         </main>
       </div>

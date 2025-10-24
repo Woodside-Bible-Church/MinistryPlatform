@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { authenticatedFetch } from '@/lib/mpWidgetAuthClient';
-import { Clock } from 'lucide-react';
+import { Clock, Heart } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsPraying } from '@fortawesome/free-solid-svg-icons';
 
@@ -30,35 +30,18 @@ interface PrayerResponse {
   Contact_ID: number;
   Anonymous_Share?: boolean | null;
   contactImageUrl?: string | null;
+  contactFirstName?: string;
+  contactLastName?: string;
+  contactDisplayName?: string;
 }
 
-export function PeoplePrayedFor() {
-  const [prayers, setPrayers] = useState<PrayerResponse[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface PeoplePrayedForProps {
+  prayers: PrayerResponse[];
+  isLoading?: boolean;
+  error?: string | null;
+}
 
-  useEffect(() => {
-    async function fetchPrayers() {
-      try {
-        const response = await authenticatedFetch('/api/prayers/prayed-for');
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to fetch prayers');
-        }
-
-        const data = await response.json();
-        setPrayers(data);
-      } catch (err) {
-        console.error('Error fetching prayers prayed for:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load prayers');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchPrayers();
-  }, []);
+export function PeoplePrayedFor({ prayers, isLoading = false, error = null }: PeoplePrayedForProps) {
 
   const formatTargetDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -93,7 +76,7 @@ export function PeoplePrayedFor() {
     console.log('Pray again for prayer:', prayerId);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="w-full">
         <div className="overflow-x-auto horizontal-scroll pb-4 -mx-4 px-4">
@@ -121,16 +104,52 @@ export function PeoplePrayedFor() {
   }
 
   if (error) {
-    return null; // Don't show error UI, just hide the component
+    // Check if error is authentication-related
+    const isAuthError = error.includes('authentication') ||
+                       error.includes('Unauthorized') ||
+                       error.includes('expired') ||
+                       error.includes('Invalid token');
+
+    if (isAuthError) {
+      return (
+        <div className="w-full">
+          <Card className="max-w-2xl mx-auto border-blue-200 bg-blue-50">
+            <CardContent className="py-8 text-center">
+              <div className="mb-4">
+                <Heart className="w-12 h-12 mx-auto text-blue-500 mb-2" />
+                <h3 className="text-lg font-semibold text-foreground">Sign In to View Prayer Partners</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Please sign in to see who you&apos;ve been standing with in prayer
+              </p>
+              <Button
+                onClick={() => window.location.reload()}
+                variant="default"
+                className="bg-blue-500 hover:bg-blue-600"
+              >
+                Refresh Page
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    // For non-auth errors, silently hide the component
+    return null;
   }
 
   if (prayers.length === 0) {
     return (
       <div className="w-full">
-        <Card className="max-w-2xl">
-          <CardContent className="py-8">
-            <p className="text-sm text-muted-foreground text-center">
-              You haven&apos;t prayed for anyone yet. Swipe right on a prayer to start!
+        <Card className="max-w-2xl mx-auto">
+          <CardContent className="py-8 text-center">
+            <div className="mb-4">
+              <FontAwesomeIcon icon={faHandsPraying} className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
+              <h3 className="text-lg font-semibold text-foreground">No Prayer Partners Yet</h3>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Swipe right on prayers in Community Needs to pray for others and they&apos;ll appear here
             </p>
           </CardContent>
         </Card>
@@ -149,15 +168,27 @@ export function PeoplePrayedFor() {
         <div className="flex gap-4" style={{ minWidth: 'min-content' }}>
           {prayers.map((prayer) => (
             <Card key={prayer.Feedback_Entry_User_Response_ID} className="shadow-sm hover:shadow-md transition-shadow flex-shrink-0 w-[calc(100vw-3rem)] sm:w-[400px] flex flex-col overflow-hidden p-0 snap-start sm:snap-align-none">
-              {/* Colored Header with Image and Prayer Count */}
+              {/* Colored Header with Avatar, Name and Prayer Count */}
               <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-slate-50 border-b">
-                {/* Left: Contact Photo (if not anonymous) */}
-                {!prayer.Anonymous_Share && prayer.contactImageUrl && (
-                  <img
-                    src={prayer.contactImageUrl}
-                    alt="Contact photo"
-                    className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-2 ring-background"
-                  />
+                {/* Left: Avatar + Requester Name (if not anonymous) */}
+                {!prayer.Anonymous_Share && (
+                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                    {prayer.contactImageUrl && (
+                      <img
+                        src={prayer.contactImageUrl}
+                        alt={`${prayer.contactFirstName} ${prayer.contactLastName}`}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    )}
+                    {prayer.contactFirstName && prayer.contactLastName && (
+                      <span>{prayer.contactFirstName} {prayer.contactLastName}</span>
+                    )}
+                  </div>
+                )}
+                {prayer.Anonymous_Share && (
+                  <div className="text-sm font-medium text-muted-foreground italic">
+                    Anonymous
+                  </div>
                 )}
 
                 {/* Right: Prayer Count */}
