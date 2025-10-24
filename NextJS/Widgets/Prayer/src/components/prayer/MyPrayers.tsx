@@ -30,6 +30,15 @@ interface MyPrayer {
   Feedback_Type_ID_Table?: {
     Feedback_Type: string;
   };
+  Anonymous?: boolean | null;
+  Anonymous_Share?: boolean | null;
+  Visibility_Level_ID?: number | null;
+  Contact_ID_Table?: {
+    Display_Name?: string;
+    First_Name?: string;
+    Contact_Photo?: string | null;
+  };
+  userImageUrl?: string; // Added by API route from auth callback
 }
 
 export function MyPrayers() {
@@ -53,6 +62,7 @@ export function MyPrayers() {
         }
 
         const data = await response.json();
+        console.log('[MyPrayers] Fetched prayers:', data);
         setPrayers(data);
       } catch (err) {
         console.error('Error fetching my prayers:', err);
@@ -118,22 +128,19 @@ export function MyPrayers() {
     }
   };
 
-  // Determine badge style based on feedback type
-  const getFeedbackBadge = (feedbackTypeId: number) => {
-    if (feedbackTypeId === 1) {
-      return {
-        label: 'Prayer Request',
-        className: 'bg-blue-500 text-white',
-        icon: faHandsPraying
-      };
-    } else if (feedbackTypeId === 2) {
-      return {
-        label: 'Praise Report',
-        className: 'bg-primary text-white',
-        icon: faHandsPraying
-      };
+  // Get visibility level label
+  const getVisibilityLabel = (levelId?: number | null) => {
+    switch (levelId) {
+      case 1: return 'Public';
+      case 2: return 'Members Only';
+      case 3: return 'Staff Only';
+      default: return 'Public';
     }
-    return null;
+  };
+
+  // Determine badge style based on feedback type
+  const getFeedbackTypeLabel = (feedbackTypeId: number) => {
+    return feedbackTypeId === 1 ? 'Prayer Request' : 'Praise Report';
   };
 
   if (isLoading) {
@@ -170,87 +177,116 @@ export function MyPrayers() {
       </div>
 
       {/* Horizontal Scrolling Carousel */}
-      <div className="overflow-x-auto pb-4 -mx-4 px-4">
+      <div className="overflow-x-auto horizontal-scroll pb-4 -mx-4 px-4 snap-x snap-mandatory sm:snap-none">
         <div className="flex gap-4" style={{ minWidth: 'min-content' }}>
           {prayers.map((prayer) => {
-            const badgeInfo = getFeedbackBadge(prayer.Feedback_Type_ID);
             const isPending = !prayer.Approved;
 
             return (
-              <Card key={prayer.Feedback_Entry_ID} className="shadow-sm hover:shadow-md transition-shadow flex-shrink-0 w-[400px]">
-                <CardHeader className="pb-3 relative">
-                  {/* Badges in Top Right Corner */}
-                  <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
-                    {/* Feedback Type Badge */}
-                    {badgeInfo && (
-                      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full ${badgeInfo.className}`}>
-                        <FontAwesomeIcon icon={badgeInfo.icon} className="w-3 h-3" />
-                        <span>{badgeInfo.label}</span>
+              <Card key={prayer.Feedback_Entry_ID} className="shadow-sm hover:shadow-md transition-shadow flex-shrink-0 w-[calc(100vw-3rem)] sm:w-[400px] flex flex-col overflow-hidden p-0 snap-start sm:snap-align-none">
+                {/* Colored Header with Image and Status/Prayer Count */}
+                <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-slate-50 border-b">
+                  {/* Left: User Photo */}
+                  {prayer.userImageUrl && (
+                    <img
+                      src={prayer.userImageUrl}
+                      alt="Your photo"
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-2 ring-background"
+                    />
+                  )}
+
+                  {/* Right: Status or Prayer Count */}
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    {isPending ? (
+                      <div className="flex items-center gap-1.5 text-amber-600">
+                        <Clock className="w-4 h-4" />
+                        <span>Pending Review</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-primary">
+                        <FontAwesomeIcon icon={faHandsPraying} className="w-4 h-4" />
+                        <span>
+                          {prayer.Prayer_Count ?? 0} {prayer.Prayer_Count === 1 ? 'prayer' : 'prayers'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Main Content */}
+                <CardHeader className="pb-2 pt-2 px-6">
+
+                  {/* Title */}
+                  {prayer.Entry_Title && (
+                    <h3 className="text-lg font-semibold text-foreground mb-1">
+                      {prayer.Entry_Title.replace(/^(Prayer Request|Praise Report)\s+from\s+/i, '')}
+                    </h3>
+                  )}
+
+                  {/* Description */}
+                  <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                    {prayer.Description}
+                  </p>
+                </CardHeader>
+
+                <CardContent className="flex-1 flex flex-col gap-3 px-6">
+                  {/* Metadata - at top */}
+                  <div className="space-y-2">
+                    {/* Submitted date - only for pending */}
+                    {isPending && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="w-4 h-4" />
+                        <span>Submitted {formatDate(prayer.Date_Submitted)}</span>
                       </div>
                     )}
 
-                    {/* Target Date Badge (only show if approved) */}
-                    {!isPending && prayer.Target_Date && (
-                      <Badge variant="outline" className="text-xs bg-primary/10 rounded-full">
-                        🎯 {formatTargetDate(prayer.Target_Date)}
-                      </Badge>
-                    )}
-
-                    {/* Ongoing Badge (only show if approved) */}
-                    {!isPending && prayer.Ongoing_Need && !prayer.Target_Date && (
-                      <Badge variant="outline" className="text-xs rounded-full">
-                        Ongoing
-                      </Badge>
-                    )}
-
-                    {/* Approval Status Badge */}
-                    {isPending ? (
-                      <Badge variant="secondary" className="gap-1 text-xs rounded-full">
-                        <Clock className="w-3 h-3" />
-                        Pending Review
-                      </Badge>
+                    {/* Target date or Ongoing */}
+                    {prayer.Target_Date ? (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        🎯 <span>{formatTargetDate(prayer.Target_Date)}</span>
+                      </div>
                     ) : (
-                      <Badge variant="default" className="gap-1 text-xs rounded-full bg-green-600">
-                        <CheckCircle className="w-3 h-3" />
-                        Approved
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="w-4 h-4" />
+                        <span>Ongoing Need</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Spacer to push tags to bottom */}
+                  <div className="flex-1"></div>
+
+                  {/* Wrapping Tags - stuck to bottom */}
+                  <div className="flex flex-wrap gap-2">
+                    {/* Feedback Type */}
+                    <Badge
+                      variant="default"
+                      className={`text-xs rounded-full ${
+                        prayer.Feedback_Type_ID === 1 ? 'bg-blue-500' : 'bg-primary'
+                      }`}
+                    >
+                      <FontAwesomeIcon icon={faHandsPraying} className="w-3 h-3 mr-1.5" />
+                      {getFeedbackTypeLabel(prayer.Feedback_Type_ID)}
+                    </Badge>
+
+                    {/* Anonymous Badge */}
+                    {prayer.Anonymous && (
+                      <Badge variant="outline" className="text-xs rounded-full">
+                        🔒 Anonymous
+                      </Badge>
+                    )}
+
+                    {/* Visibility Level - Only show if NOT public (ID 1 or default) */}
+                    {prayer.Visibility_Level_ID && prayer.Visibility_Level_ID !== 1 && (
+                      <Badge variant="outline" className="text-xs rounded-full">
+                        👁️ {getVisibilityLabel(prayer.Visibility_Level_ID)}
                       </Badge>
                     )}
                   </div>
-
-                  <div className="flex-1 min-w-0 pr-32">
-                    {prayer.Entry_Title && (
-                      <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-2">
-                        {/* Strip redundant prefix */}
-                        {prayer.Entry_Title.replace(/^(Prayer Request|Praise Report)\s+from\s+/i, '')}
-                      </h3>
-                    )}
-
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Calendar className="w-4 h-4" />
-                      <span>
-                        {isPending ? 'Submitted' : 'Submitted on'} {formatDate(prayer.Date_Submitted)}
-                      </span>
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-3">
-                  <p className="text-foreground whitespace-pre-wrap leading-relaxed">
-                    {prayer.Description}
-                  </p>
-
-                  {/* Prayer Count - Only show if approved */}
-                  {!isPending && (
-                    <div className="flex items-center gap-2 text-sm pt-2 border-t">
-                      <FontAwesomeIcon icon={faHandsPraying} className="w-4 h-4 text-primary" />
-                      <span className="font-medium text-foreground">
-                        {prayer.Prayer_Count ?? 0} {prayer.Prayer_Count === 1 ? 'prayer' : 'prayers'}
-                      </span>
-                    </div>
-                  )}
                 </CardContent>
 
-                <CardFooter className="pt-3 border-t">
+                {/* Footer with CTA */}
+                <CardFooter className="pt-3 px-6 pb-6 border-t">
                   {isPending ? (
                     <Button
                       variant="outline"
@@ -262,15 +298,27 @@ export function MyPrayers() {
                       Edit Request
                     </Button>
                   ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddUpdate(prayer.Feedback_Entry_ID)}
-                      className="gap-2 w-full"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                      Add Update
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-2 w-full">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAddUpdate(prayer.Feedback_Entry_ID)}
+                        className="gap-2 flex-1"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        Add Update
+                      </Button>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleAddUpdate(prayer.Feedback_Entry_ID)}
+                        className="gap-2 flex-1"
+                        style={{ backgroundColor: '#61BC47' }}
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        Mark Answered
+                      </Button>
+                    </div>
                   )}
                 </CardFooter>
               </Card>

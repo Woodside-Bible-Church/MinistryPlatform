@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { authenticatedFetch } from '@/lib/mpWidgetAuthClient';
+import { authenticatedFetch, getCurrentUser } from '@/lib/mpWidgetAuthClient';
 import { apiFetch } from '@/lib/apiClient';
 import { PrayerCard } from './PrayerCard';
 import { Input } from '@/components/ui/input';
@@ -16,14 +16,17 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 interface Prayer {
   Feedback_Entry_ID: number;
   Feedback_Type_ID: number;
+  Contact_ID: number;
   Entry_Title: string | null;
   Description: string;
   Date_Submitted: string;
   Ongoing_Need: boolean | null;
   Prayer_Count?: number | null;
+  Anonymous_Share?: boolean | null;
   Contact_ID_Table?: {
     Display_Name: string;
     First_Name: string;
+    Contact_Photo?: string | null;
   };
   Feedback_Type_ID_Table?: {
     Feedback_Type: string;
@@ -64,8 +67,18 @@ export function PrayerList({ mode = 'stack', onlyApproved = true, showMyPrayers 
         }
 
         const prayersData = await prayersResponse.json();
-        setPrayers(prayersData);
-        setFilteredPrayers(prayersData);
+
+        // Filter out own prayers from Community Needs (when not showing "My Prayers")
+        let filteredData = prayersData;
+        if (!showMyPrayers) {
+          const currentUser = await getCurrentUser();
+          if (currentUser?.contactId) {
+            filteredData = prayersData.filter((p: Prayer) => p.Contact_ID !== currentUser.contactId);
+          }
+        }
+
+        setPrayers(filteredData);
+        setFilteredPrayers(filteredData);
       } catch (err) {
         console.error('Error fetching data:', err);
         setError(err instanceof Error ? err.message : 'An error occurred');

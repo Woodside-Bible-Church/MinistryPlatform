@@ -34,7 +34,7 @@ export class FeedbackEntity {
         this.tableName,
         {
           ...params,
-          $select: params?.$select || 'Feedback_Entry_ID,Contact_ID,Feedback_Type_ID,Description,Date_Submitted,Approved,Ongoing_Need,Entry_Title,Prayer_Count,Anonymous_Share,Prayer_Notifications',
+          $select: params?.$select || 'Feedback_Entries.Feedback_Entry_ID,Feedback_Entries.Contact_ID,Feedback_Entries.Feedback_Type_ID,Feedback_Entries.Description,Feedback_Entries.Date_Submitted,Feedback_Entries.Approved,Feedback_Entries.Ongoing_Need,Feedback_Entries.Entry_Title,Feedback_Entries.Prayer_Count,Feedback_Entries.Anonymous_Share,Feedback_Entries.Prayer_Notifications,Contact_ID_Table.Display_Name,Contact_ID_Table.First_Name,Feedback_Type_ID_Table.Feedback_Type',
         }
       );
 
@@ -51,7 +51,7 @@ export class FeedbackEntity {
   async getApprovedPrayers(params?: TableQueryParams): Promise<FeedbackWithRelations[]> {
     return this.getFeedback({
       ...params,
-      $filter: `Approved = 1 ${params?.$filter ? ` AND ${params.$filter}` : ''}`,
+      $filter: `Feedback_Entries.Approved = 1 ${params?.$filter ? ` AND ${params.$filter}` : ''}`,
       $orderby: 'Date_Submitted DESC',
     });
   }
@@ -62,7 +62,7 @@ export class FeedbackEntity {
   async getPendingPrayers(params?: TableQueryParams): Promise<FeedbackWithRelations[]> {
     return this.getFeedback({
       ...params,
-      $filter: `Approved = 0 OR Approved IS NULL ${params?.$filter ? ` AND ${params.$filter}` : ''}`,
+      $filter: `Feedback_Entries.Approved = 0 OR Feedback_Entries.Approved IS NULL ${params?.$filter ? ` AND ${params.$filter}` : ''}`,
       $orderby: 'Date_Submitted DESC',
     });
   }
@@ -73,7 +73,7 @@ export class FeedbackEntity {
   async getFeedbackById(id: number): Promise<FeedbackWithRelations | null> {
     try {
       const data = await this.getFeedback({
-        $filter: `Feedback_Entry_ID = ${id}`,
+        $filter: `Feedback_Entries.Feedback_Entry_ID = ${id}`,
         $top: 1,
       });
 
@@ -170,7 +170,7 @@ export class FeedbackEntity {
   async getFeedbackByContact(contactId: number, params?: TableQueryParams): Promise<FeedbackWithRelations[]> {
     return this.getFeedback({
       ...params,
-      $filter: `Contact_ID = ${contactId} ${params?.$filter ? ` AND ${params.$filter}` : ''}`,
+      $filter: `Feedback_Entries.Contact_ID = ${contactId} ${params?.$filter ? ` AND ${params.$filter}` : ''}`,
       $orderby: 'Date_Submitted DESC',
     });
   }
@@ -181,7 +181,7 @@ export class FeedbackEntity {
   async getFeedbackByType(feedbackTypeId: number, params?: TableQueryParams): Promise<FeedbackWithRelations[]> {
     return this.getFeedback({
       ...params,
-      $filter: `Feedback_Type_ID = ${feedbackTypeId} ${params?.$filter ? ` AND ${params.$filter}` : ''}`,
+      $filter: `Feedback_Entries.Feedback_Type_ID = ${feedbackTypeId} ${params?.$filter ? ` AND ${params.$filter}` : ''}`,
       $orderby: 'Date_Submitted DESC',
     });
   }

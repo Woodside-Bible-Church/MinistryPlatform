@@ -131,6 +131,17 @@
   }
 }
 
+/* Button Styling */
+button,
+button[type="button"],
+button[type="submit"],
+input[type="submit"],
+.btn {
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
 /* Woodside Button Hover Transitions */
 @media only screen and (hover: hover) {
   button:hover,
@@ -149,4 +160,45 @@
     background: oklch(0.19 0.025 240 / 0.1);
     border-color: var(--woodside-blue);
   }
+}
+
+/* Horizontal Scrollbar Styling for Carousels */
+/* Hide scrollbar but keep functionality for horizontal scroll containers */
+.horizontal-scroll,
+[data-orientation="horizontal"] {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.horizontal-scroll::-webkit-scrollbar,
+[data-orientation="horizontal"]::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera */
+}
+
+/* Optional: Show thin progress indicator at bottom of carousel */
+.carousel-container {
+  position: relative;
+}
+
+.carousel-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    to right,
+    var(--woodside-green) 0%,
+    var(--woodside-green) var(--scroll-progress, 0%),
+    oklch(0.88 0.02 136) var(--scroll-progress, 0%),
+    oklch(0.88 0.02 136) 100%
+  );
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.carousel-container:hover::after {
+  opacity: 0.5;
 }

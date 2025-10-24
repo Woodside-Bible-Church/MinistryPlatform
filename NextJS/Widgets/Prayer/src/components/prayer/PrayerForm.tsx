@@ -177,8 +177,8 @@ export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps
                 <FormLabel>Type</FormLabel>
                 <FormControl>
                   <div className="flex items-center gap-4 p-4 border rounded-lg bg-muted/30">
-                    <div className="flex-1 text-center">
-                      <div className={`text-sm font-medium transition-colors ${field.value === '1' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    <div className="flex-1 text-center transition-all duration-300">
+                      <div className={`text-sm font-medium transition-all duration-300 ${field.value === '1' ? 'text-foreground scale-105' : 'text-muted-foreground scale-100'}`}>
                         Prayer Request
                       </div>
                       <div className={`text-xs transition-colors ${field.value === '1' ? 'text-muted-foreground' : 'text-muted-foreground/60'}`}>
@@ -189,19 +189,21 @@ export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps
                     <button
                       type="button"
                       onClick={() => field.onChange(field.value === '1' ? '2' : '1')}
-                      className={`relative inline-flex h-10 w-20 shrink-0 cursor-pointer items-center rounded-full border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
-                        field.value === '2' ? 'bg-primary border-primary' : 'bg-input border-input'
+                      className={`relative inline-flex h-10 w-20 shrink-0 cursor-pointer items-center rounded-full border-2 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                        field.value === '2' ? 'bg-[#61BC47] border-[#61BC47]' : 'bg-gray-200 border-gray-300'
                       }`}
+                      style={{ backgroundColor: field.value === '2' ? '#61BC47' : '#e5e7eb', borderColor: field.value === '2' ? '#61BC47' : '#d1d5db' }}
                     >
                       <span
-                        className={`pointer-events-none block h-8 w-8 rounded-full bg-background shadow-lg ring-0 transition-transform ${
-                          field.value === '2' ? 'translate-x-10' : 'translate-x-1'
+                        className={`pointer-events-none block h-8 w-8 rounded-full shadow-lg ring-0 transition-all duration-300 ${
+                          field.value === '2' ? 'translate-x-10 bg-white' : 'translate-x-1 bg-white'
                         }`}
+                        style={{ backgroundColor: '#ffffff' }}
                       />
                     </button>
 
-                    <div className="flex-1 text-center">
-                      <div className={`text-sm font-medium transition-colors ${field.value === '2' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    <div className="flex-1 text-center transition-all duration-300">
+                      <div className={`text-sm font-medium transition-all duration-300 ${field.value === '2' ? 'text-foreground scale-105' : 'text-muted-foreground scale-100'}`}>
                         Praise Report
                       </div>
                       <div className={`text-xs transition-colors ${field.value === '2' ? 'text-muted-foreground' : 'text-muted-foreground/60'}`}>

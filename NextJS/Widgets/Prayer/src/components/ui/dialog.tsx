@@ -33,9 +33,12 @@ const DialogContent = React.forwardRef<
 >(({ className, children, ...props }, ref) => {
   // Find the correct container - shadow root or document body
   const [container, setContainer] = React.useState<HTMLElement | null>(null)
+  const [mounted, setMounted] = React.useState(false)
   const contentRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
+    setMounted(true)
+
     // Try to find the shadow root that contains this component
     const findShadowRoot = (): HTMLElement => {
       // Start from a known element in the DOM
@@ -62,6 +65,13 @@ const DialogContent = React.forwardRef<
 
     setContainer(findShadowRoot())
   }, [])
+
+  // Don't render portal during SSR to avoid hydration mismatch
+  if (!mounted || !container) {
+    return (
+      <div ref={contentRef} style={{ display: 'none' }} />
+    )
+  }
 
   return (
     <>

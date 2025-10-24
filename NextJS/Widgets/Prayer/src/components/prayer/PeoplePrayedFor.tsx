@@ -6,9 +6,13 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { authenticatedFetch } from '@/lib/mpWidgetAuthClient';
-import { formatDistanceToNow } from 'date-fns';
+import { Clock } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHandsPraying } from '@fortawesome/free-solid-svg-icons';
 
 interface PrayerResponse {
   Feedback_Entry_User_Response_ID: number;
@@ -18,6 +22,14 @@ interface PrayerResponse {
   Entry_Title: string;
   Description: string;
   Date_Submitted: string;
+  Prayer_Count?: number | null;
+  Feedback_Type_ID: number;
+  Visibility_Level_ID?: number | null;
+  Target_Date?: string | null;
+  Ongoing_Need?: boolean | null;
+  Contact_ID: number;
+  Anonymous_Share?: boolean | null;
+  contactImageUrl?: string | null;
 }
 
 export function PeoplePrayedFor() {
@@ -48,13 +60,46 @@ export function PeoplePrayedFor() {
     fetchPrayers();
   }, []);
 
+  const formatTargetDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInDays = Math.floor((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (diffInDays < 0) return `Was ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    if (diffInDays === 0) return 'Today';
+    if (diffInDays === 1) return 'Tomorrow';
+    if (diffInDays < 7) return `In ${diffInDays} days`;
+
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  // Get visibility level label
+  const getVisibilityLabel = (levelId?: number | null) => {
+    switch (levelId) {
+      case 1: return 'Public';
+      case 2: return 'Members Only';
+      case 3: return 'Staff Only';
+      default: return 'Public';
+    }
+  };
+
+  // Determine badge style based on feedback type
+  const getFeedbackTypeLabel = (feedbackTypeId: number) => {
+    return feedbackTypeId === 1 ? 'Prayer Request' : 'Praise Report';
+  };
+
+  const handlePrayAgain = (prayerId: number) => {
+    // TODO: Implement pray again dialog
+    console.log('Pray again for prayer:', prayerId);
+  };
+
   if (loading) {
     return (
       <div className="w-full">
-        <div className="overflow-x-auto pb-4 -mx-4 px-4">
+        <div className="overflow-x-auto horizontal-scroll pb-4 -mx-4 px-4">
           <div className="flex gap-4" style={{ minWidth: 'min-content' }}>
             {[...Array(3)].map((_, i) => (
-              <Card key={i} className="flex-shrink-0 w-[400px]">
+              <Card key={i} className="flex-shrink-0 w-[calc(100vw-3rem)] sm:w-[400px]">
                 <CardHeader>
                   <div className="animate-pulse">
                     <div className="h-5 bg-muted rounded w-3/4 mb-2" />
@@ -100,36 +145,106 @@ export function PeoplePrayedFor() {
       </div>
 
       {/* Horizontal Scrolling Carousel */}
-      <div className="overflow-x-auto pb-4 -mx-4 px-4">
+      <div className="overflow-x-auto horizontal-scroll pb-4 -mx-4 px-4 snap-x snap-mandatory sm:snap-none">
         <div className="flex gap-4" style={{ minWidth: 'min-content' }}>
           {prayers.map((prayer) => (
-            <Card
-              key={prayer.Feedback_Entry_User_Response_ID}
-              className="shadow-sm hover:shadow-md transition-shadow flex-shrink-0 w-[400px]"
-            >
-              <CardHeader>
-                <CardTitle className="flex items-start justify-between gap-2">
-                  <h4 className="font-semibold text-base line-clamp-2 flex-1">
-                    {prayer.Entry_Title}
-                  </h4>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap font-normal">
-                    {formatDistanceToNow(new Date(prayer.Response_Date), { addSuffix: true })}
-                  </span>
-                </CardTitle>
-              </CardHeader>
+            <Card key={prayer.Feedback_Entry_User_Response_ID} className="shadow-sm hover:shadow-md transition-shadow flex-shrink-0 w-[calc(100vw-3rem)] sm:w-[400px] flex flex-col overflow-hidden p-0 snap-start sm:snap-align-none">
+              {/* Colored Header with Image and Prayer Count */}
+              <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-slate-50 border-b">
+                {/* Left: Contact Photo (if not anonymous) */}
+                {!prayer.Anonymous_Share && prayer.contactImageUrl && (
+                  <img
+                    src={prayer.contactImageUrl}
+                    alt="Contact photo"
+                    className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-2 ring-background"
+                  />
+                )}
 
-              <CardContent>
-                <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
+                {/* Right: Prayer Count */}
+                <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                  <FontAwesomeIcon icon={faHandsPraying} className="w-4 h-4" />
+                  <span>
+                    {prayer.Prayer_Count ?? 0} {prayer.Prayer_Count === 1 ? 'prayer' : 'prayers'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Main Content */}
+              <CardHeader className="pb-2 pt-2 px-6">
+                {/* Title */}
+                {prayer.Entry_Title && (
+                  <h3 className="text-lg font-semibold text-foreground mb-1">
+                    {prayer.Entry_Title.replace(/^(Prayer Request|Praise Report)\s+from\s+/i, '')}
+                  </h3>
+                )}
+
+                {/* Description */}
+                <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
                   {prayer.Description}
                 </p>
+              </CardHeader>
 
+              <CardContent className="flex-1 flex flex-col gap-3 px-6">
+                {/* Your Encouraging Message */}
                 {prayer.Response_Text && (
-                  <div className="bg-primary/5 rounded-md p-3 mt-2 border-l-2 border-primary/30">
+                  <div className="bg-primary/5 rounded-md p-3 border-l-2 border-primary/30">
                     <p className="text-xs text-muted-foreground mb-1">Your encouraging message:</p>
                     <p className="text-sm italic">&quot;{prayer.Response_Text}&quot;</p>
                   </div>
                 )}
+
+                {/* Metadata */}
+                <div className="space-y-2">
+                  {/* Target date or Ongoing */}
+                  {prayer.Target_Date ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      🎯 <span>{formatTargetDate(prayer.Target_Date)}</span>
+                    </div>
+                  ) : prayer.Ongoing_Need ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Clock className="w-4 h-4" />
+                      <span>Ongoing Need</span>
+                    </div>
+                  ) : null}
+                </div>
+
+                {/* Spacer to push tags to bottom */}
+                <div className="flex-1"></div>
+
+                {/* Wrapping Tags */}
+                <div className="flex flex-wrap gap-2">
+                  {/* Feedback Type */}
+                  <Badge
+                    variant="default"
+                    className={`text-xs rounded-full ${
+                      prayer.Feedback_Type_ID === 1 ? 'bg-blue-500' : 'bg-primary'
+                    }`}
+                  >
+                    <FontAwesomeIcon icon={faHandsPraying} className="w-3 h-3 mr-1.5" />
+                    {getFeedbackTypeLabel(prayer.Feedback_Type_ID)}
+                  </Badge>
+
+                  {/* Visibility Level - Only show if NOT public (ID 1 or default) */}
+                  {prayer.Visibility_Level_ID && prayer.Visibility_Level_ID !== 1 && (
+                    <Badge variant="outline" className="text-xs rounded-full">
+                      👁️ {getVisibilityLabel(prayer.Visibility_Level_ID)}
+                    </Badge>
+                  )}
+                </div>
               </CardContent>
+
+              {/* Footer with CTA */}
+              <CardFooter className="pt-3 px-6 pb-6 border-t">
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => handlePrayAgain(prayer.Feedback_Entry_ID)}
+                  className="gap-2 w-full"
+                >
+                  <FontAwesomeIcon icon={faHandsPraying} className="w-4 h-4" />
+                  Pray Again
+                </Button>
+              </CardFooter>
             </Card>
           ))}
         </div>

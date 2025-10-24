@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
-import { X, Calendar } from 'lucide-react';
+import { X, Clock } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsPraying } from '@fortawesome/free-solid-svg-icons';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -27,9 +27,11 @@ interface PrayerCardProps {
     Ongoing_Need: boolean | null;
     Target_Date?: string | null;
     Prayer_Count?: number | null;
+    Anonymous_Share?: boolean | null;
     Contact_ID_Table?: {
       Display_Name: string;
       First_Name: string;
+      Contact_Photo?: string | null;
     };
     Feedback_Type_ID_Table?: {
       Feedback_Type: string;
@@ -177,64 +179,52 @@ export function PrayerCard({ prayer, onPrayedFor, onDismiss, showSwipeHint = fal
         </div>
       )}
 
-      <Card className="cursor-grab active:cursor-grabbing shadow-lg hover:shadow-xl transition-shadow">
-        <CardHeader className="pb-3 relative">
-          {/* Badges in Top Right Corner */}
-          <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
-            {badgeInfo && (
-              <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full ${badgeInfo.className}`}>
-                <FontAwesomeIcon icon={badgeInfo.icon} className="w-3 h-3" />
-                <span>{badgeInfo.label}</span>
-              </div>
-            )}
-            {prayer.Target_Date && (
-              <Badge variant="outline" className="text-xs bg-primary/10 rounded-full">
-                🎯 {formatTargetDate(prayer.Target_Date)}
-              </Badge>
-            )}
-            {prayer.Ongoing_Need && !prayer.Target_Date && (
-              <Badge variant="outline" className="text-xs rounded-full">
-                Ongoing
-              </Badge>
-            )}
+      <Card className="cursor-grab active:cursor-grabbing shadow-lg hover:shadow-xl transition-shadow overflow-hidden p-0">
+        {/* Colored Header with Name and Prayer Count */}
+        <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-slate-50 border-b">
+          {/* Left: Contact Name (eventually will have photo if not anonymous) */}
+          <p className="text-sm font-medium text-foreground">
+            {prayer.Contact_ID_Table?.Display_Name || 'Anonymous'}
+          </p>
+
+          {/* Right: Prayer Count */}
+          <div className="flex items-center gap-2 text-sm font-medium text-primary">
+            <FontAwesomeIcon icon={faHandsPraying} className="w-4 h-4" />
+            <span>
+              {prayerCount} {prayerCount === 1 ? 'prayer' : 'prayers'}
+            </span>
           </div>
+        </div>
 
-          <div className="space-y-2 pr-20">
-            {/* Show contact name as subtitle if Entry_Title exists, otherwise in title */}
-            {prayer.Entry_Title ? (
-              <>
-                <h3 className="text-xl font-semibold text-foreground line-clamp-2">
-                  {/* Strip redundant "Prayer Request from" or "Praise Report from" prefix */}
-                  {prayer.Entry_Title.replace(/^(Prayer Request|Praise Report)\s+from\s+/i, '')}
-                </h3>
-                {prayer.Contact_ID_Table && (
-                  <p className="text-sm text-muted-foreground">
-                    {prayer.Contact_ID_Table.First_Name}
-                  </p>
-                )}
-              </>
-            ) : (
-              prayer.Contact_ID_Table && (
-                <h3 className="text-xl font-semibold text-foreground">
-                  {prayer.Contact_ID_Table.First_Name}
-                </h3>
-              )
-            )}
+        <CardHeader className="pb-2 pt-2 px-6 space-y-0.5">
+          {/* Title - Show as-is from Entry_Title */}
+          {prayer.Entry_Title && (
+            <h3 className="text-xl font-semibold text-foreground">
+              {prayer.Entry_Title}
+            </h3>
+          )}
 
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <Calendar className="w-4 h-4" />
-              <span>{formatDate(prayer.Date_Submitted)}</span>
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent className="space-y-3">
+          {/* Description */}
           <p className="text-foreground whitespace-pre-wrap leading-relaxed">
             {prayer.Description}
           </p>
+        </CardHeader>
+
+        <CardContent className="space-y-2 px-6">
+          {/* Target Date or Ongoing */}
+          {prayer.Target_Date ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              🎯 <span>{formatTargetDate(prayer.Target_Date)}</span>
+            </div>
+          ) : prayer.Ongoing_Need ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="w-4 h-4" />
+              <span>Ongoing Need</span>
+            </div>
+          ) : null}
 
           {/* Inline Encouraging Message Input - Always Visible */}
-          <div className="pt-2 border-t">
+          <div className="pt-2">
             <Textarea
               placeholder="Leave an encouraging word (optional)..."
               value={encouragingMessage}
@@ -248,47 +238,68 @@ export function PrayerCard({ prayer, onPrayedFor, onDismiss, showSwipeHint = fal
           </div>
         </CardContent>
 
-        <CardFooter className="text-xs text-muted-foreground pt-4 border-t flex-col gap-3">
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-2">
-              <FontAwesomeIcon icon={faHandsPraying} className="w-4 h-4 text-primary" />
-              <span className="font-medium text-foreground">
-                {prayerCount} {prayerCount === 1 ? 'prayer' : 'prayers'}
-              </span>
+        <CardFooter className="text-xs text-muted-foreground pt-4 px-6 pb-6 border-t flex-col gap-3">
+          {/* Desktop: Type Badge and Buttons in Same Row */}
+          <div className="hidden sm:flex items-center justify-between w-full">
+            <div>
+              {badgeInfo && (
+                <Badge className={`text-xs rounded-full ${badgeInfo.className}`}>
+                  <FontAwesomeIcon icon={badgeInfo.icon} className="w-3 h-3 mr-1.5" />
+                  {badgeInfo.label}
+                </Badge>
+              )}
             </div>
 
-            {/* Desktop: Clickable Buttons, Mobile: Swipe Indicators */}
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleSkip}
-                className="hidden sm:flex gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                className="gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
               >
                 <X className="w-4 h-4" />
-                Skip
+                SKIP
               </Button>
               <Button
                 variant="default"
                 size="sm"
                 onClick={handlePray}
-                className="hidden sm:flex gap-2 bg-primary hover:bg-primary/90"
+                className="gap-2 bg-primary hover:bg-primary/90"
               >
                 <FontAwesomeIcon icon={faHandsPraying} className="w-4 h-4" />
-                Pray
+                PRAY
               </Button>
+            </div>
+          </div>
 
-              {/* Mobile: Swipe Hints */}
-              <div className="flex sm:hidden items-center gap-4 text-xs">
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <X className="w-3 h-3" />
-                  <span>Swipe</span>
+          {/* Mobile: Type Badge on First Row, Buttons on Second Row */}
+          <div className="flex sm:hidden flex-col gap-3 w-full">
+            {/* Type Badge Row */}
+            <div>
+              {badgeInfo && (
+                <Badge className={`text-xs rounded-full ${badgeInfo.className}`}>
+                  <FontAwesomeIcon icon={badgeInfo.icon} className="w-3 h-3 mr-1.5" />
+                  {badgeInfo.label}
+                </Badge>
+              )}
+            </div>
+
+            {/* Swipe Hint Labels (not prominent buttons) */}
+            <div className="flex flex-col items-center gap-1">
+              <div className="flex items-center justify-between w-full gap-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-lg">←</span>
+                  <X className="w-3.5 h-3.5" />
+                  <span>SKIP</span>
                 </div>
-                <div className="flex items-center gap-1 text-primary">
-                  <span>Swipe</span>
-                  <FontAwesomeIcon icon={faHandsPraying} className="w-3 h-3" />
+
+                <div className="flex items-center gap-1.5">
+                  <FontAwesomeIcon icon={faHandsPraying} className="w-3.5 h-3.5" />
+                  <span>PRAY</span>
+                  <span className="text-lg">→</span>
                 </div>
               </div>
+              <span className="text-xs text-muted-foreground">swipe</span>
             </div>
           </div>
         </CardFooter>

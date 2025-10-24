@@ -212,7 +212,7 @@ export class PrayerService {
     // So we only get the prayer details, not the contact who submitted it
     const responses = await this.client.get('Feedback_Entry_User_Responses', {
       $filter: `Feedback_Entry_User_Responses.Contact_ID = ${contactId} AND Feedback_Entry_User_Responses.Response_Type_ID = 1`,
-      $select: 'Feedback_Entry_User_Responses.Feedback_Entry_User_Response_ID,Feedback_Entry_User_Responses.Feedback_Entry_ID,Feedback_Entry_User_Responses.Response_Date,Feedback_Entry_User_Responses.Response_Text,Feedback_Entry_ID_Table.Entry_Title,Feedback_Entry_ID_Table.Description,Feedback_Entry_ID_Table.Date_Submitted',
+      $select: 'Feedback_Entry_User_Responses.Feedback_Entry_User_Response_ID,Feedback_Entry_User_Responses.Feedback_Entry_ID,Feedback_Entry_User_Responses.Response_Date,Feedback_Entry_User_Responses.Response_Text,Feedback_Entry_ID_Table.Entry_Title,Feedback_Entry_ID_Table.Description,Feedback_Entry_ID_Table.Date_Submitted,Feedback_Entry_ID_Table.Prayer_Count,Feedback_Entry_ID_Table.Feedback_Type_ID,Feedback_Entry_ID_Table.Visibility_Level_ID,Feedback_Entry_ID_Table.Target_Date,Feedback_Entry_ID_Table.Ongoing_Need,Feedback_Entry_ID_Table.Contact_ID,Feedback_Entry_ID_Table.Anonymous_Share',
       $orderby: 'Feedback_Entry_User_Responses.Response_Date DESC',
     });
 

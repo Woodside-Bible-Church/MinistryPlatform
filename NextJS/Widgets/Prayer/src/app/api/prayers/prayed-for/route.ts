@@ -16,9 +16,15 @@ export async function GET() {
     const { user, token } = await authenticateRequest();
     const prayerService = new PrayerService(token);
 
-    const prayers = await prayerService.getPrayersUserPrayedFor(user.contactId);
+    const prayers = await prayerService.getPrayersUserPrayedFor(user.contactId) as any[];
 
-    return NextResponse.json(prayers);
+    // Add contactImageUrl field (null for now - TODO: implement photo lookup)
+    const prayersWithPhotos = prayers.map(prayer => ({
+      ...prayer,
+      contactImageUrl: null, // TODO: Find a way to get contact photos from MP
+    }));
+
+    return NextResponse.json(prayersWithPhotos);
   } catch (error) {
     console.error('GET /api/prayers/prayed-for error:', error);
 

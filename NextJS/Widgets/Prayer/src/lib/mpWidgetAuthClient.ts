@@ -66,3 +66,44 @@ export async function authenticatedFetch(
     },
   });
 }
+
+/**
+ * Get current user data from MP auth endpoint
+ */
+export async function getCurrentUser(): Promise<{
+  contactId: number;
+  imageUrl?: string;
+  firstName?: string;
+  lastName?: string;
+  displayName?: string;
+} | null> {
+  const token = getAuthToken();
+  if (!token) return null;
+
+  try {
+    const authEndpoint = process.env.NEXT_PUBLIC_MP_WIDGETS_AUTH_ENDPOINT;
+    if (!authEndpoint) return null;
+
+    const response = await fetch(authEndpoint, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) return null;
+
+    const userData = await response.json();
+    return {
+      contactId: userData.contactId,
+      imageUrl: userData.imageUrl,
+      firstName: userData.user?.firstName,
+      lastName: userData.user?.lastName,
+      displayName: userData.user?.displayName,
+    };
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return null;
+  }
+}

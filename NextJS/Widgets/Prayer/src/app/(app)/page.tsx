@@ -105,7 +105,7 @@ export default function PrayerPage() {
         </div>
 
         {/* Main Content */}
-        <main className="container mx-auto px-4 space-y-12">
+        <main className="container mx-auto px-4 space-y-12 pb-12">
           {/* Prayer Stats - Only show if logged in */}
           {loggedIn && (
             <div className="max-w-2xl mx-auto">
@@ -116,7 +116,7 @@ export default function PrayerPage() {
           {/* My Prayers Section - Only show if logged in */}
           {loggedIn && (
             <section className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <User2 className="w-5 h-5 text-primary" />
                   <h2 className="text-2xl font-bold text-foreground">My Requests</h2>
@@ -125,7 +125,7 @@ export default function PrayerPage() {
                 {/* Submit Prayer Button */}
                 <Dialog open={showForm} onOpenChange={setShowForm}>
                   <DialogTrigger asChild>
-                    <Button className="gap-2" onClick={handleSubmitClick}>
+                    <Button className="gap-2 w-full sm:w-auto" onClick={handleSubmitClick}>
                       <Plus className="w-4 h-4" />
                       Submit Prayer
                     </Button>

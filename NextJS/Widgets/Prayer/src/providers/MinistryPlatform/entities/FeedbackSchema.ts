@@ -72,6 +72,7 @@ export const FeedbackWithRelationsSchema = FeedbackSchema.extend({
     Last_Name: z.string(),
     Nickname: z.string().nullable(),
     Email_Address: z.string().email().nullable(),
+    Contact_Photo: z.string().nullable().optional(), // Contact photo URL or GUID
   }).optional(),
   Feedback_Type_ID_Table: z.object({
     Feedback_Type_ID: z.number().int(),

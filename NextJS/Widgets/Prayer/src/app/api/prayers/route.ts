@@ -26,7 +26,14 @@ export async function GET(request: NextRequest) {
       const { user, token } = await authenticateRequest();
       const prayerService = new PrayerService(token);
       const prayers = await prayerService.getMyPrayers(user.contactId);
-      return NextResponse.json(prayers);
+
+      // Add user's imageUrl to each prayer
+      const prayersWithImage = prayers.map(prayer => ({
+        ...prayer,
+        userImageUrl: user.imageUrl,
+      }));
+
+      return NextResponse.json(prayersWithImage);
     }
 
     // Public access for approved prayers
