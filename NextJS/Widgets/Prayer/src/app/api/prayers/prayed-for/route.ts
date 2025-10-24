@@ -16,7 +16,7 @@ export async function GET() {
     const { user, token } = await authenticateRequest();
     const prayerService = new PrayerService(token);
 
-    const prayers = await prayerService.getPrayersUserPrayedFor(user.contactId) as any[];
+    const prayers = await prayerService.getPrayersUserPrayedFor(user.contactId);
 
     // Add contactImageUrl field (null for now - TODO: implement photo lookup)
     const prayersWithPhotos = prayers.map(prayer => ({
