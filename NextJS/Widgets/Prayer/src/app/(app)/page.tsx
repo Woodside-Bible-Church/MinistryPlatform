@@ -182,63 +182,79 @@ export default function PrayerPage() {
             </div>
           )}
 
-          {/* My Prayers Section - Only show if logged in */}
-          {loggedIn && (
-            <section className="space-y-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <User2 className="w-5 h-5 text-primary" />
-                  <h2 className="text-2xl font-bold text-foreground">My Requests</h2>
-                </div>
-
-                {/* Submit Prayer Button */}
-                <Dialog open={showForm} onOpenChange={setShowForm}>
-                  <DialogTrigger asChild>
-                    <Button className="gap-2 w-full sm:w-auto" onClick={handleSubmitClick}>
-                      <Plus className="w-4 h-4" />
-                      Submit Prayer
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>Submit a Prayer Request</DialogTitle>
-                      <DialogDescription>
-                        Share your prayer request with the community.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <PrayerForm
-                      onSuccess={handlePrayerSubmitted}
-                      onCancel={() => setShowForm(false)}
-                    />
-                  </DialogContent>
-                </Dialog>
+          {/* My Prayers Section - Always visible, shows login prompt if not authenticated */}
+          <section className="space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <User2 className="w-5 h-5 text-primary" />
+                <h2 className="text-2xl font-bold text-foreground">My Requests</h2>
               </div>
-              <p className="text-muted-foreground text-sm">
-                Track your prayer requests and see who&apos;s lifting you up.
-              </p>
+
+              {/* Submit Prayer Button */}
+              <Dialog open={showForm} onOpenChange={setShowForm}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2 w-full sm:w-auto" onClick={handleSubmitClick}>
+                    <Plus className="w-4 h-4" />
+                    Submit Prayer
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Submit a Prayer Request</DialogTitle>
+                    <DialogDescription>
+                      Share your prayer request with the community.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <PrayerForm
+                    onSuccess={handlePrayerSubmitted}
+                    onCancel={() => setShowForm(false)}
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              Track your prayer requests and see who&apos;s lifting you up.
+            </p>
+            {loggedIn ? (
               <MyPrayers
                 prayers={widgetLoading ? [] : myRequestsData}
                 isLoading={widgetLoading}
               />
-            </section>
-          )}
-
-          {/* People I've Prayed For Section - Only show if logged in */}
-          {loggedIn && (
-            <section className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Heart className="w-5 h-5 text-primary" />
-                <h2 className="text-2xl font-bold text-foreground">Prayer Partners</h2>
+            ) : (
+              <div className="text-center py-12 border border-dashed border-muted rounded-lg bg-muted/20">
+                <User2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground mb-4">Sign in to view and manage your prayer requests</p>
+                <Button onClick={() => requireLogin()} variant="default">
+                  Sign In
+                </Button>
               </div>
-              <p className="text-muted-foreground text-sm">
-                See who you&apos;ve been standing with in prayer.
-              </p>
+            )}
+          </section>
+
+          {/* Prayer Partners Section - Always visible, shows login prompt if not authenticated */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Heart className="w-5 h-5 text-primary" />
+              <h2 className="text-2xl font-bold text-foreground">Prayer Partners</h2>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              See who you&apos;ve been standing with in prayer.
+            </p>
+            {loggedIn ? (
               <PeoplePrayedFor
                 prayers={widgetLoading ? [] : prayerPartnersData}
                 isLoading={widgetLoading}
               />
-            </section>
-          )}
+            ) : (
+              <div className="text-center py-12 border border-dashed border-muted rounded-lg bg-muted/20">
+                <Heart className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground mb-4">Sign in to see your prayer history and encouraging messages</p>
+                <Button onClick={() => requireLogin()} variant="default">
+                  Sign In
+                </Button>
+              </div>
+            )}
+          </section>
 
           {/* Prayer Wall Section */}
           <section className="space-y-4">

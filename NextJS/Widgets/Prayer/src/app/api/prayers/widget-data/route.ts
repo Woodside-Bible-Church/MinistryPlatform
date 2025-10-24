@@ -82,46 +82,19 @@ export async function GET() {
       contactId = user.contactId;
       console.log('[Widget Data API] Authenticated user, contact:', contactId);
     } catch {
-      console.log('[Widget Data API] No valid authentication, returning public data only');
-
-      // Return minimal public-only data structure without calling stored procedure
-      // The stored procedure requires a valid user token, so we return a minimal structure
-      return NextResponse.json({
-        Widget_Title: "Prayer & Praise",
-        Widget_Subtitle: "Share burdens, celebrate victories",
-        Configuration: {
-          Default_Card_Layout: "stack",
-          Allow_Anonymous: false,
-          Show_Contact_Names: true,
-          Require_Approval: true
-        },
-        User_Info: null, // Not available without auth
-        User_Stats: null, // Not available without auth
-        My_Requests: {
-          Title: "My Requests",
-          Description: "Track your prayer requests and see who's lifting you up.",
-          Total_Count: 0,
-          Items: []
-        },
-        Prayer_Partners: {
-          Title: "Prayer Partners",
-          Description: "See who you've been standing with in prayer.",
-          Total_Count: 0,
-          Items: []
-        },
-        Community_Needs: {
-          Title: "Community Needs",
-          Description: "Join others in lifting up these requests and celebrating answered prayers.",
-          Total_Count: 0,
-          Items: [] // Would need a separate public endpoint to get approved prayers
-        }
-      });
+      console.log('[Widget Data API] No valid authentication, fetching public data only');
+      // For unauthenticated users, we still call the stored procedure but with ContactID = NULL
+      // This will return:
+      // - Public prayers (Visibility_Level_ID >= 4) in Community_Needs
+      // - Empty My_Requests and Prayer_Partners
+      // - Null User_Stats and User_Info
     }
 
-    // Call the unified stored procedure with contactId (authenticated users only)
-    const mpClient = new MinistryPlatformClient(token!);
+    // Create MP client with user token (if authenticated) or app-level token (if not)
+    // When token is undefined, MinistryPlatformClient will automatically use client credentials OAuth
+    const mpClient = new MinistryPlatformClient(token || undefined);
 
-    console.log('[Widget Data API] Fetching unified widget data for contact:', contactId || 'unauthenticated');
+    console.log('[Widget Data API] Fetching unified widget data for contact:', contactId || 'unauthenticated (public prayers only)');
 
     // Call the unified stored procedure
     // Stored proc uses JsonResult pattern: returns [[{"JsonResult": {...}}]]
