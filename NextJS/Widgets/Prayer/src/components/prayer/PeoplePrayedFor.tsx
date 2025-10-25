@@ -335,7 +335,7 @@ export function PeoplePrayedFor({ prayers, isLoading = false, error = null }: Pe
                             Your encouraging {allMessages.length === 1 ? 'message' : 'messages'}:
                           </p>
                           <div className="space-y-2">
-                            {allMessages.map((response, index) => {
+                            {allMessages.map((response) => {
                               const isOptimistic = optimistic.some(opt => opt.Response_ID === response.Response_ID);
                               const isConfirmed = confirmedMessageIds.has(response.Response_ID);
                               const isPending = isOptimistic && !isConfirmed;

@@ -65,7 +65,6 @@ export function MyPrayers({ prayers: initialPrayers, isLoading = false, error = 
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [deletedPrayer, setDeletedPrayer] = useState<{ prayer: MyPrayer; timeoutId: NodeJS.Timeout } | null>(null);
-  const [confirmedUpdateIds, setConfirmedUpdateIds] = useState<Set<number>>(new Set());
 
   // Update local prayers when props change
   useEffect(() => {
