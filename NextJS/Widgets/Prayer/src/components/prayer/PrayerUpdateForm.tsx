@@ -28,7 +28,7 @@ import { CheckCircle2, AlertCircle } from 'lucide-react';
 // Form validation schema
 const updateFormSchema = z.object({
   updateText: z.string().min(10, 'Update must be at least 10 characters').max(4000, 'Update is too long'),
-  isAnswered: z.boolean().default(false),
+  isAnswered: z.boolean(),
 });
 
 type UpdateFormValues = z.infer<typeof updateFormSchema>;
