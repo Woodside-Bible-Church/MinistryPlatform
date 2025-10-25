@@ -368,6 +368,8 @@ BEGIN
         -- Classification flags
         CASE WHEN f.Contact_ID = @ContactID THEN 1 ELSE 0 END AS Is_My_Request,
 
+        -- Is_Prayer_Partner: User has prayed for this (but it's not their own prayer)
+        -- Note: This checks EXISTS, so multiple prayers for same request still = 1 row
         CASE WHEN EXISTS (
             SELECT 1 FROM Feedback_Entry_User_Responses
             WHERE Feedback_Entry_ID = f.Feedback_Entry_ID
@@ -600,11 +602,18 @@ BEGIN
                      FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
                     ) AS Dates,
 
-                    -- Nested My_Response object
-                    (SELECT
-                        p.User_Prayer_Message AS [Message]
-                     FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
-                    ) AS My_Response,
+                    -- All My Responses (all encouraging messages I've left for this prayer)
+                    ISNULL((SELECT
+                        r.Feedback_Entry_User_Response_ID AS Response_ID,
+                        r.Response_Date AS [Date],
+                        ISNULL(r.Response_Text, '') AS [Message]
+                     FROM Feedback_Entry_User_Responses r
+                     WHERE r.Feedback_Entry_ID = p.Feedback_Entry_ID
+                     AND r.Contact_ID = @ContactID
+                     AND r.Response_Type_ID = 1
+                     ORDER BY r.Response_Date ASC
+                     FOR JSON PATH
+                    ), '[]') AS My_Responses,
 
                     -- Nested Counts object
                     (SELECT

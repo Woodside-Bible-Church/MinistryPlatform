@@ -38,7 +38,15 @@ const prayerFormSchema = z.object({
 type PrayerFormValues = z.infer<typeof prayerFormSchema>;
 
 interface PrayerFormProps {
-  onSuccess?: () => void;
+  onSuccess?: (prayer?: {
+    Entry_Title: string;
+    Description: string;
+    Feedback_Type_ID: number;
+    Target_Date?: string | null;
+    Ongoing_Need: boolean;
+    Anonymous_Share: boolean;
+  }) => void;
+  onConfirmed?: (prayerData: unknown) => void; // Called when API returns the real prayer data
   onCancel?: () => void;
   initialData?: {
     Feedback_Entry_ID?: number;
@@ -50,7 +58,7 @@ interface PrayerFormProps {
   };
 }
 
-export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps) {
+export function PrayerForm({ onSuccess, onConfirmed, onCancel, initialData }: PrayerFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -82,6 +90,22 @@ export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps
     setError(null);
     setSuccess(false);
 
+    const prayerData = {
+      Entry_Title: values.Entry_Title,
+      Description: values.Description,
+      Feedback_Type_ID: parseInt(values.Feedback_Type_ID),
+      Target_Date: values.Target_Date || null,
+      Ongoing_Need: !values.Target_Date,
+      Anonymous_Share: values.Anonymous_Share,
+    };
+
+    // OPTIMISTIC UPDATE: Close modal immediately and show changes for both new and edit
+    if (onSuccess) {
+      onSuccess(prayerData);
+      form.reset();
+    }
+
+    // Make API call in background
     try {
       const url = isEditing
         ? `/api/prayers/${initialData!.Feedback_Entry_ID}`
@@ -93,13 +117,7 @@ export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps
 
       const response = await authenticatedFetch(url, {
         method,
-        body: JSON.stringify({
-          ...values,
-          Feedback_Type_ID: parseInt(values.Feedback_Type_ID),
-          Target_Date: values.Target_Date || null, // Send null if empty
-          Ongoing_Need: !values.Target_Date, // If no target date, mark as ongoing
-          Anonymous_Share: values.Anonymous_Share,
-        }),
+        body: JSON.stringify(prayerData),
       });
 
       console.log('[PrayerForm] Response received:', { status: response.status, ok: response.ok });
@@ -110,18 +128,22 @@ export function PrayerForm({ onSuccess, onCancel, initialData }: PrayerFormProps
         throw new Error(errorData.message || `Failed to ${isEditing ? 'update' : 'submit'} prayer request`);
       }
 
-      console.log('[PrayerForm] Success!');
-      setSuccess(true);
-      if (!isEditing) {
-        form.reset();
+      // Get the API response data
+      const responseData = await response.json();
+      console.log('[PrayerForm] Success! Response data:', responseData);
+
+      // For new prayers, call onConfirmed with the real prayer data from API
+      if (!isEditing && onConfirmed) {
+        onConfirmed(responseData);
       }
 
-      if (onSuccess) {
-        onSuccess();
-      }
+      setSuccess(true);
     } catch (err) {
       console.error(`[PrayerForm] Error ${isEditing ? 'updating' : 'submitting'} prayer:`, err);
       setError(err instanceof Error ? err.message : `An error occurred while ${isEditing ? 'updating' : 'submitting'} your prayer request`);
+
+      // For new prayers: show error in a toast or reopen modal
+      // For now, we'll just log it - the parent could show a toast
     } finally {
       setIsSubmitting(false);
       console.log('[PrayerForm] Submit completed');

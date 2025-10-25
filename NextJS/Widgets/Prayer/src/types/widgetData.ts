@@ -61,8 +61,10 @@ export interface PrayerPartnerActions {
   Can_Pray_Again: boolean;
 }
 
-export interface MyResponse {
-  Message: string | null;
+export interface MyResponseItem {
+  Response_ID: number;
+  Date: string;
+  Message: string;
 }
 
 // Prayer item structures for each section
@@ -88,7 +90,7 @@ export interface PrayerPartnerItem {
   Type: PrayerType;
   Visibility: Visibility;
   Dates: PrayerDates;
-  My_Response: MyResponse;
+  My_Responses: MyResponseItem[];
   Counts: PrayerCounts;
   Latest_Update: LatestUpdate;
   Actions: PrayerPartnerActions;

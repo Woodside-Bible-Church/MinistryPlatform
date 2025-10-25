@@ -49,7 +49,7 @@ export function adaptPrayerPartnerItem(item: PrayerPartnerItem) {
     Feedback_Entry_User_Response_ID: item.Feedback_Entry_ID, // Using Entry ID as unique key
     Feedback_Entry_ID: item.Feedback_Entry_ID,
     Response_Date: item.Dates.My_Prayer || item.Dates.Submitted,
-    Response_Text: item.My_Response.Message || null,
+    My_Responses: item.My_Responses || [], // Pass through the array of all responses
     Entry_Title: item.Title,
     Description: item.Description,
     Date_Submitted: item.Dates.Submitted,
@@ -90,5 +90,33 @@ export function adaptCommunityNeedItem(item: CommunityNeedItem) {
     Feedback_Type_ID_Table: {
       Feedback_Type: item.Type.Label,
     },
+  };
+}
+
+/**
+ * Transform FeedbackWithRelations (from POST /api/prayers response) to MyPrayer format
+ * This is used when we get a new prayer back from the API
+ */
+export function adaptFeedbackWithRelations(feedback: Record<string, unknown>) {
+  return {
+    Feedback_Entry_ID: feedback.Feedback_Entry_ID as number,
+    Entry_Title: feedback.Entry_Title as string | null,
+    Description: feedback.Description as string,
+    Date_Submitted: feedback.Date_Submitted as string,
+    Ongoing_Need: feedback.Ongoing_Need as boolean | null,
+    Approved: feedback.Approved as boolean | null,
+    Target_Date: (feedback.Target_Date as string | null) || undefined,
+    Prayer_Count: (feedback.Prayer_Count as number | null) || 0,
+    Feedback_Type_ID: feedback.Feedback_Type_ID as number,
+    Feedback_Type_ID_Table: feedback.Feedback_Type_ID_Table as { Feedback_Type: string } | undefined,
+    Anonymous_Share: feedback.Anonymous_Share as boolean | null,
+    Visibility_Level_ID: feedback.Visibility_Level_ID as number | null,
+    Contact_ID_Table: feedback.Contact_ID_Table as {
+      Display_Name?: string;
+      First_Name?: string;
+      Last_Name?: string;
+      Contact_Photo?: string | null;
+    } | undefined,
+    Updates: [], // New prayers don't have updates yet
   };
 }

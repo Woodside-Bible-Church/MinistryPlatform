@@ -5,18 +5,36 @@
  * Shows list of prayer requests the user has prayed for
  */
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { Clock, Heart } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsPraying } from '@fortawesome/free-solid-svg-icons';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { authenticatedFetch } from '@/lib/mpWidgetAuthClient';
+import { motion } from 'framer-motion';
+
+interface MyResponseItem {
+  Response_ID: number;
+  Date: string;
+  Message: string;
+}
 
 interface PrayerResponse {
   Feedback_Entry_User_Response_ID: number;
   Feedback_Entry_ID: number;
   Response_Date: string;
-  Response_Text: string | null;
+  My_Responses: MyResponseItem[];
   Entry_Title: string;
   Description: string;
   Date_Submitted: string;
@@ -40,6 +58,13 @@ interface PeoplePrayedForProps {
 }
 
 export function PeoplePrayedFor({ prayers, isLoading = false, error = null }: PeoplePrayedForProps) {
+  const [showPrayAgainDialog, setShowPrayAgainDialog] = useState(false);
+  const [selectedPrayer, setSelectedPrayer] = useState<PrayerResponse | null>(null);
+  const [encouragingMessage, setEncouragingMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [prayerCounts, setPrayerCounts] = useState<Record<number, number>>({});
+  const [optimisticMessages, setOptimisticMessages] = useState<Record<number, MyResponseItem[]>>({});
+  const [confirmedMessageIds, setConfirmedMessageIds] = useState<Set<number>>(new Set());
 
   const formatTargetDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -52,6 +77,15 @@ export function PeoplePrayedFor({ prayers, isLoading = false, error = null }: Pe
     if (diffInDays < 7) return `In ${diffInDays} days`;
 
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const formatMessageDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
+    });
   };
 
   // Get visibility level label
@@ -69,9 +103,80 @@ export function PeoplePrayedFor({ prayers, isLoading = false, error = null }: Pe
     return feedbackTypeId === 1 ? 'Prayer Request' : 'Praise Report';
   };
 
-  const handlePrayAgain = (prayerId: number) => {
-    // TODO: Implement pray again dialog
-    console.log('Pray again for prayer:', prayerId);
+  const handlePrayAgain = (prayer: PrayerResponse) => {
+    setSelectedPrayer(prayer);
+    setShowPrayAgainDialog(true);
+  };
+
+  const handleSubmitPrayer = async () => {
+    if (!selectedPrayer) return;
+
+    const messageToSend = encouragingMessage.trim();
+    const prayerId = selectedPrayer.Feedback_Entry_ID;
+
+    // OPTIMISTIC UPDATE: Add message immediately if there is one
+    const tempId = Date.now(); // Store ID so we can mark it as confirmed later
+    if (messageToSend) {
+      const optimisticMessage: MyResponseItem = {
+        Response_ID: tempId,
+        Date: new Date().toISOString(),
+        Message: messageToSend,
+      };
+
+      setOptimisticMessages(prev => ({
+        ...prev,
+        [prayerId]: [...(prev[prayerId] || []), optimisticMessage],
+      }));
+    }
+
+    // Close dialog immediately
+    setShowPrayAgainDialog(false);
+    setEncouragingMessage('');
+    setSelectedPrayer(null);
+
+    // Make API call in background
+    setIsSubmitting(true);
+    try {
+      const response = await authenticatedFetch(`/api/prayers/${prayerId}/pray`, {
+        method: 'POST',
+        body: JSON.stringify({
+          message: messageToSend || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to record prayer');
+      }
+
+      const data = await response.json();
+
+      // Update prayer count
+      setPrayerCounts(prev => ({
+        ...prev,
+        [prayerId]: data.prayer_count,
+      }));
+
+      // After 2 seconds, mark as confirmed (removes shimmer but keeps message)
+      setTimeout(() => {
+        setConfirmedMessageIds(prev => new Set(prev).add(tempId));
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to record prayer:', error);
+      // Remove optimistic message on error
+      setOptimisticMessages(prev => {
+        const updated = { ...prev };
+        if (updated[prayerId]) {
+          updated[prayerId] = updated[prayerId].filter(m => m.Response_ID !== tempId);
+          if (updated[prayerId].length === 0) {
+            delete updated[prayerId];
+          }
+        }
+        return updated;
+      });
+      alert('Failed to record prayer. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isLoading) {
@@ -193,7 +298,7 @@ export function PeoplePrayedFor({ prayers, isLoading = false, error = null }: Pe
                 <div className="flex items-center gap-2 text-sm font-medium text-primary">
                   <FontAwesomeIcon icon={faHandsPraying} className="w-4 h-4" />
                   <span>
-                    {prayer.Prayer_Count ?? 0} {prayer.Prayer_Count === 1 ? 'prayer' : 'prayers'}
+                    {prayerCounts[prayer.Feedback_Entry_ID] ?? prayer.Prayer_Count ?? 0} {(prayerCounts[prayer.Feedback_Entry_ID] ?? prayer.Prayer_Count ?? 0) === 1 ? 'prayer' : 'prayers'}
                   </span>
                 </div>
               </div>
@@ -214,13 +319,67 @@ export function PeoplePrayedFor({ prayers, isLoading = false, error = null }: Pe
               </CardHeader>
 
               <CardContent className="flex-1 flex flex-col gap-3 px-6">
-                {/* Your Encouraging Message */}
-                {prayer.Response_Text && (
-                  <div className="bg-primary/5 rounded-md p-3 border-l-2 border-primary/30">
-                    <p className="text-xs text-muted-foreground mb-1">Your encouraging message:</p>
-                    <p className="text-sm italic">&quot;{prayer.Response_Text}&quot;</p>
-                  </div>
-                )}
+                {(() => {
+                  // Merge real messages with optimistic messages
+                  const realMessages = (prayer.My_Responses || []).filter(r => r.Message && r.Message.trim());
+                  const optimistic = optimisticMessages[prayer.Feedback_Entry_ID] || [];
+                  const allMessages = [...realMessages, ...optimistic];
+                  const hasMessages = allMessages.length > 0;
+
+                  return (
+                    <>
+                      {/* Your Encouraging Messages */}
+                      {hasMessages && (
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-muted-foreground">
+                            Your encouraging {allMessages.length === 1 ? 'message' : 'messages'}:
+                          </p>
+                          <div className="space-y-2">
+                            {allMessages.map((response, index) => {
+                              const isOptimistic = optimistic.some(opt => opt.Response_ID === response.Response_ID);
+                              const isConfirmed = confirmedMessageIds.has(response.Response_ID);
+                              const isPending = isOptimistic && !isConfirmed;
+
+                              return (
+                                <div
+                                  key={response.Response_ID}
+                                  className={`bg-primary/5 rounded-md p-3 border-l-2 border-primary/30 relative overflow-hidden ${
+                                    isPending ? 'opacity-60' : ''
+                                  }`}
+                                >
+                                  {isPending && (
+                                    <motion.div
+                                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent pointer-events-none"
+                                      animate={{ x: ['-100%', '100%'] }}
+                                      transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+                                    />
+                                  )}
+                                  <p className="text-xs text-muted-foreground mb-1">
+                                    {formatMessageDate(response.Date)}
+                                  </p>
+                                  <p className="text-sm italic">&quot;{response.Message}&quot;</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Prayer Count (when no messages) */}
+                      {!hasMessages && (
+                        <div className="text-center py-4 bg-muted/20 rounded-md border border-dashed">
+                          <FontAwesomeIcon icon={faHandsPraying} className="w-5 h-5 text-muted-foreground mb-2" />
+                          <p className="text-sm text-muted-foreground">
+                            You prayed for this {prayer.My_Responses && prayer.My_Responses.length > 1 ? `${prayer.My_Responses.length} times` : 'request'}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            No messages left yet
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
 
                 {/* Metadata */}
                 <div className="space-y-2">
@@ -267,7 +426,7 @@ export function PeoplePrayedFor({ prayers, isLoading = false, error = null }: Pe
                 <Button
                   variant="default"
                   size="sm"
-                  onClick={() => handlePrayAgain(prayer.Feedback_Entry_ID)}
+                  onClick={() => handlePrayAgain(prayer)}
                   className="gap-2 w-full"
                 >
                   <FontAwesomeIcon icon={faHandsPraying} className="w-4 h-4" />
@@ -278,6 +437,72 @@ export function PeoplePrayedFor({ prayers, isLoading = false, error = null }: Pe
           ))}
         </div>
       </div>
+
+      {/* Pray Again Dialog */}
+      <Dialog open={showPrayAgainDialog} onOpenChange={setShowPrayAgainDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Pray Again</DialogTitle>
+            <DialogDescription>
+              {selectedPrayer && (
+                <span className="font-medium text-foreground">
+                  {selectedPrayer.Entry_Title?.replace(/^(Prayer Request|Praise Report)\s+from\s+/i, '')}
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Prayer Description */}
+            {selectedPrayer && (
+              <div className="bg-muted/30 p-3 rounded-md">
+                <p className="text-sm text-foreground whitespace-pre-wrap">
+                  {selectedPrayer.Description}
+                </p>
+              </div>
+            )}
+
+            {/* Encouraging Message Input */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Add an encouraging message (optional)
+              </label>
+              <Textarea
+                placeholder="Share words of encouragement..."
+                value={encouragingMessage}
+                onChange={(e) => setEncouragingMessage(e.target.value)}
+                className="min-h-[100px] resize-none"
+                maxLength={500}
+              />
+              <p className="text-xs text-muted-foreground">
+                {encouragingMessage.length}/500 characters
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowPrayAgainDialog(false);
+                setSelectedPrayer(null);
+                setEncouragingMessage('');
+              }}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmitPrayer}
+              disabled={isSubmitting}
+              className="gap-2"
+            >
+              <FontAwesomeIcon icon={faHandsPraying} className="w-4 h-4" />
+              {isSubmitting ? 'Praying...' : 'Pray'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

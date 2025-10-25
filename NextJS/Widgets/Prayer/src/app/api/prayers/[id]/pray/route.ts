@@ -34,25 +34,8 @@ export async function POST(
     const body = await request.json().catch(() => ({}));
     const encouragingMessage = body.message?.trim() || null;
 
-    // Check if user already prayed for this request
-    const existingResponse = await mpClient.get<unknown[]>('Feedback_Entry_User_Responses', {
-      $filter: `Feedback_Entry_ID = ${prayerId} AND Contact_ID = ${user.contactId} AND Response_Type_ID = 1`,
-      $top: 1,
-    });
-
-    if (existingResponse && Array.isArray(existingResponse) && existingResponse.length > 0) {
-      // User already prayed for this - get current count
-      const countResponse = await mpClient.get<unknown[]>('Feedback_Entry_User_Responses', {
-        $filter: `Feedback_Entry_ID = ${prayerId} AND Response_Type_ID = 1`,
-        $select: 'Feedback_Entry_User_Response_ID',
-      });
-
-      return NextResponse.json({
-        success: true,
-        already_prayed: true,
-        prayer_count: Array.isArray(countResponse) ? countResponse.length : 0,
-      });
-    }
+    // Allow users to pray multiple times for the same request
+    // Each prayer creates a new response record
 
     // Create new prayer response record
     // Response_Type_ID = 1 is "Prayed" (from Feedback_Response_Types table)
@@ -73,8 +56,8 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      already_prayed: false,
       prayer_count: Array.isArray(countResponse) ? countResponse.length : 1,
+      message: encouragingMessage,
     });
   } catch (error) {
     console.error('POST /api/prayers/[id]/pray error:', error);

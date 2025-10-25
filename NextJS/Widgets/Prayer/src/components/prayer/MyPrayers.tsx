@@ -6,13 +6,14 @@
  */
 
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { authenticatedFetch } from '@/lib/mpWidgetAuthClient';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Calendar, Clock, Edit, MessageCircle, Plus, User2, CheckCircle } from 'lucide-react';
+import { Loader2, Calendar, Clock, Edit, MessageCircle, Plus, User2, CheckCircle, Trash2, Undo2 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsPraying } from '@fortawesome/free-solid-svg-icons';
 import { PrayerForm } from './PrayerForm';
@@ -55,18 +56,30 @@ interface MyPrayersProps {
   prayers: MyPrayer[];
   isLoading?: boolean;
   error?: string | null;
+  onRefresh?: () => void;
 }
 
-export function MyPrayers({ prayers: initialPrayers, isLoading = false, error = null }: MyPrayersProps) {
+export function MyPrayers({ prayers: initialPrayers, isLoading = false, error = null, onRefresh }: MyPrayersProps) {
   const [prayers, setPrayers] = useState<MyPrayer[]>(initialPrayers);
   const [editingPrayer, setEditingPrayer] = useState<MyPrayer | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [deletedPrayer, setDeletedPrayer] = useState<{ prayer: MyPrayer; timeoutId: NodeJS.Timeout } | null>(null);
+  const [confirmedUpdateIds, setConfirmedUpdateIds] = useState<Set<number>>(new Set());
 
   // Update local prayers when props change
   useEffect(() => {
     setPrayers(initialPrayers);
   }, [initialPrayers]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (deletedPrayer?.timeoutId) {
+        clearTimeout(deletedPrayer.timeoutId);
+      }
+    };
+  }, [deletedPrayer]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -98,10 +111,40 @@ export function MyPrayers({ prayers: initialPrayers, isLoading = false, error = 
     }
   };
 
-  const handleEditSuccess = async () => {
+  const handleEditSuccess = async (editedData?: {
+    Entry_Title: string;
+    Description: string;
+    Feedback_Type_ID: number;
+    Target_Date?: string | null;
+    Ongoing_Need: boolean;
+    Anonymous_Share: boolean;
+  }) => {
+    // Close dialog immediately
     setShowEditDialog(false);
+    const prayerId = editingPrayer?.Feedback_Entry_ID;
     setEditingPrayer(null);
-    // Refresh the prayers list after edit
+
+    // OPTIMISTIC UPDATE: Apply edits immediately to local state
+    if (prayerId && editedData) {
+      setPrayers(prevPrayers =>
+        prevPrayers.map(prayer =>
+          prayer.Feedback_Entry_ID === prayerId
+            ? {
+                ...prayer,
+                Entry_Title: editedData.Entry_Title,
+                Description: editedData.Description,
+                Feedback_Type_ID: editedData.Feedback_Type_ID,
+                Target_Date: editedData.Target_Date,
+                Ongoing_Need: editedData.Ongoing_Need,
+                Anonymous_Share: editedData.Anonymous_Share,
+              }
+            : prayer
+        )
+      );
+    }
+
+    // Refresh from server in background to get full data (optional)
+    // This ensures we have the latest data from the database
     try {
       const response = await authenticatedFetch('/api/prayers?mine=true');
       if (response.ok) {
@@ -146,19 +189,65 @@ export function MyPrayers({ prayers: initialPrayers, isLoading = false, error = 
             : prayer
         )
       );
-    }
 
-    // Optionally refresh from server to get the real Update_ID
-    // Uncomment if you want to sync with server data
-    // try {
-    //   const response = await authenticatedFetch('/api/prayers?mine=true');
-    //   if (response.ok) {
-    //     const data = await response.json();
-    //     setPrayers(data);
-    //   }
-    // } catch (err) {
-    //   console.error('Error refreshing prayers:', err);
-    // }
+      // Refresh from server after 2 seconds to get real update data
+      setTimeout(() => {
+        if (onRefresh) {
+          onRefresh();
+        }
+      }, 2000);
+    }
+  };
+
+  const handleDelete = async (prayerId: number) => {
+    const prayer = prayers.find(p => p.Feedback_Entry_ID === prayerId);
+    if (!prayer) return;
+
+    // OPTIMISTIC UPDATE: Remove prayer immediately with animation
+    setPrayers(prevPrayers => prevPrayers.filter(p => p.Feedback_Entry_ID !== prayerId));
+
+    // Set up undo timeout (5 seconds)
+    const timeoutId = setTimeout(async () => {
+      // After 5 seconds, actually delete from server
+      try {
+        const response = await authenticatedFetch(`/api/prayers/${prayerId}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to delete prayer');
+        }
+
+        // Clear deleted prayer state
+        setDeletedPrayer(null);
+      } catch (error) {
+        console.error('Failed to delete prayer:', error);
+        // Restore prayer on error
+        setPrayers(prevPrayers => [...prevPrayers, prayer].sort((a, b) =>
+          new Date(b.Date_Submitted).getTime() - new Date(a.Date_Submitted).getTime()
+        ));
+        setDeletedPrayer(null);
+        alert('Failed to delete prayer. It has been restored.');
+      }
+    }, 5000);
+
+    // Store deleted prayer for undo
+    setDeletedPrayer({ prayer, timeoutId });
+  };
+
+  const handleUndoDelete = () => {
+    if (!deletedPrayer) return;
+
+    // Cancel deletion
+    clearTimeout(deletedPrayer.timeoutId);
+
+    // Restore prayer
+    setPrayers(prevPrayers => [...prevPrayers, deletedPrayer.prayer].sort((a, b) =>
+      new Date(b.Date_Submitted).getTime() - new Date(a.Date_Submitted).getTime()
+    ));
+
+    // Clear deleted state
+    setDeletedPrayer(null);
   };
 
   // Get visibility level label
@@ -239,6 +328,29 @@ export function MyPrayers({ prayers: initialPrayers, isLoading = false, error = 
 
   return (
     <div className="w-full">
+      {/* Undo Delete Toast */}
+      {deletedPrayer && (
+        <Alert className="mb-4 bg-amber-50 border-amber-200 animate-in slide-in-from-top-2">
+          <AlertDescription className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Trash2 className="w-4 h-4 text-amber-600" />
+              <span className="text-amber-900 font-medium">
+                Prayer deleted
+              </span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleUndoDelete}
+              className="gap-2 bg-white hover:bg-amber-100 border-amber-300"
+            >
+              <Undo2 className="w-4 h-4" />
+              Undo
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="text-sm text-muted-foreground mb-4">
         {prayers.length} {prayers.length === 1 ? 'prayer' : 'prayers'}
       </div>
@@ -246,11 +358,39 @@ export function MyPrayers({ prayers: initialPrayers, isLoading = false, error = 
       {/* Horizontal Scrolling Carousel */}
       <div className="overflow-x-auto horizontal-scroll pb-4 -mx-4 px-4 snap-x snap-mandatory sm:snap-none">
         <div className="flex gap-4" style={{ minWidth: 'min-content' }}>
-          {prayers.map((prayer) => {
-            const isPending = !prayer.Approved;
+          <AnimatePresence mode="popLayout">
+            {prayers.map((prayer) => {
+              const isPending = !prayer.Approved;
 
-            return (
-              <Card key={prayer.Feedback_Entry_ID} className="shadow-sm hover:shadow-md transition-shadow flex-shrink-0 w-[calc(100vw-3rem)] sm:w-[400px] flex flex-col overflow-hidden p-0 snap-start sm:snap-align-none">
+              return (
+                <motion.div
+                  key={prayer.Feedback_Entry_ID}
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0, x: -100 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                  layout
+                  className="flex-shrink-0"
+                >
+                  <Card
+                    className={`shadow-sm hover:shadow-md transition-all flex-shrink-0 w-[calc(100vw-3rem)] sm:w-[400px] flex flex-col overflow-hidden p-0 snap-start sm:snap-align-none ${
+                      isPending ? 'ring-2 ring-amber-400/50 relative' : ''
+                    }`}
+                  >
+                    {/* Shimmer effect for pending prayers */}
+                    {isPending && (
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-100/30 to-transparent pointer-events-none"
+                        animate={{
+                          x: ['-100%', '100%'],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: 'linear',
+                        }}
+                      />
+                    )}
                 {/* Colored Header with Avatar, Name and Status/Prayer Count */}
                 <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-slate-50 border-b">
                   {/* Left: Avatar + Your Name */}
@@ -311,23 +451,47 @@ export function MyPrayers({ prayers: initialPrayers, isLoading = false, error = 
                       </h4>
                     </div>
                     <div className="space-y-2">
-                      {prayer.Updates.map((update) => (
-                        <div key={update.Feedback_Entry_Update_ID} className="text-xs">
-                          <div className="flex items-start gap-2">
-                            {update.Is_Answered && (
-                              <CheckCircle className="w-3.5 h-3.5 text-green-600 flex-shrink-0 mt-0.5" />
+                      {prayer.Updates.map((update) => {
+                        // Check if this is a pending update (has temp ID)
+                        const isPending = update.Feedback_Entry_Update_ID > 1000000000000;
+
+                        return (
+                          <motion.div
+                            key={update.Feedback_Entry_Update_ID}
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`text-xs relative ${isPending ? 'opacity-60' : ''}`}
+                          >
+                            {/* Shimmer effect for pending updates */}
+                            {isPending && (
+                              <motion.div
+                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent pointer-events-none"
+                                animate={{
+                                  x: ['-100%', '100%'],
+                                }}
+                                transition={{
+                                  duration: 1.5,
+                                  repeat: Infinity,
+                                  ease: 'linear',
+                                }}
+                              />
                             )}
-                            <div className="flex-1">
-                              <p className="text-foreground whitespace-pre-wrap leading-relaxed">
-                                {update.Update_Text}
-                              </p>
-                              <p className="text-muted-foreground mt-1">
-                                {formatDate(update.Update_Date)}
-                              </p>
+                            <div className="flex items-start gap-2">
+                              {update.Is_Answered && (
+                                <CheckCircle className="w-3.5 h-3.5 text-green-600 flex-shrink-0 mt-0.5" />
+                              )}
+                              <div className="flex-1">
+                                <p className="text-foreground whitespace-pre-wrap leading-relaxed">
+                                  {update.Update_Text}
+                                </p>
+                                <p className="text-muted-foreground mt-1">
+                                  {isPending ? 'Saving...' : formatDate(update.Update_Date)}
+                                </p>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      ))}
+                          </motion.div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -389,32 +553,54 @@ export function MyPrayers({ prayers: initialPrayers, isLoading = false, error = 
                 </CardContent>
 
                 {/* Footer with CTA */}
-                <CardFooter className="pt-3 px-6 pb-6 border-t">
+                <CardFooter className="pt-3 px-6 pb-6 border-t gap-2">
                   {isPending ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(prayer.Feedback_Entry_ID)}
-                      className="gap-2 w-full"
-                    >
-                      <Edit className="w-4 h-4" />
-                      Edit Request
-                    </Button>
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(prayer.Feedback_Entry_ID)}
+                        className="gap-2 flex-1"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(prayer.Feedback_Entry_ID)}
+                        className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </>
                   ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddUpdate(prayer.Feedback_Entry_ID)}
-                      className="gap-2 w-full"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                      Add Update
-                    </Button>
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAddUpdate(prayer.Feedback_Entry_ID)}
+                        className="gap-2 flex-1"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        Add Update
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(prayer.Feedback_Entry_ID)}
+                        className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </>
                   )}
                 </CardFooter>
               </Card>
-            );
-          })}
+            </motion.div>
+          );
+        })}
+          </AnimatePresence>
         </div>
       </div>
 

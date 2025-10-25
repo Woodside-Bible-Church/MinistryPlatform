@@ -27,6 +27,7 @@ import {
   adaptMyRequestItem,
   adaptPrayerPartnerItem,
   adaptCommunityNeedItem,
+  adaptFeedbackWithRelations,
 } from '@/lib/widgetDataAdapter';
 
 // Force dynamic rendering - this page uses browser APIs (localStorage, window, etc.)
@@ -37,6 +38,17 @@ export default function PrayerPage() {
   const [viewMode, setViewMode] = useState<'stack' | 'list'>('stack');
   const [refreshKey, setRefreshKey] = useState(0);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [optimisticPrayers, setOptimisticPrayers] = useState<Array<{
+    id: string;
+    Entry_Title: string;
+    Description: string;
+    Feedback_Type_ID: number;
+    Target_Date?: string | null;
+    Ongoing_Need: boolean;
+    Anonymous_Share: boolean;
+    isPending: true;
+  }>>([]);
+  const [realPrayersFromApi, setRealPrayersFromApi] = useState<Array<unknown>>([]);
 
   // Fetch unified widget data
   const { data: widgetData, isLoading: widgetLoading, error: widgetError } = useWidgetData(refreshKey);
@@ -47,6 +59,35 @@ export default function PrayerPage() {
     return widgetData.My_Requests.Items.map(item => adaptMyRequestItem(item, widgetData.User_Info));
   }, [widgetData]);
 
+  // Merge optimistic prayers and real API prayers with widget data
+  const myRequestsWithOptimistic = useMemo(() => {
+    const optimisticMapped = optimisticPrayers.map(prayer => {
+      return {
+        Feedback_Entry_ID: parseInt(prayer.id),
+        Entry_Title: prayer.Entry_Title,
+        Description: prayer.Description,
+        Feedback_Type_ID: prayer.Feedback_Type_ID,
+        Date_Submitted: new Date().toISOString(),
+        Approved: false,
+        Ongoing_Need: prayer.Ongoing_Need,
+        Target_Date: prayer.Target_Date,
+        Anonymous_Share: prayer.Anonymous_Share,
+        Prayer_Count: 0,
+        Updates: [],
+        Actions: {
+          Can_Edit: true,
+          Can_Delete: true,
+          Can_Add_Update: false,
+        },
+        Status: 'Pending Review' as const,
+        isPending: true, // Always show shimmer for optimistic prayers
+      };
+    });
+
+    // Combine: real API responses + optimistic prayers + widget data
+    return [...realPrayersFromApi, ...optimisticMapped, ...myRequestsData];
+  }, [optimisticPrayers, myRequestsData, realPrayersFromApi]);
+
   const prayerPartnersData = useMemo(() => {
     if (!widgetData?.Prayer_Partners?.Items) return [];
     return widgetData.Prayer_Partners.Items.map(adaptPrayerPartnerItem);
@@ -56,6 +97,15 @@ export default function PrayerPage() {
     if (!widgetData?.Community_Needs?.Items) return [];
     return widgetData.Community_Needs.Items.map(adaptCommunityNeedItem);
   }, [widgetData]);
+
+  // Clear real API prayers when widget data refreshes (triggered by refreshKey change)
+  // This prevents stale API data from mixing with fresh widget data after deletes
+  useEffect(() => {
+    if (refreshKey > 0) {
+      console.log('[Prayer Page] Widget data refresh triggered, clearing stale API prayers');
+      setRealPrayersFromApi([]);
+    }
+  }, [refreshKey]);
 
   // Log unified data when it loads
   useEffect(() => {
@@ -105,8 +155,18 @@ export default function PrayerPage() {
 
     // Listen for auth token from parent window (when embedded as widget)
     const handleMessage = (event: MessageEvent) => {
-      // TODO: Add origin verification in production
-      // if (event.origin !== 'https://woodsidebible.org') return;
+      // Security: Only accept messages from trusted origins
+      const allowedOrigins = [
+        'https://woodsidebible.org',
+        'https://www.woodsidebible.org',
+        'http://localhost:3000', // For local development/testing
+        'http://localhost:3002',
+      ];
+
+      if (!allowedOrigins.includes(event.origin)) {
+        console.warn('[Prayer Page] Rejected postMessage from untrusted origin:', event.origin);
+        return;
+      }
 
       if (event.data.type === 'AUTH_TOKEN') {
         if (event.data.token) {
@@ -153,9 +213,50 @@ export default function PrayerPage() {
     };
   }, [loggedIn]); // Add loggedIn to dependencies so we can compare previous state
 
-  const handlePrayerSubmitted = () => {
+  const handlePrayerSubmitted = (prayer?: {
+    Entry_Title: string;
+    Description: string;
+    Feedback_Type_ID: number;
+    Target_Date?: string | null;
+    Ongoing_Need: boolean;
+    Anonymous_Share: boolean;
+  }) => {
+    // Close modal immediately
     setShowForm(false);
-    setRefreshKey(prev => prev + 1); // Trigger a refresh of the prayer list
+
+    // If prayer data provided, add optimistically
+    if (prayer) {
+      const optimisticId = `temp-${Date.now()}`;
+      setOptimisticPrayers(prev => [...prev, {
+        ...prayer,
+        id: optimisticId,
+        isPending: true as const,
+      }]);
+
+      // Note: The optimistic prayer will be replaced when handlePrayerConfirmed is called
+    }
+    // For edits, no action needed - changes are already shown optimistically
+  };
+
+  const handlePrayerConfirmed = (prayerData: unknown) => {
+    console.log('[Prayer Page] Prayer confirmed from API:', prayerData);
+
+    // Transform the API response to the format MyPrayers expects
+    const adaptedPrayer = adaptFeedbackWithRelations(prayerData as Record<string, unknown>);
+
+    // Add the real prayer data from API to our list
+    setRealPrayersFromApi(prev => [adaptedPrayer, ...prev]);
+
+    // Remove the optimistic prayer (it's now replaced by the real one)
+    // We'll remove all optimistic prayers since we only add one at a time
+    setOptimisticPrayers([]);
+
+    // Trigger a widget data refresh after a short delay to get fresh data from server
+    // This ensures any deleted prayers are removed and the new prayer is in the server data
+    setTimeout(() => {
+      console.log('[Prayer Page] Refreshing widget data after prayer confirmation');
+      setRefreshKey(prev => prev + 1);
+    }, 1000);
   };
 
   const handleSubmitClick = () => {
@@ -224,6 +325,7 @@ export default function PrayerPage() {
                   </DialogHeader>
                   <PrayerForm
                     onSuccess={handlePrayerSubmitted}
+                    onConfirmed={handlePrayerConfirmed}
                     onCancel={() => setShowForm(false)}
                   />
                 </DialogContent>
@@ -234,8 +336,9 @@ export default function PrayerPage() {
             </p>
             {loggedIn ? (
               <MyPrayers
-                prayers={widgetLoading ? [] : myRequestsData}
+                prayers={widgetLoading ? [] : myRequestsWithOptimistic}
                 isLoading={widgetLoading}
+                onRefresh={() => setRefreshKey(prev => prev + 1)}
               />
             ) : (
               <div className="text-center py-12 border border-dashed border-muted rounded-lg bg-muted/20">

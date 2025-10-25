@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
-import { X, Clock } from 'lucide-react';
+import { X, Clock, CheckCircle2 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsPraying } from '@fortawesome/free-solid-svg-icons';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -82,31 +82,16 @@ export function PrayerCard({ prayer, onPrayedFor, onDismiss, showSwipeHint = fal
       return; // Will redirect to login
     }
 
-    // Submit prayer directly (message is optional and already captured in state)
+    // OPTIMISTIC UPDATE: Immediately increment prayer count
+    const optimisticCount = prayerCount + 1;
+    setPrayerCount(optimisticCount);
+
+    // Show celebration immediately
     setShowCelebration(true);
     setExitX(1000);
 
-    // Increment prayer count via API
-    try {
-      const response = await authenticatedFetch(`/api/prayers/${prayer.Feedback_Entry_ID}/pray`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: encouragingMessage.trim() || undefined,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setPrayerCount(data.prayer_count);
-      }
-    } catch (error) {
-      console.error('Failed to increment prayer count:', error);
-    }
-
     // Reset message
+    const messageToSend = encouragingMessage.trim() || undefined;
     setEncouragingMessage('');
 
     // Wait for animation before removing card
@@ -115,6 +100,33 @@ export function PrayerCard({ prayer, onPrayedFor, onDismiss, showSwipeHint = fal
         onPrayedFor(prayer.Feedback_Entry_ID);
       }
     }, 300);
+
+    // Make API call in background to confirm
+    try {
+      const response = await authenticatedFetch(`/api/prayers/${prayer.Feedback_Entry_ID}/pray`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: messageToSend,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Update with actual count from server (should match optimistic)
+        setPrayerCount(data.prayer_count);
+      } else {
+        // Rollback on error (though card will already be gone)
+        console.error('Failed to record prayer, rolling back count');
+        setPrayerCount(prayerCount);
+      }
+    } catch (error) {
+      console.error('Failed to increment prayer count:', error);
+      // Rollback on error
+      setPrayerCount(prayerCount);
+    }
   };
 
   const handleSkip = () => {
@@ -305,18 +317,49 @@ export function PrayerCard({ prayer, onPrayedFor, onDismiss, showSwipeHint = fal
         </CardFooter>
       </Card>
 
-      {/* Celebration Animation - Subtle */}
+      {/* Celebration Animation - Enhanced */}
       {showCelebration && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-none z-20"
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.8, opacity: 0 }}
+          transition={{
+            type: 'spring',
+            stiffness: 500,
+            damping: 25
+          }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20"
         >
-          <div className="bg-primary text-white px-4 py-2 shadow-lg text-sm font-medium flex items-center gap-2">
-            <FontAwesomeIcon icon={faHandsPraying} className="w-4 h-4" />
-            <span>Prayer added</span>
+          <div className="relative">
+            {/* Animated checkmark circle */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.1, type: 'spring', stiffness: 500, damping: 20 }}
+              className="bg-green-500 rounded-full p-6 shadow-2xl"
+            >
+              <CheckCircle2 className="w-12 h-12 text-white" strokeWidth={3} />
+            </motion.div>
+
+            {/* Ripple effect */}
+            <motion.div
+              initial={{ scale: 0, opacity: 0.5 }}
+              animate={{ scale: 2.5, opacity: 0 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              className="absolute inset-0 bg-green-500 rounded-full"
+            />
+
+            {/* Text below */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="absolute -bottom-12 left-1/2 -translate-x-1/2 whitespace-nowrap"
+            >
+              <span className="text-green-600 font-semibold text-lg drop-shadow-md">
+                Prayer recorded!
+              </span>
+            </motion.div>
           </div>
         </motion.div>
       )}

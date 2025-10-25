@@ -58,6 +58,18 @@ export function PrayerUpdateForm({ prayerId, prayerTitle, onSuccess, onCancel }:
     setError(null);
     setSuccess(false);
 
+    const updateData = {
+      Update_Text: values.updateText,
+      Is_Answered: values.isAnswered,
+    };
+
+    // OPTIMISTIC UPDATE: Close modal immediately and show update with pending state
+    if (onSuccess) {
+      onSuccess(updateData);
+    }
+    form.reset();
+
+    // Make API call in background
     try {
       const response = await authenticatedFetch(`/api/prayers/${prayerId}/updates`, {
         method: 'POST',
@@ -69,25 +81,12 @@ export function PrayerUpdateForm({ prayerId, prayerTitle, onSuccess, onCancel }:
         throw new Error(errorData.message || 'Failed to add update');
       }
 
-      await response.json(); // Parse response
-      setSuccess(true);
-
-      const updateData = {
-        Update_Text: values.updateText,
-        Is_Answered: values.isAnswered,
-      };
-
-      form.reset();
-
-      // Call onSuccess after a short delay to show success message
-      setTimeout(() => {
-        if (onSuccess) {
-          onSuccess(updateData);
-        }
-      }, 1500);
+      await response.json(); // Parse response - success confirmed
+      console.log('[PrayerUpdateForm] Update confirmed by server');
     } catch (err) {
       console.error('[PrayerUpdateForm] Error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred while adding your update');
+      // Note: The optimistic update is already shown, error handling could trigger a rollback
     } finally {
       setIsSubmitting(false);
     }
