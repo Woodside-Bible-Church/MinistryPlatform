@@ -12,11 +12,18 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Calendar, CheckCircle, Clock, Edit, MessageCircle, Plus, User2 } from 'lucide-react';
+import { Loader2, Calendar, Clock, Edit, MessageCircle, Plus, User2, CheckCircle } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsPraying } from '@fortawesome/free-solid-svg-icons';
 import { PrayerForm } from './PrayerForm';
 import { PrayerUpdateForm } from './PrayerUpdateForm';
+
+interface PrayerUpdate {
+  Feedback_Entry_Update_ID: number;
+  Update_Text: string;
+  Update_Date: string;
+  Is_Answered: boolean;
+}
 
 interface MyPrayer {
   Feedback_Entry_ID: number;
@@ -41,6 +48,7 @@ interface MyPrayer {
     Contact_Photo?: string | null;
   };
   userImageUrl?: string; // Added by API route from auth callback
+  Updates?: PrayerUpdate[]; // Updates from Feedback_Entry_Updates table
 }
 
 interface MyPrayersProps {
@@ -113,19 +121,44 @@ export function MyPrayers({ prayers: initialPrayers, isLoading = false, error = 
     }
   };
 
-  const handleUpdateSuccess = async () => {
+  const handleUpdateSuccess = async (newUpdate?: { Update_Text: string; Is_Answered: boolean }) => {
     setShowUpdateDialog(false);
+    const prayerId = editingPrayer?.Feedback_Entry_ID;
     setEditingPrayer(null);
-    // Refresh the prayers list after update
-    try {
-      const response = await authenticatedFetch('/api/prayers?mine=true');
-      if (response.ok) {
-        const data = await response.json();
-        setPrayers(data);
-      }
-    } catch (err) {
-      console.error('Error refreshing prayers:', err);
+
+    // Optimistically add the update to the UI (at the end, since we show oldest to newest)
+    if (prayerId && newUpdate) {
+      setPrayers(prevPrayers =>
+        prevPrayers.map(prayer =>
+          prayer.Feedback_Entry_ID === prayerId
+            ? {
+                ...prayer,
+                Updates: [
+                  ...(prayer.Updates || []),
+                  {
+                    Feedback_Entry_Update_ID: Date.now(), // Temporary ID
+                    Update_Text: newUpdate.Update_Text,
+                    Update_Date: new Date().toISOString(),
+                    Is_Answered: newUpdate.Is_Answered,
+                  },
+                ],
+              }
+            : prayer
+        )
+      );
     }
+
+    // Optionally refresh from server to get the real Update_ID
+    // Uncomment if you want to sync with server data
+    // try {
+    //   const response = await authenticatedFetch('/api/prayers?mine=true');
+    //   if (response.ok) {
+    //     const data = await response.json();
+    //     setPrayers(data);
+    //   }
+    // } catch (err) {
+    //   console.error('Error refreshing prayers:', err);
+    // }
   };
 
   // Get visibility level label
@@ -268,6 +301,37 @@ export function MyPrayers({ prayers: initialPrayers, isLoading = false, error = 
                   </p>
                 </CardHeader>
 
+                {/* Updates Section */}
+                {prayer.Updates && prayer.Updates.length > 0 && (
+                  <div className="px-6 py-3 bg-green-50/50 border-y border-green-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MessageCircle className="w-4 h-4 text-green-600" />
+                      <h4 className="text-sm font-semibold text-green-900">
+                        Updates {prayer.Updates.some(u => u.Is_Answered) && '✓ Answered'}
+                      </h4>
+                    </div>
+                    <div className="space-y-2">
+                      {prayer.Updates.map((update) => (
+                        <div key={update.Feedback_Entry_Update_ID} className="text-xs">
+                          <div className="flex items-start gap-2">
+                            {update.Is_Answered && (
+                              <CheckCircle className="w-3.5 h-3.5 text-green-600 flex-shrink-0 mt-0.5" />
+                            )}
+                            <div className="flex-1">
+                              <p className="text-foreground whitespace-pre-wrap leading-relaxed">
+                                {update.Update_Text}
+                              </p>
+                              <p className="text-muted-foreground mt-1">
+                                {formatDate(update.Update_Date)}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <CardContent className="flex-1 flex flex-col gap-3 px-6">
                   {/* Metadata - at top */}
                   <div className="space-y-2">
@@ -337,27 +401,15 @@ export function MyPrayers({ prayers: initialPrayers, isLoading = false, error = 
                       Edit Request
                     </Button>
                   ) : (
-                    <div className="flex flex-col sm:flex-row gap-2 w-full">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleAddUpdate(prayer.Feedback_Entry_ID)}
-                        className="gap-2 flex-1"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        Add Update
-                      </Button>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => handleAddUpdate(prayer.Feedback_Entry_ID)}
-                        className="gap-2 flex-1"
-                        style={{ backgroundColor: '#61BC47' }}
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                        Mark Answered
-                      </Button>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAddUpdate(prayer.Feedback_Entry_ID)}
+                      className="gap-2 w-full"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      Add Update
+                    </Button>
                   )}
                 </CardFooter>
               </Card>

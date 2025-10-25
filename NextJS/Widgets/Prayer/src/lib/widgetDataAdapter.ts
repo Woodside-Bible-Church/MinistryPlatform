@@ -37,6 +37,7 @@ export function adaptMyRequestItem(item: MyRequestItem, userInfo: UserInfo | nul
       Contact_Photo: userInfo?.Image_URL || null,
     },
     userImageUrl: userInfo?.Image_URL || undefined,
+    Updates: item.Updates || [], // Pass through updates array
   };
 }
 

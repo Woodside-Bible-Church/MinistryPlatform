@@ -44,6 +44,13 @@ export interface LatestUpdate {
   Date: string | null;
 }
 
+export interface PrayerUpdate {
+  Feedback_Entry_Update_ID: number;
+  Update_Text: string;
+  Update_Date: string;
+  Is_Answered: boolean;
+}
+
 export interface MyRequestActions {
   Can_Edit: boolean;
   Can_Add_Update: boolean;
@@ -69,6 +76,7 @@ export interface MyRequestItem {
   Dates: PrayerDates;
   Counts: PrayerCounts;
   Latest_Update: LatestUpdate;
+  Updates: PrayerUpdate[];
   Actions: MyRequestActions;
 }
 

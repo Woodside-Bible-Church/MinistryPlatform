@@ -246,4 +246,58 @@ export class PrayerService {
 
     return counts;
   }
+
+  /**
+   * Get all updates for multiple prayers from Feedback_Entry_Updates table
+   * Returns a map of Feedback_Entry_ID -> array of updates
+   */
+  async getPrayerUpdates(feedbackEntryIds: number[]): Promise<Record<number, Array<{
+    Feedback_Entry_Update_ID: number;
+    Update_Text: string;
+    Update_Date: string;
+    Is_Answered: boolean;
+  }>>> {
+    if (feedbackEntryIds.length === 0) {
+      return {};
+    }
+
+    // Query all updates for these prayers
+    const filter = `Feedback_Entry_ID IN (${feedbackEntryIds.join(',')})`;
+    const updates = await this.client.get('Feedback_Entry_Updates', {
+      $filter: filter,
+      $select: 'Feedback_Entry_Update_ID,Feedback_Entry_ID,Update_Text,Update_Date,Is_Answered',
+      $orderby: 'Update_Date DESC',
+    });
+
+    // Group updates by prayer ID
+    const updatesByPrayer: Record<number, Array<{
+      Feedback_Entry_Update_ID: number;
+      Update_Text: string;
+      Update_Date: string;
+      Is_Answered: boolean;
+    }>> = {};
+
+    const updatesArray = Array.isArray(updates) ? updates : [];
+
+    updatesArray.forEach((update: {
+      Feedback_Entry_ID: number;
+      Feedback_Entry_Update_ID: number;
+      Update_Text: string;
+      Update_Date: string;
+      Is_Answered: boolean | null;
+    }) => {
+      const id = update.Feedback_Entry_ID;
+      if (!updatesByPrayer[id]) {
+        updatesByPrayer[id] = [];
+      }
+      updatesByPrayer[id].push({
+        Feedback_Entry_Update_ID: update.Feedback_Entry_Update_ID,
+        Update_Text: update.Update_Text,
+        Update_Date: update.Update_Date,
+        Is_Answered: update.Is_Answered ?? false,
+      });
+    });
+
+    return updatesByPrayer;
+  }
 }

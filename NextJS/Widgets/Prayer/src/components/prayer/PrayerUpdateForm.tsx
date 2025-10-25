@@ -36,7 +36,7 @@ type UpdateFormValues = z.infer<typeof updateFormSchema>;
 interface PrayerUpdateFormProps {
   prayerId: number;
   prayerTitle: string;
-  onSuccess?: () => void;
+  onSuccess?: (update: { Update_Text: string; Is_Answered: boolean }) => void;
   onCancel?: () => void;
 }
 
@@ -69,14 +69,20 @@ export function PrayerUpdateForm({ prayerId, prayerTitle, onSuccess, onCancel }:
         throw new Error(errorData.message || 'Failed to add update');
       }
 
-      const result = await response.json();
+      await response.json(); // Parse response
       setSuccess(true);
+
+      const updateData = {
+        Update_Text: values.updateText,
+        Is_Answered: values.isAnswered,
+      };
+
       form.reset();
 
       // Call onSuccess after a short delay to show success message
       setTimeout(() => {
         if (onSuccess) {
-          onSuccess();
+          onSuccess(updateData);
         }
       }, 1500);
     } catch (err) {

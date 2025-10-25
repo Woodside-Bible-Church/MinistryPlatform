@@ -532,6 +532,18 @@ BEGIN
                      FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
                     ) AS Latest_Update,
 
+                    -- All Updates array (oldest to newest)
+                    (SELECT
+                        u.Feedback_Entry_Update_ID,
+                        u.Update_Text,
+                        u.Update_Date,
+                        ISNULL(u.Is_Answered, 0) AS Is_Answered
+                     FROM Feedback_Entry_Updates u
+                     WHERE u.Feedback_Entry_ID = p.Feedback_Entry_ID
+                     ORDER BY u.Update_Date ASC
+                     FOR JSON PATH
+                    ) AS Updates,
+
                     -- Nested Actions object
                     (SELECT
                         CAST(1 AS BIT) AS Can_Edit,
