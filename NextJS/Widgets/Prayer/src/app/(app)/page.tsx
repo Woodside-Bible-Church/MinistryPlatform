@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { PrayerList } from '@/components/prayer/PrayerList';
-import { MyPrayers } from '@/components/prayer/MyPrayers';
+import { MyPrayers, type MyPrayer } from '@/components/prayer/MyPrayers';
 import { PrayerForm } from '@/components/prayer/PrayerForm';
 import { PrayerStats } from '@/components/prayer/PrayerStats';
 import { PeoplePrayedFor } from '@/components/prayer/PeoplePrayedFor';
@@ -48,7 +48,7 @@ export default function PrayerPage() {
     Anonymous_Share: boolean;
     isPending: true;
   }>>([]);
-  const [realPrayersFromApi, setRealPrayersFromApi] = useState<Array<unknown>>([]);
+  const [realPrayersFromApi, setRealPrayersFromApi] = useState<MyPrayer[]>([]);
 
   // Fetch unified widget data
   const { data: widgetData, isLoading: widgetLoading, error: widgetError } = useWidgetData(refreshKey);

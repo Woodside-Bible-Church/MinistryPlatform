@@ -9,6 +9,7 @@ import type {
   CommunityNeedItem,
   UserInfo,
 } from '@/types/widgetData';
+import type { MyPrayer } from '@/components/prayer/MyPrayers';
 
 /**
  * Transform MyRequestItem from unified data to legacy format
@@ -97,7 +98,7 @@ export function adaptCommunityNeedItem(item: CommunityNeedItem) {
  * Transform FeedbackWithRelations (from POST /api/prayers response) to MyPrayer format
  * This is used when we get a new prayer back from the API
  */
-export function adaptFeedbackWithRelations(feedback: Record<string, unknown>) {
+export function adaptFeedbackWithRelations(feedback: Record<string, unknown>): MyPrayer {
   return {
     Feedback_Entry_ID: feedback.Feedback_Entry_ID as number,
     Entry_Title: feedback.Entry_Title as string | null,

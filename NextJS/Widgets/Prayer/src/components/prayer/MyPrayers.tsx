@@ -19,14 +19,14 @@ import { faHandsPraying } from '@fortawesome/free-solid-svg-icons';
 import { PrayerForm } from './PrayerForm';
 import { PrayerUpdateForm } from './PrayerUpdateForm';
 
-interface PrayerUpdate {
+export interface PrayerUpdate {
   Feedback_Entry_Update_ID: number;
   Update_Text: string;
   Update_Date: string;
   Is_Answered: boolean;
 }
 
-interface MyPrayer {
+export interface MyPrayer {
   Feedback_Entry_ID: number;
   Entry_Title: string | null;
   Description: string;
