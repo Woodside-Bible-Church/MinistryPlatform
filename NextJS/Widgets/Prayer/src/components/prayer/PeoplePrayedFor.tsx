@@ -55,9 +55,10 @@ interface PeoplePrayedForProps {
   prayers: PrayerResponse[];
   isLoading?: boolean;
   error?: string | null;
+  messagePlaceholder?: string;
 }
 
-export function PeoplePrayedFor({ prayers, isLoading = false, error = null }: PeoplePrayedForProps) {
+export function PeoplePrayedFor({ prayers, isLoading = false, error = null, messagePlaceholder }: PeoplePrayedForProps) {
   const [showPrayAgainDialog, setShowPrayAgainDialog] = useState(false);
   const [selectedPrayer, setSelectedPrayer] = useState<PrayerResponse | null>(null);
   const [encouragingMessage, setEncouragingMessage] = useState('');
@@ -468,7 +469,7 @@ export function PeoplePrayedFor({ prayers, isLoading = false, error = null }: Pe
                 Add an encouraging message (optional)
               </label>
               <Textarea
-                placeholder="Share words of encouragement..."
+                placeholder={messagePlaceholder || 'Share words of encouragement...'}
                 value={encouragingMessage}
                 onChange={(e) => setEncouragingMessage(e.target.value)}
                 className="min-h-[100px] resize-none"

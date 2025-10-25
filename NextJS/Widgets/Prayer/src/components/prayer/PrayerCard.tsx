@@ -41,9 +41,14 @@ interface PrayerCardProps {
   onPrayedFor?: (id: number) => void;
   onDismiss?: (id: number) => void;
   showSwipeHint?: boolean;
+  labels?: {
+    Pray_Button?: string;
+    Skip_Button?: string;
+    Message_Placeholder?: string;
+  };
 }
 
-export function PrayerCard({ prayer, onPrayedFor, onDismiss, showSwipeHint = false }: PrayerCardProps) {
+export function PrayerCard({ prayer, onPrayedFor, onDismiss, showSwipeHint = false, labels }: PrayerCardProps) {
   const [exitX, setExitX] = useState(0);
   const [showHint, setShowHint] = useState(showSwipeHint);
   const [prayerCount, setPrayerCount] = useState(prayer.Prayer_Count ?? 0);
@@ -238,7 +243,7 @@ export function PrayerCard({ prayer, onPrayedFor, onDismiss, showSwipeHint = fal
           {/* Inline Encouraging Message Input - Always Visible */}
           <div className="pt-2">
             <Textarea
-              placeholder="Leave an encouraging word (optional)..."
+              placeholder={labels?.Message_Placeholder || 'Leave an encouraging word (optional)...'}
               value={encouragingMessage}
               onChange={(e) => setEncouragingMessage(e.target.value)}
               className="min-h-[80px] text-sm"
@@ -270,7 +275,7 @@ export function PrayerCard({ prayer, onPrayedFor, onDismiss, showSwipeHint = fal
                 className="gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
               >
                 <X className="w-4 h-4" />
-                SKIP
+                {labels?.Skip_Button || 'SKIP'}
               </Button>
               <Button
                 variant="default"
@@ -279,7 +284,7 @@ export function PrayerCard({ prayer, onPrayedFor, onDismiss, showSwipeHint = fal
                 className="gap-2 bg-primary hover:bg-primary/90"
               >
                 <FontAwesomeIcon icon={faHandsPraying} className="w-4 h-4" />
-                PRAY
+                {labels?.Pray_Button || 'PRAY'}
               </Button>
             </div>
           </div>
@@ -302,12 +307,12 @@ export function PrayerCard({ prayer, onPrayedFor, onDismiss, showSwipeHint = fal
                 <div className="flex items-center gap-1.5">
                   <span className="text-lg">←</span>
                   <X className="w-3.5 h-3.5" />
-                  <span>SKIP</span>
+                  <span>{labels?.Skip_Button || 'SKIP'}</span>
                 </div>
 
                 <div className="flex items-center gap-1.5">
                   <FontAwesomeIcon icon={faHandsPraying} className="w-3.5 h-3.5" />
-                  <span>PRAY</span>
+                  <span>{labels?.Pray_Button || 'PRAY'}</span>
                   <span className="text-lg">→</span>
                 </div>
               </div>

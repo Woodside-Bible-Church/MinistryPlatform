@@ -37,9 +37,15 @@ interface PrayerListProps {
   prayers: Prayer[];
   isLoading?: boolean;
   error?: string | null;
+  labels?: {
+    Pray_Button?: string;
+    Skip_Button?: string;
+    Search_Placeholder?: string;
+    Message_Placeholder?: string;
+  };
 }
 
-export function PrayerList({ mode = 'stack', prayers: initialPrayers, isLoading = false, error = null }: PrayerListProps) {
+export function PrayerList({ mode = 'stack', prayers: initialPrayers, isLoading = false, error = null, labels }: PrayerListProps) {
   const [prayers, setPrayers] = useState<Prayer[]>(initialPrayers);
   const [filteredPrayers, setFilteredPrayers] = useState<Prayer[]>(initialPrayers);
 
@@ -107,7 +113,7 @@ export function PrayerList({ mode = 'stack', prayers: initialPrayers, isLoading 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search prayers..."
+            placeholder={labels?.Search_Placeholder || 'Search prayers...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -149,6 +155,7 @@ export function PrayerList({ mode = 'stack', prayers: initialPrayers, isLoading 
                   onPrayedFor={handlePrayedFor}
                   onDismiss={handleDismiss}
                   showSwipeHint={currentIndex === 0 && index === 0}
+                  labels={labels}
                 />
               </div>
             ))}
@@ -173,6 +180,7 @@ export function PrayerList({ mode = 'stack', prayers: initialPrayers, isLoading 
               prayer={prayer}
               onPrayedFor={handlePrayedFor}
               onDismiss={handleDismiss}
+              labels={labels}
             />
           ))}
         </div>

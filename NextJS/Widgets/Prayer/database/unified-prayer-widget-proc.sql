@@ -124,17 +124,42 @@ BEGIN
     -- STEP 2: Load Application Labels
     -- =====================================================
 
+    -- Widget Labels
     DECLARE @Label_Widget_Title NVARCHAR(255);
     DECLARE @Label_Widget_Subtitle NVARCHAR(255);
+
+    -- User Stats Labels
     DECLARE @Label_User_Stats_Total NVARCHAR(100);
     DECLARE @Label_User_Stats_Streak NVARCHAR(100);
     DECLARE @Label_User_Stats_Today NVARCHAR(100);
+
+    -- My Requests Section Labels
     DECLARE @Label_My_Requests_Title NVARCHAR(100);
     DECLARE @Label_My_Requests_Description NVARCHAR(255);
+    DECLARE @Label_My_Requests_SubmitButton NVARCHAR(100);
+
+    -- Prayer Partners Section Labels
     DECLARE @Label_Prayer_Partners_Title NVARCHAR(100);
     DECLARE @Label_Prayer_Partners_Description NVARCHAR(255);
+
+    -- Community Needs Section Labels
     DECLARE @Label_Community_Needs_Title NVARCHAR(100);
     DECLARE @Label_Community_Needs_Description NVARCHAR(255);
+    DECLARE @Label_Community_Needs_PrayButton NVARCHAR(100);
+    DECLARE @Label_Community_Needs_SkipButton NVARCHAR(100);
+    DECLARE @Label_Community_Needs_SearchPlaceholder NVARCHAR(255);
+    DECLARE @Label_Community_Needs_MessagePlaceholder NVARCHAR(255);
+
+    -- Submit Form Labels
+    DECLARE @Label_Submit_Form_Title NVARCHAR(100);
+    DECLARE @Label_Submit_Form_SubmitButton NVARCHAR(100);
+    DECLARE @Label_Submit_Form_TypeFieldLabel NVARCHAR(100);
+    DECLARE @Label_Submit_Form_RequestFieldLabel NVARCHAR(100);
+    DECLARE @Label_Submit_Form_RequestPlaceholder NVARCHAR(255);
+    DECLARE @Label_Submit_Form_TargetDateLabel NVARCHAR(100);
+    DECLARE @Label_Submit_Form_TargetDateDescription NVARCHAR(255);
+    DECLARE @Label_Submit_Form_PrayerRequestDescription NVARCHAR(255);
+    DECLARE @Label_Submit_Form_PraiseReportDescription NVARCHAR(255);
 
     -- Fetch labels from dp_Application_Labels
     SELECT @Label_Widget_Title = English FROM dp_Application_Labels
@@ -169,6 +194,48 @@ BEGIN
 
     SELECT @Label_Community_Needs_Description = English FROM dp_Application_Labels
     WHERE Label_Name = 'customWidgets.prayerWidget.communityNeeds.description' AND Domain_ID = @DomainID;
+
+    SELECT @Label_Community_Needs_PrayButton = English FROM dp_Application_Labels
+    WHERE Label_Name = 'customWidgets.prayerWidget.communityNeeds.prayButton' AND Domain_ID = @DomainID;
+
+    SELECT @Label_Community_Needs_SkipButton = English FROM dp_Application_Labels
+    WHERE Label_Name = 'customWidgets.prayerWidget.communityNeeds.skipButton' AND Domain_ID = @DomainID;
+
+    SELECT @Label_Community_Needs_SearchPlaceholder = English FROM dp_Application_Labels
+    WHERE Label_Name = 'customWidgets.prayerWidget.communityNeeds.searchPlaceholder' AND Domain_ID = @DomainID;
+
+    SELECT @Label_Community_Needs_MessagePlaceholder = English FROM dp_Application_Labels
+    WHERE Label_Name = 'customWidgets.prayerWidget.communityNeeds.messagePlaceholder' AND Domain_ID = @DomainID;
+
+    SELECT @Label_My_Requests_SubmitButton = English FROM dp_Application_Labels
+    WHERE Label_Name = 'customWidgets.prayerWidget.myRequests.submitButton' AND Domain_ID = @DomainID;
+
+    SELECT @Label_Submit_Form_Title = English FROM dp_Application_Labels
+    WHERE Label_Name = 'customWidgets.prayerWidget.submitForm.title' AND Domain_ID = @DomainID;
+
+    SELECT @Label_Submit_Form_SubmitButton = English FROM dp_Application_Labels
+    WHERE Label_Name = 'customWidgets.prayerWidget.submitForm.submitButton' AND Domain_ID = @DomainID;
+
+    SELECT @Label_Submit_Form_TypeFieldLabel = English FROM dp_Application_Labels
+    WHERE Label_Name = 'customWidgets.prayerWidget.submitForm.typeFieldLabel' AND Domain_ID = @DomainID;
+
+    SELECT @Label_Submit_Form_RequestFieldLabel = English FROM dp_Application_Labels
+    WHERE Label_Name = 'customWidgets.prayerWidget.submitForm.requestFieldLabel' AND Domain_ID = @DomainID;
+
+    SELECT @Label_Submit_Form_RequestPlaceholder = English FROM dp_Application_Labels
+    WHERE Label_Name = 'customWidgets.prayerWidget.submitForm.requestPlaceholder' AND Domain_ID = @DomainID;
+
+    SELECT @Label_Submit_Form_TargetDateLabel = English FROM dp_Application_Labels
+    WHERE Label_Name = 'customWidgets.prayerWidget.submitForm.targetDateLabel' AND Domain_ID = @DomainID;
+
+    SELECT @Label_Submit_Form_TargetDateDescription = English FROM dp_Application_Labels
+    WHERE Label_Name = 'customWidgets.prayerWidget.submitForm.targetDateDescription' AND Domain_ID = @DomainID;
+
+    SELECT @Label_Submit_Form_PrayerRequestDescription = English FROM dp_Application_Labels
+    WHERE Label_Name = 'customWidgets.prayerWidget.submitForm.prayerRequestDescription' AND Domain_ID = @DomainID;
+
+    SELECT @Label_Submit_Form_PraiseReportDescription = English FROM dp_Application_Labels
+    WHERE Label_Name = 'customWidgets.prayerWidget.submitForm.praiseReportDescription' AND Domain_ID = @DomainID;
 
     -- =====================================================
     -- STEP 3: Calculate User Stats (if logged in)
@@ -486,6 +553,10 @@ BEGIN
                 @Label_My_Requests_Description AS Description,
                 (SELECT COUNT(*) FROM #AllPrayers WHERE Is_My_Request = 1) AS Total_Count,
                 (SELECT
+                    @Label_My_Requests_SubmitButton AS Submit_Button
+                 FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+                ) AS Labels,
+                (SELECT
                     p.Feedback_Entry_ID,
                     p.Entry_Title AS Title,
                     p.Description,
@@ -649,6 +720,13 @@ BEGIN
                 @Label_Community_Needs_Description AS Description,
                 (SELECT COUNT(*) FROM #AllPrayers WHERE Is_My_Request = 0 AND Is_Prayer_Partner = 0) AS Total_Count,
                 (SELECT
+                    @Label_Community_Needs_PrayButton AS Pray_Button,
+                    @Label_Community_Needs_SkipButton AS Skip_Button,
+                    @Label_Community_Needs_SearchPlaceholder AS Search_Placeholder,
+                    @Label_Community_Needs_MessagePlaceholder AS Message_Placeholder
+                 FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+                ) AS Labels,
+                (SELECT
                     p.Feedback_Entry_ID,
                     p.Entry_Title AS Title,
                     p.Description,
@@ -711,7 +789,21 @@ BEGIN
                  FOR JSON PATH
                 ) AS Items
              FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
-            ) AS Community_Needs
+            ) AS Community_Needs,
+
+            -- Form Labels (used in submission dialog)
+            (SELECT
+                @Label_Submit_Form_Title AS Title,
+                @Label_Submit_Form_SubmitButton AS Submit_Button,
+                @Label_Submit_Form_TypeFieldLabel AS Type_Field_Label,
+                @Label_Submit_Form_RequestFieldLabel AS Request_Field_Label,
+                @Label_Submit_Form_RequestPlaceholder AS Request_Placeholder,
+                @Label_Submit_Form_TargetDateLabel AS Target_Date_Label,
+                @Label_Submit_Form_TargetDateDescription AS Target_Date_Description,
+                @Label_Submit_Form_PrayerRequestDescription AS Prayer_Request_Description,
+                @Label_Submit_Form_PraiseReportDescription AS Praise_Report_Description
+             FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+            ) AS Form_Labels
 
         FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
     ) AS JsonResult;

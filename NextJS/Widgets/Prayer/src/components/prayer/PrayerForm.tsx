@@ -25,6 +25,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
+import type { FormLabels } from '@/types/widgetData';
 
 // Form validation schema
 const prayerFormSchema = z.object({
@@ -56,9 +57,10 @@ interface PrayerFormProps {
     Ongoing_Need: boolean;
     Target_Date?: string;
   };
+  labels?: FormLabels;
 }
 
-export function PrayerForm({ onSuccess, onConfirmed, onCancel, initialData }: PrayerFormProps) {
+export function PrayerForm({ onSuccess, onConfirmed, onCancel, initialData, labels }: PrayerFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -200,7 +202,7 @@ export function PrayerForm({ onSuccess, onConfirmed, onCancel, initialData }: Pr
             name="Feedback_Type_ID"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Type</FormLabel>
+                <FormLabel>{labels?.Type_Field_Label || 'Type'}</FormLabel>
                 <FormControl>
                   <div className="flex items-center gap-4 p-4 border rounded-lg bg-muted/30">
                     <div className="flex-1 text-center transition-all duration-300">
@@ -208,7 +210,7 @@ export function PrayerForm({ onSuccess, onConfirmed, onCancel, initialData }: Pr
                         Prayer Request
                       </div>
                       <div className={`text-xs transition-colors ${field.value === '1' ? 'text-muted-foreground' : 'text-muted-foreground/60'}`}>
-                        Ask for prayer support
+                        {labels?.Prayer_Request_Description || 'Ask for prayer support'}
                       </div>
                     </div>
 
@@ -250,7 +252,7 @@ export function PrayerForm({ onSuccess, onConfirmed, onCancel, initialData }: Pr
                         Praise Report
                       </div>
                       <div className={`text-xs transition-colors ${field.value === '2' ? 'text-muted-foreground' : 'text-muted-foreground/60'}`}>
-                        Share answered prayers
+                        {labels?.Praise_Report_Description || 'Share answered prayers'}
                       </div>
                     </div>
                   </div>
@@ -265,16 +267,16 @@ export function PrayerForm({ onSuccess, onConfirmed, onCancel, initialData }: Pr
             name="Description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Prayer Request</FormLabel>
+                <FormLabel>{labels?.Request_Field_Label || 'Prayer Request'}</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Share your prayer request..."
+                    placeholder={labels?.Request_Placeholder || 'Share your prayer request...'}
                     className="min-h-[150px] resize-none"
                     {...field}
                   />
                 </FormControl>
                 <FormDescription>
-                  Share your prayer request with the community
+                  {labels?.Prayer_Request_Description || 'Share your prayer request with the community'}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -309,7 +311,7 @@ export function PrayerForm({ onSuccess, onConfirmed, onCancel, initialData }: Pr
             name="Target_Date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Target Date (Optional)</FormLabel>
+                <FormLabel>{labels?.Target_Date_Label || 'Target Date (Optional)'}</FormLabel>
                 <FormControl>
                   <Input
                     type="date"
@@ -318,8 +320,7 @@ export function PrayerForm({ onSuccess, onConfirmed, onCancel, initialData }: Pr
                   />
                 </FormControl>
                 <FormDescription>
-                  If there&apos;s a specific date related to this prayer (e.g., surgery date, job interview), set it here.
-                  Leave blank for ongoing needs.
+                  {labels?.Target_Date_Description || "If there's a specific date related to this prayer (e.g., surgery date, job interview), set it here. Leave blank for ongoing needs."}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -330,7 +331,7 @@ export function PrayerForm({ onSuccess, onConfirmed, onCancel, initialData }: Pr
             <Button type="submit" disabled={isSubmitting} className="flex-1">
               {isSubmitting
                 ? (isEditing ? 'Updating...' : 'Submitting...')
-                : (isEditing ? 'Update Prayer Request' : 'Submit Prayer Request')}
+                : (isEditing ? 'Update Prayer Request' : (labels?.Submit_Button || 'Submit Prayer Request'))}
             </Button>
 
             {onCancel && (

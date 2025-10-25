@@ -270,8 +270,8 @@ export default function PrayerPage() {
     return (
       <div className="bg-gradient-to-b from-background to-muted/20 min-h-screen">
         <div className="py-6 text-center">
-          <h1 className="text-3xl font-bold text-primary">Prayer & Praise</h1>
-          <p className="text-sm text-muted-foreground mt-1">Share burdens, celebrate victories</p>
+          <h1 className="text-3xl font-bold text-primary">{widgetData?.Widget_Title || 'Prayer & Praise'}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{widgetData?.Widget_Subtitle || 'Share burdens, celebrate victories'}</p>
         </div>
         <div className="container mx-auto px-4 py-12">
           <div className="flex flex-col items-center justify-center gap-4">
@@ -287,8 +287,8 @@ export default function PrayerPage() {
     <div className="bg-gradient-to-b from-background to-muted/20">
         {/* Simplified Header */}
         <div className="py-6 text-center">
-          <h1 className="text-3xl font-bold text-primary">Prayer & Praise</h1>
-          <p className="text-sm text-muted-foreground mt-1">Share burdens, celebrate victories</p>
+          <h1 className="text-3xl font-bold text-primary">{widgetData?.Widget_Title || 'Prayer & Praise'}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{widgetData?.Widget_Subtitle || 'Share burdens, celebrate victories'}</p>
         </div>
 
         {/* Main Content */}
@@ -305,7 +305,7 @@ export default function PrayerPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <User2 className="w-5 h-5 text-primary" />
-                <h2 className="text-2xl font-bold text-foreground">My Requests</h2>
+                <h2 className="text-2xl font-bold text-foreground">{widgetData?.My_Requests?.Title || 'My Requests'}</h2>
               </div>
 
               {/* Submit Prayer Button */}
@@ -313,26 +313,27 @@ export default function PrayerPage() {
                 <DialogTrigger asChild>
                   <Button className="gap-2 w-full sm:w-auto" onClick={handleSubmitClick}>
                     <Plus className="w-4 h-4" />
-                    Submit Prayer
+                    {widgetData?.My_Requests?.Labels?.Submit_Button || 'Submit Prayer'}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>Submit a Prayer Request</DialogTitle>
+                    <DialogTitle>{widgetData?.Form_Labels?.Title || 'Submit a Prayer Request'}</DialogTitle>
                     <DialogDescription>
-                      Share your prayer request with the community.
+                      {widgetData?.My_Requests?.Description || 'Share your prayer request with the community.'}
                     </DialogDescription>
                   </DialogHeader>
                   <PrayerForm
                     onSuccess={handlePrayerSubmitted}
                     onConfirmed={handlePrayerConfirmed}
                     onCancel={() => setShowForm(false)}
+                    labels={widgetData?.Form_Labels}
                   />
                 </DialogContent>
               </Dialog>
             </div>
             <p className="text-muted-foreground text-sm">
-              Track your prayer requests and see who&apos;s lifting you up.
+              {widgetData?.My_Requests?.Description || 'Track your prayer requests and see who\'s lifting you up.'}
             </p>
             {loggedIn ? (
               <MyPrayers
@@ -355,15 +356,16 @@ export default function PrayerPage() {
           <section className="space-y-4">
             <div className="flex items-center gap-2">
               <Heart className="w-5 h-5 text-primary" />
-              <h2 className="text-2xl font-bold text-foreground">Prayer Partners</h2>
+              <h2 className="text-2xl font-bold text-foreground">{widgetData?.Prayer_Partners?.Title || 'Prayer Partners'}</h2>
             </div>
             <p className="text-muted-foreground text-sm">
-              See who you&apos;ve been standing with in prayer.
+              {widgetData?.Prayer_Partners?.Description || 'See who you\'ve been standing with in prayer.'}
             </p>
             {loggedIn ? (
               <PeoplePrayedFor
                 prayers={widgetLoading ? [] : prayerPartnersData}
                 isLoading={widgetLoading}
+                messagePlaceholder={widgetData?.Community_Needs?.Labels?.Message_Placeholder}
               />
             ) : (
               <div className="text-center py-12 border border-dashed border-muted rounded-lg bg-muted/20">
@@ -381,7 +383,7 @@ export default function PrayerPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Layers className="w-5 h-5 text-primary" />
-                <h2 className="text-2xl font-bold text-foreground">Community Needs</h2>
+                <h2 className="text-2xl font-bold text-foreground">{widgetData?.Community_Needs?.Title || 'Community Needs'}</h2>
               </div>
 
               {/* View Mode Toggle - Desktop Only */}
@@ -405,12 +407,13 @@ export default function PrayerPage() {
               </Button>
             </div>
             <p className="text-muted-foreground text-sm">
-              Join others in lifting up these requests and celebrating answered prayers.
+              {widgetData?.Community_Needs?.Description || 'Join others in lifting up these requests and celebrating answered prayers.'}
             </p>
             <PrayerList
               mode={viewMode}
               prayers={widgetLoading ? [] : communityNeedsData}
               isLoading={widgetLoading}
+              labels={widgetData?.Community_Needs?.Labels}
             />
           </section>
         </main>

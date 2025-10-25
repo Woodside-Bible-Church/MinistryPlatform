@@ -131,6 +131,9 @@ export interface MyRequestsSection {
   Title: string;
   Description: string;
   Total_Count: number;
+  Labels: {
+    Submit_Button: string;
+  };
   Items: MyRequestItem[];
 }
 
@@ -145,6 +148,12 @@ export interface CommunityNeedsSection {
   Title: string;
   Description: string;
   Total_Count: number;
+  Labels: {
+    Pray_Button: string;
+    Skip_Button: string;
+    Search_Placeholder: string;
+    Message_Placeholder: string;
+  };
   Items: CommunityNeedItem[];
 }
 
@@ -163,6 +172,18 @@ export interface UserInfo {
   Image_URL: string | null;
 }
 
+export interface FormLabels {
+  Title: string;
+  Submit_Button: string;
+  Type_Field_Label: string;
+  Request_Field_Label: string;
+  Request_Placeholder: string;
+  Target_Date_Label: string;
+  Target_Date_Description: string;
+  Prayer_Request_Description: string;
+  Praise_Report_Description: string;
+}
+
 // Main unified widget data structure
 export interface UnifiedWidgetData {
   Widget_Title: string;
@@ -173,4 +194,5 @@ export interface UnifiedWidgetData {
   My_Requests: MyRequestsSection;
   Prayer_Partners: PrayerPartnersSection;
   Community_Needs: CommunityNeedsSection;
+  Form_Labels: FormLabels;
 }
