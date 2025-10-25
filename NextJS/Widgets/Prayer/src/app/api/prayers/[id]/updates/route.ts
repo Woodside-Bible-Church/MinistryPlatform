@@ -9,14 +9,15 @@ import { MinistryPlatformClient } from '@/providers/MinistryPlatform/core/minist
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Authenticate user
     const { user, token } = await authenticateRequest();
     const mpClient = new MinistryPlatformClient(token);
 
-    const prayerId = parseInt(params.id);
+    const { id } = await params;
+    const prayerId = parseInt(id);
     const body = await request.json();
 
     const { updateText, isAnswered } = body;
