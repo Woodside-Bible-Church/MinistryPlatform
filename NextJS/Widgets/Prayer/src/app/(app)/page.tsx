@@ -268,7 +268,7 @@ export default function PrayerPage() {
   // Show loading state while unified data is being fetched
   if (widgetLoading) {
     return (
-      <div className="bg-gradient-to-b from-background to-muted/20 min-h-screen">
+      <div className="min-h-screen">
         <div className="py-6 text-center">
           <h1 className="text-3xl font-bold text-primary">{widgetData?.Widget_Title || 'Prayer & Praise'}</h1>
           <p className="text-sm text-muted-foreground mt-1">{widgetData?.Widget_Subtitle || 'Share burdens, celebrate victories'}</p>
@@ -284,7 +284,7 @@ export default function PrayerPage() {
   }
 
   return (
-    <div className="bg-gradient-to-b from-background to-muted/20">
+    <div>
         {/* Simplified Header */}
         <div className="py-6 text-center">
           <h1 className="text-3xl font-bold text-primary">{widgetData?.Widget_Title || 'Prayer & Praise'}</h1>
