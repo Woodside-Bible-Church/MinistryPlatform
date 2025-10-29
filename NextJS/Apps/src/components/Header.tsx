@@ -124,13 +124,13 @@ export default function Header() {
                   const route = app.Route || '#';
                   return (
                     <DropdownMenuItem key={app.Application_ID} asChild>
-                      <Link href={route} className="flex items-center gap-3 p-3 cursor-pointer rounded-md hover:bg-primary/10 transition-colors group">
+                      <Link href={route} className="flex items-center gap-3 p-3 cursor-pointer rounded-md hover:bg-primary transition-colors group">
                         <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
                           <Icon className="w-5 h-5 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">{app.Application_Name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{app.Description}</p>
+                          <p className="font-semibold text-sm text-foreground group-hover:text-white transition-colors">{app.Application_Name}</p>
+                          <p className="text-xs text-muted-foreground group-hover:text-white/90 truncate transition-colors">{app.Description}</p>
                         </div>
                       </Link>
                     </DropdownMenuItem>

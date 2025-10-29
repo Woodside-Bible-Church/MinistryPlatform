@@ -26,7 +26,7 @@ const userMenuItems = [
 ];
 
 export default function UserMenu({ onClose, userProfile, children }: UserMenuProps) {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
 
   const handleItemClick = (href: string) => {
     if (onClose) {
@@ -39,6 +39,9 @@ export default function UserMenu({ onClose, userProfile, children }: UserMenuPro
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
+
+  // Use resolvedTheme to get the actual current theme (handles system preference)
+  const currentTheme = resolvedTheme || theme;
 
   return (
     <DropdownMenu>
@@ -65,7 +68,7 @@ export default function UserMenu({ onClose, userProfile, children }: UserMenuPro
           onClick={toggleTheme}
           className="cursor-pointer text-foreground hover:bg-primary/20 hover:text-foreground focus:bg-primary/20 focus:text-foreground"
         >
-          {theme === 'dark' ? (
+          {currentTheme === 'dark' ? (
             <>
               <Sun className="mr-2 h-4 w-4 flex-shrink-0" />
               <span>Light Mode</span>
