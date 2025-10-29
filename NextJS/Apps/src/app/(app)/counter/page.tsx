@@ -86,6 +86,8 @@ export default function CounterPage() {
     }
 
     async function loadEvents() {
+      if (!selectedCampus) return;
+
       setIsLoadingEvents(true);
       try {
         const response = await fetch(
