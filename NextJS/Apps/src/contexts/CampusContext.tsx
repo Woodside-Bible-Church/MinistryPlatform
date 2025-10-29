@@ -5,6 +5,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 type Congregation = {
   Congregation_ID: number;
   Congregation_Name: string;
+  Congregation_Short_Name?: string | null;
 };
 
 type CampusContextType = {

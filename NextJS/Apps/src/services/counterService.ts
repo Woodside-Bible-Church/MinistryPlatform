@@ -26,7 +26,7 @@ export class CounterService {
 
     return this.tableService.getTableRecords<Congregations>("Congregations", {
       $filter: filter,
-      $select: "Congregation_ID,Congregation_Name,Start_Date,End_Date,Available_Online",
+      $select: "Congregation_ID,Congregation_Name,Congregation_Short_Name,Start_Date,End_Date,Available_Online",
       $orderby: "Congregation_Name",
     });
   }

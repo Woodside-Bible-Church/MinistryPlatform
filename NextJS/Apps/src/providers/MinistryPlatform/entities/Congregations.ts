@@ -14,6 +14,12 @@ export interface CongregationsRecord {
    */
   Congregation_Name: string /* max 50 chars */;
 
+  /**
+   * Max length: 50 characters
+   * Custom field for short campus name
+   */
+  Congregation_Short_Name?: string /* max 50 chars */ | null;
+
   Start_Date: string /* ISO datetime */;
 
   /**

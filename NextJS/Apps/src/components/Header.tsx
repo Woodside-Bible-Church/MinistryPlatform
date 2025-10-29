@@ -146,9 +146,20 @@ export default function Header() {
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-foreground dark:text-[oklch(0.8_0_0)] hover:!text-primary focus:!text-primary transition-colors focus:outline-none !bg-transparent hover:!bg-transparent data-[state=open]:!bg-transparent focus:!bg-transparent active:!bg-transparent !border-none">
                 <MapPin className="w-4 h-4" />
-                <span className="hidden sm:inline">
-                  {campusLoading ? "Loading..." : selectedCampus?.Congregation_Name || "Select Campus"}
-                </span>
+                {campusLoading ? (
+                  <span className="hidden sm:inline">Loading...</span>
+                ) : selectedCampus ? (
+                  <>
+                    <span className="sm:hidden">
+                      {selectedCampus.Congregation_Short_Name || selectedCampus.Congregation_Name}
+                    </span>
+                    <span className="hidden sm:inline">
+                      {selectedCampus.Congregation_Name}
+                    </span>
+                  </>
+                ) : (
+                  <span className="hidden sm:inline">Select Campus</span>
+                )}
                 <ChevronDownIcon className="w-4 h-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-white/50 dark:bg-[oklch(0.18_0.04_250)]/95 backdrop-blur-2xl border-white/30 dark:border-gray-700/50 shadow-2xl">

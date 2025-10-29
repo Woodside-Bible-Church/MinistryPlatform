@@ -116,7 +116,7 @@ export default function Dashboard() {
                       <div className="bg-primary w-14 h-14 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <Icon className="w-7 h-7 text-primary-foreground" />
                       </div>
-                      <CardTitle className="text-xl">{app.Application_Name}</CardTitle>
+                      <CardTitle className="text-xl uppercase font-extrabold tracking-tight" style={{ letterSpacing: '-0.025em' }}>{app.Application_Name}</CardTitle>
                       <CardDescription className="text-base">{app.Description}</CardDescription>
                     </CardHeader>
                     <CardContent>
