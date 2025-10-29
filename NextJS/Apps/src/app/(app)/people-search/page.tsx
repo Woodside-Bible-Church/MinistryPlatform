@@ -1,0 +1,522 @@
+"use client";
+
+// People Search app - look up contacts and view their information
+import { useState, useEffect, useCallback } from "react";
+import { Search, User, Mail, Phone, Home, Users, Loader2, X, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
+
+type Contact = {
+  Contact_ID: number;
+  First_Name: string | null;
+  Last_Name: string;
+  Nickname: string | null;
+  Display_Name: string;
+  Email_Address: string | null;
+  Mobile_Phone: string | null;
+  Company_Phone: string | null;
+  Date_of_Birth: string | null;
+  Gender_ID: number | null;
+  Marital_Status_ID: number | null;
+  Household_ID: number | null;
+  Household_Position_ID: number | null;
+  Participant_Record: number | null;
+  Company: boolean | null;
+  __Age: number | null;
+  Image_GUID?: string | null;
+};
+
+type HouseholdMember = Contact & {
+  Image_URL?: string | null;
+  Selected?: boolean;
+  Household_Position?: string | null;
+};
+
+type Household = {
+  Household_ID: number;
+  Household_Name: string;
+  Congregation_Name?: string | null;
+  Home_Phone: string | null;
+  Address?: {
+    Address_ID: number;
+    Address_Line_1?: string | null;
+    Address_Line_2?: string | null;
+    City?: string | null;
+    State?: string | null;
+    Postal_Code?: string | null;
+    Country?: string | null;
+    Latitude?: number | null;
+    Longitude?: number | null;
+  } | null;
+};
+
+export default function PeopleSearchPage() {
+  // Set page title
+  useEffect(() => {
+    document.title = "People Search - Ministry Apps";
+  }, []);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Contact[]>([]);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [household, setHousehold] = useState<Household | null>(null);
+  const [householdMembers, setHouseholdMembers] = useState<HouseholdMember[]>([]);
+
+  const [isSearching, setIsSearching] = useState(false);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [isLoadingHousehold, setIsLoadingHousehold] = useState(false);
+
+  // Debounced search function
+  const performSearch = useCallback(async (query: string) => {
+    if (!query || query.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(`/api/people-search/search?q=${encodeURIComponent(query)}`);
+      if (!response.ok) throw new Error("Failed to search");
+      const data = await response.json();
+      setSearchResults(data);
+    } catch (error) {
+      console.error("Error searching contacts:", error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      performSearch(searchQuery);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, performSearch]);
+
+  const handleSelectContact = async (contact: Contact) => {
+    setSelectedContact(contact);
+    setIsLoadingDetails(true);
+    setIsLoadingHousehold(true);
+    setHousehold(null);
+    setHouseholdMembers([]);
+
+    try {
+      // Load contact details
+      const contactResponse = await fetch(`/api/people-search/${contact.Contact_ID}`);
+      if (!contactResponse.ok) {
+        const errorText = await contactResponse.text();
+        console.error("Contact API error:", errorText);
+        throw new Error("Failed to fetch contact");
+      }
+      const contactData = await contactResponse.json();
+      setSelectedContact(contactData);
+
+      // Load household info if available
+      if (contactData.Household_ID) {
+        try {
+          const householdResponse = await fetch(`/api/people-search/${contact.Contact_ID}/household`);
+          if (!householdResponse.ok) {
+            const errorText = await householdResponse.text();
+            console.error("Household API error:", errorText);
+            throw new Error("Failed to fetch household");
+          }
+          const householdData = await householdResponse.json();
+          console.log("Household data:", householdData);
+          // API now returns capitalized Household and Members
+          setHousehold(householdData.Household);
+          setHouseholdMembers(householdData.Members || []);
+        } catch (error) {
+          console.error("Error loading household:", error);
+          setHousehold(null);
+          setHouseholdMembers([]);
+        } finally {
+          setIsLoadingHousehold(false);
+        }
+      } else {
+        setIsLoadingHousehold(false);
+      }
+    } catch (error) {
+      console.error("Error loading contact details:", error);
+      setIsLoadingHousehold(false);
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedContact(null);
+    setHousehold(null);
+    setHouseholdMembers([]);
+  };
+
+  const formatPhone = (phone: string | null) => {
+    if (!phone) return null;
+    const cleaned = phone.replace(/\D/g, "");
+    if (cleaned.length === 10) {
+      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    }
+    return phone;
+  };
+
+  const formatAddress = (h: Household) => {
+    const parts = [
+      h.Address_Line_1,
+      h.Address_Line_2,
+      [h.City, h.State, h.Postal_Code].filter(Boolean).join(", ")
+    ].filter(Boolean);
+    return parts.join("\n");
+  };
+
+  const getImageUrl = (imageGuidOrUrl: string | null | undefined) => {
+    if (!imageGuidOrUrl) return null;
+    // If it's already a full URL (from stored procedure), return as-is
+    if (imageGuidOrUrl.startsWith('http')) return imageGuidOrUrl;
+    // Otherwise, build the URL (for API calls with Image_GUID)
+    return `${process.env.NEXT_PUBLIC_MINISTRY_PLATFORM_FILE_URL}/${imageGuidOrUrl}?$thumbnail=true`;
+  };
+
+  const getInitials = (contact: Contact) => {
+    const firstName = contact.Nickname || contact.First_Name || "";
+    const lastName = contact.Last_Name || "";
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
+  return (
+    <div className="min-h-screen bg-background py-8">
+      <div className="container mx-auto px-4 max-w-6xl">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-primary mb-2">PEOPLE SEARCH</h1>
+          <p className="text-muted-foreground">
+            Look up contacts and view their information
+          </p>
+        </div>
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column - Search */}
+          <div className="space-y-6">
+            {/* Search Input */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-card border border-border rounded-lg p-6 shadow-sm"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Search className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">SEARCH</h3>
+                  <p className="text-sm text-muted-foreground">Find people by name, email, or phone</p>
+                </div>
+              </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Enter name, email, or phone number..."
+                  className="w-full px-4 py-3 rounded-lg border border-border bg-background text-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSearchResults([]);
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+            </motion.div>
+
+            {/* Search Results */}
+            <AnimatePresence>
+              {(isSearching || searchResults.length > 0) && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="bg-card border border-border rounded-lg p-6 shadow-sm"
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Users className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">RESULTS</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {isSearching ? "Searching..." : `${searchResults.length} contact${searchResults.length !== 1 ? "s" : ""} found`}
+                      </p>
+                    </div>
+                  </div>
+
+                  {isSearching ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    </div>
+                  ) : searchResults.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No contacts found
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                      {searchResults.map((contact) => (
+                        <button
+                          key={contact.Contact_ID}
+                          onClick={() => handleSelectContact(contact)}
+                          className={`w-full p-4 rounded-lg border-2 transition-all text-left flex items-center justify-between ${
+                            selectedContact?.Contact_ID === contact.Contact_ID
+                              ? "border-primary bg-primary/5 shadow-md hover:shadow-lg hover:bg-primary/10"
+                              : "border-border hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              {getImageUrl(contact.Image_GUID) ? (
+                                <img
+                                  src={getImageUrl(contact.Image_GUID)!}
+                                  alt={contact.Display_Name}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                    const parent = (e.target as HTMLImageElement).parentElement;
+                                    if (parent) {
+                                      parent.innerHTML = `<span class="text-sm font-medium text-primary">${getInitials(contact)}</span>`;
+                                    }
+                                  }}
+                                />
+                              ) : (
+                                <span className="text-sm font-medium text-primary">{getInitials(contact)}</span>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-foreground">{contact.Display_Name}</p>
+                              {contact.Email_Address && (
+                                <p className="text-sm text-muted-foreground">{contact.Email_Address}</p>
+                              )}
+                            </div>
+                          </div>
+                          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Right Column - Contact Details */}
+          <AnimatePresence>
+            {selectedContact && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="space-y-6"
+              >
+                {/* Contact Information */}
+                <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <User className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground">CONTACT INFO</h3>
+                        <p className="text-sm text-muted-foreground">Personal details</p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={handleClearSelection}
+                      size="sm"
+                      variant="ghost"
+                      className="gap-2"
+                    >
+                      <X className="w-4 h-4" />
+                      Close
+                    </Button>
+                  </div>
+
+                  {isLoadingDetails ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          {getImageUrl(selectedContact.Image_GUID) ? (
+                            <img
+                              src={getImageUrl(selectedContact.Image_GUID)!}
+                              alt={selectedContact.Display_Name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                                const parent = (e.target as HTMLImageElement).parentElement;
+                                if (parent) {
+                                  parent.innerHTML = `<span class="text-lg font-semibold text-primary">${getInitials(selectedContact)}</span>`;
+                                }
+                              }}
+                            />
+                          ) : (
+                            <span className="text-lg font-semibold text-primary">{getInitials(selectedContact)}</span>
+                          )}
+                        </div>
+                        <div>
+                          <h4 className="text-2xl font-bold text-foreground mb-1">{selectedContact.Display_Name}</h4>
+                          {selectedContact.__Age && (
+                            <p className="text-sm text-muted-foreground">Age: {selectedContact.__Age}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {selectedContact.Email_Address && (
+                        <div className="flex items-start gap-3">
+                          <Mail className="w-5 h-5 text-primary mt-0.5" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">Email</p>
+                            <a
+                              href={`mailto:${selectedContact.Email_Address}`}
+                              className="text-foreground hover:text-primary transition-colors"
+                            >
+                              {selectedContact.Email_Address}
+                            </a>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedContact.Mobile_Phone && (
+                        <div className="flex items-start gap-3">
+                          <Phone className="w-5 h-5 text-primary mt-0.5" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">Mobile</p>
+                            <a
+                              href={`tel:${selectedContact.Mobile_Phone}`}
+                              className="text-foreground hover:text-primary transition-colors"
+                            >
+                              {formatPhone(selectedContact.Mobile_Phone)}
+                            </a>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedContact.Company_Phone && (
+                        <div className="flex items-start gap-3">
+                          <Phone className="w-5 h-5 text-primary mt-0.5" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">Work</p>
+                            <a
+                              href={`tel:${selectedContact.Company_Phone}`}
+                              className="text-foreground hover:text-primary transition-colors"
+                            >
+                              {formatPhone(selectedContact.Company_Phone)}
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Household Information */}
+                {selectedContact.Household_ID && (
+                  <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Home className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground">HOUSEHOLD</h3>
+                        <p className="text-sm text-muted-foreground">Family members and address</p>
+                      </div>
+                    </div>
+
+                    {isLoadingHousehold ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      </div>
+                    ) : household ? (
+                      <div className="space-y-4">
+                        <div>
+                          <p className="font-semibold text-foreground mb-2">{household.Household_Name}</p>
+                          {household.Address?.Address_Line_1 && (
+                            <div className="text-sm text-muted-foreground whitespace-pre-line">
+                              {household.Address.Address_Line_1}
+                              {household.Address.Address_Line_2 && `\n${household.Address.Address_Line_2}`}
+                              {household.Address.City && `\n${household.Address.City}, ${household.Address.State} ${household.Address.Postal_Code}`}
+                            </div>
+                          )}
+                          {household.Home_Phone && (
+                            <a
+                              href={`tel:${household.Home_Phone}`}
+                              className="text-sm text-primary hover:underline block mt-2"
+                            >
+                              {formatPhone(household.Home_Phone)}
+                            </a>
+                          )}
+                        </div>
+
+                        {householdMembers.length > 1 && (
+                          <div>
+                            <p className="text-sm font-semibold text-foreground mb-2">
+                              Family Members ({householdMembers.filter(m => m.Contact_ID !== selectedContact.Contact_ID).length})
+                            </p>
+                            <div className="space-y-2">
+                              {householdMembers.filter(m => m.Contact_ID !== selectedContact.Contact_ID).map((member) => (
+                                <div
+                                  key={member.Contact_ID}
+                                  className={`p-3 rounded-lg border flex items-center gap-3 ${
+                                    member.Contact_ID === selectedContact.Contact_ID || member.Selected
+                                      ? "border-primary bg-primary/5"
+                                      : "border-border"
+                                  }`}
+                                >
+                                  <div className="w-10 h-10 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                    {member.Image_URL ? (
+                                      <img
+                                        src={member.Image_URL}
+                                        alt={member.Display_Name}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                          (e.target as HTMLImageElement).style.display = 'none';
+                                          const parent = (e.target as HTMLImageElement).parentElement;
+                                          if (parent) {
+                                            parent.innerHTML = `<span class="text-sm font-medium text-primary">${getInitials(member)}</span>`;
+                                          }
+                                        }}
+                                      />
+                                    ) : (
+                                      <span className="text-sm font-medium text-primary">{getInitials(member)}</span>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-foreground">{member.Display_Name}</p>
+                                    {member.__Age && (
+                                      <p className="text-xs text-muted-foreground">Age: {member.__Age}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  );
+}
