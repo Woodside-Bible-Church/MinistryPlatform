@@ -3,6 +3,7 @@ import { TableService } from "@/providers/MinistryPlatform/services/tableService
 import { ProcedureService } from "@/providers/MinistryPlatform/services/procedureService";
 import type { Contact } from "@/providers/MinistryPlatform/entities/Contacts";
 import type { Household } from "@/providers/MinistryPlatform/entities/Households";
+import type { QueryParams } from "@/providers/MinistryPlatform/Interfaces/mpProviderInterfaces";
 
 // Extended contact type for household members with Image_URL
 export interface HouseholdMember extends Omit<Contact, 'Image_GUID'> {
@@ -126,7 +127,7 @@ export class PeopleSearchService {
    * @returns Household with nested address and members with images
    */
   async getHouseholdWithMembers(householdId: number, contactId?: number): Promise<HouseholdWithMembersResponse | null> {
-    const params: Record<string, unknown> = { '@HouseholdID': householdId };
+    const params: QueryParams = { '@HouseholdID': householdId };
     if (contactId) {
       params['@ContactID'] = contactId;
     }
