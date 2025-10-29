@@ -161,15 +161,6 @@ export default function PeopleSearchPage() {
     return phone;
   };
 
-  const formatAddress = (h: Household) => {
-    const parts = [
-      h.Address_Line_1,
-      h.Address_Line_2,
-      [h.City, h.State, h.Postal_Code].filter(Boolean).join(", ")
-    ].filter(Boolean);
-    return parts.join("\n");
-  };
-
   const getImageUrl = (imageGuidOrUrl: string | null | undefined) => {
     if (!imageGuidOrUrl) return null;
     // If it's already a full URL (from stored procedure), return as-is
