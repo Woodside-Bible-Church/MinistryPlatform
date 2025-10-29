@@ -119,6 +119,8 @@ export default function CounterPage() {
     }
 
     async function loadExistingMetrics() {
+      if (!selectedEvent) return;
+
       setIsLoadingExistingMetrics(true);
       try {
         const response = await fetch(`/api/counter/event-metrics/${selectedEvent.Event_ID}`);
