@@ -394,9 +394,8 @@ export interface QueryParams {
     [key: string]: string | number | boolean | string[] | number[] | boolean[] | undefined | null;
 }
 
-export interface RequestBody {
-    [key: string]: unknown;
-}
+// RequestBody can be either an object or an array (for table operations)
+export type RequestBody = Record<string, unknown> | unknown[];
 export interface TableMetadata {
     Table_ID: number;
     Table_Name: string;
