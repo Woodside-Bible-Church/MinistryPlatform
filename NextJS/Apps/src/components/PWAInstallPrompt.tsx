@@ -130,7 +130,7 @@ export default function PWAInstallPrompt() {
     return (
       <div className="fixed bottom-4 left-4 right-4 z-50 flex justify-center pointer-events-none">
         <div
-          className="pointer-events-auto backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.18_0.04_250)]/80 border border-white/30 dark:border-gray-800/50 shadow-2xl rounded-2xl p-5 max-w-2xl w-full transition-transform"
+          className="pointer-events-auto backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.16_0.005_0)]/95 border border-white/30 dark:border-[oklch(0.3_0.005_0)] shadow-2xl rounded-2xl p-5 max-w-2xl w-full transition-transform"
           style={{ transform: `translateY(${translateY}px)` }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -142,8 +142,8 @@ export default function PWAInstallPrompt() {
                 <Download className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-lg mb-1 text-foreground dark:text-white">Install {appName}</h3>
-                <p className="text-sm text-muted-foreground dark:text-gray-300">
+                <h3 className="font-bold text-lg mb-1 text-foreground">Install {appName}</h3>
+                <p className="text-sm text-muted-foreground">
                   Tap the{' '}
                   <button
                     onClick={handleShareClick}
@@ -157,7 +157,7 @@ export default function PWAInstallPrompt() {
             </div>
             <button
               onClick={handleDismiss}
-              className="text-muted-foreground hover:text-foreground dark:text-gray-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 p-2 rounded-lg transition-colors flex-shrink-0"
+              className="text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10 p-2 rounded-lg transition-colors flex-shrink-0"
               aria-label="Dismiss"
             >
               <X className="w-5 h-5" />
@@ -173,7 +173,7 @@ export default function PWAInstallPrompt() {
     return (
       <div className="fixed bottom-4 left-4 right-4 z-50 flex justify-center pointer-events-none">
         <div
-          className="pointer-events-auto backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.18_0.04_250)]/80 border border-white/30 dark:border-gray-800/50 shadow-2xl rounded-2xl p-5 max-w-2xl w-full transition-transform"
+          className="pointer-events-auto backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.16_0.005_0)]/95 border border-white/30 dark:border-[oklch(0.3_0.005_0)] shadow-2xl rounded-2xl p-5 max-w-2xl w-full transition-transform"
           style={{ transform: `translateY(${translateY}px)` }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -185,15 +185,15 @@ export default function PWAInstallPrompt() {
                 <Download className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-lg mb-0.5 text-foreground dark:text-white">Install {appName}</h3>
-                <p className="text-sm text-muted-foreground dark:text-gray-300">
+                <h3 className="font-bold text-lg mb-0.5 text-foreground">Install {appName}</h3>
+                <p className="text-sm text-muted-foreground">
                   Click the menu (☰) and select &quot;Install&quot; to add this app to your desktop
                 </p>
               </div>
             </div>
             <button
               onClick={handleDismiss}
-              className="text-muted-foreground hover:text-foreground dark:text-gray-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 p-2.5 rounded-lg transition-colors flex-shrink-0"
+              className="text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10 p-2.5 rounded-lg transition-colors flex-shrink-0"
               aria-label="Dismiss"
             >
               <X className="w-5 h-5" />
@@ -209,7 +209,7 @@ export default function PWAInstallPrompt() {
     return (
       <div className="fixed bottom-4 left-4 right-4 z-50 flex justify-center pointer-events-none">
         <div
-          className="pointer-events-auto backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.18_0.04_250)]/80 border border-white/30 dark:border-gray-800/50 shadow-2xl rounded-2xl p-5 max-w-2xl w-full transition-transform"
+          className="pointer-events-auto backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.16_0.005_0)]/95 border border-white/30 dark:border-[oklch(0.3_0.005_0)] shadow-2xl rounded-2xl p-5 max-w-2xl w-full transition-transform"
           style={{ transform: `translateY(${translateY}px)` }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -221,8 +221,8 @@ export default function PWAInstallPrompt() {
                 <Download className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-lg mb-0.5 text-foreground dark:text-white">Install {appName}</h3>
-                <p className="text-sm text-muted-foreground dark:text-gray-300">Add to your home screen for quick access</p>
+                <h3 className="font-bold text-lg mb-0.5 text-foreground">Install {appName}</h3>
+                <p className="text-sm text-muted-foreground">Add to your home screen for quick access</p>
               </div>
             </div>
             <div className="flex gap-2 flex-shrink-0">

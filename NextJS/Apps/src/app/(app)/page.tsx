@@ -111,25 +111,27 @@ export default function Dashboard() {
               const route = app.Route || '#';
               return (
                 <Link key={app.Application_ID} href={route}>
-                  <div className="group relative overflow-hidden rounded-2xl border border-border bg-card hover:border-primary/50 dark:hover:border-[#61bc47]/50 hover:shadow-xl transition-all duration-300 cursor-pointer">
-                    <div className="flex items-start gap-4 p-6">
-                      {/* Icon */}
-                      <div className="bg-primary dark:bg-secondary dark:group-hover:bg-[#61bc47] w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-all duration-300 shadow-lg">
-                        <Icon className="w-8 h-8 text-white" />
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg uppercase font-extrabold tracking-tight mb-2 text-foreground" style={{ letterSpacing: '-0.025em' }}>
+                  <div className="group relative overflow-hidden border border-border bg-card hover:border-primary/50 dark:hover:border-[#61bc47]/50 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                    <div className="p-6 space-y-3">
+                      {/* Icon and Title */}
+                      <div className="flex items-center gap-3">
+                        <div className="bg-primary dark:bg-secondary dark:group-hover:bg-[#61bc47] w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-all duration-300 shadow-lg">
+                          <Icon className="w-5 h-5 text-white" />
+                        </div>
+                        <h3 className="text-lg uppercase font-extrabold tracking-tight text-foreground" style={{ letterSpacing: '-0.025em' }}>
                           {app.Application_Name}
                         </h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          {app.Description}
-                        </p>
-                        <div className="mt-3 flex items-center justify-end gap-1 text-primary dark:text-muted-foreground dark:group-hover:text-[#61bc47] font-semibold text-sm transition-colors">
-                          <span>Open app</span>
-                          <span className="group-hover:translate-x-1 transition-transform">→</span>
-                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {app.Description}
+                      </p>
+
+                      {/* Open App Link */}
+                      <div className="flex items-center justify-end gap-1 text-primary dark:text-muted-foreground dark:group-hover:text-[#61bc47] font-semibold text-sm transition-colors">
+                        <span>Open app</span>
+                        <span className="group-hover:translate-x-1 transition-transform">→</span>
                       </div>
                     </div>
 

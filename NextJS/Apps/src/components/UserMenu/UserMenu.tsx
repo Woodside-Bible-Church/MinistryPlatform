@@ -49,7 +49,7 @@ export default function UserMenu({ onClose, userProfile, children }: UserMenuPro
         {children}
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-64 bg-white/50 dark:bg-gray-900/50 backdrop-blur-2xl border-white/30 dark:border-gray-700/30 shadow-2xl"
+        className="w-64 bg-white/50 dark:bg-[oklch(0.16_0.005_0)]/95 backdrop-blur-2xl border-white/30 dark:border-[oklch(0.3_0.005_0)] shadow-2xl"
         align="end"
       >
         <DropdownMenuLabel className="text-foreground">
