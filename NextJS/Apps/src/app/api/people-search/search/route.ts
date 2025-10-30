@@ -15,13 +15,17 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get("q");
+    const skip = searchParams.get("skip");
 
     if (!query) {
       return NextResponse.json([]);
     }
 
     const peopleSearchService = new PeopleSearchService(session.accessToken);
-    const contacts = await peopleSearchService.searchContacts(query);
+    const contacts = await peopleSearchService.searchContacts(
+      query,
+      skip ? parseInt(skip) : 0
+    );
 
     return NextResponse.json(contacts);
   } catch (error) {

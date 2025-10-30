@@ -135,8 +135,7 @@
     font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif;
   }
   h1 {
-    text-transform: uppercase;
-    letter-spacing: -0.025em;
+    text-transform: lowercase;
     font-weight: 900;
   }
 }
@@ -154,9 +153,10 @@ input[type="submit"],
 
 /* Woodside Button Hover Transitions */
 @media only screen and (hover: hover) {
-  button:hover,
-  button[type="button"]:hover,
-  button[type="submit"]:hover,
+  /* Exclude buttons with custom hover states from global hover */
+  button:not([class*="hover:bg-"]):not([class*="hover:border-"]):hover,
+  button[type="button"]:not([class*="hover:bg-"]):not([class*="hover:border-"]):hover,
+  button[type="submit"]:not([class*="hover:bg-"]):not([class*="hover:border-"]):hover,
   input[type="submit"]:hover,
   .btn:hover {
     background: #1c2b39;
@@ -170,14 +170,6 @@ input[type="submit"],
   button[class*="variant-outline"]:hover {
     background: oklch(0.19 0.025 240 / 0.1);
     border-color: var(--woodside-blue);
-  }
-
-  /* Preserve component-specific hover states (like number-spinner, UI components) */
-  button[class*="hover:bg-"]:hover,
-  button[class*="hover:text-"]:hover {
-    background: revert;
-    color: revert;
-    border-color: revert;
   }
 }
 
@@ -225,4 +217,14 @@ header nav {
 
 .dark .logo-link:hover .logo-svg {
   filter: none;
+}
+
+/* Hide scrollbars but keep scroll functionality */
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }

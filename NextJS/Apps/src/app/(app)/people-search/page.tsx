@@ -22,7 +22,9 @@ type Contact = {
   Household_Position_ID: number | null;
   Participant_Record: number | null;
   Company: boolean | null;
+  Company_Name: string | null;
   __Age: number | null;
+  Contact_Status_ID: number | null;
   Image_GUID?: string | null;
 };
 
@@ -63,38 +65,69 @@ export default function PeopleSearchPage() {
   const [householdMembers, setHouseholdMembers] = useState<HouseholdMember[]>([]);
 
   const [isSearching, setIsSearching] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [isLoadingHousehold, setIsLoadingHousehold] = useState(false);
 
   // Debounced search function
-  const performSearch = useCallback(async (query: string) => {
+  const performSearch = useCallback(async (query: string, skip: number = 0) => {
     if (!query || query.trim().length < 2) {
       setSearchResults([]);
+      setHasMore(true);
       return;
     }
 
-    setIsSearching(true);
+    if (skip === 0) {
+      setIsSearching(true);
+    } else {
+      setIsLoadingMore(true);
+    }
+
     try {
-      const response = await fetch(`/api/people-search/search?q=${encodeURIComponent(query)}`);
+      const url = `/api/people-search/search?q=${encodeURIComponent(query)}&skip=${skip}`;
+      const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to search");
       const data = await response.json();
-      setSearchResults(data);
+
+      if (skip === 0) {
+        setSearchResults(data);
+      } else {
+        setSearchResults(prev => [...prev, ...data]);
+      }
+
+      // If we got less than 50 results, there are no more
+      setHasMore(data.length === 50);
     } catch (error) {
       console.error("Error searching contacts:", error);
-      setSearchResults([]);
+      if (skip === 0) {
+        setSearchResults([]);
+      }
     } finally {
       setIsSearching(false);
+      setIsLoadingMore(false);
     }
   }, []);
 
   // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
-      performSearch(searchQuery);
+      performSearch(searchQuery, 0);
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, performSearch]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
+
+  // Handle scroll to load more
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement;
+    const bottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 50;
+
+    if (bottom && hasMore && !isLoadingMore && !isSearching && searchResults.length > 0) {
+      performSearch(searchQuery, searchResults.length);
+    }
+  }, [hasMore, isLoadingMore, isSearching, searchResults.length, searchQuery, performSearch]);
 
   const handleSelectContact = async (contact: Contact) => {
     setSelectedContact(contact);
@@ -170,9 +203,27 @@ export default function PeopleSearchPage() {
   };
 
   const getInitials = (contact: Contact) => {
+    // For companies, use first two letters of company name
+    if (contact.Company && contact.Company_Name) {
+      return contact.Company_Name.substring(0, 2).toUpperCase();
+    }
     const firstName = contact.Nickname || contact.First_Name || "";
     const lastName = contact.Last_Name || "";
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
+  const getDisplayName = (contact: Contact) => {
+    // For companies, use company name
+    if (contact.Company && contact.Company_Name) {
+      return contact.Company_Name;
+    }
+    const firstName = contact.Nickname || contact.First_Name || "";
+    return `${firstName} ${contact.Last_Name}`.trim();
+  };
+
+  const isInactive = (contact: Contact) => {
+    // Contact_Status_ID: 1 = Active, 2 = Inactive
+    return contact.Contact_Status_ID === 2;
   };
 
   return (
@@ -243,7 +294,7 @@ export default function PeopleSearchPage() {
                     <div>
                       <h3 className="font-semibold text-foreground">RESULTS</h3>
                       <p className="text-sm text-muted-foreground">
-                        {isSearching ? "Searching..." : `${searchResults.length} contact${searchResults.length !== 1 ? "s" : ""} found`}
+                        {isSearching ? "Searching..." : `${searchResults.length}${hasMore ? "+" : ""} contact${searchResults.length !== 1 ? "s" : ""}`}
                       </p>
                     </div>
                   </div>
@@ -257,46 +308,60 @@ export default function PeopleSearchPage() {
                       No contacts found
                     </div>
                   ) : (
-                    <div className="space-y-2 max-h-[500px] overflow-y-auto">
-                      {searchResults.map((contact) => (
-                        <button
-                          key={contact.Contact_ID}
-                          onClick={() => handleSelectContact(contact)}
-                          className={`w-full p-4 rounded-lg border-2 transition-all text-left flex items-center justify-between ${
-                            selectedContact?.Contact_ID === contact.Contact_ID
-                              ? "border-primary bg-primary/5 shadow-md hover:shadow-lg hover:bg-primary/10"
-                              : "border-border hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center flex-shrink-0">
-                              {getImageUrl(contact.Image_GUID) ? (
-                                <img
-                                  src={getImageUrl(contact.Image_GUID)!}
-                                  alt={contact.Display_Name}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                    const parent = (e.target as HTMLImageElement).parentElement;
-                                    if (parent) {
-                                      parent.innerHTML = `<span class="text-sm font-medium text-primary">${getInitials(contact)}</span>`;
-                                    }
-                                  }}
-                                />
-                              ) : (
-                                <span className="text-sm font-medium text-primary">{getInitials(contact)}</span>
-                              )}
+                    <div
+                      className="space-y-2 max-h-[500px] overflow-y-auto overflow-x-hidden scrollbar-hide"
+                      onScroll={handleScroll}
+                    >
+                      {searchResults.map((contact) => {
+                        const inactive = isInactive(contact);
+                        return (
+                          <button
+                            key={contact.Contact_ID}
+                            onClick={() => handleSelectContact(contact)}
+                            className={`w-full p-4 rounded-lg border-2 transition-all text-left flex items-center justify-between ${
+                              selectedContact?.Contact_ID === contact.Contact_ID
+                                ? "border-primary bg-primary/5 shadow-md hover:shadow-lg hover:bg-primary/10"
+                                : "border-border hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm"
+                            } ${inactive ? "opacity-50" : ""}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`w-10 h-10 rounded-full overflow-hidden ${inactive ? "bg-muted" : "bg-primary/10"} flex items-center justify-center flex-shrink-0`}>
+                                {getImageUrl(contact.Image_GUID) ? (
+                                  <img
+                                    src={getImageUrl(contact.Image_GUID)!}
+                                    alt={getDisplayName(contact)}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                      const parent = (e.target as HTMLImageElement).parentElement;
+                                      if (parent) {
+                                        parent.innerHTML = `<span class="text-sm font-medium ${inactive ? "text-muted-foreground" : "text-primary"}">${getInitials(contact)}</span>`;
+                                      }
+                                    }}
+                                  />
+                                ) : (
+                                  <span className={`text-sm font-medium ${inactive ? "text-muted-foreground" : "text-primary"}`}>{getInitials(contact)}</span>
+                                )}
+                              </div>
+                              <div>
+                                <p className={`font-semibold ${inactive ? "text-muted-foreground" : "text-foreground"}`}>
+                                  {getDisplayName(contact)}
+                                  {inactive && <span className="ml-2 text-xs">(Inactive)</span>}
+                                </p>
+                                {contact.Email_Address && (
+                                  <p className="text-sm text-muted-foreground">{contact.Email_Address}</p>
+                                )}
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-semibold text-foreground">{contact.Display_Name}</p>
-                              {contact.Email_Address && (
-                                <p className="text-sm text-muted-foreground">{contact.Email_Address}</p>
-                              )}
-                            </div>
-                          </div>
-                          <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                        </button>
-                      ))}
+                            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                          </button>
+                        );
+                      })}
+                      {isLoadingMore && (
+                        <div className="flex items-center justify-center py-4">
+                          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        </div>
+                      )}
                     </div>
                   )}
                 </motion.div>
@@ -347,7 +412,7 @@ export default function PeopleSearchPage() {
                           {getImageUrl(selectedContact.Image_GUID) ? (
                             <img
                               src={getImageUrl(selectedContact.Image_GUID)!}
-                              alt={selectedContact.Display_Name}
+                              alt={getDisplayName(selectedContact)}
                               className="w-full h-full object-cover"
                               onError={(e) => {
                                 (e.target as HTMLImageElement).style.display = 'none';
@@ -362,7 +427,10 @@ export default function PeopleSearchPage() {
                           )}
                         </div>
                         <div>
-                          <h4 className="text-2xl font-bold text-foreground mb-1">{selectedContact.Display_Name}</h4>
+                          <h4 className="text-2xl font-bold text-foreground mb-1">
+                            {getDisplayName(selectedContact)}
+                            {isInactive(selectedContact) && <span className="ml-2 text-sm text-muted-foreground">(Inactive)</span>}
+                          </h4>
                           {selectedContact.__Age && (
                             <p className="text-sm text-muted-foreground">Age: {selectedContact.__Age}</p>
                           )}
@@ -462,19 +530,20 @@ export default function PeopleSearchPage() {
                             </p>
                             <div className="space-y-2">
                               {householdMembers.filter(m => m.Contact_ID !== selectedContact.Contact_ID).map((member) => (
-                                <div
+                                <button
                                   key={member.Contact_ID}
-                                  className={`p-3 rounded-lg border flex items-center gap-3 ${
+                                  onClick={() => handleSelectContact(member)}
+                                  className={`w-full p-3 rounded-lg border flex items-center gap-3 transition-all text-left ${
                                     member.Contact_ID === selectedContact.Contact_ID || member.Selected
                                       ? "border-primary bg-primary/5"
-                                      : "border-border"
+                                      : "border-border hover:border-primary/50 hover:bg-primary/5"
                                   }`}
                                 >
                                   <div className="w-10 h-10 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center flex-shrink-0">
                                     {member.Image_URL ? (
                                       <img
                                         src={member.Image_URL}
-                                        alt={member.Display_Name}
+                                        alt={getDisplayName(member)}
                                         className="w-full h-full object-cover"
                                         onError={(e) => {
                                           (e.target as HTMLImageElement).style.display = 'none';
@@ -489,12 +558,12 @@ export default function PeopleSearchPage() {
                                     )}
                                   </div>
                                   <div>
-                                    <p className="font-medium text-foreground">{member.Display_Name}</p>
+                                    <p className="font-medium text-foreground">{getDisplayName(member)}</p>
                                     {member.__Age && (
                                       <p className="text-xs text-muted-foreground">Age: {member.__Age}</p>
                                     )}
                                   </div>
-                                </div>
+                                </button>
                               ))}
                             </div>
                           </div>

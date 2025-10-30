@@ -59,9 +59,10 @@ export class PeopleSearchService {
   /**
    * Search for contacts by name, email, or phone
    * @param query Search query string
+   * @param skip Number of records to skip for pagination
    * @returns Array of matching contacts
    */
-  async searchContacts(query: string) {
+  async searchContacts(query: string, skip: number = 0) {
     if (!query || query.trim().length === 0) {
       return [];
     }
@@ -69,13 +70,28 @@ export class PeopleSearchService {
     const searchTerm = query.trim();
 
     // Build filter for name, email, or phone search
-    const filter = `(Display_Name LIKE '%${searchTerm}%' OR Email_Address LIKE '%${searchTerm}%' OR Mobile_Phone LIKE '%${searchTerm}%' OR Company_Phone LIKE '%${searchTerm}%')`;
+    // Include Nickname and Company_Name in search
+    let filter = `(Display_Name LIKE '%${searchTerm}%' OR First_Name LIKE '%${searchTerm}%' OR Last_Name LIKE '%${searchTerm}%' OR Nickname LIKE '%${searchTerm}%' OR Company_Name LIKE '%${searchTerm}%' OR Email_Address LIKE '%${searchTerm}%' OR Mobile_Phone LIKE '%${searchTerm}%' OR Company_Phone LIKE '%${searchTerm}%'`;
+
+    // If search has a space, handle "First Last" format by searching both parts
+    // Also include Nickname in the combination searches
+    if (searchTerm.includes(' ')) {
+      const parts = searchTerm.split(' ').filter(p => p.length > 0);
+      if (parts.length === 2) {
+        const [part1, part2] = parts;
+        // Try both "First Last" and "Last First" combinations with Nickname support
+        filter += ` OR (First_Name LIKE '%${part1}%' AND Last_Name LIKE '%${part2}%') OR (First_Name LIKE '%${part2}%' AND Last_Name LIKE '%${part1}%') OR (Nickname LIKE '%${part1}%' AND Last_Name LIKE '%${part2}%') OR (Nickname LIKE '%${part2}%' AND Last_Name LIKE '%${part1}%')`;
+      }
+    }
+
+    filter += ')';
 
     return this.tableService.getTableRecords<Contact>("Contacts", {
       $filter: filter,
-      $select: "Contact_ID,First_Name,Last_Name,Nickname,Display_Name,Email_Address,Mobile_Phone,Company_Phone,Date_of_Birth,Gender_ID,Marital_Status_ID,Household_ID,Household_Position_ID,Participant_Record,Company,__Age,dp_fileUniqueId AS Image_GUID",
-      $orderby: "Last_Name,First_Name",
-      $top: 50, // Limit results to prevent overwhelming the UI
+      $select: "Contact_ID,First_Name,Last_Name,Nickname,Display_Name,Email_Address,Mobile_Phone,Company_Phone,Date_of_Birth,Gender_ID,Marital_Status_ID,Household_ID,Household_Position_ID,Participant_Record,Company,Company_Name,__Age,Contact_Status_ID,dp_fileUniqueId AS Image_GUID",
+      $orderby: "Company,Contact_Status_ID,Last_Name,Nickname,First_Name",
+      $top: 50,
+      $skip: skip,
     });
   }
 
@@ -87,7 +103,7 @@ export class PeopleSearchService {
   async getContactById(contactId: number) {
     const results = await this.tableService.getTableRecords<Contact>("Contacts", {
       $filter: `Contact_ID = ${contactId}`,
-      $select: "Contact_ID,First_Name,Last_Name,Nickname,Display_Name,Email_Address,Mobile_Phone,Company_Phone,Date_of_Birth,Gender_ID,Marital_Status_ID,Household_ID,Household_Position_ID,Participant_Record,Company,__Age,dp_fileUniqueId AS Image_GUID",
+      $select: "Contact_ID,First_Name,Last_Name,Nickname,Display_Name,Email_Address,Mobile_Phone,Company_Phone,Date_of_Birth,Gender_ID,Marital_Status_ID,Household_ID,Household_Position_ID,Participant_Record,Company,Company_Name,__Age,Contact_Status_ID,dp_fileUniqueId AS Image_GUID",
     });
 
     return results[0] || null;
@@ -115,7 +131,7 @@ export class PeopleSearchService {
   async getHouseholdMembers(householdId: number) {
     return this.tableService.getTableRecords<Contact>("Contacts", {
       $filter: `Household_ID = ${householdId}`,
-      $select: "Contact_ID,First_Name,Last_Name,Nickname,Display_Name,Email_Address,Mobile_Phone,Company_Phone,Date_of_Birth,Gender_ID,Marital_Status_ID,Household_ID,Household_Position_ID,Participant_Record,Company,__Age,dp_fileUniqueId AS Image_GUID",
+      $select: "Contact_ID,First_Name,Last_Name,Nickname,Display_Name,Email_Address,Mobile_Phone,Company_Phone,Date_of_Birth,Gender_ID,Marital_Status_ID,Household_ID,Household_Position_ID,Participant_Record,Company,Company_Name,__Age,Contact_Status_ID,dp_fileUniqueId AS Image_GUID",
       $orderby: "Household_Position_ID,Date_of_Birth",
     });
   }
