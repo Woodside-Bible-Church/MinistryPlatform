@@ -183,6 +183,17 @@ export default function Header() {
             {/* Glass circle - slightly larger to fully cover the cutout edge */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[68px] h-[68px] backdrop-blur-xl bg-white/40 dark:bg-[color-mix(in_oklab,oklch(0.08_0.02_250)_60%,transparent)] rounded-full shadow-lg" />
 
+            {/* Bottom arc border only - SVG for precise control */}
+            <svg className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[68px] h-[68px] pointer-events-none" viewBox="0 0 68 68">
+              <path
+                d="M 8 34 A 26 26 0 0 0 60 34"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1"
+                className="text-white/30 dark:text-gray-800/50"
+              />
+            </svg>
+
             {/* Logo - original size */}
             <a href="https://woodsidebible.org" className="relative z-10 flex items-center justify-center logo-link w-16 h-16" target="_blank" rel="noopener noreferrer">
               <div className="relative w-12 h-12 shrink-0">
