@@ -1,0 +1,22 @@
+{
+  "name": "Woodside Bible Apps",
+  "short_name": "WBC Apps",
+  "icons": [
+    {
+      "src": "/assets/icons/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "theme_color": "#61BC47",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/"
+}

@@ -1,7 +1,7 @@
 "use client";
 
 // People Search app - look up contacts and view their information
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, User, Mail, Phone, Home, Users, Loader2, X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -76,6 +76,9 @@ export default function PeopleSearchPage() {
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [isLoadingHousehold, setIsLoadingHousehold] = useState(false);
   const [showDetailsPanel, setShowDetailsPanel] = useState(false);
+
+  // Ref for scrolling to the details panel
+  const detailsPanelRef = useRef<HTMLDivElement>(null);
 
   // Debounced search function
   const performSearch = useCallback(async (query: string, skip: number = 0) => {
@@ -201,6 +204,11 @@ export default function PeopleSearchPage() {
     } finally {
       setIsLoadingDetails(false);
     }
+
+    // Scroll to the details panel after a short delay for the animation
+    setTimeout(() => {
+      detailsPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   const handleClearSelection = () => {
@@ -520,6 +528,7 @@ export default function PeopleSearchPage() {
           <AnimatePresence>
             {showDetailsPanel && (
               <motion.div
+                ref={detailsPanelRef}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
