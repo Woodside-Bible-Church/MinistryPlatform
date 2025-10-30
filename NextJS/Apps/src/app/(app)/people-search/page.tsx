@@ -717,15 +717,15 @@ export default function PeopleSearchPage() {
                         {householdMembers.length > 1 && (
                           <div>
                             <p className="text-sm font-semibold text-foreground mb-2">
-                              Family Members ({householdMembers.filter(m => m.Contact_ID !== selectedContact.Contact_ID).length})
+                              Family Members ({householdMembers.filter(m => m.Contact_ID !== selectedContact?.Contact_ID).length})
                             </p>
                             <div className="space-y-2">
-                              {householdMembers.filter(m => m.Contact_ID !== selectedContact.Contact_ID).map((member) => (
+                              {householdMembers.filter(m => m.Contact_ID !== selectedContact?.Contact_ID).map((member) => (
                                 <button
                                   key={member.Contact_ID}
                                   onClick={() => handleSelectContact(member)}
                                   className={`w-full p-3 rounded-lg border flex items-center gap-3 transition-all text-left ${
-                                    member.Contact_ID === selectedContact.Contact_ID || member.Selected
+                                    member.Contact_ID === selectedContact?.Contact_ID || member.Selected
                                       ? "border-primary bg-primary/5"
                                       : "border-border hover:border-primary/50 hover:bg-primary/5"
                                   }`}
