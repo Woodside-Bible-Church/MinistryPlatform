@@ -80,7 +80,7 @@ export default function Dashboard() {
     <div className="min-h-screen">
       {/* Hero Header */}
       <div className="py-12 text-center">
-        <h1 className="text-4xl font-bold text-primary mb-2">Ministry Applications</h1>
+        <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">Ministry Applications</h1>
         <p className="text-muted-foreground max-w-2xl mx-auto px-4">
           Internal tools for Woodside Bible Church staff and volunteers
         </p>
@@ -90,7 +90,7 @@ export default function Dashboard() {
       <div className="container mx-auto px-4 py-8">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary dark:text-muted-foreground" />
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -111,10 +111,10 @@ export default function Dashboard() {
               const route = app.Route || '#';
               return (
                 <Link key={app.Application_ID} href={route}>
-                  <div className="group relative overflow-hidden rounded-2xl border border-border bg-card hover:border-primary/50 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                  <div className="group relative overflow-hidden rounded-2xl border border-border bg-card hover:border-primary/50 dark:hover:border-[#61bc47]/50 hover:shadow-xl transition-all duration-300 cursor-pointer">
                     <div className="flex items-start gap-4 p-6">
                       {/* Icon */}
-                      <div className="bg-primary w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg">
+                      <div className="bg-primary dark:bg-secondary dark:group-hover:bg-[#61bc47] w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-all duration-300 shadow-lg">
                         <Icon className="w-8 h-8 text-white" />
                       </div>
 
@@ -126,7 +126,7 @@ export default function Dashboard() {
                         <p className="text-sm text-muted-foreground leading-relaxed">
                           {app.Description}
                         </p>
-                        <div className="mt-3 flex items-center justify-end gap-1 text-primary font-semibold text-sm">
+                        <div className="mt-3 flex items-center justify-end gap-1 text-primary dark:text-muted-foreground dark:group-hover:text-[#61bc47] font-semibold text-sm transition-colors">
                           <span>Open app</span>
                           <span className="group-hover:translate-x-1 transition-transform">→</span>
                         </div>
@@ -134,7 +134,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Hover gradient effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 dark:from-[#61bc47]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                   </div>
                 </Link>
               );
