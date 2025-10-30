@@ -90,7 +90,7 @@ export class PeopleSearchService {
     // Fetch all contacts with their household's congregation ID for client-side sorting
     return this.tableService.getTableRecords<Contact & { Congregation_ID?: number }>("Contacts", {
       $filter: filter,
-      $select: "Contact_ID,First_Name,Last_Name,Nickname,Display_Name,Email_Address,Mobile_Phone,Company_Phone,Date_of_Birth,Gender_ID,Marital_Status_ID,Contacts.Household_ID AS Household_ID,Household_Position_ID,Participant_Record,Company,Company_Name,__Age,Contact_Status_ID,dp_fileUniqueId AS Image_GUID,Household_ID_Table.Congregation_ID AS Congregation_ID",
+      $select: "Contact_ID,First_Name,Last_Name,Nickname,Display_Name,Email_Address,Mobile_Phone,Company_Phone,Date_of_Birth,Gender_ID,Marital_Status_ID,Contacts.Household_ID,Household_Position_ID,Participant_Record,Company,Company_Name,__Age,Contact_Status_ID,dp_fileUniqueId AS Image_GUID,Household_ID_Table.Congregation_ID AS Congregation_ID",
       $orderby: "Company,Contact_Status_ID,Last_Name,Nickname,First_Name",
       $top: 50,
       $skip: skip,
@@ -195,4 +195,18 @@ export class PeopleSearchService {
 
     return null;
   }
+}
+
+/**
+ * Standalone search function for use in API routes
+ * This wraps the PeopleSearchService for convenience
+ */
+export async function searchContacts(
+  token: string,
+  query: string,
+  limit: number = 50,
+  skip: number = 0
+) {
+  const service = new PeopleSearchService(token);
+  return service.searchContacts(query, skip);
 }

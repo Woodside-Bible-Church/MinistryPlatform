@@ -2,6 +2,7 @@
 
 // People Search app - look up contacts and view their information
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { Search, User, Mail, Phone, Home, Users, Loader2, X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -34,6 +35,7 @@ type HouseholdMember = Contact & {
   Image_URL?: string | null;
   Selected?: boolean;
   Household_Position?: string | null;
+  Relationship_Name?: string | null;
 };
 
 type Household = {
@@ -61,6 +63,7 @@ export default function PeopleSearchPage() {
   }, []);
 
   const { selectedCampus } = useCampus();
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Contact[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -72,6 +75,7 @@ export default function PeopleSearchPage() {
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [isLoadingHousehold, setIsLoadingHousehold] = useState(false);
+  const [showDetailsPanel, setShowDetailsPanel] = useState(false);
 
   // Debounced search function
   const performSearch = useCallback(async (query: string, skip: number = 0) => {
@@ -149,6 +153,7 @@ export default function PeopleSearchPage() {
   }, [hasMore, isLoadingMore, isSearching, searchResults.length, searchQuery, performSearch]);
 
   const handleSelectContact = async (contact: Contact) => {
+    setShowDetailsPanel(true);
     setSelectedContact(contact);
     setIsLoadingDetails(true);
     setIsLoadingHousehold(true);
@@ -199,10 +204,51 @@ export default function PeopleSearchPage() {
   };
 
   const handleClearSelection = () => {
+    setShowDetailsPanel(false);
     setSelectedContact(null);
     setHousehold(null);
     setHouseholdMembers([]);
   };
+
+  // Handle URL params on page load (from global search)
+  useEffect(() => {
+    const query = searchParams.get('q');
+    const contactId = searchParams.get('contactId');
+
+    if (query) {
+      setSearchQuery(query);
+    }
+
+    if (contactId) {
+      // Show panel immediately for optimistic UI
+      setShowDetailsPanel(true);
+      setIsLoadingDetails(true);
+      setIsLoadingHousehold(true);
+
+      // Fetch and select the contact
+      const loadContact = async () => {
+        try {
+          const response = await fetch(`/api/people-search/${contactId}`);
+          if (response.ok) {
+            const contact = await response.json();
+            await handleSelectContact(contact);
+          } else {
+            // If loading fails, hide the panel
+            setShowDetailsPanel(false);
+            setIsLoadingDetails(false);
+            setIsLoadingHousehold(false);
+          }
+        } catch (error) {
+          console.error('Error loading contact from URL:', error);
+          setShowDetailsPanel(false);
+          setIsLoadingDetails(false);
+          setIsLoadingHousehold(false);
+        }
+      };
+      loadContact();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const formatPhone = (phone: string | null) => {
     if (!phone) return null;
@@ -345,7 +391,7 @@ export default function PeopleSearchPage() {
                             {/* From Your Campus Section */}
                             {selectedCampusContacts.length > 0 && (
                               <>
-                                <div className="sticky top-0 bg-card/95 backdrop-blur-sm py-2 px-1 -mx-1">
+                                <div className="sticky top-0 bg-card/95 backdrop-blur-sm py-2 px-1 -mx-1 z-10">
                                   <h4 className="text-xs font-semibold text-primary uppercase tracking-wide">
                                     From {selectedCampus?.Congregation_Name} Campus
                                   </h4>
@@ -402,7 +448,7 @@ export default function PeopleSearchPage() {
                             {otherCampusContacts.length > 0 && (
                               <>
                                 {selectedCampusContacts.length > 0 && (
-                                  <div className="sticky top-0 bg-card/95 backdrop-blur-sm py-2 px-1 -mx-1 mt-4">
+                                  <div className="sticky top-0 bg-card/95 backdrop-blur-sm py-2 px-1 -mx-1 mt-4 z-10">
                                     <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                                       From Other Campuses
                                     </h4>
@@ -472,7 +518,7 @@ export default function PeopleSearchPage() {
 
           {/* Right Column - Contact Details */}
           <AnimatePresence>
-            {selectedContact && (
+            {showDetailsPanel && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -503,10 +549,30 @@ export default function PeopleSearchPage() {
                   </div>
 
                   {isLoadingDetails ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    <div className="space-y-4 animate-pulse">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-full bg-muted flex-shrink-0"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-8 bg-muted rounded w-3/4"></div>
+                          <div className="h-4 bg-muted rounded w-1/4"></div>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-5 h-5 bg-muted rounded mt-0.5"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-3 bg-muted rounded w-1/4"></div>
+                          <div className="h-5 bg-muted rounded w-2/3"></div>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-5 h-5 bg-muted rounded mt-0.5"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-3 bg-muted rounded w-1/4"></div>
+                          <div className="h-5 bg-muted rounded w-1/2"></div>
+                        </div>
+                      </div>
                     </div>
-                  ) : (
+                  ) : selectedContact ? (
                     <div className="space-y-4">
                       <div className="flex items-center gap-4">
                         <div className="w-16 h-16 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -583,11 +649,11 @@ export default function PeopleSearchPage() {
                         </div>
                       )}
                     </div>
-                  )}
+                  ) : null}
                 </div>
 
                 {/* Household Information */}
-                {selectedContact.Household_ID && (
+                {(selectedContact?.Household_ID || isLoadingHousehold) && (
                   <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -600,8 +666,32 @@ export default function PeopleSearchPage() {
                     </div>
 
                     {isLoadingHousehold ? (
-                      <div className="flex items-center justify-center py-8">
-                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      <div className="space-y-4 animate-pulse">
+                        <div className="space-y-2">
+                          <div className="h-5 bg-muted rounded w-1/2"></div>
+                          <div className="h-4 bg-muted rounded w-3/4"></div>
+                          <div className="h-4 bg-muted rounded w-2/3"></div>
+                          <div className="h-4 bg-muted rounded w-1/3"></div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="h-4 bg-muted rounded w-1/3"></div>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-3 p-3">
+                              <div className="w-10 h-10 rounded-full bg-muted flex-shrink-0"></div>
+                              <div className="flex-1 space-y-2">
+                                <div className="h-4 bg-muted rounded w-3/4"></div>
+                                <div className="h-3 bg-muted rounded w-1/2"></div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 p-3">
+                              <div className="w-10 h-10 rounded-full bg-muted flex-shrink-0"></div>
+                              <div className="flex-1 space-y-2">
+                                <div className="h-4 bg-muted rounded w-2/3"></div>
+                                <div className="h-3 bg-muted rounded w-1/3"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     ) : household ? (
                       <div className="space-y-4">
@@ -659,9 +749,15 @@ export default function PeopleSearchPage() {
                                     )}
                                   </div>
                                   <div>
-                                    <p className="font-medium text-foreground">{getDisplayName(member)}</p>
-                                    {member.__Age && (
-                                      <p className="text-xs text-muted-foreground">Age: {member.__Age}</p>
+                                    <p className="font-medium text-foreground">
+                                      {getDisplayName(member)}
+                                    </p>
+                                    {(member.__Age || member.Relationship_Name) && (
+                                      <p className="text-xs text-muted-foreground">
+                                        {member.__Age && `Age: ${member.__Age}`}
+                                        {member.__Age && member.Relationship_Name && " • "}
+                                        {member.Relationship_Name}
+                                      </p>
                                     )}
                                   </div>
                                 </button>

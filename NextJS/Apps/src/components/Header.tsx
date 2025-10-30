@@ -6,6 +6,7 @@ import { UserCircleIcon, ChevronDownIcon, Bars3Icon, XMarkIcon } from '@heroicon
 import { Activity, MapPin } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import UserMenu from '@/components/UserMenu/UserMenu';
+import GlobalSearch from '@/components/GlobalSearch/GlobalSearch';
 import { useSession } from '@/components/SessionProvider';
 import { getCurrentUserProfile, updateUserCongregation } from '@/components/UserMenu/actions';
 import { mpUserProfile } from '@/providers/MinistryPlatform/Interfaces/mpUserProfile';
@@ -117,16 +118,21 @@ export default function Header() {
 
         <div className="container mx-auto px-4 relative h-full">
           <div className="flex items-center justify-between h-16">
-            {/* Left - Mobile Menu Button + Desktop Logo & Navigation */}
+            {/* Left - Mobile Menu Button + Mobile Search + Desktop Logo & Navigation */}
             <div className="flex items-center gap-1">
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(true)}
-                className="md:hidden p-2 -ml-2 text-foreground dark:text-[oklch(0.8_0_0)] hover:text-primary active:text-primary transition-colors pointer-events-auto"
+                className="md:hidden p-2 -ml-2 text-foreground dark:text-[oklch(0.8_0_0)] hover:text-primary dark:hover:text-[#61bc47] active:text-primary dark:active:text-[#61bc47] transition-colors pointer-events-auto"
                 aria-label="Open menu"
               >
                 <Bars3Icon className="w-6 h-6" />
               </button>
+
+              {/* Mobile Search Icon */}
+              <div className="md:hidden">
+                <GlobalSearch isMobile={true} />
+              </div>
 
               {/* Desktop Logo */}
               <a href="https://woodsidebible.org" className="hidden md:flex items-center logo-link mr-3 pointer-events-auto" target="_blank" rel="noopener noreferrer">
@@ -143,12 +149,12 @@ export default function Header() {
               <nav className="hidden md:flex items-center gap-1">
               <Link
                 href="/"
-                className="px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground dark:text-[oklch(0.8_0_0)] hover:!text-primary active:!text-primary transition-colors rounded-md pointer-events-auto"
+                className="px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground dark:text-[oklch(0.8_0_0)] hover:!text-primary dark:hover:!text-[#61bc47] active:!text-primary dark:active:!text-[#61bc47] transition-colors rounded-md pointer-events-auto"
               >
                 HOME
               </Link>
               <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-1 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground dark:text-[oklch(0.8_0_0)] hover:!text-primary focus:!text-primary active:!text-primary transition-colors focus:outline-none !bg-transparent hover:!bg-transparent data-[state=open]:!bg-transparent focus:!bg-transparent active:!bg-transparent !border-none pointer-events-auto">
+                <DropdownMenuTrigger className="flex items-center gap-1 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground dark:text-[oklch(0.8_0_0)] hover:!text-primary dark:hover:!text-[#61bc47] focus:!text-primary dark:focus:!text-[#61bc47] active:!text-primary dark:active:!text-[#61bc47] transition-colors focus:outline-none !bg-transparent hover:!bg-transparent data-[state=open]:!bg-transparent focus:!bg-transparent active:!bg-transparent !border-none pointer-events-auto">
                   APPS
                   <ChevronDownIcon className="w-4 h-4" />
                 </DropdownMenuTrigger>
@@ -163,7 +169,7 @@ export default function Header() {
                             <Icon className="w-5 h-5 text-white" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">{app.Application_Name}</p>
+                            <p className="font-semibold text-sm text-foreground group-hover:text-primary dark:group-hover:text-[#61bc47] transition-colors">{app.Application_Name}</p>
                             <p className="text-xs text-muted-foreground truncate transition-colors">{app.Description}</p>
                           </div>
                         </Link>
@@ -173,6 +179,11 @@ export default function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </nav>
+          </div>
+
+          {/* Center - Desktop Search */}
+          <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full max-w-2xl px-4">
+            <GlobalSearch isMobile={false} />
           </div>
 
           {/* Center - Mobile Logo with Bulge */}
@@ -196,7 +207,7 @@ export default function Header() {
           <div className="flex items-center gap-2 md:gap-4">
             {/* Campus Selector */}
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-1 md:gap-2 px-1 md:px-3 py-2 text-xs md:text-sm font-medium text-foreground dark:text-[oklch(0.8_0_0)] hover:!text-primary focus:!text-primary active:!text-primary transition-colors focus:outline-none !bg-transparent hover:!bg-transparent data-[state=open]:!bg-transparent focus:!bg-transparent active:!bg-transparent !border-none pointer-events-auto">
+              <DropdownMenuTrigger className="flex items-center gap-1 md:gap-2 px-1 md:px-3 py-2 text-xs md:text-sm font-medium text-foreground dark:text-[oklch(0.8_0_0)] hover:!text-primary dark:hover:!text-[#61bc47] focus:!text-primary dark:focus:!text-[#61bc47] active:!text-primary dark:active:!text-[#61bc47] transition-colors focus:outline-none !bg-transparent hover:!bg-transparent data-[state=open]:!bg-transparent focus:!bg-transparent active:!bg-transparent !border-none pointer-events-auto">
                 <MapPin className="w-4 h-4 md:w-4 md:h-4" />
                 {campusLoading ? (
                   <span className="hidden sm:inline">Loading...</span>
@@ -259,10 +270,10 @@ export default function Header() {
                       alt={userProfile.First_Name && userProfile.Last_Name
                         ? `${userProfile.First_Name} ${userProfile.Last_Name}`
                         : 'User avatar'}
-                      className="h-9 w-9 md:h-10 md:w-10 rounded-full object-cover border-2 border-secondary group-hover:border-primary transition-colors"
+                      className="h-9 w-9 md:h-10 md:w-10 rounded-full object-cover border-2 border-secondary group-hover:border-primary dark:group-hover:border-[#61bc47] transition-colors"
                     />
                   ) : (
-                    <UserCircleIcon className="h-9 w-9 md:h-10 md:w-10 text-secondary group-hover:text-primary transition-colors" />
+                    <UserCircleIcon className="h-9 w-9 md:h-10 md:w-10 text-secondary group-hover:text-primary dark:group-hover:text-[#61bc47] transition-colors" />
                   )}
                 </button>
               </UserMenu>
@@ -272,7 +283,7 @@ export default function Header() {
                 aria-label="User menu"
                 disabled={loading}
               >
-                <UserCircleIcon className="h-9 w-9 md:h-10 md:w-10 text-secondary group-hover:text-primary transition-colors" />
+                <UserCircleIcon className="h-9 w-9 md:h-10 md:w-10 text-secondary group-hover:text-primary dark:group-hover:text-[#61bc47] transition-colors" />
               </button>
             )}
             </div>
@@ -309,7 +320,7 @@ export default function Header() {
             </div>
             <button
               onClick={() => setMobileMenuOpen(false)}
-              className="p-2 -mr-2 text-foreground hover:text-primary transition-colors"
+              className="p-2 -mr-2 text-foreground hover:text-primary dark:hover:text-[#61bc47] transition-colors"
               aria-label="Close menu"
             >
               <XMarkIcon className="w-6 h-6" />
@@ -321,7 +332,7 @@ export default function Header() {
             <Link
               href="/"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-4 py-3 text-base font-semibold uppercase tracking-wide text-foreground hover:bg-primary/10 hover:text-primary transition-colors rounded-lg"
+              className="px-4 py-3 text-base font-semibold uppercase tracking-wide text-foreground hover:text-primary dark:hover:text-[#61bc47] transition-colors rounded-lg"
             >
               HOME
             </Link>
@@ -337,13 +348,13 @@ export default function Header() {
                     key={app.Application_ID}
                     href={route}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-primary/10 transition-colors rounded-lg group"
+                    className="flex items-center gap-3 px-4 py-3 transition-colors rounded-lg group"
                   >
                     <div className="w-10 h-10 bg-primary dark:bg-secondary rounded-full flex items-center justify-center shrink-0 transition-all">
                       <Icon className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">{app.Application_Name}</p>
+                      <p className="font-semibold text-sm text-foreground group-hover:text-primary dark:group-hover:text-[#61bc47] transition-colors">{app.Application_Name}</p>
                       <p className="text-xs text-muted-foreground truncate">{app.Description}</p>
                     </div>
                   </Link>

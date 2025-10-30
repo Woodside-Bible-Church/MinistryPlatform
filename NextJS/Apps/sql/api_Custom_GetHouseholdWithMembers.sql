@@ -60,6 +60,13 @@ BEGIN
             G.Gender,
             CS_Status.Contact_Status,
             HP.Household_Position,
+            -- Get relationship where @ContactID is Person 2 (Related_Contact_ID)
+            -- Use member's gender to pick Male_Label or Female_Label
+            Relationship_Name = CASE
+                WHEN C.Gender_ID = 1 THEN R.Male_Label
+                WHEN C.Gender_ID = 2 THEN R.Female_Label
+                ELSE R.Relationship_Name
+            END,
             C.Date_of_Birth,
             C.Anniversary_Date,
             C.Date_of_Death,
@@ -84,6 +91,9 @@ BEGIN
             LEFT OUTER JOIN Genders G ON G.Gender_ID = C.Gender_ID
             LEFT OUTER JOIN Contact_Statuses CS_Status ON CS_Status.Contact_Status_ID = C.Contact_Status_ID
             LEFT OUTER JOIN Household_Positions HP ON HP.Household_Position_ID = C.Household_Position_ID
+            -- Get relationship where household member is Person 1 and @ContactID is Person 2 (Related_Contact_ID)
+            LEFT OUTER JOIN dbo.Contact_Relationships CR ON CR.Contact_ID = C.Contact_ID AND CR.Related_Contact_ID = @ContactID
+            LEFT OUTER JOIN dbo.Relationships R ON R.Relationship_ID = CR.Relationship_ID
             -- Image file joins
             LEFT OUTER JOIN dp_files F ON F.Record_ID = C.Contact_ID AND F.Table_Name = 'Contacts' AND F.Default_Image = 1
             LEFT OUTER JOIN dp_Configuration_Settings CS ON CS.Domain_ID = COALESCE(C.Domain_ID, @DomainID) AND CS.Key_Name = 'ImageURL' AND CS.Application_Code = 'Common'
