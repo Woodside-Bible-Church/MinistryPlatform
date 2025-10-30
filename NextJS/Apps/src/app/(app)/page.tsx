@@ -105,27 +105,37 @@ export default function Dashboard() {
             </p>
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
+          <div className="grid gap-4 md:grid-cols-2 max-w-4xl mx-auto">
             {apps.map((app) => {
               const Icon = getIcon(app.Icon);
               const route = app.Route || '#';
               return (
                 <Link key={app.Application_ID} href={route}>
-                  <Card className="hover:shadow-lg hover:border-primary/50 transition-all cursor-pointer h-full group">
-                    <CardHeader>
-                      <div className="bg-primary w-14 h-14 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <Icon className="w-7 h-7 text-primary-foreground" />
+                  <div className="group relative overflow-hidden rounded-2xl border border-border bg-card hover:border-primary/50 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                    <div className="flex items-start gap-4 p-6">
+                      {/* Icon */}
+                      <div className="bg-primary w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg">
+                        <Icon className="w-8 h-8 text-white" />
                       </div>
-                      <CardTitle className="text-xl uppercase font-extrabold tracking-tight" style={{ letterSpacing: '-0.025em' }}>{app.Application_Name}</CardTitle>
-                      <CardDescription className="text-base">{app.Description}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-primary font-semibold flex items-center gap-1">
-                        Open app
-                        <span className="group-hover:translate-x-1 transition-transform">→</span>
-                      </p>
-                    </CardContent>
-                  </Card>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg uppercase font-extrabold tracking-tight mb-2 text-foreground" style={{ letterSpacing: '-0.025em' }}>
+                          {app.Application_Name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {app.Description}
+                        </p>
+                        <div className="mt-3 flex items-center justify-end gap-1 text-primary font-semibold text-sm">
+                          <span>Open app</span>
+                          <span className="group-hover:translate-x-1 transition-transform">→</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Hover gradient effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  </div>
                 </Link>
               );
             })}

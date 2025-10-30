@@ -89,7 +89,7 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.10_0.035_250)]/80 border-b border-white/30 dark:border-gray-800/50 shadow-lg">
+    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/40 dark:bg-[color-mix(in_oklab,oklch(0.08_0.02_250)_60%,transparent)] border-b border-white/30 dark:border-gray-800/50 shadow-lg">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Left - Logo */}
