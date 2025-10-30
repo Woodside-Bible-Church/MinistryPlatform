@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Search, User, Mail, Phone, Home, Users, Loader2, X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCampus } from "@/contexts/CampusContext";
 
 type Contact = {
   Contact_ID: number;
@@ -26,6 +27,7 @@ type Contact = {
   __Age: number | null;
   Contact_Status_ID: number | null;
   Image_GUID?: string | null;
+  Congregation_ID?: number | null;
 };
 
 type HouseholdMember = Contact & {
@@ -58,6 +60,7 @@ export default function PeopleSearchPage() {
     document.title = "People Search - Ministry Apps";
   }, []);
 
+  const { selectedCampus } = useCampus();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Contact[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -85,15 +88,31 @@ export default function PeopleSearchPage() {
     }
 
     try {
-      const url = `/api/people-search/search?q=${encodeURIComponent(query)}&skip=${skip}`;
+      let url = `/api/people-search/search?q=${encodeURIComponent(query)}&skip=${skip}`;
+      if (selectedCampus?.Congregation_ID) {
+        url += `&congregationId=${selectedCampus.Congregation_ID}`;
+      }
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to search");
       const data = await response.json();
 
+      // Sort contacts: selected campus first, then other campuses
+      const sortedData = selectedCampus?.Congregation_ID
+        ? data.sort((a: Contact, b: Contact) => {
+            const aIsSelected = a.Congregation_ID === selectedCampus.Congregation_ID;
+            const bIsSelected = b.Congregation_ID === selectedCampus.Congregation_ID;
+
+            // Both from selected campus or both from other campuses - maintain original order
+            if (aIsSelected === bIsSelected) return 0;
+            // Selected campus comes first
+            return aIsSelected ? -1 : 1;
+          })
+        : data;
+
       if (skip === 0) {
-        setSearchResults(data);
+        setSearchResults(sortedData);
       } else {
-        setSearchResults(prev => [...prev, ...data]);
+        setSearchResults(prev => [...prev, ...sortedData]);
       }
 
       // If we got less than 50 results, there are no more
@@ -107,7 +126,7 @@ export default function PeopleSearchPage() {
       setIsSearching(false);
       setIsLoadingMore(false);
     }
-  }, []);
+  }, [selectedCampus]);
 
   // Debounce search input
   useEffect(() => {
@@ -312,51 +331,133 @@ export default function PeopleSearchPage() {
                       className="space-y-2 max-h-[500px] overflow-y-auto overflow-x-hidden scrollbar-hide"
                       onScroll={handleScroll}
                     >
-                      {searchResults.map((contact) => {
-                        const inactive = isInactive(contact);
+                      {(() => {
+                        // Group contacts by campus
+                        const selectedCampusContacts = selectedCampus?.Congregation_ID
+                          ? searchResults.filter(c => c.Congregation_ID === selectedCampus.Congregation_ID)
+                          : [];
+                        const otherCampusContacts = selectedCampus?.Congregation_ID
+                          ? searchResults.filter(c => c.Congregation_ID !== selectedCampus.Congregation_ID)
+                          : searchResults;
+
                         return (
-                          <button
-                            key={contact.Contact_ID}
-                            onClick={() => handleSelectContact(contact)}
-                            className={`w-full p-4 rounded-lg border-2 transition-all text-left flex items-center justify-between ${
-                              selectedContact?.Contact_ID === contact.Contact_ID
-                                ? "border-primary bg-primary/5 shadow-md hover:shadow-lg hover:bg-primary/10"
-                                : "border-border hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm"
-                            } ${inactive ? "opacity-50" : ""}`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`w-10 h-10 rounded-full overflow-hidden ${inactive ? "bg-muted" : "bg-primary/10"} flex items-center justify-center flex-shrink-0`}>
-                                {getImageUrl(contact.Image_GUID) ? (
-                                  <img
-                                    src={getImageUrl(contact.Image_GUID)!}
-                                    alt={getDisplayName(contact)}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                      (e.target as HTMLImageElement).style.display = 'none';
-                                      const parent = (e.target as HTMLImageElement).parentElement;
-                                      if (parent) {
-                                        parent.innerHTML = `<span class="text-sm font-medium ${inactive ? "text-muted-foreground" : "text-primary"}">${getInitials(contact)}</span>`;
-                                      }
-                                    }}
-                                  />
-                                ) : (
-                                  <span className={`text-sm font-medium ${inactive ? "text-muted-foreground" : "text-primary"}`}>{getInitials(contact)}</span>
+                          <>
+                            {/* From Your Campus Section */}
+                            {selectedCampusContacts.length > 0 && (
+                              <>
+                                <div className="sticky top-0 bg-card/95 backdrop-blur-sm py-2 px-1 -mx-1">
+                                  <h4 className="text-xs font-semibold text-primary uppercase tracking-wide">
+                                    From {selectedCampus?.Congregation_Name} Campus
+                                  </h4>
+                                </div>
+                                {selectedCampusContacts.map((contact) => {
+                                  const inactive = isInactive(contact);
+                                  return (
+                                    <button
+                                      key={contact.Contact_ID}
+                                      onClick={() => handleSelectContact(contact)}
+                                      className={`w-full p-4 rounded-lg border-2 transition-all text-left flex items-center justify-between ${
+                                        selectedContact?.Contact_ID === contact.Contact_ID
+                                          ? "border-primary bg-primary/5 shadow-md hover:shadow-lg hover:bg-primary/10"
+                                          : "border-border hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm"
+                                      } ${inactive ? "opacity-50" : ""}`}
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <div className={`w-10 h-10 rounded-full overflow-hidden ${inactive ? "bg-muted" : "bg-primary/10"} flex items-center justify-center flex-shrink-0`}>
+                                          {getImageUrl(contact.Image_GUID) ? (
+                                            <img
+                                              src={getImageUrl(contact.Image_GUID)!}
+                                              alt={getDisplayName(contact)}
+                                              className="w-full h-full object-cover"
+                                              onError={(e) => {
+                                                (e.target as HTMLImageElement).style.display = 'none';
+                                                const parent = (e.target as HTMLImageElement).parentElement;
+                                                if (parent) {
+                                                  parent.innerHTML = `<span class="text-sm font-medium ${inactive ? "text-muted-foreground" : "text-primary"}">${getInitials(contact)}</span>`;
+                                                }
+                                              }}
+                                            />
+                                          ) : (
+                                            <span className={`text-sm font-medium ${inactive ? "text-muted-foreground" : "text-primary"}`}>{getInitials(contact)}</span>
+                                          )}
+                                        </div>
+                                        <div>
+                                          <p className={`font-semibold ${inactive ? "text-muted-foreground" : "text-foreground"}`}>
+                                            {getDisplayName(contact)}
+                                            {inactive && <span className="ml-2 text-xs">(Inactive)</span>}
+                                          </p>
+                                          {contact.Email_Address && (
+                                            <p className="text-sm text-muted-foreground">{contact.Email_Address}</p>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                                    </button>
+                                  );
+                                })}
+                              </>
+                            )}
+
+                            {/* From Other Campuses Section */}
+                            {otherCampusContacts.length > 0 && (
+                              <>
+                                {selectedCampusContacts.length > 0 && (
+                                  <div className="sticky top-0 bg-card/95 backdrop-blur-sm py-2 px-1 -mx-1 mt-4">
+                                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                                      From Other Campuses
+                                    </h4>
+                                  </div>
                                 )}
-                              </div>
-                              <div>
-                                <p className={`font-semibold ${inactive ? "text-muted-foreground" : "text-foreground"}`}>
-                                  {getDisplayName(contact)}
-                                  {inactive && <span className="ml-2 text-xs">(Inactive)</span>}
-                                </p>
-                                {contact.Email_Address && (
-                                  <p className="text-sm text-muted-foreground">{contact.Email_Address}</p>
-                                )}
-                              </div>
-                            </div>
-                            <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                          </button>
+                                {otherCampusContacts.map((contact) => {
+                                  const inactive = isInactive(contact);
+                                  return (
+                                    <button
+                                      key={contact.Contact_ID}
+                                      onClick={() => handleSelectContact(contact)}
+                                      className={`w-full p-4 rounded-lg border-2 transition-all text-left flex items-center justify-between ${
+                                        selectedContact?.Contact_ID === contact.Contact_ID
+                                          ? "border-primary bg-primary/5 shadow-md hover:shadow-lg hover:bg-primary/10"
+                                          : "border-border hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm"
+                                      } ${inactive ? "opacity-50" : ""}`}
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <div className={`w-10 h-10 rounded-full overflow-hidden ${inactive ? "bg-muted" : "bg-primary/10"} flex items-center justify-center flex-shrink-0`}>
+                                          {getImageUrl(contact.Image_GUID) ? (
+                                            <img
+                                              src={getImageUrl(contact.Image_GUID)!}
+                                              alt={getDisplayName(contact)}
+                                              className="w-full h-full object-cover"
+                                              onError={(e) => {
+                                                (e.target as HTMLImageElement).style.display = 'none';
+                                                const parent = (e.target as HTMLImageElement).parentElement;
+                                                if (parent) {
+                                                  parent.innerHTML = `<span class="text-sm font-medium ${inactive ? "text-muted-foreground" : "text-primary"}">${getInitials(contact)}</span>`;
+                                                }
+                                              }}
+                                            />
+                                          ) : (
+                                            <span className={`text-sm font-medium ${inactive ? "text-muted-foreground" : "text-primary"}`}>{getInitials(contact)}</span>
+                                          )}
+                                        </div>
+                                        <div>
+                                          <p className={`font-semibold ${inactive ? "text-muted-foreground" : "text-foreground"}`}>
+                                            {getDisplayName(contact)}
+                                            {inactive && <span className="ml-2 text-xs">(Inactive)</span>}
+                                          </p>
+                                          {contact.Email_Address && (
+                                            <p className="text-sm text-muted-foreground">{contact.Email_Address}</p>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                                    </button>
+                                  );
+                                })}
+                              </>
+                            )}
+                          </>
                         );
-                      })}
+                      })()}
                       {isLoadingMore && (
                         <div className="flex items-center justify-center py-4">
                           <Loader2 className="w-5 h-5 animate-spin text-primary" />

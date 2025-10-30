@@ -170,9 +170,15 @@ export class HttpClient {
             .filter(([, value]) => value !== undefined && value !== null)
             .map(([key, value]) => {
                 if (Array.isArray(value)) {
-                    return value.map(v => `${key}=${encodeURIComponent(String(v))}`).join('&');
+                    return value.map(v => {
+                        // Encode but preserve periods for Ministry Platform FK traversal
+                        const encoded = encodeURIComponent(String(v));
+                        return `${key}=${encoded.replace(/%2E/g, '.')}`;
+                    }).join('&');
                 }
-                return `${key}=${encodeURIComponent(String(value))}`;
+                // Encode but preserve periods for Ministry Platform FK traversal
+                const encoded = encodeURIComponent(String(value));
+                return `${key}=${encoded.replace(/%2E/g, '.')}`;
             })
             .join('&');
     }

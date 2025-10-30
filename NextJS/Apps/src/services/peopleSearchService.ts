@@ -60,9 +60,10 @@ export class PeopleSearchService {
    * Search for contacts by name, email, or phone
    * @param query Search query string
    * @param skip Number of records to skip for pagination
-   * @returns Array of matching contacts
+   * @param congregationId Optional congregation ID (not used for filtering, returned for client-side sorting)
+   * @returns Array of matching contacts with their household's congregation ID
    */
-  async searchContacts(query: string, skip: number = 0) {
+  async searchContacts(query: string, skip: number = 0, congregationId?: number) {
     if (!query || query.trim().length === 0) {
       return [];
     }
@@ -86,9 +87,10 @@ export class PeopleSearchService {
 
     filter += ')';
 
-    return this.tableService.getTableRecords<Contact>("Contacts", {
+    // Fetch all contacts with their household's congregation ID for client-side sorting
+    return this.tableService.getTableRecords<Contact & { Congregation_ID?: number }>("Contacts", {
       $filter: filter,
-      $select: "Contact_ID,First_Name,Last_Name,Nickname,Display_Name,Email_Address,Mobile_Phone,Company_Phone,Date_of_Birth,Gender_ID,Marital_Status_ID,Household_ID,Household_Position_ID,Participant_Record,Company,Company_Name,__Age,Contact_Status_ID,dp_fileUniqueId AS Image_GUID",
+      $select: "Contact_ID,First_Name,Last_Name,Nickname,Display_Name,Email_Address,Mobile_Phone,Company_Phone,Date_of_Birth,Gender_ID,Marital_Status_ID,Contacts.Household_ID AS Household_ID,Household_Position_ID,Participant_Record,Company,Company_Name,__Age,Contact_Status_ID,dp_fileUniqueId AS Image_GUID,Household_ID_Table.Congregation_ID AS Congregation_ID",
       $orderby: "Company,Contact_Status_ID,Last_Name,Nickname,First_Name",
       $top: 50,
       $skip: skip,
