@@ -80,9 +80,10 @@ export async function GET(request: NextRequest) {
     const contentSearchPromises = searchableApps.map(async (app) => {
       try {
         // Call the app's search endpoint using the current request's host
+        // Request 6 results to check if there are more than 5
         const protocol = request.headers.get('x-forwarded-proto') || 'http';
         const host = request.headers.get('host') || 'localhost:3000';
-        const url = `${protocol}://${host}${app.Search_Endpoint}?q=${encodeURIComponent(query)}`;
+        const url = `${protocol}://${host}${app.Search_Endpoint}?q=${encodeURIComponent(query)}&limit=6`;
         console.log(`Calling search endpoint for ${app.Application_Name}:`, url);
 
         const response = await fetch(url, {
@@ -103,14 +104,20 @@ export async function GET(request: NextRequest) {
           return null;
         }
 
+        // Check if there are more than 5 results
+        const hasMore = results.length > 5;
+        const displayResults = hasMore ? results.slice(0, 5) : results;
+
         return {
           app: {
             Application_ID: app.Application_ID,
             Application_Name: app.Application_Name,
             Application_Key: app.Application_Key,
             Icon: app.Icon,
+            Route: app.Route,
           },
-          results,
+          results: displayResults,
+          has_more: hasMore,
         } as AppContentResults;
       } catch (error) {
         console.error(`Error searching ${app.Application_Name}:`, error);

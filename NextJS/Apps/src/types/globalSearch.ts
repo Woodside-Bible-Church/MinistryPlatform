@@ -48,8 +48,10 @@ export type AppContentResults = {
     Application_Name: string;
     Application_Key: string;
     Icon: string;
+    Route: string;
   };
   results: GlobalSearchResult[];
+  has_more: boolean;  // Indicates if there are more than the displayed results
 };
 
 /**

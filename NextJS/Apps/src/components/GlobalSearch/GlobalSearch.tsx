@@ -219,6 +219,16 @@ export default function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
                                   <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                                 </button>
                               ))}
+                              {/* See More Results Button */}
+                              {appResults.has_more && (
+                                <button
+                                  onClick={() => handleResultClick(`${appResults.app.Route}?q=${encodeURIComponent(query)}`)}
+                                  className="w-full mt-2 p-3 rounded-lg bg-primary/5 hover:bg-primary/10 border border-primary/20 hover:border-primary/40 transition-colors text-left flex items-center justify-center gap-2 group"
+                                >
+                                  <span className="text-sm font-semibold text-primary">See More Results</span>
+                                  <ChevronRight className="w-4 h-4 text-primary group-hover:translate-x-1 transition-transform" />
+                                </button>
+                              )}
                             </div>
                           );
                         })}
@@ -361,6 +371,16 @@ export default function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
                               <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                             </button>
                           ))}
+                          {/* See More Results Button */}
+                          {appResults.has_more && (
+                            <button
+                              onClick={() => handleResultClick(`${appResults.app.Route}?q=${encodeURIComponent(query)}`)}
+                              className="w-full mt-2 p-3 rounded-lg bg-primary/5 hover:bg-primary/10 border border-primary/20 hover:border-primary/40 transition-colors text-left flex items-center justify-center gap-2 group"
+                            >
+                              <span className="text-sm font-semibold text-primary">See More Results</span>
+                              <ChevronRight className="w-4 h-4 text-primary group-hover:translate-x-1 transition-transform" />
+                            </button>
+                          )}
                         </div>
                       );
                     })}
