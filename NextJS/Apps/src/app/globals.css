@@ -155,8 +155,12 @@ input[type="submit"],
 @media only screen and (hover: hover) {
   /* Exclude buttons with custom hover states from global hover */
   button:not([class*="hover:bg-"]):not([class*="hover:border-"]):hover,
-  button[type="button"]:not([class*="hover:bg-"]):not([class*="hover:border-"]):hover,
-  button[type="submit"]:not([class*="hover:bg-"]):not([class*="hover:border-"]):hover,
+  button[type="button"]:not([class*="hover:bg-"]):not(
+      [class*="hover:border-"]
+    ):hover,
+  button[type="submit"]:not([class*="hover:bg-"]):not(
+      [class*="hover:border-"]
+    ):hover,
   input[type="submit"]:hover,
   .btn:hover {
     background: #1c2b39;
@@ -198,7 +202,7 @@ header nav {
 
 /* Logo color transition animation */
 .logo-svg {
-  transition: filter 300ms ease-out;
+  transition: filter 200ms ease-out;
 }
 
 /* Light mode logo styling - black by default, green on hover */
@@ -227,4 +231,19 @@ header nav {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
+}
+
+/* Header notch mask - cuts a circular hole at the bottom center on mobile */
+@media (max-width: 767px) {
+  .header-notch-mask {
+    -webkit-mask-image: radial-gradient(circle 32px at 50% 100%, transparent 0, transparent 32px, black 32px);
+    mask-image: radial-gradient(circle 32px at 50% 100%, transparent 0, transparent 32px, black 32px);
+  }
+}
+
+@media (min-width: 768px) {
+  .header-notch-mask {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
 }
