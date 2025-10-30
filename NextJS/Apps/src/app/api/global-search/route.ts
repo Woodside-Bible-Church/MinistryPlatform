@@ -79,8 +79,10 @@ export async function GET(request: NextRequest) {
 
     const contentSearchPromises = searchableApps.map(async (app) => {
       try {
-        // Call the app's search endpoint
-        const url = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${app.Search_Endpoint}?q=${encodeURIComponent(query)}`;
+        // Call the app's search endpoint using the current request's host
+        const protocol = request.headers.get('x-forwarded-proto') || 'http';
+        const host = request.headers.get('host') || 'localhost:3000';
+        const url = `${protocol}://${host}${app.Search_Endpoint}?q=${encodeURIComponent(query)}`;
         console.log(`Calling search endpoint for ${app.Application_Name}:`, url);
 
         const response = await fetch(url, {
