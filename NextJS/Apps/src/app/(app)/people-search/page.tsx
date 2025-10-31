@@ -615,7 +615,7 @@ export default function PeopleSearchPage() {
 
                       {selectedContact.Email_Address && (
                         <div className="flex items-start gap-3">
-                          <Mail className="w-6 h-6 text-[#61bc47] mt-0.5" />
+                          <Mail className="w-6 h-6 text-[#61bc47] mt-0.5 stroke-[2.5]" />
                           <div>
                             <p className="text-sm text-muted-foreground">Email</p>
                             <a
