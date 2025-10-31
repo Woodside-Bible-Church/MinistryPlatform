@@ -209,7 +209,7 @@ export default function Header() {
                   <span className="hidden md:inline">Loading...</span>
                 ) : selectedCampus ? (
                   <>
-                    <span className="hidden md:inline lg:hidden text-sm">
+                    <span className="lg:hidden text-sm">
                       {selectedCampus.Congregation_Short_Name || selectedCampus.Congregation_Name}
                     </span>
                     <span className="hidden lg:inline">
@@ -219,7 +219,7 @@ export default function Header() {
                 ) : (
                   <span className="hidden md:inline">Select Campus</span>
                 )}
-                <ChevronDownIcon className="hidden md:block w-4 h-4" />
+                <ChevronDownIcon className="w-3 h-3 md:w-4 md:h-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-white/50 dark:bg-[oklch(0.16_0.005_0)]/95 backdrop-blur-2xl border-white/30 dark:border-[oklch(0.3_0.005_0)] shadow-2xl z-[60]">
                 {congregations.map((congregation) => (
