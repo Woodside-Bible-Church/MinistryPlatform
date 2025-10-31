@@ -2,15 +2,45 @@
 
 // Counter app - track event metrics
 import { useState, useEffect, useRef } from "react";
-import { format, addDays, subDays, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, isSameDay } from "date-fns";
-import { Calendar, Activity, Loader2, CheckCircle2, ArrowRight, Hash, Plus, Pencil, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  format,
+  addDays,
+  subDays,
+  parseISO,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+  isToday,
+  isSameDay
+} from "date-fns";
+import {
+  Calendar,
+  Activity,
+  Loader2,
+  CheckCircle2,
+  ArrowRight,
+  Hash,
+  Plus,
+  Pencil,
+  Trash2,
+  X,
+  ChevronLeft,
+  ChevronRight
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NumberSpinner } from "@/components/ui/number-spinner";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogPortal, DialogOverlay } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+  DialogPortal,
+  DialogOverlay
+} from "@/components/ui/dialog";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCampus } from "@/contexts/CampusContext";
-
 
 type Event = {
   Event_ID: number;
@@ -39,7 +69,9 @@ export default function CounterPage() {
     document.title = "Counter - Ministry Apps";
   }, []);
 
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [selectedDate, setSelectedDate] = useState(
+    format(new Date(), "yyyy-MM-dd")
+  );
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [selectedMetric, setSelectedMetric] = useState<Metric | null>(null);
   const [count, setCount] = useState(0);
@@ -50,7 +82,8 @@ export default function CounterPage() {
 
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(true);
-  const [isLoadingExistingMetrics, setIsLoadingExistingMetrics] = useState(false);
+  const [isLoadingExistingMetrics, setIsLoadingExistingMetrics] =
+    useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
@@ -128,7 +161,9 @@ export default function CounterPage() {
 
       setIsLoadingExistingMetrics(true);
       try {
-        const response = await fetch(`/api/counter/event-metrics/${selectedEvent.Event_ID}`);
+        const response = await fetch(
+          `/api/counter/event-metrics/${selectedEvent.Event_ID}`
+        );
         if (!response.ok) throw new Error("Failed to fetch existing metrics");
         const data = await response.json();
         setExistingMetrics(data);
@@ -161,7 +196,12 @@ export default function CounterPage() {
 
   // Auto-scroll to existing metrics when loaded
   useEffect(() => {
-    if (existingMetrics.length > 0 && existingMetricsRef.current && !isAdding && !editingMetricId) {
+    if (
+      existingMetrics.length > 0 &&
+      existingMetricsRef.current &&
+      !isAdding &&
+      !editingMetricId
+    ) {
       setTimeout(() => {
         existingMetricsRef.current?.scrollIntoView({
           behavior: "smooth",
@@ -192,17 +232,20 @@ export default function CounterPage() {
     try {
       if (editingMetricId) {
         // Update existing metric
-        const response = await fetch(`/api/counter/event-metrics/${selectedEvent.Event_ID}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            eventMetricId: editingMetricId,
-            data: {
-              Metric_ID: selectedMetric.Metric_ID,
-              Numerical_Value: count,
-            },
-          }),
-        });
+        const response = await fetch(
+          `/api/counter/event-metrics/${selectedEvent.Event_ID}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              eventMetricId: editingMetricId,
+              data: {
+                Metric_ID: selectedMetric.Metric_ID,
+                Numerical_Value: count
+              }
+            })
+          }
+        );
 
         if (!response.ok) {
           const errorData = await response.json();
@@ -217,8 +260,8 @@ export default function CounterPage() {
           body: JSON.stringify({
             Event_ID: selectedEvent.Event_ID,
             Metric_ID: selectedMetric.Metric_ID,
-            Numerical_Value: count,
-          }),
+            Numerical_Value: count
+          })
         });
 
         if (!response.ok) {
@@ -232,7 +275,9 @@ export default function CounterPage() {
       setSubmitSuccess(true);
 
       // Reload existing metrics
-      const metricsResponse = await fetch(`/api/counter/event-metrics/${selectedEvent.Event_ID}`);
+      const metricsResponse = await fetch(
+        `/api/counter/event-metrics/${selectedEvent.Event_ID}`
+      );
       if (metricsResponse.ok) {
         const data = await metricsResponse.json();
         setExistingMetrics(data);
@@ -248,7 +293,10 @@ export default function CounterPage() {
       }, 1000);
     } catch (error) {
       console.error("Error submitting metric:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to submit metric. Please try again.";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to submit metric. Please try again.";
       alert(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -258,7 +306,7 @@ export default function CounterPage() {
   const handleEdit = (em: EventMetric) => {
     setIsAdding(false);
     setEditingMetricId(em.Event_Metric_ID);
-    const metric = metrics.find(m => m.Metric_ID === em.Metric_ID);
+    const metric = metrics.find((m) => m.Metric_ID === em.Metric_ID);
     if (metric) {
       setSelectedMetric(metric);
       setCount(em.Numerical_Value);
@@ -271,18 +319,23 @@ export default function CounterPage() {
     if (!selectedEvent) return;
 
     try {
-      const response = await fetch(`/api/counter/event-metrics/${selectedEvent.Event_ID}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eventMetricId }),
-      });
+      const response = await fetch(
+        `/api/counter/event-metrics/${selectedEvent.Event_ID}`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ eventMetricId })
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to delete metric");
       }
 
       // Reload existing metrics
-      const metricsResponse = await fetch(`/api/counter/event-metrics/${selectedEvent.Event_ID}`);
+      const metricsResponse = await fetch(
+        `/api/counter/event-metrics/${selectedEvent.Event_ID}`
+      );
       if (metricsResponse.ok) {
         const data = await metricsResponse.json();
         setExistingMetrics(data);
@@ -314,7 +367,10 @@ export default function CounterPage() {
   };
 
   const getMetricName = (metricId: number) => {
-    return metrics.find(m => m.Metric_ID === metricId)?.Metric_Title || "Unknown Metric";
+    return (
+      metrics.find((m) => m.Metric_ID === metricId)?.Metric_Title ||
+      "Unknown Metric"
+    );
   };
 
   const canSubmit = selectedEvent && selectedMetric && count > 0;
@@ -324,7 +380,9 @@ export default function CounterPage() {
       <div className="container mx-auto px-6 max-w-4xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">COUNTER</h1>
+          <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">
+            COUNTER
+          </h1>
           <p className="text-muted-foreground">
             Track event metrics in real-time
           </p>
@@ -344,13 +402,18 @@ export default function CounterPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-foreground">DATE</h3>
-                <p className="text-sm text-muted-foreground">When did this occur?</p>
+                <p className="text-sm text-muted-foreground">
+                  When did this occur?
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Button
                 onClick={() => {
-                  const newDate = format(subDays(parseISO(selectedDate), 1), "yyyy-MM-dd");
+                  const newDate = format(
+                    subDays(parseISO(selectedDate), 1),
+                    "yyyy-MM-dd"
+                  );
                   setSelectedDate(newDate);
                   setSelectedEvent(null);
                 }}
@@ -371,10 +434,10 @@ export default function CounterPage() {
                   </Button>
                 </DialogTrigger>
                 <DialogPortal>
-                  <DialogOverlay className="border-8 border-orange-500" />
-                  <DialogContent className="w-[calc(100%-2rem)] sm:max-w-[425px] h-auto min-h-0 border-4 border-red-500">
+                  <DialogOverlay className="" />
+                  <DialogContent className="w-[calc(100%-2rem)] sm:max-w-[425px] h-100 flex justify-center items-center">
                     <DialogTitle className="sr-only">Select Date</DialogTitle>
-                    <div className="h-full border-4 border-blue-500">
+                    <div className="h-full w-full flex justify-center items-center">
                       <CalendarComponent
                         mode="single"
                         selected={parseISO(selectedDate)}
@@ -386,7 +449,7 @@ export default function CounterPage() {
                           }
                         }}
                         initialFocus
-                        className="h-full border-4 border-green-500"
+                        className="h-full"
                       />
                     </div>
                   </DialogContent>
@@ -395,7 +458,10 @@ export default function CounterPage() {
 
               <Button
                 onClick={() => {
-                  const newDate = format(addDays(parseISO(selectedDate), 1), "yyyy-MM-dd");
+                  const newDate = format(
+                    addDays(parseISO(selectedDate), 1),
+                    "yyyy-MM-dd"
+                  );
                   setSelectedDate(newDate);
                   setSelectedEvent(null);
                 }}
@@ -425,7 +491,9 @@ export default function CounterPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground">EVENT</h3>
-                    <p className="text-sm text-muted-foreground">What happened?</p>
+                    <p className="text-sm text-muted-foreground">
+                      What happened?
+                    </p>
                   </div>
                 </div>
                 {isLoadingEvents ? (
@@ -459,191 +527,219 @@ export default function CounterPage() {
 
           {/* Step 3: Existing Metrics Display */}
           <AnimatePresence>
-            {selectedEvent && !isLoadingExistingMetrics && existingMetrics.length > 0 && !isAdding && !editingMetricId && (
-              <motion.div
-                ref={existingMetricsRef}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ delay: 0.2 }}
-                className="bg-card border border-border rounded-lg p-6 shadow-sm"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#61bc47]/10 flex items-center justify-center">
-                      <Hash className="w-5 h-5 text-[#61bc47]" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">EXISTING METRICS</h3>
-                      <p className="text-sm text-muted-foreground">Current counts for this event</p>
-                    </div>
-                  </div>
-                  <Button
-                    onClick={startAdding}
-                    size="sm"
-                    className="gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Metric
-                  </Button>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {existingMetrics.map((em) => (
-                    <div
-                      key={em.Event_Metric_ID}
-                      className="p-4 rounded-lg border border-border bg-background flex items-center justify-between"
-                    >
+            {selectedEvent &&
+              !isLoadingExistingMetrics &&
+              existingMetrics.length > 0 &&
+              !isAdding &&
+              !editingMetricId && (
+                <motion.div
+                  ref={existingMetricsRef}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-card border border-border rounded-lg p-6 shadow-sm"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-[#61bc47]/10 flex items-center justify-center">
+                        <Hash className="w-5 h-5 text-[#61bc47]" />
+                      </div>
                       <div>
-                        <p className="font-semibold text-foreground">{getMetricName(em.Metric_ID)}</p>
-                        <p className="text-2xl font-bold text-primary">{em.Numerical_Value}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => handleEdit(em)}
-                          className="hover:text-primary"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => handleDelete(em.Event_Metric_ID)}
-                          className="hover:text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <h3 className="font-semibold text-foreground">
+                          EXISTING METRICS
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Current counts for this event
+                        </p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
+                    <Button onClick={startAdding} size="sm" className="gap-2">
+                      <Plus className="w-4 h-4" />
+                      Add Metric
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {existingMetrics.map((em) => (
+                      <div
+                        key={em.Event_Metric_ID}
+                        className="p-4 rounded-lg border border-border bg-background flex items-center justify-between"
+                      >
+                        <div>
+                          <p className="font-semibold text-foreground">
+                            {getMetricName(em.Metric_ID)}
+                          </p>
+                          <p className="text-2xl font-bold text-primary">
+                            {em.Numerical_Value}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => handleEdit(em)}
+                            className="hover:text-primary"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => handleDelete(em.Event_Metric_ID)}
+                            className="hover:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
           </AnimatePresence>
 
           {/* Step 4: Add/Edit Metric Form */}
           <AnimatePresence>
-            {selectedEvent && (isAdding || editingMetricId || (existingMetrics.length === 0 && !isLoadingExistingMetrics)) && (
-              <motion.div
-                ref={metricSectionRef}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ delay: 0.2 }}
-                className="bg-card border border-border rounded-lg p-6 shadow-sm"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#61bc47]/10 flex items-center justify-center">
-                      <Hash className="w-5 h-5 text-[#61bc47]" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">
-                        {editingMetricId ? "EDIT METRIC" : existingMetrics.length === 0 ? "ADD FIRST METRIC" : "ADD METRIC"}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {editingMetricId ? "Update the count" : "What are you counting?"}
-                      </p>
-                    </div>
-                  </div>
-                  {(existingMetrics.length > 0 || editingMetricId) && (
-                    <Button
-                      onClick={cancelAdding}
-                      size="sm"
-                      variant="ghost"
-                      className="gap-2"
-                    >
-                      <X className="w-4 h-4" />
-                      Cancel
-                    </Button>
-                  )}
-                </div>
-
-                {/* Metric Selection */}
-                {!selectedMetric ? (
-                  <>
-                    {isLoadingMetrics ? (
-                      <div className="flex items-center justify-center py-8">
-                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            {selectedEvent &&
+              (isAdding ||
+                editingMetricId ||
+                (existingMetrics.length === 0 &&
+                  !isLoadingExistingMetrics)) && (
+                <motion.div
+                  ref={metricSectionRef}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-card border border-border rounded-lg p-6 shadow-sm"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-[#61bc47]/10 flex items-center justify-center">
+                        <Hash className="w-5 h-5 text-[#61bc47]" />
                       </div>
-                    ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {metrics.map((metric) => (
-                          <button
-                            key={metric.Metric_ID}
-                            onClick={() => setSelectedMetric(metric)}
-                            className="p-4 rounded-lg border-2 border-border hover:border-primary/50 hover:shadow-sm transition-all text-left"
-                          >
-                            <p className="font-semibold">{metric.Metric_Title}</p>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  /* Count Input */
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground">Selected Metric</p>
-                        <p className="font-semibold text-lg">{selectedMetric.Metric_Title}</p>
+                        <h3 className="font-semibold text-foreground">
+                          {editingMetricId
+                            ? "EDIT METRIC"
+                            : existingMetrics.length === 0
+                            ? "ADD FIRST METRIC"
+                            : "ADD METRIC"}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {editingMetricId
+                            ? "Update the count"
+                            : "What are you counting?"}
+                        </p>
                       </div>
+                    </div>
+                    {(existingMetrics.length > 0 || editingMetricId) && (
                       <Button
-                        onClick={() => {
-                          setSelectedMetric(null);
-                          setCount(0);
-                        }}
+                        onClick={cancelAdding}
                         size="sm"
                         variant="ghost"
+                        className="gap-2"
                       >
-                        Change
+                        <X className="w-4 h-4" />
+                        Cancel
                       </Button>
-                    </div>
-
-                    <div className="text-center">
-                      <h4 className="font-semibold text-foreground text-xl mb-2">HOW MANY?</h4>
-                      <p className="text-sm text-muted-foreground mb-6">
-                        Enter the count for {selectedMetric.Metric_Title}
-                      </p>
-                      <div className="flex justify-center mb-6">
-                        <NumberSpinner
-                          value={count}
-                          onChange={setCount}
-                          min={0}
-                          max={9999}
-                          step={1}
-                          onEnter={handleSubmit}
-                        />
-                      </div>
-                      <Button
-                        onClick={handleSubmit}
-                        disabled={!canSubmit || isSubmitting || submitSuccess}
-                        className="w-full h-14 text-lg font-semibold"
-                        size="lg"
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            {editingMetricId ? "Updating..." : "Submitting..."}
-                          </>
-                        ) : submitSuccess ? (
-                          <>
-                            <CheckCircle2 className="mr-2 h-5 w-5" />
-                            {editingMetricId ? "Updated!" : "Submitted!"}
-                          </>
-                        ) : (
-                          <>
-                            {editingMetricId ? "Update" : "Submit"}
-                            <ArrowRight className="ml-2 h-5 w-5" />
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                    )}
                   </div>
-                )}
-              </motion.div>
-            )}
+
+                  {/* Metric Selection */}
+                  {!selectedMetric ? (
+                    <>
+                      {isLoadingMetrics ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {metrics.map((metric) => (
+                            <button
+                              key={metric.Metric_ID}
+                              onClick={() => setSelectedMetric(metric)}
+                              className="p-4 rounded-lg border-2 border-border hover:border-primary/50 hover:shadow-sm transition-all text-left"
+                            >
+                              <p className="font-semibold">
+                                {metric.Metric_Title}
+                              </p>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    /* Count Input */
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            Selected Metric
+                          </p>
+                          <p className="font-semibold text-lg">
+                            {selectedMetric.Metric_Title}
+                          </p>
+                        </div>
+                        <Button
+                          onClick={() => {
+                            setSelectedMetric(null);
+                            setCount(0);
+                          }}
+                          size="sm"
+                          variant="ghost"
+                        >
+                          Change
+                        </Button>
+                      </div>
+
+                      <div className="text-center">
+                        <h4 className="font-semibold text-foreground text-xl mb-2">
+                          HOW MANY?
+                        </h4>
+                        <p className="text-sm text-muted-foreground mb-6">
+                          Enter the count for {selectedMetric.Metric_Title}
+                        </p>
+                        <div className="flex justify-center mb-6">
+                          <NumberSpinner
+                            value={count}
+                            onChange={setCount}
+                            min={0}
+                            max={9999}
+                            step={1}
+                            onEnter={handleSubmit}
+                          />
+                        </div>
+                        <Button
+                          onClick={handleSubmit}
+                          disabled={!canSubmit || isSubmitting || submitSuccess}
+                          className="w-full h-14 text-lg font-semibold"
+                          size="lg"
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                              {editingMetricId
+                                ? "Updating..."
+                                : "Submitting..."}
+                            </>
+                          ) : submitSuccess ? (
+                            <>
+                              <CheckCircle2 className="mr-2 h-5 w-5" />
+                              {editingMetricId ? "Updated!" : "Submitted!"}
+                            </>
+                          ) : (
+                            <>
+                              {editingMetricId ? "Update" : "Submit"}
+                              <ArrowRight className="ml-2 h-5 w-5" />
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
           </AnimatePresence>
         </div>
       </div>
