@@ -125,6 +125,9 @@ export default function PWAInstallPrompt() {
   // Don't show if already installed or dismissed this session
   if (isStandalone || isDismissed) return null
 
+  // Don't show for Firefox - it doesn't natively support PWA installation
+  if (isFirefox) return null
+
   // Show iOS instructions
   if (isIOS && !isStandalone) {
     return (
@@ -158,42 +161,6 @@ export default function PWAInstallPrompt() {
             <button
               onClick={handleDismiss}
               className="text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10 p-2 rounded-lg transition-colors flex-shrink-0"
-              aria-label="Dismiss"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Show Firefox install instructions
-  if (isFirefox && !isStandalone && !isDismissed) {
-    return (
-      <div className="fixed bottom-4 left-4 right-4 z-50 flex justify-center pointer-events-none">
-        <div
-          className="pointer-events-auto backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.16_0.005_0)]/95 border border-white/30 dark:border-[oklch(0.3_0.005_0)] shadow-2xl rounded-2xl p-5 max-w-2xl w-full transition-transform"
-          style={{ transform: `translateY(${translateY}px)` }}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          <div className="flex justify-between items-center gap-4">
-            <div className="flex gap-4 items-center flex-1">
-              <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
-                <Download className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-lg mb-0.5 text-foreground">Install {appName}</h3>
-                <p className="text-sm text-muted-foreground">
-                  Click the menu (☰) and select &quot;Install&quot; to add this app to your desktop
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleDismiss}
-              className="text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10 p-2.5 rounded-lg transition-colors flex-shrink-0"
               aria-label="Dismiss"
             >
               <X className="w-5 h-5" />
