@@ -113,7 +113,7 @@ export default function Header() {
       <header className="fixed top-0 left-0 right-0 z-50 shadow-lg overflow-visible h-16">
         {/* Header background with notch mask */}
         <div
-          className="absolute inset-0 backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.12_0.005_0)]/60 border-b border-white/30 dark:border-b-0 dark:shadow-[0_1px_3px_0_rgb(0_0_0_/_0.5)] header-notch-mask pointer-events-none"
+          className="absolute inset-0 backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.12_0.005_0)]/60 border-b border-white/30 dark:border-b-0 dark:shadow-[0_1px_8px_0_rgb(0_0_0_/_0.7)] header-notch-mask pointer-events-none"
         />
 
         <div className="mx-auto px-4 md:px-6 lg:px-8 relative h-full max-w-[1600px]">
