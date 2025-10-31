@@ -370,22 +370,20 @@ export default function CounterPage() {
                     {format(parseISO(selectedDate), "MMM d, yyyy")}
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="w-[calc(100%-2rem)] sm:max-w-[425px] h-auto">
+                <DialogContent className="w-[calc(100%-2rem)] sm:max-w-[425px] h-auto gap-0 p-4">
                   <DialogTitle className="sr-only">Select Date</DialogTitle>
-                  <div className="h-full">
-                    <CalendarComponent
-                      mode="single"
-                      selected={parseISO(selectedDate)}
-                      onSelect={(date) => {
-                        if (date) {
-                          setSelectedDate(format(date, "yyyy-MM-dd"));
-                          setSelectedEvent(null);
-                          setIsCalendarOpen(false);
-                        }
-                      }}
-                      initialFocus
-                    />
-                  </div>
+                  <CalendarComponent
+                    mode="single"
+                    selected={parseISO(selectedDate)}
+                    onSelect={(date) => {
+                      if (date) {
+                        setSelectedDate(format(date, "yyyy-MM-dd"));
+                        setSelectedEvent(null);
+                        setIsCalendarOpen(false);
+                      }
+                    }}
+                    initialFocus
+                  />
                 </DialogContent>
               </Dialog>
 
