@@ -166,7 +166,7 @@ export default function Header() {
                       <DropdownMenuItem key={app.Application_ID} asChild className="focus:bg-transparent hover:bg-transparent data-[highlighted]:bg-transparent">
                         <Link href={route} className="flex items-center gap-3 p-3 cursor-pointer rounded-md transition-colors group">
                           <div className="w-10 h-10 bg-primary/10 group-hover:bg-primary group-focus:bg-primary rounded-full flex items-center justify-center flex-shrink-0 transition-all">
-                            <Icon className="w-5 h-5 text-primary group-hover:text-white group-focus:text-white transition-colors" />
+                            <Icon className="w-5 h-5 text-primary group-hover:text-white dark:group-hover:text-card group-focus:text-white dark:group-focus:text-card transition-colors" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold text-sm text-foreground group-hover:text-primary dark:group-hover:text-[#61bc47] transition-colors">{app.Application_Name}</p>
@@ -359,7 +359,7 @@ export default function Header() {
                     className="flex items-center gap-3 px-4 py-3 transition-colors rounded-lg group"
                   >
                     <div className="w-10 h-10 bg-primary/10 group-hover:bg-primary group-focus:bg-primary rounded-full flex items-center justify-center shrink-0 transition-all">
-                      <Icon className="w-5 h-5 text-primary group-hover:text-white group-focus:text-white transition-colors" />
+                      <Icon className="w-5 h-5 text-primary group-hover:text-white dark:group-hover:text-card group-focus:text-white dark:group-focus:text-card transition-colors" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm text-foreground group-hover:text-primary dark:group-hover:text-[#61bc47] transition-colors">{app.Application_Name}</p>

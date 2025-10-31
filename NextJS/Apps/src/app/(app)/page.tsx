@@ -116,7 +116,7 @@ export default function Dashboard() {
                       {/* Icon and Title */}
                       <div className="flex items-center gap-3">
                         <div className="bg-primary/10 group-hover:bg-primary group-focus:bg-primary w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-all duration-300">
-                          <Icon className="w-5 h-5 text-primary group-hover:text-white group-focus:text-white transition-colors duration-300" />
+                          <Icon className="w-5 h-5 text-primary group-hover:text-white dark:group-hover:text-card group-focus:text-white dark:group-focus:text-card transition-colors duration-300" />
                         </div>
                         <h3 className="text-lg uppercase font-extrabold tracking-tight text-foreground" style={{ letterSpacing: '-0.025em' }}>
                           {app.Application_Name}
