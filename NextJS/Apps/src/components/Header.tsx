@@ -116,10 +116,10 @@ export default function Header() {
           className="absolute inset-0 backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.12_0.005_0)]/60 border-b border-white/30 dark:border-[oklch(0.3_0.005_0)] header-notch-mask pointer-events-none"
         />
 
-        <div className="container mx-auto px-4 relative h-full">
-          <div className="flex items-center justify-between h-16">
+        <div className="mx-auto px-4 md:px-6 lg:px-8 relative h-full max-w-[1600px]">
+          <div className="flex items-center justify-between md:gap-2 lg:gap-0 h-16">
             {/* Left - Mobile Menu Button + Mobile Search + Desktop Logo & Navigation */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 md:shrink-0">
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(true)}
@@ -181,8 +181,8 @@ export default function Header() {
             </nav>
           </div>
 
-          {/* Center - Desktop Search */}
-          <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-full max-w-2xl px-4">
+          {/* Center - Desktop Search (inline at md, centered at lg+) */}
+          <div className="hidden md:flex md:flex-1 md:relative lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:top-1/2 lg:-translate-y-1/2 lg:w-full lg:max-w-md md:px-0 lg:px-4">
             <GlobalSearch isMobile={false} />
           </div>
 
@@ -204,7 +204,7 @@ export default function Header() {
           </div>
 
           {/* Right - Campus Selector + User avatar */}
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-2 md:gap-4 md:shrink-0">
             {/* Campus Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-1 md:gap-2 px-1 md:px-3 py-2 text-xs md:text-sm font-medium text-foreground dark:text-[oklch(0.8_0_0)] hover:!text-primary dark:hover:!text-[#61bc47] focus:!text-primary dark:focus:!text-[#61bc47] active:!text-primary dark:active:!text-[#61bc47] transition-colors focus:outline-none !bg-transparent hover:!bg-transparent data-[state=open]:!bg-transparent focus:!bg-transparent active:!bg-transparent !border-none pointer-events-auto">
@@ -213,17 +213,17 @@ export default function Header() {
                   <span className="hidden sm:inline">Loading...</span>
                 ) : selectedCampus ? (
                   <>
-                    <span className="md:hidden text-xs">
+                    <span className="lg:hidden text-xs md:text-sm">
                       {selectedCampus.Congregation_Short_Name || selectedCampus.Congregation_Name}
                     </span>
-                    <span className="hidden md:inline">
+                    <span className="hidden lg:inline">
                       {selectedCampus.Congregation_Name}
                     </span>
                   </>
                 ) : (
                   <span className="hidden md:inline">Select Campus</span>
                 )}
-                <ChevronDownIcon className="w-3 h-3 md:w-4 md:h-4" />
+                <ChevronDownIcon className="w-4 h-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-white/50 dark:bg-[oklch(0.16_0.005_0)]/95 backdrop-blur-2xl border-white/30 dark:border-[oklch(0.3_0.005_0)] shadow-2xl z-[60]">
                 {congregations.map((congregation) => (
