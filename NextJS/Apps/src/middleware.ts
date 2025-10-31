@@ -38,13 +38,11 @@ export async function middleware(request: NextRequest) {
       console.log("Middleware: Redirecting to signin - no token");
       return NextResponse.redirect(new URL('/signin', request.url));
     }
-    
-    // Check token expiration - use the standard 'exp' claim
-    if (token.exp && Date.now() >= (token.exp * 1000)) {
-      console.log("Middleware: Redirecting to signin - token expired (exp)");
-      return NextResponse.redirect(new URL('/signin', request.url));
-    }
-    
+
+    // Don't check token expiration here - let NextAuth's JWT callback handle token refresh
+    // If the token is expired, the JWT callback will attempt to refresh it automatically
+    // Only redirect if there's truly no valid session (handled by NextAuth)
+
     console.log(`Middleware: Allowing request to ${pathname}`);
     return NextResponse.next();
     
