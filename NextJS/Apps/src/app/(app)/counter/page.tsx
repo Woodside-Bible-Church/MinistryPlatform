@@ -334,8 +334,8 @@ export default function CounterPage() {
             className="bg-card border border-border rounded-lg p-6 shadow-sm"
           >
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-full bg-[#61bc47]/10 flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-[#61bc47]" />
               </div>
               <div>
                 <h3 className="font-semibold text-foreground">DATE</h3>
@@ -365,8 +365,8 @@ export default function CounterPage() {
                 className="bg-card border border-border rounded-lg p-6 shadow-sm"
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Activity className="w-5 h-5 text-primary" />
+                  <div className="w-10 h-10 rounded-full bg-[#61bc47]/10 flex items-center justify-center">
+                    <Activity className="w-5 h-5 text-[#61bc47]" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground">EVENT</h3>
@@ -415,8 +415,8 @@ export default function CounterPage() {
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Hash className="w-5 h-5 text-primary" />
+                    <div className="w-10 h-10 rounded-full bg-[#61bc47]/10 flex items-center justify-center">
+                      <Hash className="w-5 h-5 text-[#61bc47]" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground">EXISTING METRICS</h3>
@@ -480,8 +480,8 @@ export default function CounterPage() {
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Hash className="w-5 h-5 text-primary" />
+                    <div className="w-10 h-10 rounded-full bg-[#61bc47]/10 flex items-center justify-center">
+                      <Hash className="w-5 h-5 text-[#61bc47]" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground">

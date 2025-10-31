@@ -321,8 +321,8 @@ export default function PeopleSearchPage() {
               className="bg-card border border-border rounded-lg p-6 shadow-sm"
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Search className="w-5 h-5 text-primary" />
+                <div className="w-10 h-10 rounded-full bg-[#61bc47]/10 flex items-center justify-center">
+                  <Search className="w-5 h-5 text-[#61bc47]" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground">SEARCH</h3>
@@ -361,8 +361,8 @@ export default function PeopleSearchPage() {
                   className="bg-card border border-border rounded-lg p-6 shadow-sm"
                 >
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Users className="w-5 h-5 text-primary" />
+                    <div className="w-10 h-10 rounded-full bg-[#61bc47]/10 flex items-center justify-center">
+                      <Users className="w-5 h-5 text-[#61bc47]" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground">RESULTS</h3>
@@ -427,12 +427,12 @@ export default function PeopleSearchPage() {
                                                 (e.target as HTMLImageElement).style.display = 'none';
                                                 const parent = (e.target as HTMLImageElement).parentElement;
                                                 if (parent) {
-                                                  parent.innerHTML = `<span class="text-sm font-medium ${inactive ? "text-muted-foreground" : "text-primary"}">${getInitials(contact)}</span>`;
+                                                  parent.innerHTML = `<span class="text-sm font-medium ${inactive ? "text-muted-foreground" : "text-[#61bc47]"}">${getInitials(contact)}</span>`;
                                                 }
                                               }}
                                             />
                                           ) : (
-                                            <span className={`text-sm font-medium ${inactive ? "text-muted-foreground" : "text-primary"}`}>{getInitials(contact)}</span>
+                                            <span className={`text-sm font-medium ${inactive ? "text-muted-foreground" : "text-[#61bc47]"}`}>{getInitials(contact)}</span>
                                           )}
                                         </div>
                                         <div>
@@ -485,12 +485,12 @@ export default function PeopleSearchPage() {
                                                 (e.target as HTMLImageElement).style.display = 'none';
                                                 const parent = (e.target as HTMLImageElement).parentElement;
                                                 if (parent) {
-                                                  parent.innerHTML = `<span class="text-sm font-medium ${inactive ? "text-muted-foreground" : "text-primary"}">${getInitials(contact)}</span>`;
+                                                  parent.innerHTML = `<span class="text-sm font-medium ${inactive ? "text-muted-foreground" : "text-[#61bc47]"}">${getInitials(contact)}</span>`;
                                                 }
                                               }}
                                             />
                                           ) : (
-                                            <span className={`text-sm font-medium ${inactive ? "text-muted-foreground" : "text-primary"}`}>{getInitials(contact)}</span>
+                                            <span className={`text-sm font-medium ${inactive ? "text-muted-foreground" : "text-[#61bc47]"}`}>{getInitials(contact)}</span>
                                           )}
                                         </div>
                                         <div>
@@ -538,8 +538,8 @@ export default function PeopleSearchPage() {
                 <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <User className="w-5 h-5 text-primary" />
+                      <div className="w-10 h-10 rounded-full bg-[#61bc47]/10 flex items-center justify-center">
+                        <User className="w-5 h-5 text-[#61bc47]" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-foreground">CONTACT INFO</h3>
@@ -584,7 +584,7 @@ export default function PeopleSearchPage() {
                   ) : selectedContact ? (
                     <div className="space-y-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <div className="w-16 h-16 rounded-full overflow-hidden bg-[#61bc47]/10 flex items-center justify-center flex-shrink-0">
                           {getImageUrl(selectedContact.Image_GUID) ? (
                             <img
                               src={getImageUrl(selectedContact.Image_GUID)!}
@@ -599,7 +599,7 @@ export default function PeopleSearchPage() {
                               }}
                             />
                           ) : (
-                            <span className="text-lg font-semibold text-primary">{getInitials(selectedContact)}</span>
+                            <span className="text-lg font-semibold text-[#61bc47]">{getInitials(selectedContact)}</span>
                           )}
                         </div>
                         <div>
@@ -615,7 +615,7 @@ export default function PeopleSearchPage() {
 
                       {selectedContact.Email_Address && (
                         <div className="flex items-start gap-3">
-                          <Mail className="w-5 h-5 text-primary mt-0.5" />
+                          <Mail className="w-5 h-5 text-[#61bc47] mt-0.5" />
                           <div>
                             <p className="text-sm text-muted-foreground">Email</p>
                             <a
@@ -630,7 +630,7 @@ export default function PeopleSearchPage() {
 
                       {selectedContact.Mobile_Phone && (
                         <div className="flex items-start gap-3">
-                          <Phone className="w-5 h-5 text-primary mt-0.5" />
+                          <Phone className="w-5 h-5 text-[#61bc47] mt-0.5" />
                           <div>
                             <p className="text-sm text-muted-foreground">Mobile</p>
                             <a
@@ -645,7 +645,7 @@ export default function PeopleSearchPage() {
 
                       {selectedContact.Company_Phone && (
                         <div className="flex items-start gap-3">
-                          <Phone className="w-5 h-5 text-primary mt-0.5" />
+                          <Phone className="w-5 h-5 text-[#61bc47] mt-0.5" />
                           <div>
                             <p className="text-sm text-muted-foreground">Work</p>
                             <a
@@ -665,8 +665,8 @@ export default function PeopleSearchPage() {
                 {(selectedContact?.Household_ID || isLoadingHousehold) && (
                   <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Home className="w-5 h-5 text-primary" />
+                      <div className="w-10 h-10 rounded-full bg-[#61bc47]/10 flex items-center justify-center">
+                        <Home className="w-5 h-5 text-[#61bc47]" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-foreground">HOUSEHOLD</h3>
@@ -739,7 +739,7 @@ export default function PeopleSearchPage() {
                                       : "border-border hover:border-primary/50 hover:bg-primary/5"
                                   }`}
                                 >
-                                  <div className="w-10 h-10 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                  <div className="w-10 h-10 rounded-full overflow-hidden bg-[#61bc47]/10 flex items-center justify-center flex-shrink-0">
                                     {member.Image_URL ? (
                                       <img
                                         src={member.Image_URL}
@@ -749,12 +749,12 @@ export default function PeopleSearchPage() {
                                           (e.target as HTMLImageElement).style.display = 'none';
                                           const parent = (e.target as HTMLImageElement).parentElement;
                                           if (parent) {
-                                            parent.innerHTML = `<span class="text-sm font-medium text-primary">${getInitials(member)}</span>`;
+                                            parent.innerHTML = `<span class="text-sm font-medium text-[#61bc47]">${getInitials(member)}</span>`;
                                           }
                                         }}
                                       />
                                     ) : (
-                                      <span className="text-sm font-medium text-primary">{getInitials(member)}</span>
+                                      <span className="text-sm font-medium text-[#61bc47]">{getInitials(member)}</span>
                                     )}
                                   </div>
                                   <div>
