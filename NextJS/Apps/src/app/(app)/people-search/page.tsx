@@ -304,7 +304,7 @@ export default function PeopleSearchPage() {
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-primary mb-2">PEOPLE SEARCH</h1>
+          <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">PEOPLE SEARCH</h1>
           <p className="text-muted-foreground">
             Look up contacts and view their information
           </p>
@@ -321,7 +321,7 @@ export default function PeopleSearchPage() {
               className="bg-card border border-border rounded-lg p-6 shadow-sm"
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <Search className="w-5 h-5 text-primary" />
                 </div>
                 <div>
@@ -361,7 +361,7 @@ export default function PeopleSearchPage() {
                   className="bg-card border border-border rounded-lg p-6 shadow-sm"
                 >
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                       <Users className="w-5 h-5 text-primary" />
                     </div>
                     <div>
@@ -538,7 +538,7 @@ export default function PeopleSearchPage() {
                 <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                         <User className="w-5 h-5 text-primary" />
                       </div>
                       <div>
@@ -665,7 +665,7 @@ export default function PeopleSearchPage() {
                 {(selectedContact?.Household_ID || isLoadingHousehold) && (
                   <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                         <Home className="w-5 h-5 text-primary" />
                       </div>
                       <div>

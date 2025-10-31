@@ -319,7 +319,7 @@ export default function CounterPage() {
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-primary mb-2">COUNTER</h1>
+          <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">COUNTER</h1>
           <p className="text-muted-foreground">
             Track event metrics in real-time
           </p>
