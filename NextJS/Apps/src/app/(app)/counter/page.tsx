@@ -60,6 +60,9 @@ export default function CounterPage() {
   const existingMetricsRef = useRef<HTMLDivElement>(null);
   const metricSectionRef = useRef<HTMLDivElement>(null);
 
+  // Ref for date input
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
   // Load metrics on mount
   useEffect(() => {
     async function loadMetrics() {
@@ -356,21 +359,24 @@ export default function CounterPage() {
                 <ChevronLeft className="h-5 w-5" />
               </Button>
 
-              <div className="flex-1 min-w-0 relative">
-                {/* Hidden native date input */}
+              <div className="flex-1">
                 <input
+                  ref={dateInputRef}
                   type="date"
                   value={selectedDate}
                   onChange={(e) => {
                     setSelectedDate(e.target.value);
                     setSelectedEvent(null);
                   }}
-                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                  className="hidden"
                 />
-                {/* Custom display */}
-                <div className="w-full px-4 py-3 rounded-lg border border-border bg-background text-base text-center font-medium pointer-events-none">
+                <Button
+                  onClick={() => dateInputRef.current?.showPicker?.()}
+                  variant="outline"
+                  className="w-full h-12 text-base font-medium"
+                >
                   {format(parseISO(selectedDate), "MMM d, yyyy")}
-                </div>
+                </Button>
               </div>
 
               <Button
