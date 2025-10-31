@@ -235,17 +235,3 @@ header nav {
   display: none; /* Chrome, Safari, Opera */
 }
 
-/* Header notch mask - cuts a circular hole at the bottom center on mobile */
-@media (max-width: 767px) {
-  .header-notch-mask {
-    -webkit-mask-image: radial-gradient(circle 32px at 50% 100%, transparent 0, transparent 32px, black 32px);
-    mask-image: radial-gradient(circle 32px at 50% 100%, transparent 0, transparent 32px, black 32px);
-  }
-}
-
-@media (min-width: 768px) {
-  .header-notch-mask {
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
-}

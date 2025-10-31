@@ -110,16 +110,16 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 shadow-lg dark:shadow-[0_1px_8px_0_rgb(0_0_0_/_0.7)] overflow-visible h-16">
-        {/* Header background with notch mask */}
+      <header className="fixed top-0 left-0 right-0 z-50 shadow-lg dark:shadow-[0_1px_8px_0_rgb(0_0_0_/_0.7)] h-16">
+        {/* Header background */}
         <div
-          className="absolute inset-0 backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.12_0.005_0)]/60 border-b border-white/30 dark:border-b-0 header-notch-mask pointer-events-none"
+          className="absolute inset-0 backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.12_0.005_0)]/60 border-b border-white/30 dark:border-b-0 pointer-events-none"
         />
 
         <div className="mx-auto px-4 md:px-6 lg:px-8 relative h-full max-w-[1600px]">
           <div className="flex items-center justify-between md:gap-2 lg:gap-0 h-16">
-            {/* Left - Mobile Menu Button + Mobile Search + Desktop Logo & Navigation */}
-            <div className="flex items-center gap-1 md:shrink-0">
+            {/* Left - Mobile: Hamburger + Search, Desktop: Logo & Navigation */}
+            <div className="flex items-center gap-2 flex-1 md:flex-initial md:shrink-0">
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(true)}
@@ -129,8 +129,8 @@ export default function Header() {
                 <Bars3Icon className="w-6 h-6" />
               </button>
 
-              {/* Mobile Search Icon */}
-              <div className="md:hidden">
+              {/* Mobile Search with Container */}
+              <div className="md:hidden flex-1 backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.12_0.005_0)]/60 rounded-full border border-white/30 dark:border-[oklch(0.3_0.005_0)] pointer-events-auto">
                 <GlobalSearch isMobile={true} />
               </div>
 
@@ -181,19 +181,11 @@ export default function Header() {
             </nav>
           </div>
 
-          {/* Center - Desktop Search (inline at md, centered at lg+) */}
-          <div className="hidden md:flex md:flex-1 md:relative lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:top-1/2 lg:-translate-y-1/2 lg:w-full lg:max-w-md md:px-0 lg:px-4">
-            <GlobalSearch isMobile={false} />
-          </div>
-
-          {/* Center - Mobile Logo with Bulge */}
-          <div className="md:hidden absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-1/2 z-10">
-            {/* Glass circle - slightly larger to fully cover the cutout edge */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[68px] h-[68px] backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.12_0.005_0)]/60 rounded-full shadow-lg pointer-events-none" />
-
-            {/* Logo - original size */}
-            <a href="https://woodsidebible.org" className="relative z-10 flex items-center justify-center logo-link w-16 h-16 pointer-events-auto" target="_blank" rel="noopener noreferrer">
-              <div className="relative w-12 h-12 shrink-0">
+          {/* Center - Desktop Search (inline at md, centered at lg+) OR Mobile Logo */}
+          <div className="md:hidden absolute left-1/2 -translate-x-1/2 pointer-events-auto">
+            {/* Mobile Logo */}
+            <a href="https://woodsidebible.org" className="flex items-center logo-link" target="_blank" rel="noopener noreferrer">
+              <div className="relative w-10 h-10 shrink-0">
                 <svg className="logo-svg w-full h-full" viewBox="0 0 822.73 822.41" xmlns="http://www.w3.org/2000/svg">
                   <path d="M482.59,292.96c-28.5,75.56-63.52,148.62-91.88,224.24-22.85,60.93-44.5,165.54,5.99,218.03,53.19,55.31,103.27-36.03,126.36-76.12,29.77-51.67,60.19-102.91,92.51-153.1,37.77-58.65,82.78-117.18,128.05-170.34,17.33-20.35,35.58-39.9,55.18-58.05,1.32-.3,1.67.72,2.19,1.61,2.7,4.68,6.16,19.72,7.79,25.79,55.59,207.53-59.67,424.44-261.39,494.49-162.86,56.55-343.5,6.03-452.97-125.71l.02-2.82c22.1-29.38,43.34-59.51,66.31-88.22,46.87-58.59,104.84-117,159.18-168.95,39.21-37.49,94.79-86.04,141.88-112.38,2.97-1.66,18.74-10.3,20.79-8.46Z" fill="currentColor"/>
                   <path d="M454.78,615.29c-.4-37.26,12.31-73.93,23.96-108.91,21.35-64.11,58.46-144.93,65.26-211.05,10.09-98.15-75.84-54.82-121.59-23.71-87.22,59.32-157.97,140.42-238.72,207.44-1.08.9-1.56,2.33-3.36,1.91,29.91-61.5,79.75-118.22,92.63-187.03,26.62-142.2-143-109.97-223.13-77.75-1.54-1.51,19.5-33.71,21.85-37.14C170.36,35.21,348.48-31.19,518.31,14.05c111.97,29.83,206.98,107.78,259.7,210.54l-1.23,3.19c-101.38,85.68-182.57,188.93-258.5,297.03-21.17,30.14-40.81,61.47-63.5,90.48Z" fill="currentColor"/>
@@ -203,17 +195,21 @@ export default function Header() {
             </a>
           </div>
 
-          {/* Right - Campus Selector + User avatar */}
-          <div className="flex items-center gap-2 md:gap-4 md:shrink-0">
+          <div className="hidden md:flex md:flex-1 md:relative lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:top-1/2 lg:-translate-y-1/2 lg:w-full lg:max-w-md md:px-0 lg:px-4">
+            <GlobalSearch isMobile={false} />
+          </div>
+
+          {/* Right - Campus Selector + User avatar in container */}
+          <div className="flex items-center gap-2 flex-1 justify-end md:flex-initial md:gap-4 md:shrink-0 backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.12_0.005_0)]/60 rounded-full border border-white/30 dark:border-[oklch(0.3_0.005_0)] px-2 py-1 md:bg-transparent md:backdrop-blur-none md:border-0 md:px-0 md:py-0 pointer-events-auto">
             {/* Campus Selector */}
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-1 md:gap-2 px-1 md:px-3 py-2 text-xs md:text-sm font-medium text-foreground dark:text-[oklch(0.8_0_0)] hover:!text-primary dark:hover:!text-[#61bc47] focus:!text-primary dark:focus:!text-[#61bc47] active:!text-primary dark:active:!text-[#61bc47] transition-colors focus:outline-none !bg-transparent hover:!bg-transparent data-[state=open]:!bg-transparent focus:!bg-transparent active:!bg-transparent !border-none pointer-events-auto group">
-                <img src="/assets/Campus_LO.svg" alt="Campus" className="w-7 h-7 md:w-10 md:h-10 grayscale group-hover:grayscale-0 transition-all duration-200" />
+              <DropdownMenuTrigger className="flex items-center gap-1 md:gap-2 p-1 md:px-3 md:py-2 text-xs md:text-sm font-medium text-foreground dark:text-[oklch(0.8_0_0)] hover:!text-primary dark:hover:!text-[#61bc47] focus:!text-primary dark:focus:!text-[#61bc47] active:!text-primary dark:active:!text-[#61bc47] transition-colors focus:outline-none !bg-transparent hover:!bg-transparent data-[state=open]:!bg-transparent focus:!bg-transparent active:!bg-transparent !border-none pointer-events-auto group">
+                <img src="/assets/Campus_LO.svg" alt="Campus" className="w-6 h-6 md:w-10 md:h-10 grayscale group-hover:grayscale-0 transition-all duration-200" />
                 {campusLoading ? (
-                  <span className="hidden sm:inline">Loading...</span>
+                  <span className="hidden md:inline">Loading...</span>
                 ) : selectedCampus ? (
                   <>
-                    <span className="lg:hidden text-xs md:text-sm">
+                    <span className="hidden md:inline lg:hidden text-sm">
                       {selectedCampus.Congregation_Short_Name || selectedCampus.Congregation_Name}
                     </span>
                     <span className="hidden lg:inline">
@@ -223,7 +219,7 @@ export default function Header() {
                 ) : (
                   <span className="hidden md:inline">Select Campus</span>
                 )}
-                <ChevronDownIcon className="w-4 h-4" />
+                <ChevronDownIcon className="hidden md:block w-4 h-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-white/50 dark:bg-[oklch(0.16_0.005_0)]/95 backdrop-blur-2xl border-white/30 dark:border-[oklch(0.3_0.005_0)] shadow-2xl z-[60]">
                 {congregations.map((congregation) => (
@@ -278,10 +274,10 @@ export default function Header() {
                       alt={userProfile.First_Name && userProfile.Last_Name
                         ? `${userProfile.First_Name} ${userProfile.Last_Name}`
                         : 'User avatar'}
-                      className="h-9 w-9 md:h-10 md:w-10 rounded-full object-cover border-2 border-secondary group-hover:border-primary dark:group-hover:border-[#61bc47] transition-colors"
+                      className="h-8 w-8 md:h-10 md:w-10 rounded-full object-cover border-2 border-transparent group-hover:border-primary dark:group-hover:border-[#61bc47] transition-colors"
                     />
                   ) : (
-                    <UserCircleIcon className="h-9 w-9 md:h-10 md:w-10 text-secondary group-hover:text-primary dark:group-hover:text-[#61bc47] transition-colors" />
+                    <UserCircleIcon className="h-8 w-8 md:h-10 md:w-10 text-secondary group-hover:text-primary dark:group-hover:text-[#61bc47] transition-colors" />
                   )}
                 </button>
               </UserMenu>
@@ -291,7 +287,7 @@ export default function Header() {
                 aria-label="User menu"
                 disabled={loading}
               >
-                <UserCircleIcon className="h-9 w-9 md:h-10 md:w-10 text-secondary group-hover:text-primary dark:group-hover:text-[#61bc47] transition-colors" />
+                <UserCircleIcon className="h-8 w-8 md:h-10 md:w-10 text-secondary group-hover:text-primary dark:group-hover:text-[#61bc47] transition-colors" />
               </button>
             )}
             </div>
