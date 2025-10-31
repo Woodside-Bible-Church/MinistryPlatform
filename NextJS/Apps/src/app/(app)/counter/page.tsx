@@ -6,7 +6,7 @@ import { format, addDays, subDays, parseISO, startOfMonth, endOfMonth, eachDayOf
 import { Calendar, Activity, Loader2, CheckCircle2, ArrowRight, Hash, Plus, Pencil, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NumberSpinner } from "@/components/ui/number-spinner";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogPortal, DialogOverlay } from "@/components/ui/dialog";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCampus } from "@/contexts/CampusContext";
@@ -370,24 +370,27 @@ export default function CounterPage() {
                     {format(parseISO(selectedDate), "MMM d, yyyy")}
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="w-[calc(100%-2rem)] sm:max-w-[425px] h-auto min-h-0 border-4 border-red-500">
-                  <DialogTitle className="sr-only">Select Date</DialogTitle>
-                  <div className="h-full border-4 border-blue-500">
-                    <CalendarComponent
-                      mode="single"
-                      selected={parseISO(selectedDate)}
-                      onSelect={(date) => {
-                        if (date) {
-                          setSelectedDate(format(date, "yyyy-MM-dd"));
-                          setSelectedEvent(null);
-                          setIsCalendarOpen(false);
-                        }
-                      }}
-                      initialFocus
-                      className="h-full border-4 border-green-500"
-                    />
-                  </div>
-                </DialogContent>
+                <DialogPortal>
+                  <DialogOverlay className="border-8 border-orange-500" />
+                  <DialogContent className="w-[calc(100%-2rem)] sm:max-w-[425px] h-auto min-h-0 border-4 border-red-500">
+                    <DialogTitle className="sr-only">Select Date</DialogTitle>
+                    <div className="h-full border-4 border-blue-500">
+                      <CalendarComponent
+                        mode="single"
+                        selected={parseISO(selectedDate)}
+                        onSelect={(date) => {
+                          if (date) {
+                            setSelectedDate(format(date, "yyyy-MM-dd"));
+                            setSelectedEvent(null);
+                            setIsCalendarOpen(false);
+                          }
+                        }}
+                        initialFocus
+                        className="h-full border-4 border-green-500"
+                      />
+                    </div>
+                  </DialogContent>
+                </DialogPortal>
               </Dialog>
 
               <Button
