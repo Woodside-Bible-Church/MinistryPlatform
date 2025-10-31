@@ -110,10 +110,10 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 shadow-lg overflow-visible h-16">
+      <header className="fixed top-0 left-0 right-0 z-50 shadow-lg dark:shadow-[0_1px_8px_0_rgb(0_0_0_/_0.7)] overflow-visible h-16">
         {/* Header background with notch mask */}
         <div
-          className="absolute inset-0 backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.12_0.005_0)]/60 border-b border-white/30 dark:border-b-0 dark:shadow-[0_1px_8px_0_rgb(0_0_0_/_0.7)] header-notch-mask pointer-events-none"
+          className="absolute inset-0 backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.12_0.005_0)]/60 border-b border-white/30 dark:border-b-0 header-notch-mask pointer-events-none"
         />
 
         <div className="mx-auto px-4 md:px-6 lg:px-8 relative h-full max-w-[1600px]">
@@ -189,7 +189,7 @@ export default function Header() {
           {/* Center - Mobile Logo with Bulge */}
           <div className="md:hidden absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-1/2 z-10">
             {/* Glass circle - slightly larger to fully cover the cutout edge */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[68px] h-[68px] backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.12_0.005_0)]/60 rounded-full shadow-lg dark:shadow-[0_1px_8px_0_rgb(0_0_0_/_0.7)] pointer-events-none" />
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[68px] h-[68px] backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.12_0.005_0)]/60 rounded-full shadow-lg pointer-events-none" />
 
             {/* Logo - original size */}
             <a href="https://woodsidebible.org" className="relative z-10 flex items-center justify-center logo-link w-16 h-16 pointer-events-auto" target="_blank" rel="noopener noreferrer">
