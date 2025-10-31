@@ -370,9 +370,9 @@ export default function CounterPage() {
                     {format(parseISO(selectedDate), "MMM d, yyyy")}
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="w-[calc(100%-2rem)] sm:max-w-[425px] bg-transparent border-0 shadow-none p-0">
+                <DialogContent className="w-[calc(100%-2rem)] sm:max-w-[425px] border-4 border-red-500">
                   <DialogTitle className="sr-only">Select Date</DialogTitle>
-                  <div style={{ height: 'auto', minHeight: 'fit-content' }}>
+                  <div className="border-4 border-blue-500">
                     <CalendarComponent
                       mode="single"
                       selected={parseISO(selectedDate)}
@@ -384,7 +384,7 @@ export default function CounterPage() {
                         }
                       }}
                       initialFocus
-                      style={{ height: 'auto', minHeight: 'fit-content' }}
+                      className="border-4 border-green-500"
                     />
                   </div>
                 </DialogContent>
