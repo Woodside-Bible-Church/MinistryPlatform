@@ -362,7 +362,7 @@ export default function CounterPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ delay: 0.2 }}
-                className="bg-card border border-border rounded-lg p-4 sm:p-6 shadow-sm"
+                className="bg-card border border-border rounded-lg p-6 shadow-sm"
               >
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-[#61bc47]/10 flex items-center justify-center">
@@ -411,7 +411,7 @@ export default function CounterPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ delay: 0.2 }}
-                className="bg-card border border-border rounded-lg p-4 sm:p-6 shadow-sm"
+                className="bg-card border border-border rounded-lg p-6 shadow-sm"
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -476,7 +476,7 @@ export default function CounterPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ delay: 0.2 }}
-                className="bg-card border border-border rounded-lg p-4 sm:p-6 shadow-sm"
+                className="bg-card border border-border rounded-lg p-6 shadow-sm"
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
