@@ -253,7 +253,7 @@ export default function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
           onFocus={() => setIsOpen(true)}
           onDoubleClick={(e) => e.currentTarget.select()}
           placeholder="Search apps and content..."
-          className="w-full pl-10 pr-10 py-2 rounded-lg bg-card border border-border text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all pointer-events-auto"
+          className="w-full pl-10 pr-10 py-2 rounded-lg bg-transparent border border-border text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all pointer-events-auto"
         />
         {isLoading && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
