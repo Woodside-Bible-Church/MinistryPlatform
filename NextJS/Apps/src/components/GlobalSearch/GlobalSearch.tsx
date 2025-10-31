@@ -127,19 +127,13 @@ export default function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
                     autoFocus
                   />
                   {isLoading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
-                  {query && !isLoading && (
-                    <button
-                      onClick={() => setQuery('')}
-                      className="text-muted-foreground hover:text-foreground transition-colors"
-                      aria-label="Clear search"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  )}
                   <button
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => {
+                      setQuery('');
+                      setIsOpen(false);
+                    }}
                     className="text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label="Close search"
+                    aria-label="Clear and close search"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -286,10 +280,7 @@ export default function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
             {/* Backdrop to close dropdown */}
             <div
               className="fixed inset-0 z-[55]"
-              onClick={() => {
-                setIsOpen(false);
-                setShowDropdown(false);
-              }}
+              onClick={() => setIsOpen(false)}
             />
 
             {/* Dropdown */}

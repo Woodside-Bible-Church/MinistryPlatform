@@ -2,10 +2,12 @@
 
 // Counter app - track event metrics
 import { useState, useEffect, useRef } from "react";
-import { format, addDays, subDays, parseISO } from "date-fns";
+import { format, addDays, subDays, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, isSameDay } from "date-fns";
 import { Calendar, Activity, Loader2, CheckCircle2, ArrowRight, Hash, Plus, Pencil, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NumberSpinner } from "@/components/ui/number-spinner";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCampus } from "@/contexts/CampusContext";
 
@@ -60,8 +62,8 @@ export default function CounterPage() {
   const existingMetricsRef = useRef<HTMLDivElement>(null);
   const metricSectionRef = useRef<HTMLDivElement>(null);
 
-  // Ref for date input
-  const dateInputRef = useRef<HTMLInputElement>(null);
+  // State for calendar dialog
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   // Load metrics on mount
   useEffect(() => {
@@ -359,25 +361,31 @@ export default function CounterPage() {
                 <ChevronLeft className="h-5 w-5" />
               </Button>
 
-              <div className="flex-1">
-                <input
-                  ref={dateInputRef}
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => {
-                    setSelectedDate(e.target.value);
-                    setSelectedEvent(null);
-                  }}
-                  className="hidden"
-                />
-                <Button
-                  onClick={() => dateInputRef.current?.showPicker?.()}
-                  variant="outline"
-                  className="w-full h-12 text-base font-medium"
-                >
-                  {format(parseISO(selectedDate), "MMM d, yyyy")}
-                </Button>
-              </div>
+              <Dialog open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-12 text-base font-medium"
+                  >
+                    {format(parseISO(selectedDate), "MMM d, yyyy")}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogTitle className="sr-only">Select Date</DialogTitle>
+                  <CalendarComponent
+                    mode="single"
+                    selected={parseISO(selectedDate)}
+                    onSelect={(date) => {
+                      if (date) {
+                        setSelectedDate(format(date, "yyyy-MM-dd"));
+                        setSelectedEvent(null);
+                        setIsCalendarOpen(false);
+                      }
+                    }}
+                    initialFocus
+                  />
+                </DialogContent>
+              </Dialog>
 
               <Button
                 onClick={() => {
@@ -599,6 +607,7 @@ export default function CounterPage() {
                           min={0}
                           max={9999}
                           step={1}
+                          onEnter={handleSubmit}
                         />
                       </div>
                       <Button

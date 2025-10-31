@@ -11,6 +11,7 @@ interface NumberSpinnerProps {
   max?: number;
   step?: number;
   className?: string;
+  onEnter?: () => void;
 }
 
 export function NumberSpinner({
@@ -20,6 +21,7 @@ export function NumberSpinner({
   max = 9999,
   step = 1,
   className,
+  onEnter,
 }: NumberSpinnerProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [tempValue, setTempValue] = useState(value.toString());
@@ -64,6 +66,7 @@ export function NumberSpinner({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleBlur();
+      onEnter?.();
     } else if (e.key === 'Escape') {
       setTempValue(value.toString());
       setIsEditing(false);
@@ -101,6 +104,7 @@ export function NumberSpinner({
           <input
             ref={inputRef}
             type="number"
+            inputMode="numeric"
             value={tempValue}
             onChange={(e) => setTempValue(e.target.value)}
             onBlur={handleBlur}
