@@ -246,7 +246,15 @@ export default function Header() {
                         : ""
                     }`}
                   >
-                    <img src="/assets/Campus_LO.svg" alt="Campus" className="w-8 h-8 mr-2 grayscale group-hover:grayscale-0 transition-all duration-200" />
+                    <img
+                      src="/assets/Campus_LO.svg"
+                      alt="Campus"
+                      className={`w-8 h-8 mr-2 transition-all duration-200 ${
+                        selectedCampus?.Congregation_ID === congregation.Congregation_ID
+                          ? ""
+                          : "grayscale group-hover:grayscale-0"
+                      }`}
+                    />
                     {congregation.Congregation_Name}
                   </DropdownMenuItem>
                 ))}
