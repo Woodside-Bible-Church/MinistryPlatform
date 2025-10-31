@@ -615,12 +615,12 @@ export default function PeopleSearchPage() {
 
                       {selectedContact.Email_Address && (
                         <div className="flex items-start gap-3">
-                          <Mail className="w-6 h-6 text-[#61bc47] mt-0.5 stroke-[2.5]" />
-                          <div>
+                          <Mail className="w-6 h-6 text-[#61bc47] mt-0.5 flex-shrink-0" />
+                          <div className="min-w-0">
                             <p className="text-sm text-muted-foreground">Email</p>
                             <a
                               href={`mailto:${selectedContact.Email_Address}`}
-                              className="text-foreground hover:text-primary transition-colors"
+                              className="text-sm sm:text-base text-foreground hover:text-primary transition-colors break-all"
                             >
                               {selectedContact.Email_Address}
                             </a>
@@ -630,12 +630,12 @@ export default function PeopleSearchPage() {
 
                       {selectedContact.Mobile_Phone && (
                         <div className="flex items-start gap-3">
-                          <Phone className="w-5 h-5 text-[#61bc47] mt-0.5" />
+                          <Phone className="w-6 h-6 text-[#61bc47] mt-0.5 flex-shrink-0" />
                           <div>
                             <p className="text-sm text-muted-foreground">Mobile</p>
                             <a
                               href={`tel:${selectedContact.Mobile_Phone}`}
-                              className="text-foreground hover:text-primary transition-colors"
+                              className="text-sm sm:text-base text-foreground hover:text-primary transition-colors"
                             >
                               {formatPhone(selectedContact.Mobile_Phone)}
                             </a>
@@ -645,12 +645,12 @@ export default function PeopleSearchPage() {
 
                       {selectedContact.Company_Phone && (
                         <div className="flex items-start gap-3">
-                          <Phone className="w-5 h-5 text-[#61bc47] mt-0.5" />
+                          <Phone className="w-6 h-6 text-[#61bc47] mt-0.5 flex-shrink-0" />
                           <div>
                             <p className="text-sm text-muted-foreground">Work</p>
                             <a
                               href={`tel:${selectedContact.Company_Phone}`}
-                              className="text-foreground hover:text-primary transition-colors"
+                              className="text-sm sm:text-base text-foreground hover:text-primary transition-colors"
                             >
                               {formatPhone(selectedContact.Company_Phone)}
                             </a>
