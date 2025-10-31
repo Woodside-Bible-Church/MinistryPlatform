@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { UserCircleIcon, ChevronDownIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/solid';
-import { Activity, MapPin } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import UserMenu from '@/components/UserMenu/UserMenu';
 import GlobalSearch from '@/components/GlobalSearch/GlobalSearch';
@@ -208,7 +208,7 @@ export default function Header() {
             {/* Campus Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-1 md:gap-2 px-1 md:px-3 py-2 text-xs md:text-sm font-medium text-foreground dark:text-[oklch(0.8_0_0)] hover:!text-primary dark:hover:!text-[#61bc47] focus:!text-primary dark:focus:!text-[#61bc47] active:!text-primary dark:active:!text-[#61bc47] transition-colors focus:outline-none !bg-transparent hover:!bg-transparent data-[state=open]:!bg-transparent focus:!bg-transparent active:!bg-transparent !border-none pointer-events-auto">
-                <MapPin className="w-4 h-4 md:w-4 md:h-4" />
+                <img src="/assets/Campus_LO.svg" alt="Campus" className="w-7 h-7 md:w-10 md:h-10" />
                 {campusLoading ? (
                   <span className="hidden sm:inline">Loading...</span>
                 ) : selectedCampus ? (
@@ -246,7 +246,7 @@ export default function Header() {
                         : ""
                     }`}
                   >
-                    <MapPin className="w-4 h-4 mr-2" />
+                    <img src="/assets/Campus_LO.svg" alt="Campus" className="w-8 h-8 mr-2" />
                     {congregation.Congregation_Name}
                   </DropdownMenuItem>
                 ))}
