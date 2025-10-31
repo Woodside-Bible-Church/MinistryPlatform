@@ -135,7 +135,7 @@ export default function Header() {
               </div>
 
               {/* Desktop Logo */}
-              <a href="https://woodsidebible.org" className="hidden md:flex items-center logo-link mr-3 pointer-events-auto" target="_blank" rel="noopener noreferrer">
+              <Link href="/" className="hidden md:flex items-center logo-link mr-3 pointer-events-auto">
                 <div className="relative w-10 h-10 shrink-0">
                   <svg className="logo-svg w-full h-full" viewBox="0 0 822.73 822.41" xmlns="http://www.w3.org/2000/svg">
                     <path d="M482.59,292.96c-28.5,75.56-63.52,148.62-91.88,224.24-22.85,60.93-44.5,165.54,5.99,218.03,53.19,55.31,103.27-36.03,126.36-76.12,29.77-51.67,60.19-102.91,92.51-153.1,37.77-58.65,82.78-117.18,128.05-170.34,17.33-20.35,35.58-39.9,55.18-58.05,1.32-.3,1.67.72,2.19,1.61,2.7,4.68,6.16,19.72,7.79,25.79,55.59,207.53-59.67,424.44-261.39,494.49-162.86,56.55-343.5,6.03-452.97-125.71l.02-2.82c22.1-29.38,43.34-59.51,66.31-88.22,46.87-58.59,104.84-117,159.18-168.95,39.21-37.49,94.79-86.04,141.88-112.38,2.97-1.66,18.74-10.3,20.79-8.46Z" fill="currentColor"/>
@@ -143,16 +143,10 @@ export default function Header() {
                     <path d="M38.3,581.71c-6.2-9.05-10.4-20.99-14.14-31.42C-1.72,478.2-6.79,400.44,8.86,325.38c1.73-8.3,5.99-29.98,9.5-36.56,1.25-2.35,11.96-9.93,14.86-12.01,41.76-29.96,121.9-63.33,173.22-50.74,49.51,12.15,15.29,70.69-.39,97.86-34.22,59.31-78.86,114.75-116.32,172.48-18.06,27.83-35.65,56.1-51.43,85.3Z" fill="currentColor"/>
                   </svg>
                 </div>
-              </a>
+              </Link>
 
               {/* Desktop Navigation */}
               <nav className="hidden md:flex items-center gap-1">
-              <Link
-                href="/"
-                className="px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground dark:text-[oklch(0.8_0_0)] hover:!text-primary dark:hover:!text-[#61bc47] active:!text-primary dark:active:!text-[#61bc47] transition-colors rounded-md pointer-events-auto"
-              >
-                HOME
-              </Link>
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center gap-1 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground dark:text-[oklch(0.8_0_0)] hover:!text-primary dark:hover:!text-[#61bc47] focus:!text-primary dark:focus:!text-[#61bc47] active:!text-primary dark:active:!text-[#61bc47] transition-colors focus:outline-none !bg-transparent hover:!bg-transparent data-[state=open]:!bg-transparent focus:!bg-transparent active:!bg-transparent !border-none pointer-events-auto">
                   APPS
@@ -184,7 +178,7 @@ export default function Header() {
           {/* Center - Desktop Search (inline at md, centered at lg+) OR Mobile Logo */}
           <div className="md:hidden flex items-center justify-center pointer-events-auto">
             {/* Mobile Logo */}
-            <a href="https://woodsidebible.org" className="flex items-center logo-link p-2" target="_blank" rel="noopener noreferrer">
+            <Link href="/" className="flex items-center logo-link p-2">
               <div className="relative w-10 h-10 shrink-0">
                 <svg className="logo-svg w-full h-full" viewBox="0 0 822.73 822.41" xmlns="http://www.w3.org/2000/svg">
                   <path d="M482.59,292.96c-28.5,75.56-63.52,148.62-91.88,224.24-22.85,60.93-44.5,165.54,5.99,218.03,53.19,55.31,103.27-36.03,126.36-76.12,29.77-51.67,60.19-102.91,92.51-153.1,37.77-58.65,82.78-117.18,128.05-170.34,17.33-20.35,35.58-39.9,55.18-58.05,1.32-.3,1.67.72,2.19,1.61,2.7,4.68,6.16,19.72,7.79,25.79,55.59,207.53-59.67,424.44-261.39,494.49-162.86,56.55-343.5,6.03-452.97-125.71l.02-2.82c22.1-29.38,43.34-59.51,66.31-88.22,46.87-58.59,104.84-117,159.18-168.95,39.21-37.49,94.79-86.04,141.88-112.38,2.97-1.66,18.74-10.3,20.79-8.46Z" fill="currentColor"/>
@@ -192,7 +186,7 @@ export default function Header() {
                   <path d="M38.3,581.71c-6.2-9.05-10.4-20.99-14.14-31.42C-1.72,478.2-6.79,400.44,8.86,325.38c1.73-8.3,5.99-29.98,9.5-36.56,1.25-2.35,11.96-9.93,14.86-12.01,41.76-29.96,121.9-63.33,173.22-50.74,49.51,12.15,15.29,70.69-.39,97.86-34.22,59.31-78.86,114.75-116.32,172.48-18.06,27.83-35.65,56.1-51.43,85.3Z" fill="currentColor"/>
                 </svg>
               </div>
-            </a>
+            </Link>
           </div>
 
           <div className="hidden md:flex md:flex-1 md:relative lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:top-1/2 lg:-translate-y-1/2 lg:w-full lg:max-w-md md:px-0 lg:px-4">
@@ -333,14 +327,6 @@ export default function Header() {
 
           {/* Sidebar Navigation */}
           <nav className="flex flex-col p-4 space-y-2">
-            <Link
-              href="/"
-              onClick={() => setMobileMenuOpen(false)}
-              className="px-4 py-3 text-base font-semibold uppercase tracking-wide text-foreground hover:text-primary dark:hover:text-[#61bc47] transition-colors rounded-lg"
-            >
-              HOME
-            </Link>
-
             {/* Apps Section */}
             <div className="pt-2">
               <p className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Apps</p>
