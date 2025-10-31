@@ -372,19 +372,21 @@ export default function CounterPage() {
                 </DialogTrigger>
                 <DialogContent className="w-[calc(100%-2rem)] sm:max-w-[425px] bg-transparent border-0 shadow-none p-0">
                   <DialogTitle className="sr-only">Select Date</DialogTitle>
-                  <CalendarComponent
-                    mode="single"
-                    selected={parseISO(selectedDate)}
-                    onSelect={(date) => {
-                      if (date) {
-                        setSelectedDate(format(date, "yyyy-MM-dd"));
-                        setSelectedEvent(null);
-                        setIsCalendarOpen(false);
-                      }
-                    }}
-                    initialFocus
-                    className="[&_.rdp]:h-full"
-                  />
+                  <div style={{ height: 'auto', minHeight: 'fit-content' }}>
+                    <CalendarComponent
+                      mode="single"
+                      selected={parseISO(selectedDate)}
+                      onSelect={(date) => {
+                        if (date) {
+                          setSelectedDate(format(date, "yyyy-MM-dd"));
+                          setSelectedEvent(null);
+                          setIsCalendarOpen(false);
+                        }
+                      }}
+                      initialFocus
+                      style={{ height: 'auto', minHeight: 'fit-content' }}
+                    />
+                  </div>
                 </DialogContent>
               </Dialog>
 
