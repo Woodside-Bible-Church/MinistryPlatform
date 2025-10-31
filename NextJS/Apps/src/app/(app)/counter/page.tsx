@@ -2,8 +2,8 @@
 
 // Counter app - track event metrics
 import { useState, useEffect, useRef } from "react";
-import { format } from "date-fns";
-import { Calendar, Activity, Loader2, CheckCircle2, ArrowRight, Hash, Plus, Pencil, Trash2, X } from "lucide-react";
+import { format, addDays, subDays, parseISO } from "date-fns";
+import { Calendar, Activity, Loader2, CheckCircle2, ArrowRight, Hash, Plus, Pencil, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NumberSpinner } from "@/components/ui/number-spinner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -342,15 +342,45 @@ export default function CounterPage() {
                 <p className="text-sm text-muted-foreground">When did this occur?</p>
               </div>
             </div>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => {
-                setSelectedDate(e.target.value);
-                setSelectedEvent(null);
-              }}
-              className="w-full max-w-full px-4 py-3 rounded-lg border border-border bg-background text-base focus:ring-2 focus:ring-primary focus:border-transparent outline-none box-border"
-            />
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => {
+                  const newDate = format(subDays(parseISO(selectedDate), 1), "yyyy-MM-dd");
+                  setSelectedDate(newDate);
+                  setSelectedEvent(null);
+                }}
+                variant="outline"
+                size="icon"
+                className="h-12 w-12 flex-shrink-0"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+
+              <div className="flex-1 min-w-0">
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => {
+                    setSelectedDate(e.target.value);
+                    setSelectedEvent(null);
+                  }}
+                  className="w-full px-4 py-3 rounded-lg border border-border bg-background text-base focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                />
+              </div>
+
+              <Button
+                onClick={() => {
+                  const newDate = format(addDays(parseISO(selectedDate), 1), "yyyy-MM-dd");
+                  setSelectedDate(newDate);
+                  setSelectedEvent(null);
+                }}
+                variant="outline"
+                size="icon"
+                className="h-12 w-12 flex-shrink-0"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
           </motion.div>
 
           {/* Step 2: Event Selection */}
