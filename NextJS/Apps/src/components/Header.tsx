@@ -182,9 +182,9 @@ export default function Header() {
           </div>
 
           {/* Center - Desktop Search (inline at md, centered at lg+) OR Mobile Logo */}
-          <div className="md:hidden absolute left-1/2 -translate-x-1/2 pointer-events-auto">
+          <div className="md:hidden flex items-center justify-center pointer-events-auto">
             {/* Mobile Logo */}
-            <a href="https://woodsidebible.org" className="flex items-center logo-link" target="_blank" rel="noopener noreferrer">
+            <a href="https://woodsidebible.org" className="flex items-center logo-link p-2" target="_blank" rel="noopener noreferrer">
               <div className="relative w-10 h-10 shrink-0">
                 <svg className="logo-svg w-full h-full" viewBox="0 0 822.73 822.41" xmlns="http://www.w3.org/2000/svg">
                   <path d="M482.59,292.96c-28.5,75.56-63.52,148.62-91.88,224.24-22.85,60.93-44.5,165.54,5.99,218.03,53.19,55.31,103.27-36.03,126.36-76.12,29.77-51.67,60.19-102.91,92.51-153.1,37.77-58.65,82.78-117.18,128.05-170.34,17.33-20.35,35.58-39.9,55.18-58.05,1.32-.3,1.67.72,2.19,1.61,2.7,4.68,6.16,19.72,7.79,25.79,55.59,207.53-59.67,424.44-261.39,494.49-162.86,56.55-343.5,6.03-452.97-125.71l.02-2.82c22.1-29.38,43.34-59.51,66.31-88.22,46.87-58.59,104.84-117,159.18-168.95,39.21-37.49,94.79-86.04,141.88-112.38,2.97-1.66,18.74-10.3,20.79-8.46Z" fill="currentColor"/>
@@ -199,8 +199,8 @@ export default function Header() {
             <GlobalSearch isMobile={false} />
           </div>
 
-          {/* Right - Campus Selector + User avatar in container */}
-          <div className="flex items-center gap-2 flex-1 justify-end md:flex-initial md:gap-4 md:shrink-0 backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.12_0.005_0)]/60 rounded-full border border-white/30 dark:border-[oklch(0.3_0.005_0)] px-2 py-1 md:bg-transparent md:backdrop-blur-none md:border-0 md:px-0 md:py-0 pointer-events-auto">
+          {/* Right - Campus Selector + User avatar */}
+          <div className="flex items-center gap-2 flex-1 justify-end md:flex-initial md:gap-4 md:shrink-0">
             {/* Campus Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-1 md:gap-2 p-1 md:px-3 md:py-2 text-xs md:text-sm font-medium text-foreground dark:text-[oklch(0.8_0_0)] hover:!text-primary dark:hover:!text-[#61bc47] focus:!text-primary dark:focus:!text-[#61bc47] active:!text-primary dark:active:!text-[#61bc47] transition-colors focus:outline-none !bg-transparent hover:!bg-transparent data-[state=open]:!bg-transparent focus:!bg-transparent active:!bg-transparent !border-none pointer-events-auto group">
