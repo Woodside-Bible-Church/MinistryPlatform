@@ -25,9 +25,20 @@ export async function GET(request: NextRequest) {
     }
 
     const counterService = new CounterService(session.accessToken);
-    const events = await counterService.getEvents(date, parseInt(congregationId));
 
-    return NextResponse.json(events);
+    // Fetch all events with Event_Type_ID 28 or 29
+    const allEvents = await counterService.getEvents(date, parseInt(congregationId));
+
+    // Fetch programs with Ministry_ID = 127
+    const programs = await counterService.getProgramsByMinistryId(127);
+    const validProgramIds = new Set(programs.map(p => p.Program_ID));
+
+    // Filter events to only include those with valid Program_IDs
+    const filteredEvents = allEvents.filter(event =>
+      event.Program_ID && validProgramIds.has(event.Program_ID)
+    );
+
+    return NextResponse.json(filteredEvents);
   } catch (error) {
     console.error("Error fetching events:", error);
     return NextResponse.json(

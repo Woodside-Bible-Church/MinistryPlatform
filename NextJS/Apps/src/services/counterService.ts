@@ -48,6 +48,16 @@ export class CounterService {
   }
 
   /**
+   * Get programs by Ministry_ID
+   */
+  async getProgramsByMinistryId(ministryId: number) {
+    return this.tableService.getTableRecords<{ Program_ID: number }>("Programs", {
+      $filter: `Ministry_ID = ${ministryId}`,
+      $select: "Program_ID",
+    });
+  }
+
+  /**
    * Get all available metrics
    */
   async getMetrics() {
