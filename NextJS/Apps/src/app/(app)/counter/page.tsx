@@ -356,7 +356,8 @@ export default function CounterPage() {
                 <ChevronLeft className="h-5 w-5" />
               </Button>
 
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 relative">
+                {/* Hidden native date input */}
                 <input
                   type="date"
                   value={selectedDate}
@@ -364,8 +365,12 @@ export default function CounterPage() {
                     setSelectedDate(e.target.value);
                     setSelectedEvent(null);
                   }}
-                  className="w-full px-4 py-3 rounded-lg border border-border bg-background text-base focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
                 />
+                {/* Custom display */}
+                <div className="w-full px-4 py-3 rounded-lg border border-border bg-background text-base text-center font-medium pointer-events-none">
+                  {format(parseISO(selectedDate), "MMM d, yyyy")}
+                </div>
               </div>
 
               <Button
