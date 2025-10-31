@@ -370,9 +370,9 @@ export default function CounterPage() {
                     {format(parseISO(selectedDate), "MMM d, yyyy")}
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="w-[calc(100%-2rem)] sm:max-w-[425px] h-auto [&>div:not(:first-child)]:h-full">
+                <DialogContent className="w-[calc(100%-2rem)] sm:max-w-[425px] h-auto">
                   <DialogTitle className="sr-only">Select Date</DialogTitle>
-                  <div>
+                  <div className="h-full">
                     <CalendarComponent
                       mode="single"
                       selected={parseISO(selectedDate)}
