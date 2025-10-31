@@ -129,8 +129,8 @@ export default function Header() {
                 <Bars3Icon className="w-6 h-6" />
               </button>
 
-              {/* Mobile Search with Container */}
-              <div className="md:hidden flex-1 backdrop-blur-xl bg-white/40 dark:bg-[oklch(0.12_0.005_0)]/60 rounded-full border border-white/30 dark:border-[oklch(0.3_0.005_0)] pointer-events-auto">
+              {/* Mobile Search Icon */}
+              <div className="md:hidden pointer-events-auto">
                 <GlobalSearch isMobile={true} />
               </div>
 
