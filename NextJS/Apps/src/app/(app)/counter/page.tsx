@@ -349,7 +349,7 @@ export default function CounterPage() {
                 setSelectedDate(e.target.value);
                 setSelectedEvent(null);
               }}
-              className="w-full px-4 py-3 rounded-lg border border-border bg-background text-base focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+              className="w-full max-w-full px-4 py-3 rounded-lg border border-border bg-background text-base focus:ring-2 focus:ring-primary focus:border-transparent outline-none box-border"
             />
           </motion.div>
 
