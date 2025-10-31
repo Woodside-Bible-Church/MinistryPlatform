@@ -615,7 +615,7 @@ export default function PeopleSearchPage() {
 
                       {selectedContact.Email_Address && (
                         <div className="flex items-start gap-3">
-                          <Mail className="w-6 h-6 text-[#61bc47] mt-0.5 flex-shrink-0" />
+                          <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-[#61bc47] mt-0.5 flex-shrink-0" />
                           <div className="min-w-0">
                             <p className="text-sm text-muted-foreground">Email</p>
                             <a
@@ -630,7 +630,7 @@ export default function PeopleSearchPage() {
 
                       {selectedContact.Mobile_Phone && (
                         <div className="flex items-start gap-3">
-                          <Phone className="w-6 h-6 text-[#61bc47] mt-0.5 flex-shrink-0" />
+                          <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-[#61bc47] mt-0.5 flex-shrink-0" />
                           <div>
                             <p className="text-sm text-muted-foreground">Mobile</p>
                             <a
@@ -645,7 +645,7 @@ export default function PeopleSearchPage() {
 
                       {selectedContact.Company_Phone && (
                         <div className="flex items-start gap-3">
-                          <Phone className="w-6 h-6 text-[#61bc47] mt-0.5 flex-shrink-0" />
+                          <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-[#61bc47] mt-0.5 flex-shrink-0" />
                           <div>
                             <p className="text-sm text-muted-foreground">Work</p>
                             <a
