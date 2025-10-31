@@ -335,7 +335,7 @@ export default function PeopleSearchPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Enter name, email, or phone number..."
-                  className="w-full px-4 py-3 rounded-lg border border-border bg-background text-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                  className="w-full px-4 py-3 rounded-lg border border-border bg-background text-base focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                 />
                 {searchQuery && (
                   <button
@@ -441,7 +441,7 @@ export default function PeopleSearchPage() {
                                             {inactive && <span className="ml-2 text-xs">(Inactive)</span>}
                                           </p>
                                           {contact.Email_Address && (
-                                            <p className="text-sm text-muted-foreground">{contact.Email_Address}</p>
+                                            <p className="text-xs text-muted-foreground truncate">{contact.Email_Address}</p>
                                           )}
                                         </div>
                                       </div>
@@ -499,7 +499,7 @@ export default function PeopleSearchPage() {
                                             {inactive && <span className="ml-2 text-xs">(Inactive)</span>}
                                           </p>
                                           {contact.Email_Address && (
-                                            <p className="text-sm text-muted-foreground">{contact.Email_Address}</p>
+                                            <p className="text-xs text-muted-foreground truncate">{contact.Email_Address}</p>
                                           )}
                                         </div>
                                       </div>
