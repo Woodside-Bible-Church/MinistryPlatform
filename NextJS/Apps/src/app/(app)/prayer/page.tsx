@@ -138,8 +138,8 @@ export default function PrayerPage() {
 
         // Extract data from stored proc response
         // The stored proc returns data with Items arrays inside each section
-        const communityPrayers = data.Community_Needs?.Items || data.Community_Needs || [];
-        const myPrayers = data.My_Requests?.Items || data.My_Requests || [];
+        const communityPrayers = (Array.isArray(data.Community_Needs) ? data.Community_Needs : data.Community_Needs?.Items) || [];
+        const myPrayers = (Array.isArray(data.My_Requests) ? data.My_Requests : data.My_Requests?.Items) || [];
 
         console.log("Extracted communityPrayers:", communityPrayers);
         console.log("Extracted myPrayers:", myPrayers);
