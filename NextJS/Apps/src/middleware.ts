@@ -109,8 +109,8 @@ async function getPublicAppRoutes(): Promise<Set<string>> {
       return new Set();
     }
 
-    const apps = await response.json();
-    const routes = new Set(apps.map((app: { Route: string }) => app.Route));
+    const apps = await response.json() as Array<{ Route: string }>;
+    const routes = new Set(apps.map((app) => app.Route));
 
     console.log('Middleware: Found public routes:', Array.from(routes));
 
