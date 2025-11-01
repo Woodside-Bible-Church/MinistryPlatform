@@ -5,24 +5,39 @@ export async function GET() {
   try {
     const session = await auth();
 
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const baseUrl = process.env.MINISTRY_PLATFORM_BASE_URL;
     if (!baseUrl) {
       throw new Error("MINISTRY_PLATFORM_BASE_URL is not configured");
     }
 
+    let data;
+
+    // If no session, show only hardcoded public apps
+    // TODO: Enable database-driven public apps once OAuth client credentials are configured
+    if (!session?.user?.email) {
+      // Hardcode Prayer as public app
+      const publicApps = [
+        {
+          Application_ID: 0,
+          Application_Name: "Prayer",
+          Application_Key: "prayer",
+          Description: "Share prayer requests and pray for others",
+          Icon: "🙏",
+          Route: "/prayer",
+          Sort_Order: 1,
+        }
+      ];
+      return NextResponse.json(publicApps);
+    }
+
     // Check if user is an administrator
     const isAdmin = session.roles?.includes("Administrators");
 
-    let data;
-
     if (isAdmin) {
-      // Admins can see all applications - query table directly
+      // Admins can see all active applications - query table directly
+      // Note: Requires_Authentication and Public_Features are optional fields added by migration
       const response = await fetch(
-        `${baseUrl}/tables/Applications?$select=Application_ID,Application_Name,Application_Key,Description,Icon,Route,Sort_Order&$orderby=Sort_Order`,
+        `${baseUrl}/tables/Applications?$select=Application_ID,Application_Name,Application_Key,Description,Icon,Route,Sort_Order,Active&$filter=Active=1&$orderby=Sort_Order`,
         {
           method: "GET",
           headers: {

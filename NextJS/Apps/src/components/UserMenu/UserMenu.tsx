@@ -4,6 +4,7 @@ import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 import { mpUserProfile } from '@/providers/MinistryPlatform/Interfaces/mpUserProfile';
 import { Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { signOut } from 'next-auth/react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,21 +20,16 @@ interface UserMenuProps {
   children: React.ReactNode; // This will be the trigger element (e.g., user avatar/button)
 }
 
-const userMenuItems = [
-  // { name: 'Profile', href: '/profile', icon: UserIcon },
-  // { name: 'Settings', href: '/settings', icon: CogIcon },
-  { name: 'Sign out', href: '/api/auth/signout', icon: ArrowRightOnRectangleIcon },
-];
-
 export default function UserMenu({ onClose, userProfile, children }: UserMenuProps) {
   const { theme, setTheme, resolvedTheme } = useTheme();
 
-  const handleItemClick = (href: string) => {
+  const handleSignOut = async () => {
     if (onClose) {
       onClose();
     }
-    // Navigate to the href
-    window.location.href = href;
+    // Try to stay on current page, or go to home if page requires auth
+    const currentPath = window.location.pathname;
+    await signOut({ callbackUrl: currentPath });
   };
 
   const toggleTheme = () => {
@@ -82,16 +78,13 @@ export default function UserMenu({ onClose, userProfile, children }: UserMenuPro
         </DropdownMenuItem>
 
         <DropdownMenuSeparator className="bg-border" />
-        {userMenuItems.map((item) => (
-          <DropdownMenuItem
-            key={item.name}
-            onClick={() => handleItemClick(item.href)}
-            className="cursor-pointer text-foreground hover:bg-primary/20 hover:text-foreground focus:bg-primary/20 focus:text-foreground"
-          >
-            <item.icon className="mr-2 h-4 w-4 flex-shrink-0" />
-            <span>{item.name}</span>
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuItem
+          onClick={handleSignOut}
+          className="cursor-pointer text-foreground hover:bg-primary/20 hover:text-foreground focus:bg-primary/20 focus:text-foreground"
+        >
+          <ArrowRightOnRectangleIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+          <span>Sign out</span>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

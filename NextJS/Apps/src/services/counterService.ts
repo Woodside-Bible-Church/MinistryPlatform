@@ -32,14 +32,23 @@ export class CounterService {
   }
 
   /**
-   * Get events for a specific date and congregation
+   * Get events for a specific date and optionally a specific congregation
    * Finds events where the Event_Start_Date falls on the selected date
    * Only includes events with Event_Type_ID of 28 or 29
    * Only includes events where Program's Ministry_ID is 127
    * All Events columns are qualified with "Events." to avoid ambiguity when joining via Program_ID_Table
+   *
+   * @param congregationId - Optional congregation ID. If null/undefined, returns events for all congregations (Church Wide)
    */
-  async getEvents(eventDate: string, congregationId: number) {
-    const filter = `Events.Event_Type_ID IN (28, 29) AND Program_ID_Table.Ministry_ID = 127 AND CAST(Events.Event_Start_Date AS DATE) = '${eventDate}' AND Events.Congregation_ID = ${congregationId}`;
+  async getEvents(eventDate: string, congregationId: number | null) {
+    // Base filter without congregation
+    let filter = `Events.Event_Type_ID IN (28, 29) AND Program_ID_Table.Ministry_ID = 127 AND CAST(Events.Event_Start_Date AS DATE) = '${eventDate}'`;
+
+    // Add congregation filter only if congregationId is provided (not null and not 1 for Church Wide)
+    if (congregationId && congregationId !== 1) {
+      filter += ` AND Events.Congregation_ID = ${congregationId}`;
+    }
+
     return this.tableService.getTableRecords<Event>("Events", {
       $filter: filter,
       $select: "Events.Event_ID,Events.Event_Title,Events.Event_Start_Date,Events.Event_End_Date,Events.Congregation_ID,Events.Event_Type_ID,Events.Program_ID",

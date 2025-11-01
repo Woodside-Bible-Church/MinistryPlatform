@@ -15,17 +15,20 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const date = searchParams.get("date");
-    const congregationId = searchParams.get("congregationId");
+    const congregationIdParam = searchParams.get("congregationId");
 
-    if (!date || !congregationId) {
+    if (!date) {
       return NextResponse.json(
-        { error: "Missing required parameters: date and congregationId" },
+        { error: "Missing required parameter: date" },
         { status: 400 }
       );
     }
 
+    // If congregationId is omitted (Church Wide), pass null to get all congregations
+    const congregationId = congregationIdParam ? parseInt(congregationIdParam) : null;
+
     const counterService = new CounterService(session.accessToken);
-    const events = await counterService.getEvents(date, parseInt(congregationId));
+    const events = await counterService.getEvents(date, congregationId);
 
     return NextResponse.json(events);
   } catch (error) {

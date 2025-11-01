@@ -128,9 +128,13 @@ export default function CounterPage() {
 
       setIsLoadingEvents(true);
       try {
-        const response = await fetch(
-          `/api/counter/events?date=${selectedDate}&congregationId=${selectedCampus.Congregation_ID}`
-        );
+        // Omit congregationId for Church Wide (Congregation_ID = 1) to get all congregations
+        const url =
+          selectedCampus.Congregation_ID === 1
+            ? `/api/counter/events?date=${selectedDate}`
+            : `/api/counter/events?date=${selectedDate}&congregationId=${selectedCampus.Congregation_ID}`;
+
+        const response = await fetch(url);
         if (!response.ok) throw new Error("Failed to fetch events");
         const data = await response.json();
         setEvents(data);

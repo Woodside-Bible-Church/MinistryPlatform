@@ -1,5 +1,4 @@
 import { auth } from '@/auth';
-import { redirect } from 'next/navigation';
 import { SessionProvider } from '@/components/SessionProvider';
 
 export default async function AuthWrapper({
@@ -9,10 +8,8 @@ export default async function AuthWrapper({
 }) {
   const session = await auth();
 
-  if (!session) {
-    redirect('/api/auth/signin');
-  }
-
+  // Allow access without session - components can check session status themselves
+  // This enables public access to pages while still providing session context when available
   return (
     <SessionProvider session={session}>
       {children}

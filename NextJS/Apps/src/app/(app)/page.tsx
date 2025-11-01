@@ -14,6 +14,8 @@ type Application = {
   Icon: string;
   Route: string;
   Sort_Order: number;
+  Requires_Authentication?: boolean;
+  Public_Features?: string | null;
 };
 
 export default function Dashboard() {
