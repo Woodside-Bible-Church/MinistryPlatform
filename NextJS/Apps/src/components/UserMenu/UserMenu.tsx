@@ -32,12 +32,13 @@ export default function UserMenu({ onClose, userProfile, children }: UserMenuPro
     await signOut({ callbackUrl: currentPath });
   };
 
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
-
   // Use resolvedTheme to get the actual current theme (handles system preference)
   const currentTheme = resolvedTheme || theme;
+
+  const toggleTheme = () => {
+    // Toggle based on what the user actually sees (resolvedTheme), not the setting (theme)
+    setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+  };
 
   return (
     <DropdownMenu>
