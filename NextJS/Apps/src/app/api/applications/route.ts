@@ -12,22 +12,11 @@ export async function GET() {
 
     let data;
 
-    // If no session, show only hardcoded public apps
+    // If no session, return empty array
+    // Public apps are currently inactive (Is_Active = 0)
     // TODO: Enable database-driven public apps once OAuth client credentials are configured
     if (!session?.user?.email) {
-      // Hardcode Prayer as public app
-      const publicApps = [
-        {
-          Application_ID: 0,
-          Application_Name: "Prayer",
-          Application_Key: "prayer",
-          Description: "Share prayer requests and pray for others",
-          Icon: "🙏",
-          Route: "/prayer",
-          Sort_Order: 1,
-        }
-      ];
-      return NextResponse.json(publicApps);
+      return NextResponse.json([]);
     }
 
     // Check if user is an administrator
