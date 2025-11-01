@@ -29,9 +29,11 @@ interface WidgetData {
     };
   } | any[];
   User_Stats?: {
-    Total_Prayers: number;
+    Total_Prayers: number | { Count: number };
     Day_Streak: number;
     Today_Count: number;
+    Prayer_Streak?: { Count: number };
+    Prayers_Today?: { Count: number };
   };
 }
 
@@ -150,11 +152,17 @@ export default function PrayerPage() {
         setMyRequests(myPrayers);
 
         if (data.User_Stats) {
-          // Stats come as objects with {Label, Count} structure from stored proc
+          // Stats can come as either numbers or objects with {Label, Count} structure
+          const totalPrayers = typeof data.User_Stats.Total_Prayers === 'number'
+            ? data.User_Stats.Total_Prayers
+            : data.User_Stats.Total_Prayers?.Count || 0;
+          const dayStreak = data.User_Stats.Prayer_Streak?.Count || data.User_Stats.Day_Streak || 0;
+          const todayCount = data.User_Stats.Prayers_Today?.Count || data.User_Stats.Today_Count || 0;
+
           setStats({
-            totalPrayers: data.User_Stats.Total_Prayers?.Count || data.User_Stats.Total_Prayers || 0,
-            dayStreak: data.User_Stats.Prayer_Streak?.Count || data.User_Stats.Day_Streak || 0,
-            todayCount: data.User_Stats.Prayers_Today?.Count || data.User_Stats.Today_Count || 0,
+            totalPrayers,
+            dayStreak,
+            todayCount,
           });
         }
       } catch (error) {
