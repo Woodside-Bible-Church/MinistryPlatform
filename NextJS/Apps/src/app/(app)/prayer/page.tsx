@@ -129,9 +129,9 @@ export default function PrayerPage() {
         console.log("=== CLIENT: RECEIVED DATA ===");
         console.log("Full response:", JSON.stringify(data, null, 2));
         console.log("Community_Needs:", data.Community_Needs);
-        console.log("Community_Needs.Items:", data.Community_Needs?.Items);
+        console.log("Community_Needs.Items:", !Array.isArray(data.Community_Needs) ? data.Community_Needs?.Items : undefined);
         console.log("My_Requests:", data.My_Requests);
-        console.log("My_Requests.Items:", data.My_Requests?.Items);
+        console.log("My_Requests.Items:", !Array.isArray(data.My_Requests) ? data.My_Requests?.Items : undefined);
 
         // Store full widget data including Labels
         setWidgetData(data);
