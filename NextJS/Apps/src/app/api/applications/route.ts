@@ -37,7 +37,7 @@ export async function GET() {
       // Admins can see all active applications - query table directly
       // Note: Requires_Authentication and Public_Features are optional fields added by migration
       const response = await fetch(
-        `${baseUrl}/tables/Applications?$select=Application_ID,Application_Name,Application_Key,Description,Icon,Route,Sort_Order,Active&$filter=Active=1&$orderby=Sort_Order`,
+        `${baseUrl}/tables/Applications?$select=Application_ID,Application_Name,Application_Key,Description,Icon,Route,Sort_Order,Is_Active&$filter=Is_Active=1&$orderby=Sort_Order`,
         {
           method: "GET",
           headers: {
