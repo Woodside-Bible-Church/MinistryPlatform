@@ -21,6 +21,7 @@ export interface CreatePrayer {
   Date_Submitted: string;
   Approved: boolean;
   Ongoing_Need?: boolean;
+  [key: string]: unknown; // Index signature for TableRecord compatibility
 }
 
 export interface PrayerUserResponse {
@@ -30,6 +31,7 @@ export interface PrayerUserResponse {
   Response_Type_ID: number;
   Response_Date: string;
   Response_Text?: string;
+  [key: string]: unknown; // Index signature for TableRecord compatibility
 }
 
 export interface PrayerCount {
