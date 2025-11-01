@@ -101,8 +101,8 @@ function SwipeablePrayerCard({ prayer, isTop, reverseIndex, isAuthenticated, onD
 
 export default function PrayerPage() {
   const session = useSession();
-  const [prayers, setPrayers] = useState([]);
-  const [myRequests, setMyRequests] = useState([]);
+  const [prayers, setPrayers] = useState<any[]>([]);
+  const [myRequests, setMyRequests] = useState<any[]>([]);
   const [stats, setStats] = useState({ totalPrayers: 0, dayStreak: 0, todayCount: 0 });
   const [widgetData, setWidgetData] = useState<WidgetData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
