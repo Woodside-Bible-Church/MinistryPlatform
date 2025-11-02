@@ -6,6 +6,7 @@ type Congregation = {
   Congregation_ID: number;
   Congregation_Name: string;
   Congregation_Short_Name?: string | null;
+  Campus_SVG_URL?: string | null;
 };
 
 type CampusContextType = {

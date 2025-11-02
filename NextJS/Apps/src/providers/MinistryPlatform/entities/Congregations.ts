@@ -169,6 +169,12 @@ export interface CongregationsRecord {
   Site_Number?: string /* max 8 chars */ | null;
 
   App_ID?: number /* 32-bit integer */ | null; // Foreign Key -> Pocket_Platform_Apps.App_ID
+
+  /**
+   * Max length: 500 characters
+   * Custom field for Campus SVG file URL from dp_files
+   */
+  Campus_SVG_URL?: string /* max 500 chars */ | null;
 }
 
 export type Congregations = CongregationsRecord;

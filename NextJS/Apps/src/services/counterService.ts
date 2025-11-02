@@ -1,5 +1,6 @@
 import { MinistryPlatformClient } from "@/providers/MinistryPlatform/core/ministryPlatformClient";
 import { TableService } from "@/providers/MinistryPlatform/services/tableService";
+import { ProcedureService } from "@/providers/MinistryPlatform/services/procedureService";
 import type { Event } from "@/providers/MinistryPlatform/entities/Events";
 import type { Metric } from "@/providers/MinistryPlatform/entities/Metrics";
 import type { EventMetric, CreateEventMetric } from "@/providers/MinistryPlatform/entities/EventMetrics";
@@ -7,28 +8,43 @@ import type { Congregations } from "@/providers/MinistryPlatform/entities/Congre
 
 export class CounterService {
   private tableService: TableService;
+  private procedureService: ProcedureService;
+  private client: MinistryPlatformClient;
 
   constructor(token?: string) {
-    const client = new MinistryPlatformClient();
-    this.tableService = new TableService(client);
+    this.client = new MinistryPlatformClient();
+    this.tableService = new TableService(this.client);
+    this.procedureService = new ProcedureService(this.client);
   }
 
   /**
-   * Get active congregations/campuses
+   * Get active congregations/campuses with Campus SVG URLs
+   * Uses stored procedure to fetch congregations with their Campus.svg file URLs
    * Filters to only show campuses that:
    * - Have started (Start_Date <= today)
    * - Haven't ended yet (End_Date is null OR End_Date >= today)
    * - Are available online
    */
   async getCongregations() {
-    const today = new Date().toISOString().split('T')[0];
-    const filter = `Start_Date <= '${today}' AND (End_Date IS NULL OR End_Date >= '${today}') AND Available_Online = 1`;
+    try {
+      const result = await this.procedureService.executeProcedure('api_Custom_GetCongregationsWithSVG');
 
-    return this.tableService.getTableRecords<Congregations>("Congregations", {
-      $filter: filter,
-      $select: "Congregation_ID,Congregation_Name,Congregation_Short_Name,Start_Date,End_Date,Available_Online",
-      $orderby: "Congregation_Name",
-    });
+      // The stored proc returns JSON in a special column format
+      // Result structure: [[{ JSON_F52E2B6118A111d1B10500805F49916B: "..." }]]
+      if (result && result.length > 0 && result[0] && result[0].length > 0) {
+        const firstRow = result[0][0] as any;
+        const jsonString = firstRow.JSON_F52E2B6118A111d1B10500805F49916B;
+
+        if (jsonString) {
+          return JSON.parse(jsonString) as Congregations[];
+        }
+      }
+
+      return [];
+    } catch (error) {
+      console.error('Error fetching congregations with SVG:', error);
+      throw error;
+    }
   }
 
   /**
