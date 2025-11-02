@@ -201,9 +201,7 @@ export default function Header() {
             {/* Campus Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-1 md:gap-2 p-1 md:px-3 md:py-2 text-xs md:text-sm font-medium text-foreground dark:text-[oklch(0.8_0_0)] hover:!text-primary dark:hover:!text-[#61bc47] focus:!text-primary dark:focus:!text-[#61bc47] active:!text-primary dark:active:!text-[#61bc47] transition-colors focus:outline-none !bg-transparent hover:!bg-transparent data-[state=open]:!bg-transparent focus:!bg-transparent active:!bg-transparent !border-none pointer-events-auto group">
-                {selectedCampus?.Congregation_ID === 1 ? (
-                  <MapPinIcon className="w-5 h-5 md:w-7 md:h-7 text-foreground group-hover:text-[#61bc47] dark:text-[oklch(0.8_0_0)] dark:group-hover:text-[#61bc47] transition-colors" />
-                ) : selectedCampus?.Campus_SVG_URL ? (
+                {selectedCampus?.Campus_SVG_URL ? (
                   <img src={selectedCampus.Campus_SVG_URL} alt={`${selectedCampus.Congregation_Name} Campus`} className="w-6 h-6 md:w-10 md:h-10 grayscale group-hover:grayscale-0 transition-all duration-200" />
                 ) : (
                   <MapPinIcon className="w-5 h-5 md:w-7 md:h-7 text-foreground group-hover:text-[#61bc47] dark:text-[oklch(0.8_0_0)] dark:group-hover:text-[#61bc47] transition-colors" />
@@ -245,15 +243,7 @@ export default function Header() {
                         : ""
                     }`}
                   >
-                    {congregation.Congregation_ID === 1 ? (
-                      <div className="w-10 h-10 mr-2 flex items-center justify-center">
-                        <MapPinIcon className={`w-7 h-7 transition-colors ${
-                          selectedCampus?.Congregation_ID === congregation.Congregation_ID
-                            ? "text-[#61bc47]"
-                            : "text-foreground group-hover:text-[#61bc47]"
-                        }`} />
-                      </div>
-                    ) : congregation.Campus_SVG_URL ? (
+                    {congregation.Campus_SVG_URL ? (
                       <img
                         src={congregation.Campus_SVG_URL}
                         alt={`${congregation.Congregation_Name} Campus`}
