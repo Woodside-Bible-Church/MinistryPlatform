@@ -41,7 +41,6 @@ import {
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCampus } from "@/contexts/CampusContext";
-import { useRealtimeEvents } from "@/hooks/useRealtimeEvents";
 
 type Event = {
   Event_ID: number;
@@ -96,40 +95,46 @@ export default function CounterPage() {
   const existingMetricsRef = useRef<HTMLDivElement>(null);
   const metricSectionRef = useRef<HTMLDivElement>(null);
 
+  // Ref to track previous metrics data for comparison
+  const previousMetricsRef = useRef<string>("");
+
   // State for calendar dialog
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  // Connect to SSE for real-time updates
-  useRealtimeEvents(["counter"], (event) => {
-    console.log("📡 Received SSE event:", event);
+  // Poll for updates every 5 seconds when viewing metrics
+  useEffect(() => {
+    if (!selectedEvent) return;
 
-    // Handle event metric updates
-    if (
-      event.type === "event-metric-created" ||
-      event.type === "event-metric-updated"
-    ) {
-      const update = event.data as {
-        eventId: number;
-        metricId: number;
-        metricName: string;
-        value: number;
-        recordId: number;
-      };
+    console.log(`🔄 Starting polling for Event ${selectedEvent.Event_ID}...`);
 
-      // If this update is for the currently selected event, reload metrics
-      if (selectedEvent && update.eventId === selectedEvent.Event_ID) {
-        console.log("🔄 Reloading metrics for current event...");
-        // Reload existing metrics to show the update
-        fetch(`/api/counter/event-metrics/${selectedEvent.Event_ID}`)
-          .then((res) => res.json())
-          .then((data) => {
-            setExistingMetrics(data);
-            console.log("✅ Metrics reloaded:", data);
-          })
-          .catch((err) => console.error("Error reloading metrics:", err));
+    // Initial fetch is already done in loadExistingMetrics effect
+    // Set up interval for subsequent polls
+    const interval = setInterval(async () => {
+      try {
+        console.log(`📡 Polling for updates to Event ${selectedEvent.Event_ID}...`);
+        const response = await fetch(
+          `/api/counter/event-metrics/${selectedEvent.Event_ID}`
+        );
+        if (!response.ok) throw new Error("Failed to fetch metrics");
+        const data = await response.json();
+
+        // Compare with previous data
+        const dataString = JSON.stringify(data);
+        if (dataString !== previousMetricsRef.current) {
+          console.log("✅ New metrics detected:", data);
+          previousMetricsRef.current = dataString;
+          setExistingMetrics(data);
+        }
+      } catch (error) {
+        console.error("Error polling metrics:", error);
       }
-    }
-  });
+    }, 5000); // Poll every 5 seconds
+
+    return () => {
+      console.log(`🛑 Stopped polling for Event ${selectedEvent.Event_ID}`);
+      clearInterval(interval);
+    };
+  }, [selectedEvent]);
 
   // Load metrics on mount
   useEffect(() => {

@@ -6,7 +6,6 @@
  */
 
 import { WebhookHandler } from "@/types/webhooks";
-import { handleEventMetricsChange } from "./counterHandler";
 
 /**
  * Webhook handlers mapped by MP table name
@@ -18,19 +17,16 @@ import { handleEventMetricsChange } from "./counterHandler";
  * 1. Create handler function in appropriate app file (e.g., counterHandler.ts)
  * 2. Add to this registry under the MP table name
  * 3. Configure webhook in MP Admin Console pointing to /api/webhooks/mp
+ *
+ * Example handlers:
+ *
+ * import { handleEventMetricsChange } from "./counterHandler";
+ *
+ * Event_Metrics: [handleEventMetricsChange],
+ * Feedback_Entries: [handlePrayerChange],
+ * Contacts: [handleContactChange],
+ * Events: [handleEventChange],
  */
 export const webhookHandlers: Record<string, WebhookHandler[]> = {
-  /**
-   * Event_Metrics table - Counter app
-   * Triggered when metrics are created/updated/deleted
-   */
-  Event_Metrics: [handleEventMetricsChange],
-
-  /**
-   * Example: Add more handlers here as needed
-   *
-   * Feedback_Entries: [handlePrayerChange],
-   * Contacts: [handleContactChange],
-   * Events: [handleEventChange],
-   */
+  // No active handlers - webhook infrastructure ready for future use
 };
