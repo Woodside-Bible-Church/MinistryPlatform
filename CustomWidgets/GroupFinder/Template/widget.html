@@ -218,11 +218,7 @@ allDaysJoined %} {% assign hideDaysOfWeek = true %} {% endif %} {% endif %}
 
           <div class="groupLeadersContainer">
             <h6>{{ Settings.Leaders_List_Heading }}</h6>
-            {% if isAuthed %}
             <div>{{ group.Leaders | join: ", " }}</div>
-            {% else %}
-            <div class="requiresAuth">Log in to see leaders</div>
-            {% endif %}
           </div>
 
           <div class="groupAboutContainer">
