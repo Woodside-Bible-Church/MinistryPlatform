@@ -191,6 +191,7 @@ export default function CounterPage() {
   useEffect(() => {
     if (!selectedEvent) {
       setExistingMetrics([]);
+      previousMetricsRef.current = "";
       setIsAdding(false);
       setEditingMetricId(null);
       setSelectedMetric(null);
@@ -210,12 +211,16 @@ export default function CounterPage() {
         const data = await response.json();
         setExistingMetrics(data);
 
+        // Initialize previousMetricsRef so polling comparison works
+        previousMetricsRef.current = JSON.stringify(data);
+
         // Automatically set isAdding based on whether metrics exist
         // If no metrics, enter "adding" mode; if metrics exist, show them
         setIsAdding(data.length === 0);
       } catch (error) {
         console.error("Error loading existing metrics:", error);
         setExistingMetrics([]);
+        previousMetricsRef.current = "[]";
       } finally {
         setIsLoadingExistingMetrics(false);
       }
