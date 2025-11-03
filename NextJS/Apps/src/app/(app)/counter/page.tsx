@@ -41,6 +41,7 @@ import {
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCampus } from "@/contexts/CampusContext";
+import { useRealtimeEvents } from "@/hooks/useRealtimeEvents";
 
 type Event = {
   Event_ID: number;
@@ -97,6 +98,38 @@ export default function CounterPage() {
 
   // State for calendar dialog
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  // Connect to SSE for real-time updates
+  useRealtimeEvents(["counter"], (event) => {
+    console.log("📡 Received SSE event:", event);
+
+    // Handle event metric updates
+    if (
+      event.type === "event-metric-created" ||
+      event.type === "event-metric-updated"
+    ) {
+      const update = event.data as {
+        eventId: number;
+        metricId: number;
+        metricName: string;
+        value: number;
+        recordId: number;
+      };
+
+      // If this update is for the currently selected event, reload metrics
+      if (selectedEvent && update.eventId === selectedEvent.Event_ID) {
+        console.log("🔄 Reloading metrics for current event...");
+        // Reload existing metrics to show the update
+        fetch(`/api/counter/event-metrics/${selectedEvent.Event_ID}`)
+          .then((res) => res.json())
+          .then((data) => {
+            setExistingMetrics(data);
+            console.log("✅ Metrics reloaded:", data);
+          })
+          .catch((err) => console.error("Error reloading metrics:", err));
+      }
+    }
+  });
 
   // Load metrics on mount
   useEffect(() => {

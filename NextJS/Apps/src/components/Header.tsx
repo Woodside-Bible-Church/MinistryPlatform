@@ -36,8 +36,16 @@ export default function Header() {
   const [loading, setLoading] = useState(true);
   const [apps, setApps] = useState<Application[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [svgLoaded, setSvgLoaded] = useState(false);
+  const [svgError, setSvgError] = useState(false);
   const session = useSession();
   const { selectedCampus, setSelectedCampus, congregations, isLoading: campusLoading } = useCampus();
+
+  // Reset SVG loading states when campus changes
+  useEffect(() => {
+    setSvgLoaded(false);
+    setSvgError(false);
+  }, [selectedCampus?.Congregation_ID]);
 
   // Fetch user profile
   useEffect(() => {
@@ -201,8 +209,20 @@ export default function Header() {
             {/* Campus Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-1 md:gap-2 p-1 md:px-3 md:py-2 text-xs md:text-sm font-medium text-foreground dark:text-[oklch(0.8_0_0)] hover:!text-primary dark:hover:!text-[#61bc47] focus:!text-primary dark:focus:!text-[#61bc47] active:!text-primary dark:active:!text-[#61bc47] transition-colors focus:outline-none !bg-transparent hover:!bg-transparent data-[state=open]:!bg-transparent focus:!bg-transparent active:!bg-transparent !border-none pointer-events-auto group">
-                {selectedCampus?.Campus_SVG_URL ? (
-                  <img src={selectedCampus.Campus_SVG_URL} alt={`${selectedCampus.Congregation_Name} Campus`} className="w-6 h-6 md:w-10 md:h-10 grayscale group-hover:grayscale-0 transition-all duration-200" />
+                {selectedCampus?.Campus_SVG_URL && !svgError ? (
+                  <>
+                    <img
+                      src={selectedCampus.Campus_SVG_URL}
+                      alt=""
+                      className={`w-6 h-6 md:w-10 md:h-10 grayscale group-hover:grayscale-0 transition-all duration-200 ${svgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                      onLoad={() => setSvgLoaded(true)}
+                      onError={() => setSvgError(true)}
+                      style={{ display: svgLoaded ? 'block' : 'none' }}
+                    />
+                    {!svgLoaded && (
+                      <MapPinIcon className="w-5 h-5 md:w-7 md:h-7 text-foreground group-hover:text-[#61bc47] dark:text-[oklch(0.8_0_0)] dark:group-hover:text-[#61bc47] transition-colors" />
+                    )}
+                  </>
                 ) : (
                   <MapPinIcon className="w-5 h-5 md:w-7 md:h-7 text-foreground group-hover:text-[#61bc47] dark:text-[oklch(0.8_0_0)] dark:group-hover:text-[#61bc47] transition-colors" />
                 )}
