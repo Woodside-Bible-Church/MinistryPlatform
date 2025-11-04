@@ -168,7 +168,7 @@ export class ProjectsService {
       $filter: filter,
       $select: "Event_ID,Event_Title,Event_Start_Date,Event_End_Date",
       $orderby: "Event_Start_Date ASC",
-      $top: "50", // Limit results for performance
+      $top: 50, // Limit results for performance
     });
   }
 }
