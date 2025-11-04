@@ -40,7 +40,9 @@ export default function ProjectsPage() {
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-primary dark:text-foreground">Project Budgets</h1>
+          <h1 className="text-3xl font-bold text-primary dark:text-foreground">
+            Project Budgets
+          </h1>
           <p className="text-muted-foreground mt-2">
             Manage budgets for large events and ministry projects
           </p>
@@ -92,11 +94,16 @@ export default function ProjectsPage() {
               </div>
               <div className="space-y-1 text-sm text-muted-foreground mt-auto">
                 <p>
-                  Coordinator: {project.Project_Coordinator_Name || "N/A"}
+                  Coordinator:{" "}
+                  {project.Coordinator?.First_Name +
+                    " " +
+                    project.Coordinator?.Last_Name || "N/A"}
                 </p>
                 <p>
-                  {new Date(project.Project_Start).toLocaleDateString()}{" "}
-                  - {project.Project_End ? new Date(project.Project_End).toLocaleDateString() : "Ongoing"}
+                  {new Date(project.Project_Start).toLocaleDateString()} -{" "}
+                  {project.Project_End
+                    ? new Date(project.Project_End).toLocaleDateString()
+                    : "Ongoing"}
                 </p>
                 {project.Project_Group_Name && (
                   <p>Group: {project.Project_Group_Name}</p>

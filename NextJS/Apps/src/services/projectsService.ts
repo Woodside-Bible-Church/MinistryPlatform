@@ -85,17 +85,20 @@ export class ProjectsService {
 
     console.log("Projects before parsing nested JSON:", JSON.stringify(projects, null, 2));
 
-    // Parse nested JSON strings for Budgets and Expenses
+    // Parse nested JSON strings for Coordinator, Budgets and Expenses
     projects = projects.map((project) => {
       console.log(`Parsing project ${project.Project_ID}:`, {
+        CoordinatorType: typeof project.Coordinator,
         BudgetsType: typeof project.Budgets,
         ExpensesType: typeof project.Expenses,
+        Coordinator: project.Coordinator,
         Budgets: project.Budgets,
         Expenses: project.Expenses,
       });
 
       return {
         ...project,
+        Coordinator: typeof project.Coordinator === 'string' ? JSON.parse(project.Coordinator) : project.Coordinator,
         Budgets: typeof project.Budgets === 'string' ? JSON.parse(project.Budgets) : (project.Budgets || []),
         Expenses: typeof project.Expenses === 'string' ? JSON.parse(project.Expenses) : (project.Expenses || []),
       };

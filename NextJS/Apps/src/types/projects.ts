@@ -1,11 +1,20 @@
 // Project Budget Types
 // Based on MinistryPlatform tables for project/budget management
 
+export interface ProjectCoordinator {
+  User_ID: number;
+  Contact_ID: number;
+  First_Name: string;
+  Last_Name: string;
+  Display_Name: string;
+  Email_Address: string;
+}
+
 export interface Project {
   Project_ID: number;
   Project_Title: string;
   Project_Coordinator: number; // Foreign Key -> dp_Users.User_ID
-  Project_Coordinator_Name?: string;
+  Coordinator?: ProjectCoordinator; // Nested coordinator details from stored procedure
   Project_Start: string; // ISO datetime
   Project_End?: string | null; // ISO datetime
   Project_Group?: number; // Foreign Key -> dp_User_Groups.User_Group_ID

@@ -3,7 +3,7 @@
 -- Create date: 2025-11-03
 -- Description: Returns projects with nested budgets and expenses for the Projects app
 -- =============================================
-ALTER PROCEDURE [dbo].[api_Custom_Projects_JSON]
+CREATE PROCEDURE [dbo].[api_Custom_Projects_JSON]
     @UserName NVARCHAR(75) = NULL,
     @DomainID INT = 1,
     @ProjectID INT = NULL
@@ -26,12 +26,26 @@ BEGIN
         p.Project_ID,
         p.Project_Title,
         p.Project_Coordinator,
-        coord.Display_Name AS Project_Coordinator_Name,
         p.Project_Start,
         p.Project_End,
         p.Project_Group,
-        g.Group_Name AS Project_Group_Name,
+        ISNULL(g.Group_Name, '') AS Project_Group_Name,
         p.Project_Approved,
+
+        -- Nested Coordinator Details
+        (
+            SELECT
+                coordUser.User_ID,
+                coord.Contact_ID,
+                coord.First_Name,
+                coord.Last_Name,
+                coord.Display_Name,
+                coord.Email_Address
+            FROM dp_Users coordUser
+            INNER JOIN Contacts coord ON coord.Contact_ID = coordUser.Contact_ID
+            WHERE coordUser.User_ID = p.Project_Coordinator
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+        ) AS Coordinator,
 
         -- Nested Budgets
         (
@@ -74,7 +88,6 @@ BEGIN
         ) AS Expenses
 
     FROM Projects p
-    LEFT JOIN Contacts coord ON coord.Contact_ID = p.Project_Coordinator
     LEFT JOIN Groups g ON g.Group_ID = p.Project_Group
     WHERE (@ProjectID IS NULL OR p.Project_ID = @ProjectID)
         -- TODO: Add proper security/permissions later

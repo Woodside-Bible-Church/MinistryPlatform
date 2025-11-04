@@ -57,7 +57,10 @@ export default function ProjectDetailPage() {
         <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded">
           Project not found
         </div>
-        <Link href="/projects" className="text-primary dark:text-[#61BC47] hover:underline mt-4 inline-block">
+        <Link
+          href="/projects"
+          className="text-primary dark:text-[#61BC47] hover:underline mt-4 inline-block"
+        >
           ← Back to Projects
         </Link>
       </div>
@@ -96,12 +99,26 @@ export default function ProjectDetailPage() {
       <div className="bg-card border border-border rounded-lg p-6 mb-6 shadow-sm">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2 text-primary dark:text-foreground">{project.Project_Title}</h1>
+            <h1 className="text-3xl font-bold mb-2 text-primary dark:text-foreground">
+              {project.Project_Title}
+            </h1>
             <div className="space-y-1 text-sm text-muted-foreground">
-              <p>Coordinator: {project.Project_Coordinator_Name || "N/A"}</p>
+              <p>
+                Coordinator:{" "}
+                {project.Coordinator?.First_Name +
+                  " " +
+                  project.Coordinator?.Last_Name || "N/A"}
+                {project.Coordinator?.Email_Address && (
+                  <span className="text-xs ml-2">
+                    ({project.Coordinator.Email_Address})
+                  </span>
+                )}
+              </p>
               <p>
                 {new Date(project.Project_Start).toLocaleDateString()} -{" "}
-                {project.Project_End ? new Date(project.Project_End).toLocaleDateString() : "Ongoing"}
+                {project.Project_End
+                  ? new Date(project.Project_End).toLocaleDateString()
+                  : "Ongoing"}
               </p>
               {project.Project_Group_Name && (
                 <p>Group: {project.Project_Group_Name}</p>
@@ -135,13 +152,17 @@ export default function ProjectDetailPage() {
       {/* Budget Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-card border border-border rounded-lg p-4 shadow-sm">
-          <div className="text-sm text-muted-foreground mb-1">Revenue Budget</div>
+          <div className="text-sm text-muted-foreground mb-1">
+            Expected Revenue
+          </div>
           <div className="text-2xl font-bold text-[#61bc47]">
             ${totalRevenueBudget.toLocaleString()}
           </div>
         </div>
         <div className="bg-card border border-border rounded-lg p-4 shadow-sm">
-          <div className="text-sm text-muted-foreground mb-1">Expense Budget</div>
+          <div className="text-sm text-muted-foreground mb-1">
+            Expense Budget
+          </div>
           <div className="text-2xl font-bold text-foreground">
             ${totalExpenseBudget.toLocaleString()}
           </div>
@@ -215,7 +236,9 @@ export default function ProjectDetailPage() {
               {/* Revenue Section */}
               {revenueBudgets.length > 0 && (
                 <div>
-                  <h2 className="text-xl font-bold mb-3 text-primary dark:text-foreground">Revenue</h2>
+                  <h2 className="text-xl font-bold mb-3 text-primary dark:text-foreground">
+                    Revenue
+                  </h2>
                   <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
                     <table className="w-full">
                       <thead className="bg-card border-b border-border">
@@ -230,7 +253,10 @@ export default function ProjectDetailPage() {
                       </thead>
                       <tbody>
                         {revenueBudgets.map((budget) => (
-                          <tr key={budget.Project_Budget_ID} className="border-b border-border last:border-b-0">
+                          <tr
+                            key={budget.Project_Budget_ID}
+                            className="border-b border-border last:border-b-0"
+                          >
                             <td className="px-4 py-3 text-foreground">
                               {budget.Project_Category_Type}
                             </td>
@@ -248,7 +274,9 @@ export default function ProjectDetailPage() {
               {/* Expense Section */}
               {expenseBudgets.length > 0 && (
                 <div>
-                  <h2 className="text-xl font-bold mb-3 text-primary dark:text-foreground">Expense Categories</h2>
+                  <h2 className="text-xl font-bold mb-3 text-primary dark:text-foreground">
+                    Expense Categories
+                  </h2>
                   <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
                     <table className="w-full">
                       <thead className="bg-card border-b border-border">
@@ -273,8 +301,7 @@ export default function ProjectDetailPage() {
                             .filter(
                               (e) =>
                                 e.Project_Budget_ID ===
-                                  budget.Project_Budget_ID &&
-                                e.Expense_Approved
+                                  budget.Project_Budget_ID && e.Expense_Approved
                             )
                             .reduce((sum, e) => sum + e.Expense_Amount, 0);
                           const remaining = budget.Budget_Amount - spent;
@@ -374,11 +401,15 @@ export default function ProjectDetailPage() {
                         key={expense.Project_Expense_ID}
                         className="border-b border-border last:border-b-0 hover:bg-card/50 transition-colors"
                       >
-                        <td className="px-4 py-3 text-foreground">{expense.Expense_Title}</td>
+                        <td className="px-4 py-3 text-foreground">
+                          {expense.Expense_Title}
+                        </td>
                         <td className="px-4 py-3 text-sm text-muted-foreground">
                           {expense.Project_Budget}
                         </td>
-                        <td className="px-4 py-3 text-sm text-foreground">{expense.Paid_To}</td>
+                        <td className="px-4 py-3 text-sm text-foreground">
+                          {expense.Paid_To}
+                        </td>
                         <td className="px-4 py-3 text-right font-semibold text-foreground">
                           ${expense.Expense_Amount.toLocaleString()}
                         </td>
