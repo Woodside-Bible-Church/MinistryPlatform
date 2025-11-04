@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       Project_Coordinator_ID: parseInt(userContactId),
       Project_Start_Date: body.Project_Start_Date,
       Project_End_Date: body.Project_End_Date,
-      Project_Group_ID: body.Project_Group_ID || null,
+      Project_Group_ID: body.Project_Group_ID || undefined,
       // Only admins can mark as approved on creation
       Project_Approved: isAdmin ? body.Project_Approved : false,
     };
