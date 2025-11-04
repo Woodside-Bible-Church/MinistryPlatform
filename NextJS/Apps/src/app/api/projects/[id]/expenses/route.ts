@@ -42,7 +42,7 @@ export async function POST(
 
     const { id } = await params;
     const projectId = parseInt(id);
-    const userContactId = session.user?.contact_id;
+    const userContactId = session.contactId;
 
     if (!userContactId) {
       return NextResponse.json(

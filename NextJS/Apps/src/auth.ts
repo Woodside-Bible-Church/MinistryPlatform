@@ -118,6 +118,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.email = token.email as string
       session.sub = token.sub as string
       session.roles = (token.roles as string[]) || []
+      session.contactId = token.userId as string
     }
 
     console.log('Final session user ID:', session.user?.id)

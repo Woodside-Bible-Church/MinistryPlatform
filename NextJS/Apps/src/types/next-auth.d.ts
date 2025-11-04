@@ -11,9 +11,11 @@ declare module "next-auth" {
     email?: string
     sub?: string
     roles?: string[]
+    contactId?: string
   }
 
   interface JWT {
     roles?: string[]
+    userId?: string
   }
 }

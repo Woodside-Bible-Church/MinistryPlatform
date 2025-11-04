@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     const isAdmin = (session as any).roles?.includes("Administrators") ?? false;
-    const userContactId = session.user?.contact_id;
+    const userContactId = session.contactId;
 
     if (!userContactId) {
       return NextResponse.json(
