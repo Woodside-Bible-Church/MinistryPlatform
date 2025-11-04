@@ -44,7 +44,7 @@ src/
 ## Applications
 
 ### Counter
-Event metrics input tool for tracking head counts, attendance, and other event-related metrics.
+Event metrics input tool for tracking head counts, attendance, and other event-related metrics. Real-time data entry for weekend services and ministry events.
 
 **Features:**
 - Select date (defaults to today)
