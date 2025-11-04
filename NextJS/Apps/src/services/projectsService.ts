@@ -51,7 +51,7 @@ export class ProjectsService {
     let projects: any[] = [];
 
     if (Array.isArray(result) && result.length > 0) {
-      let firstItem = result[0];
+      let firstItem: any = result[0];
 
       // Handle double-nested array: [[{ "GUID": "json" }]]
       if (Array.isArray(firstItem) && firstItem.length > 0) {
