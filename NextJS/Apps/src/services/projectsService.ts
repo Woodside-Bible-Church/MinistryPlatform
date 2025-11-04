@@ -122,7 +122,7 @@ export class ProjectsService {
 
   async createProject(data: Omit<CreateProjectInput, "Project_ID">): Promise<number> {
     const result = await this.tableService.createTableRecords("Projects", [data]);
-    return result[0] as number;
+    return result[0] as unknown as number;
   }
 
   // Project Category Types
@@ -142,7 +142,7 @@ export class ProjectsService {
 
   async createProjectBudget(data: Omit<CreateProjectBudgetInput, "Project_Budget_ID">): Promise<number> {
     const result = await this.tableService.createTableRecords("Project_Budgets", [data]);
-    return result[0] as number;
+    return result[0] as unknown as number;
   }
 
   // Project Expenses
@@ -155,7 +155,7 @@ export class ProjectsService {
 
   async createProjectExpense(data: Omit<CreateProjectExpenseInput, "Project_Expense_ID">): Promise<number> {
     const result = await this.tableService.createTableRecords("Project_Expenses", [data]);
-    return result[0] as number;
+    return result[0] as unknown as number;
   }
 
   // Events
