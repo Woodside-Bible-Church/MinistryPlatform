@@ -109,7 +109,7 @@ export class ProjectsService {
   async getProjects(filter?: string, orderBy?: string) {
     return this.tableService.getTableRecords<Project>("Projects", {
       $filter: filter,
-      $orderby: orderBy || "Project_Start_Date DESC",
+      $orderby: orderBy || "Project_Start DESC",
     });
   }
 

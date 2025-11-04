@@ -1,0 +1,4 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "ignoreCommand": "bash -c 'if git diff HEAD^ HEAD --quiet -- .; then echo \"✓ No changes in EventFinder widget, skipping build\" && exit 0; else echo \"✓ Changes detected in EventFinder widget, proceeding with build\" && exit 1; fi'"
+}

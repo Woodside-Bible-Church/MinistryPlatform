@@ -100,8 +100,8 @@ export default function ProjectDetailPage() {
             <div className="space-y-1 text-sm text-muted-foreground">
               <p>Coordinator: {project.Project_Coordinator_Name || "N/A"}</p>
               <p>
-                {new Date(project.Project_Start_Date).toLocaleDateString()} -{" "}
-                {project.Project_End_Date ? new Date(project.Project_End_Date).toLocaleDateString() : "Ongoing"}
+                {new Date(project.Project_Start).toLocaleDateString()} -{" "}
+                {project.Project_End ? new Date(project.Project_End).toLocaleDateString() : "Ongoing"}
               </p>
               {project.Project_Group_Name && (
                 <p>Group: {project.Project_Group_Name}</p>

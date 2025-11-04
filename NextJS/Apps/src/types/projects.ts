@@ -4,11 +4,11 @@
 export interface Project {
   Project_ID: number;
   Project_Title: string;
-  Project_Coordinator_ID: number;
+  Project_Coordinator: number; // Foreign Key -> dp_Users.User_ID
   Project_Coordinator_Name?: string;
-  Project_Start_Date: string;
-  Project_End_Date?: string | null;
-  Project_Group_ID?: number;
+  Project_Start: string; // ISO datetime
+  Project_End?: string | null; // ISO datetime
+  Project_Group?: number; // Foreign Key -> dp_User_Groups.User_Group_ID
   Project_Group_Name?: string;
   Project_Approved: boolean;
   Budgets?: ProjectBudget[];
@@ -27,6 +27,7 @@ export interface ProjectBudget {
   Project_Budget_ID: number;
   Project_ID: number;
   Project_Category_Type_ID: number;
+  Budget_Name: string; // Max 50 chars
   Project_Category_Type?: string;
   Is_Revenue?: boolean;
   Budget_Amount: number;
@@ -37,13 +38,13 @@ export interface ProjectExpense {
   Project_ID: number;
   Project_Budget_ID: number;
   Project_Budget?: string;
-  Expense_Title: string;
-  Requested_By_Contact_ID: number;
+  Expense_Title: string; // Max 150 chars
+  Requested_By: number; // Foreign Key -> dp_Users.User_ID
   Requested_By_Name?: string;
-  Paid_To: string;
-  Expense_Date: string;
+  Paid_To: string; // Max 50 chars
+  Expense_Date: string; // ISO date (YYYY-MM-DD)
   Expense_Amount: number;
-  Event_ID?: number;
+  Event_ID?: number | null;
   Event_Title?: string;
   Expense_Approved: boolean;
 }
@@ -69,16 +70,17 @@ export interface ProjectEvent {
 // Form types for creating/editing
 export interface CreateProjectInput {
   Project_Title: string;
-  Project_Coordinator_ID: number;
-  Project_Start_Date: string;
-  Project_End_Date: string;
-  Project_Group_ID?: number;
+  Project_Coordinator: number;
+  Project_Start: string;
+  Project_End: string;
+  Project_Group?: number;
   Project_Approved: boolean;
 }
 
 export interface CreateProjectBudgetInput {
   Project_ID: number;
   Project_Category_Type_ID: number;
+  Budget_Name: string;
   Budget_Amount: number;
 }
 
@@ -86,7 +88,7 @@ export interface CreateProjectExpenseInput {
   Project_ID: number;
   Project_Budget_ID: number;
   Expense_Title: string;
-  Requested_By_Contact_ID: number;
+  Requested_By: number;
   Paid_To: string;
   Expense_Date: string;
   Expense_Amount: number;

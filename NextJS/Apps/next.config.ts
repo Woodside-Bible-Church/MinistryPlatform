@@ -7,16 +7,16 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: '/manifest.json',
+        source: "/manifest.json",
         headers: [
           {
-            key: 'Content-Type',
-            value: 'application/manifest+json',
-          },
-        ],
-      },
+            key: "Content-Type",
+            value: "application/manifest+json"
+          }
+        ]
+      }
     ];
-  },
+  }
 };
 
 export default nextConfig;

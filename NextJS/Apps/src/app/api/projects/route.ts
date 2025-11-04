@@ -55,8 +55,8 @@ export async function POST(request: NextRequest) {
     const body: CreateProjectInput = await request.json();
 
     // Validate dates
-    const startDate = new Date(body.Project_Start_Date);
-    const endDate = new Date(body.Project_End_Date);
+    const startDate = new Date(body.Project_Start);
+    const endDate = new Date(body.Project_End);
     if (endDate <= startDate) {
       return NextResponse.json(
         { error: "End date must be after start date" },
@@ -67,10 +67,10 @@ export async function POST(request: NextRequest) {
     // Create project with current user as coordinator
     const projectData = {
       Project_Title: body.Project_Title,
-      Project_Coordinator_ID: parseInt(userContactId),
-      Project_Start_Date: body.Project_Start_Date,
-      Project_End_Date: body.Project_End_Date,
-      Project_Group_ID: body.Project_Group_ID || undefined,
+      Project_Coordinator: parseInt(userContactId),
+      Project_Start: body.Project_Start,
+      Project_End: body.Project_End,
+      Project_Group: body.Project_Group || undefined,
       // Only admins can mark as approved on creation
       Project_Approved: isAdmin ? body.Project_Approved : false,
     };

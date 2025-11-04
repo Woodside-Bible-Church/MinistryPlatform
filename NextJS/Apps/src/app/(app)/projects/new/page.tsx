@@ -10,8 +10,8 @@ export default function NewProjectPage() {
   const session = useSession();
   const [formData, setFormData] = useState({
     Project_Title: "",
-    Project_Start_Date: "",
-    Project_End_Date: "",
+    Project_Start: "",
+    Project_End: "",
     Project_Approved: false,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -91,20 +91,20 @@ export default function NewProjectPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label
-                htmlFor="Project_Start_Date"
+                htmlFor="Project_Start"
                 className="block text-sm font-semibold mb-2 text-foreground"
               >
                 Start Date *
               </label>
               <input
                 type="date"
-                id="Project_Start_Date"
+                id="Project_Start"
                 required
-                value={formData.Project_Start_Date}
+                value={formData.Project_Start}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    Project_Start_Date: e.target.value,
+                    Project_Start: e.target.value,
                   })
                 }
                 className="w-full px-4 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-[#61BC47] focus:border-transparent transition-all"
@@ -113,18 +113,18 @@ export default function NewProjectPage() {
 
             <div>
               <label
-                htmlFor="Project_End_Date"
+                htmlFor="Project_End"
                 className="block text-sm font-semibold mb-2 text-foreground"
               >
                 End Date *
               </label>
               <input
                 type="date"
-                id="Project_End_Date"
+                id="Project_End"
                 required
-                value={formData.Project_End_Date}
+                value={formData.Project_End}
                 onChange={(e) =>
-                  setFormData({ ...formData, Project_End_Date: e.target.value })
+                  setFormData({ ...formData, Project_End: e.target.value })
                 }
                 className="w-full px-4 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-[#61BC47] focus:border-transparent transition-all"
               />

@@ -1,0 +1,5 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "ignoreCommand": "bash -c 'if git diff HEAD^ HEAD --quiet -- .; then echo \"✓ No changes in Apps project, skipping build\" && exit 0; else echo \"✓ Changes detected in Apps project, proceeding with build\" && exit 1; fi'"
+}

@@ -62,7 +62,7 @@ export async function POST(
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    const isCoordinator = project.Project_Coordinator_ID === parseInt(userContactId);
+    const isCoordinator = project.Project_Coordinator === parseInt(userContactId);
 
     if (!isAdmin && !isCoordinator) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -73,7 +73,7 @@ export async function POST(
       Project_ID: projectId,
       Project_Budget_ID: body.Project_Budget_ID,
       Expense_Title: body.Expense_Title,
-      Requested_By_Contact_ID: parseInt(userContactId),
+      Requested_By: parseInt(userContactId),
       Paid_To: body.Paid_To,
       Expense_Date: body.Expense_Date,
       Expense_Amount: body.Expense_Amount,
