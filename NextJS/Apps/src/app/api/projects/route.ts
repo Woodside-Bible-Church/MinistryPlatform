@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     // Create project with current user as coordinator
     const projectData = {
       Project_Title: body.Project_Title,
-      Project_Coordinator_ID: userContactId,
+      Project_Coordinator_ID: parseInt(userContactId),
       Project_Start_Date: body.Project_Start_Date,
       Project_End_Date: body.Project_End_Date,
       Project_Group_ID: body.Project_Group_ID || null,
