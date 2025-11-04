@@ -1,4 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "ignoreCommand": "bash -c 'if git diff HEAD^ HEAD --quiet -- CustomWidgets/Assets/; then echo \"✓ No changes in CustomWidgets Assets, skipping build\" && exit 0; else echo \"✓ Changes detected in CustomWidgets Assets, proceeding with build\" && exit 1; fi'"
+  "ignoreCommand": "bash -c 'if git diff HEAD^ HEAD --quiet -- MPWidgets/; then echo \"✓ No changes in MPWidgets, skipping build\" && exit 0; else echo \"✓ Changes detected in MPWidgets, proceeding with build\" && exit 1; fi'"
 }
