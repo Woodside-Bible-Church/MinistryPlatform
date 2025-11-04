@@ -55,7 +55,7 @@ export async function POST(
     const projectsService = new ProjectsService();
 
     // Verify user has permission to add expenses to this project
-    const isAdmin = session.user?.security_role === "Admin";
+    const isAdmin = (session as any).roles?.includes("Administrators") ?? false;
     const project = await projectsService.getProjectById(projectId);
 
     if (!project) {

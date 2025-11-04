@@ -27,7 +27,7 @@ export default function NewExpensePage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const isAdmin = session?.user?.security_role === "Admin";
+  const isAdmin = (session as any)?.roles?.includes("Administrators") ?? false;
 
   useEffect(() => {
     async function loadBudgets() {
