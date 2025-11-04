@@ -112,9 +112,9 @@ export default function Dashboard() {
               const Icon = getIcon(app.Icon);
               const route = app.Route || '#';
               return (
-                <Link key={app.Application_ID} href={route}>
-                  <div className="group relative overflow-hidden border border-border bg-card hover:border-primary/50 dark:hover:border-[#61bc47]/50 hover:shadow-xl transition-all duration-300 cursor-pointer">
-                    <div className="p-6 space-y-3">
+                <Link key={app.Application_ID} href={route} className="h-full">
+                  <div className="group relative overflow-hidden border border-border bg-card hover:border-primary/50 dark:hover:border-[#61bc47]/50 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col">
+                    <div className="p-6 space-y-3 flex-1 flex flex-col">
                       {/* Icon and Title */}
                       <div className="flex items-center gap-3">
                         <div className="bg-[#61bc47]/10 group-hover:bg-[#61bc47] group-focus:bg-[#61bc47] w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-all duration-300">
@@ -126,7 +126,7 @@ export default function Dashboard() {
                       </div>
 
                       {/* Description */}
-                      <p className="text-sm text-muted-foreground leading-relaxed">
+                      <p className="text-sm text-muted-foreground leading-relaxed flex-1">
                         {app.Description}
                       </p>
 
