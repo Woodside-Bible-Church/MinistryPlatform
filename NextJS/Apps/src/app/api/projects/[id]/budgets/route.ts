@@ -52,6 +52,7 @@ export async function POST(
     const budgetData: Omit<CreateProjectBudgetInput, "Project_Budget_ID"> = {
       Project_ID: projectId,
       Project_Category_Type_ID: body.Project_Category_Type_ID,
+      Budget_Name: body.Budget_Name,
       Budget_Amount: body.Budget_Amount,
     };
 
