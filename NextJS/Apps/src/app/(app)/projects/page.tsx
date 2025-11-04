@@ -9,7 +9,7 @@ export default function ProjectsPage() {
   const session = useSession();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const isAdmin = session?.user?.security_role === "Admin";
+  const isAdmin = (session as any)?.roles?.includes("Administrators") ?? false;
 
   useEffect(() => {
     async function loadProjects() {

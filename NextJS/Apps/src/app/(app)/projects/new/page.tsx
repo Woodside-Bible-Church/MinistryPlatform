@@ -17,7 +17,7 @@ export default function NewProjectPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  const isAdmin = session?.user?.security_role === "Admin";
+  const isAdmin = (session as any)?.roles?.includes("Administrators") ?? false;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
