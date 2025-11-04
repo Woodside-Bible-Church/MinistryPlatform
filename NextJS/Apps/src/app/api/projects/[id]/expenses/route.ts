@@ -6,15 +6,16 @@ import { ProjectExpense, CreateProjectExpenseInput } from "@/types/projects";
 // GET /api/projects/[id]/expenses - Get all expenses for a project
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
-    if (!session?.access_token) {
+    if (!session?.accessToken) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = parseInt(params.id);
+    const { id } = await params;
+    const projectId = parseInt(id);
     const projectsService = new ProjectsService();
     const expenses = await projectsService.getProjectExpenses(projectId);
 
@@ -31,15 +32,16 @@ export async function GET(
 // POST /api/projects/[id]/expenses - Create a new expense
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
-    if (!session?.access_token) {
+    if (!session?.accessToken) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = parseInt(params.id);
+    const { id } = await params;
+    const projectId = parseInt(id);
     const userContactId = session.user?.contact_id;
 
     if (!userContactId) {
