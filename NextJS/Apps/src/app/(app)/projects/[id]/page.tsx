@@ -17,6 +17,7 @@ import {
   ChevronDown,
   ChevronRight,
   List,
+  BarChart3,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -304,11 +305,18 @@ export default function ProjectDetailPage({
 
           <div className="flex gap-3">
             <Link
+              href={`/projects/${id}/reports`}
+              className="border border-border bg-card hover:bg-gray-50 dark:hover:bg-gray-800 text-foreground px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm flex items-center gap-2"
+            >
+              <BarChart3 className="w-4 h-4" />
+              Reports
+            </Link>
+            <Link
               href={`/projects/${id}/transactions`}
               className="border border-border bg-card hover:bg-gray-50 dark:hover:bg-gray-800 text-foreground px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm flex items-center gap-2"
             >
               <List className="w-4 h-4" />
-              View Transactions
+              Transactions
             </Link>
             <button className="bg-[#61BC47] hover:bg-[#4fa037] text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm hover:shadow-md flex items-center gap-2">
               <Plus className="w-4 h-4" />
