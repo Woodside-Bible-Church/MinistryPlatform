@@ -44,7 +44,7 @@ export default function ProjectsPage() {
             Project Budgets
           </h1>
           <p className="text-muted-foreground mt-2">
-            Manage budgets for large events and ministry projects. Test change.
+            Manage budgets for large events and ministry projects.
           </p>
         </div>
         <Link
