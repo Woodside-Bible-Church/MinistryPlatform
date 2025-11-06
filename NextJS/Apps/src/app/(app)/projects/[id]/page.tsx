@@ -524,31 +524,19 @@ export default function ProjectDetailPage({
 
       {/* Expense Categories */}
       {expenseCategories.length > 0 && viewMode === "expenses" && (
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <Receipt className="w-6 h-6 text-[#61bc47]" />
-            Expense Details
-          </h2>
-          <div className="space-y-4">
-            {expenseCategories.map((category) => (
-              <CategorySection key={category.id} category={category} projectId={id} />
-            ))}
-          </div>
+        <div className="mb-8 space-y-4">
+          {expenseCategories.map((category) => (
+            <CategorySection key={category.id} category={category} projectId={id} />
+          ))}
         </div>
       )}
 
       {/* Revenue Categories */}
       {revenueCategories.length > 0 && viewMode === "income" && (
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <PieChart className="w-6 h-6 text-[#61bc47]" />
-            Income Details
-          </h2>
-          <div className="space-y-4">
-            {revenueCategories.map((category) => (
-              <CategorySection key={category.id} category={category} projectId={id} />
-            ))}
-          </div>
+        <div className="mb-8 space-y-4">
+          {revenueCategories.map((category) => (
+            <CategorySection key={category.id} category={category} projectId={id} />
+          ))}
         </div>
       )}
 
