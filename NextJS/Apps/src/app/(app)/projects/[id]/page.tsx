@@ -46,7 +46,7 @@ function formatDate(dateString: string) {
 }
 
 function CategorySection({ category, projectId }: { category: BudgetCategory; projectId: string }) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const variance = category.actual - category.estimated;
   const variancePercent =
     category.estimated > 0 ? (variance / category.estimated) * 100 : 0;
