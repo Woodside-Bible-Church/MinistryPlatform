@@ -340,19 +340,13 @@ export default function ProjectDetailPage({
               <List className="w-4 h-4" />
               Transactions
             </Link>
-            <button
-              onClick={() => setIsAddLineItemOpen(true)}
-              className="bg-[#61BC47] hover:bg-[#4fa037] text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm hover:shadow-md flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add Expense
-            </button>
           </div>
         </div>
       </div>
 
-      {/* View Toggle */}
-      <div className="mb-6 flex justify-center">
+      {/* View Toggle and Add Button */}
+      <div className="mb-6 flex justify-between items-center">
+        <div className="flex-1" /> {/* Spacer for centering */}
         <div className="inline-flex rounded-lg border border-border bg-card p-1">
           <button
             onClick={() => setViewMode("expenses")}
@@ -373,6 +367,15 @@ export default function ProjectDetailPage({
             }`}
           >
             Income
+          </button>
+        </div>
+        <div className="flex-1 flex justify-end">
+          <button
+            onClick={() => setIsAddLineItemOpen(true)}
+            className="bg-[#61BC47] hover:bg-[#4fa037] text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm hover:shadow-md flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            {viewMode === "expenses" ? "Add Expense" : "Add Income"}
           </button>
         </div>
       </div>
