@@ -20,6 +20,13 @@ import {
   BarChart3,
 } from "lucide-react";
 import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-US", {
@@ -38,7 +45,7 @@ function formatDate(dateString: string) {
   });
 }
 
-function CategorySection({ category }: { category: BudgetCategory }) {
+function CategorySection({ category, projectId }: { category: BudgetCategory; projectId: string }) {
   const [isExpanded, setIsExpanded] = useState(true);
   const variance = category.actual - category.estimated;
   const variancePercent =
@@ -136,75 +143,77 @@ function CategorySection({ category }: { category: BudgetCategory }) {
                   item.estimated > 0 ? (itemVariance / item.estimated) * 100 : 0;
 
                 return (
-                  <tr
-                    key={item.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div>
-                        <div className="font-medium text-foreground">
-                          {item.name}
+                  <tr key={item.id}>
+                    <Link
+                      href={`/projects/${projectId}/items/${item.id}`}
+                      className="contents hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-colors cursor-pointer"
+                    >
+                      <td className="px-6 py-4">
+                        <div>
+                          <div className="font-medium text-foreground">
+                            {item.name}
+                          </div>
+                          {item.description && (
+                            <div className="text-sm text-muted-foreground mt-1">
+                              {item.description}
+                            </div>
+                          )}
+                          {item.vendor && (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              Vendor: {item.vendor}
+                            </div>
+                          )}
+                          {item.quantity && item.unitPrice !== undefined && (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {item.quantity} × {formatCurrency(item.unitPrice)}
+                            </div>
+                          )}
                         </div>
-                        {item.description && (
-                          <div className="text-sm text-muted-foreground mt-1">
-                            {item.description}
-                          </div>
-                        )}
-                        {item.vendor && (
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Vendor: {item.vendor}
-                          </div>
-                        )}
-                        {item.quantity && item.unitPrice !== undefined && (
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {item.quantity} × {formatCurrency(item.unitPrice)}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right font-medium text-gray-700 dark:text-gray-300">
-                      {formatCurrency(item.estimated)}
-                    </td>
-                    <td className="px-6 py-4 text-right font-semibold text-foreground">
-                      {formatCurrency(item.actual)}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div
-                        className={`font-medium ${
-                          category.type === "revenue"
-                            ? itemVariance >= 0
-                              ? "text-green-600 dark:text-green-400"
-                              : "text-red-600 dark:text-red-400"
-                            : itemVariance <= 0
-                              ? "text-green-600 dark:text-green-400"
-                              : "text-red-600 dark:text-red-400"
-                        }`}
-                      >
-                        {itemVariance >= 0 ? "+" : ""}
-                        {formatCurrency(itemVariance)}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        ({itemVariance >= 0 ? "+" : ""}
-                        {itemVariancePercent.toFixed(1)}%)
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span
-                        className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
-                          item.status === "paid"
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                            : item.status === "ordered"
-                              ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                              : item.status === "pending"
-                                ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                                : item.status === "received"
-                                  ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
-                                  : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"
-                        }`}
-                      >
-                        {item.status}
-                      </span>
-                    </td>
+                      </td>
+                      <td className="px-6 py-4 text-right font-medium text-gray-700 dark:text-gray-300">
+                        {formatCurrency(item.estimated)}
+                      </td>
+                      <td className="px-6 py-4 text-right font-semibold text-foreground">
+                        {formatCurrency(item.actual)}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div
+                          className={`font-medium ${
+                            category.type === "revenue"
+                              ? itemVariance >= 0
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-red-600 dark:text-red-400"
+                              : itemVariance <= 0
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-red-600 dark:text-red-400"
+                          }`}
+                        >
+                          {itemVariance >= 0 ? "+" : ""}
+                          {formatCurrency(itemVariance)}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          ({itemVariance >= 0 ? "+" : ""}
+                          {itemVariancePercent.toFixed(1)}%)
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span
+                          className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
+                            item.status === "paid"
+                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                              : item.status === "ordered"
+                                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                                : item.status === "pending"
+                                  ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                                  : item.status === "received"
+                                    ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+                                    : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"
+                          }`}
+                        >
+                          {item.status}
+                        </span>
+                      </td>
+                    </Link>
                   </tr>
                 );
               })}
@@ -223,6 +232,18 @@ export default function ProjectDetailPage({
 }) {
   const { id } = use(params);
   const project = mockProjects.find((p) => p.id === id);
+
+  const [isAddLineItemOpen, setIsAddLineItemOpen] = useState(false);
+  const [lineItemFormData, setLineItemFormData] = useState({
+    name: "",
+    description: "",
+    category: "",
+    estimated: "",
+    quantity: "",
+    unitPrice: "",
+    vendor: "",
+    status: "pending" as const,
+  });
 
   if (!project) {
     return (
@@ -318,7 +339,10 @@ export default function ProjectDetailPage({
               <List className="w-4 h-4" />
               Transactions
             </Link>
-            <button className="bg-[#61BC47] hover:bg-[#4fa037] text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm hover:shadow-md flex items-center gap-2">
+            <button
+              onClick={() => setIsAddLineItemOpen(true)}
+              className="bg-[#61BC47] hover:bg-[#4fa037] text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm hover:shadow-md flex items-center gap-2"
+            >
               <Plus className="w-4 h-4" />
               Add Expense
             </button>
@@ -426,7 +450,7 @@ export default function ProjectDetailPage({
           </h2>
           <div className="space-y-4">
             {expenseCategories.map((category) => (
-              <CategorySection key={category.id} category={category} />
+              <CategorySection key={category.id} category={category} projectId={id} />
             ))}
           </div>
         </div>
@@ -441,11 +465,223 @@ export default function ProjectDetailPage({
           </h2>
           <div className="space-y-4">
             {revenueCategories.map((category) => (
-              <CategorySection key={category.id} category={category} />
+              <CategorySection key={category.id} category={category} projectId={id} />
             ))}
           </div>
         </div>
       )}
+
+      {/* Add Line Item Dialog */}
+      <Dialog open={isAddLineItemOpen} onOpenChange={setIsAddLineItemOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add Line Item</DialogTitle>
+            <DialogDescription>
+              Add a new expense or revenue line item to this project
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              console.log("Adding line item:", lineItemFormData);
+              // TODO: Add to mock data or API call
+              setIsAddLineItemOpen(false);
+              setLineItemFormData({
+                name: "",
+                description: "",
+                category: "",
+                estimated: "",
+                quantity: "",
+                unitPrice: "",
+                vendor: "",
+                status: "pending",
+              });
+            }}
+            className="space-y-4"
+          >
+            {/* Category Selection */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Category *
+              </label>
+              <select
+                required
+                value={lineItemFormData.category}
+                onChange={(e) =>
+                  setLineItemFormData({ ...lineItemFormData, category: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
+              >
+                <option value="">Select a category...</option>
+                {project.categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name} ({cat.type})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Name */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Item Name *
+              </label>
+              <input
+                type="text"
+                required
+                value={lineItemFormData.name}
+                onChange={(e) =>
+                  setLineItemFormData({ ...lineItemFormData, name: e.target.value })
+                }
+                placeholder="e.g., T-shirts for volunteers"
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Description
+              </label>
+              <textarea
+                value={lineItemFormData.description}
+                onChange={(e) =>
+                  setLineItemFormData({ ...lineItemFormData, description: e.target.value })
+                }
+                placeholder="Additional details about this line item"
+                rows={3}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
+              />
+            </div>
+
+            {/* Estimated Amount or Quantity/Unit Price */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Estimated Amount *
+                </label>
+                <input
+                  type="number"
+                  required
+                  step="0.01"
+                  min="0"
+                  value={lineItemFormData.estimated}
+                  onChange={(e) =>
+                    setLineItemFormData({ ...lineItemFormData, estimated: e.target.value })
+                  }
+                  placeholder="0.00"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Quantity
+                </label>
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  value={lineItemFormData.quantity}
+                  onChange={(e) =>
+                    setLineItemFormData({ ...lineItemFormData, quantity: e.target.value })
+                  }
+                  placeholder="Optional"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Unit Price
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={lineItemFormData.unitPrice}
+                  onChange={(e) =>
+                    setLineItemFormData({ ...lineItemFormData, unitPrice: e.target.value })
+                  }
+                  placeholder="Optional"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Vendor and Status */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Vendor
+                </label>
+                <input
+                  type="text"
+                  value={lineItemFormData.vendor}
+                  onChange={(e) =>
+                    setLineItemFormData({ ...lineItemFormData, vendor: e.target.value })
+                  }
+                  placeholder="Vendor name"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Status *
+                </label>
+                <select
+                  required
+                  value={lineItemFormData.status}
+                  onChange={(e) =>
+                    setLineItemFormData({
+                      ...lineItemFormData,
+                      status: e.target.value as typeof lineItemFormData.status,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="ordered">Ordered</option>
+                  <option value="received">Received</option>
+                  <option value="paid">Paid</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Form Actions */}
+            <div className="flex justify-end gap-3 pt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAddLineItemOpen(false);
+                  setLineItemFormData({
+                    name: "",
+                    description: "",
+                    category: "",
+                    estimated: "",
+                    quantity: "",
+                    unitPrice: "",
+                    vendor: "",
+                    status: "pending",
+                  });
+                }}
+                className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-[#61BC47] hover:bg-[#4fa037] text-white rounded-lg font-medium transition-colors"
+              >
+                Add Line Item
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

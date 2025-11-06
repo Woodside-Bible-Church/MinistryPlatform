@@ -2,6 +2,7 @@
 
 import { mockProjects, type Project } from "@/data/mockProjects";
 import Link from "next/link";
+import { useState } from "react";
 import {
   TrendingUp,
   TrendingDown,
@@ -10,6 +11,7 @@ import {
   DollarSign,
   User,
   ChevronRight,
+  Search,
 } from "lucide-react";
 
 function getBudgetStatusColor(status: Project["budgetStatus"]) {
@@ -85,7 +87,19 @@ function calculateBudgetUtilization(project: Project) {
 }
 
 export default function ProjectsPage() {
-  const projects = mockProjects;
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter projects based on search query
+  const filteredProjects = mockProjects.filter((project) => {
+    if (!searchQuery) return true;
+
+    const query = searchQuery.toLowerCase();
+    return (
+      (project.title?.toLowerCase() || "").includes(query) ||
+      (project.description?.toLowerCase() || "").includes(query) ||
+      (project.coordinator?.displayName?.toLowerCase() || "").includes(query)
+    );
+  });
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -98,15 +112,57 @@ export default function ProjectsPage() {
             Manage budgets for large events and ministry projects.
           </p>
         </div>
-        <Link
-          href="/projects/new"
-          className="bg-[#61BC47] hover:bg-[#4fa037] text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm hover:shadow-md"
-        >
-          + New Project
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            href="/projects/overview"
+            className="border border-border bg-card hover:bg-gray-50 dark:hover:bg-gray-800 text-foreground px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm"
+          >
+            Overview
+          </Link>
+          <Link
+            href="/projects/new"
+            className="bg-[#61BC47] hover:bg-[#4fa037] text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm hover:shadow-md"
+          >
+            + New Project
+          </Link>
+        </div>
       </div>
 
-      {projects.length === 0 ? (
+      {/* Search Bar */}
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search projects by name, description, or coordinator..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+          />
+        </div>
+        {searchQuery && (
+          <p className="text-sm text-muted-foreground mt-2">
+            Found {filteredProjects.length} {filteredProjects.length === 1 ? "project" : "projects"}
+          </p>
+        )}
+      </div>
+
+      {filteredProjects.length === 0 && searchQuery ? (
+        <div className="bg-card border border-border rounded-lg p-12 text-center">
+          <h3 className="text-xl font-semibold text-foreground mb-2">
+            No projects found
+          </h3>
+          <p className="text-muted-foreground mb-6">
+            Try adjusting your search query or clear the search to see all projects.
+          </p>
+          <button
+            onClick={() => setSearchQuery("")}
+            className="inline-block border border-border bg-background hover:bg-gray-50 dark:hover:bg-gray-800 text-foreground px-6 py-3 rounded-lg font-semibold transition-colors"
+          >
+            Clear Search
+          </button>
+        </div>
+      ) : filteredProjects.length === 0 ? (
         <div className="bg-card border-2 border-dashed border-border rounded-lg p-12 text-center">
           <h3 className="text-xl font-semibold text-foreground mb-2">
             No projects yet
@@ -123,7 +179,7 @@ export default function ProjectsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {projects.map((project) => {
+          {filteredProjects.map((project) => {
             const utilization = calculateBudgetUtilization(project);
             const variance = project.totalActual - project.totalEstimated;
             const variancePercent =
