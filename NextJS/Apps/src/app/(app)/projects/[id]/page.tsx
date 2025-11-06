@@ -389,20 +389,20 @@ export default function ProjectDetailPage({
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="grid grid-cols-2 gap-3 w-[360px]">
             <Link
               href={`/projects/${id}/reports`}
-              className="border border-border bg-card hover:bg-gray-50 dark:hover:bg-gray-800 text-foreground px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm flex items-center gap-2"
+              className="border border-border bg-card hover:bg-gray-50 dark:hover:bg-gray-800 text-foreground px-4 py-3 rounded-lg font-semibold transition-colors shadow-sm flex items-center justify-center gap-2"
             >
-              <BarChart3 className="w-4 h-4" />
-              Reports
+              <BarChart3 className="w-5 h-5" />
+              <span>Reports</span>
             </Link>
             <Link
               href={`/projects/${id}/transactions`}
-              className="border border-border bg-card hover:bg-gray-50 dark:hover:bg-gray-800 text-foreground px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm flex items-center gap-2"
+              className="border border-border bg-card hover:bg-gray-50 dark:hover:bg-gray-800 text-foreground px-4 py-3 rounded-lg font-semibold transition-colors shadow-sm flex items-center justify-center gap-2"
             >
-              <List className="w-4 h-4" />
-              Transactions
+              <List className="w-5 h-5" />
+              <span>Transactions</span>
             </Link>
           </div>
         </div>
