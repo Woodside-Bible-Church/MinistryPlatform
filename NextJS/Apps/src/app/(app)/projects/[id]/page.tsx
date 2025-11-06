@@ -643,159 +643,142 @@ export default function ProjectDetailPage({
         </>
       ) : (
         <>
-          {/* Income View - Keep same structure */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {/* Income View Cards with Charts */}
-            {/* Card 1: Income Progress with Donut Chart */}
+          {/* Income View - 2 Card Layout matching Expenses */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {/* Card 1: Radar Chart for Income by Source */}
             <div className="bg-card border border-border rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-medium text-muted-foreground">
-                  Income Progress
+                  Income by Source
                 </h3>
-                <TrendingUp className="w-5 h-5 text-muted-foreground" />
+                <PieChartIcon className="w-5 h-5 text-muted-foreground" />
               </div>
               <ChartContainer
                 config={{
-                  collected: {
-                    label: "Collected",
+                  estimated: {
+                    label: "Projected",
+                    color: "hsl(217, 91%, 60%)",
+                  },
+                  actual: {
+                    label: "Actual",
                     color: "hsl(142, 76%, 36%)",
                   },
-                  remaining: {
-                    label: "Remaining",
-                    color: "hsl(240, 5%, 84%)",
-                  },
                 } satisfies ChartConfig}
-                className="h-[120px]"
+                className="h-[360px]"
               >
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: "collected", value: totalRevenueActual },
-                        { name: "remaining", value: Math.max(0, totalRevenueEstimated - totalRevenueActual) },
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={35}
-                      outerRadius={55}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      <Cell fill="hsl(142, 76%, 36%)" />
-                      <Cell fill="hsl(240, 5%, 84%)" />
-                      <Label
-                        content={({ viewBox }) => {
-                          if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                            const percentage = totalRevenueEstimated > 0 ? ((totalRevenueActual / totalRevenueEstimated) * 100).toFixed(0) : 0;
-                            return (
-                              <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
-                                <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-2xl font-bold">
-                                  {percentage}%
-                                </tspan>
-                              </text>
-                            );
-                          }
-                        }}
-                      />
-                    </Pie>
-                  </PieChart>
+                  <RadarChart
+                    data={revenueCategories.map((cat) => ({
+                      category: cat.name.length > 20 ? cat.name.substring(0, 18) + "..." : cat.name,
+                      estimated: cat.estimated,
+                      actual: cat.actual,
+                    }))}
+                  >
+                    <PolarGrid stroke="hsl(240, 5%, 84%)" />
+                    <PolarAngleAxis
+                      dataKey="category"
+                      tick={{ fill: "hsl(240, 4%, 46%)", fontSize: 11 }}
+                    />
+                    <PolarRadiusAxis angle={90} domain={[0, 'dataMax']} tick={{ fontSize: 10 }} />
+                    <Radar
+                      name="Projected"
+                      dataKey="estimated"
+                      stroke="hsl(217, 91%, 60%)"
+                      fill="hsl(217, 91%, 60%)"
+                      fillOpacity={0.3}
+                    />
+                    <Radar
+                      name="Actual"
+                      dataKey="actual"
+                      stroke="hsl(142, 76%, 36%)"
+                      fill="hsl(142, 76%, 36%)"
+                      fillOpacity={0.5}
+                    />
+                    <Legend
+                      wrapperStyle={{ fontSize: "12px" }}
+                      iconType="circle"
+                    />
+                    <ChartTooltip
+                      content={<ChartTooltipContent
+                        formatter={(value) => formatCurrency(value as number)}
+                      />}
+                    />
+                  </RadarChart>
                 </ResponsiveContainer>
               </ChartContainer>
-              <div className="mt-2 text-center">
-                <div className="text-xs text-muted-foreground">
-                  {formatCurrency(totalRevenueActual)} of {formatCurrency(totalRevenueEstimated)}
-                </div>
-              </div>
             </div>
 
-            {/* Card 2: Total Income */}
+            {/* Card 2: Income Summary - Combined Total Income + Top Sources */}
             <div className="bg-card border border-border rounded-lg p-6">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-medium text-muted-foreground">
-                  Total Income
+                  Income Summary
                 </h3>
                 <DollarSign className="w-5 h-5 text-green-500" />
               </div>
-              <div className="text-3xl font-bold text-foreground mb-3">
-                {formatCurrency(totalRevenueActual)}
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Projected</span>
-                  <span className="font-medium">{formatCurrency(totalRevenueEstimated)}</span>
-                </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-green-500 transition-all"
-                    style={{ width: `${Math.min((totalRevenueActual / totalRevenueEstimated) * 100, 100)}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Remaining</span>
-                  <span className="font-medium text-foreground">
-                    {formatCurrency(totalRevenueEstimated - totalRevenueActual)}
-                  </span>
-                </div>
-              </div>
-            </div>
 
-            {/* Card 3: Income Sources with Mini Bars */}
-            <div className="bg-card border border-border rounded-lg p-6">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Top Sources
-                </h3>
-                <Receipt className="w-5 h-5 text-teal-500" />
-              </div>
-              <div className="space-y-3">
-                {revenueCategories
-                  .sort((a, b) => b.actual - a.actual)
-                  .slice(0, 3)
-                  .map((category) => {
-                    const percentage = totalRevenueActual > 0 ? (category.actual / totalRevenueActual) * 100 : 0;
-                    return (
-                      <div key={category.id}>
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-xs font-medium text-foreground truncate pr-2">
-                            {category.name}
-                          </span>
-                          <span className="text-xs font-bold text-foreground whitespace-nowrap">
-                            {formatCurrency(category.actual)}
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                          <div
-                            className="h-full rounded-full bg-green-500"
-                            style={{ width: `${Math.min(percentage, 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-
-            {/* Card 4: Income Categories Count */}
-            <div className="bg-card border border-border rounded-lg p-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Income Sources
-                </h3>
-                <PieChartIcon className="w-5 h-5 text-purple-500" />
-              </div>
-              <div className="text-3xl font-bold text-foreground mb-1">
-                {revenueCategories.length}
-              </div>
-              <div className="text-xs text-muted-foreground mb-4">
-                {revenueCategories.reduce((sum, c) => sum + c.lineItems.length, 0)} line items total
-              </div>
-              <div className="space-y-1.5">
-                {revenueCategories.slice(0, 3).map((category) => (
-                  <div key={category.id} className="flex justify-between text-xs">
-                    <span className="text-muted-foreground truncate pr-2">{category.name}</span>
-                    <span className="font-medium text-foreground whitespace-nowrap">{category.lineItems.length} items</span>
+              {/* Total Income Section */}
+              <div className="mb-6">
+                <div className="text-3xl font-bold text-foreground mb-4">
+                  {formatCurrency(totalRevenueActual)}
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Projected</span>
+                    <span className="font-medium">{formatCurrency(totalRevenueEstimated)}</span>
                   </div>
-                ))}
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-green-500 transition-all"
+                      style={{ width: `${Math.min((totalRevenueActual / totalRevenueEstimated) * 100, 100)}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Remaining</span>
+                    <span className={`font-medium ${totalRevenueEstimated - totalRevenueActual >= 0 ? "text-yellow-600 dark:text-yellow-400" : "text-green-600 dark:text-green-400"}`}>
+                      {formatCurrency(totalRevenueEstimated - totalRevenueActual)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-border my-6"></div>
+
+              {/* Top Income Sources Section */}
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Receipt className="w-4 h-4 text-teal-500" />
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    Top Sources
+                  </h4>
+                </div>
+                <div className="space-y-4">
+                  {revenueCategories
+                    .sort((a, b) => b.actual - a.actual)
+                    .slice(0, 3)
+                    .map((category) => {
+                      const incomeProgress = category.estimated > 0 ? (category.actual / category.estimated) * 100 : 0;
+                      return (
+                        <div key={category.id}>
+                          <div className="flex justify-between items-center mb-1.5">
+                            <span className="text-sm font-medium text-foreground truncate pr-2">
+                              {category.name}
+                            </span>
+                            <span className="text-sm font-bold text-foreground whitespace-nowrap">
+                              {formatCurrency(category.actual)}
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div
+                              className="h-full rounded-full bg-green-500"
+                              style={{ width: `${Math.min(incomeProgress, 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
               </div>
             </div>
           </div>
