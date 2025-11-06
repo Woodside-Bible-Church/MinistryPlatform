@@ -89,7 +89,7 @@ export default function Dashboard() {
       </div>
 
       {/* Apps Grid */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-primary dark:text-muted-foreground" />
@@ -107,12 +107,12 @@ export default function Dashboard() {
             </p>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 max-w-4xl mx-auto">
+          <div className="flex flex-wrap gap-6">
             {apps.map((app) => {
               const Icon = getIcon(app.Icon);
               const route = app.Route || '#';
               return (
-                <Link key={app.Application_ID} href={route} className="h-full">
+                <Link key={app.Application_ID} href={route} className="flex-1 min-w-[350px]">
                   <div className="group relative overflow-hidden border border-border bg-card hover:border-primary/50 dark:hover:border-[#61bc47]/50 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col">
                     <div className="p-6 space-y-3 flex-1 flex flex-col">
                       {/* Icon and Title */}
