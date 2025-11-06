@@ -4,6 +4,7 @@
 export interface Project {
   id: string;
   title: string;
+  description?: string;
   status: "draft" | "pending" | "approved" | "in-progress" | "completed" | "closed";
   budgetStatus: "under" | "on-track" | "over";
   coordinator: {
@@ -62,6 +63,7 @@ export const mockProjects: Project[] = [
   {
     id: "1",
     title: "Product Launch Party 2026",
+    description: "Annual youth retreat featuring worship, teaching sessions, and team-building activities",
     status: "in-progress",
     budgetStatus: "under",
     coordinator: {
@@ -828,6 +830,7 @@ export const mockProjects: Project[] = [
   {
     id: "2",
     title: "Summer Camp 2026",
+    description: "Week-long summer camp program with outdoor activities, spiritual growth, and fellowship",
     status: "approved",
     budgetStatus: "on-track",
     coordinator: {
@@ -951,6 +954,7 @@ export const mockProjects: Project[] = [
   {
     id: "3",
     title: "Christmas Outreach 2025",
+    description: "Community outreach event serving families during the Christmas season",
     status: "completed",
     budgetStatus: "under",
     coordinator: {
