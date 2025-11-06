@@ -294,7 +294,7 @@ export default function ProjectsPage() {
 
         {/* Search Bar Skeleton */}
         <div className="mb-6">
-          <Skeleton className="h-12 w-full max-w-md" />
+          <Skeleton className="h-12 w-full" />
         </div>
 
         {/* Series Skeletons */}
@@ -343,7 +343,7 @@ export default function ProjectsPage() {
 
       {/* Search Bar */}
       <div className="mb-6">
-        <div className="relative max-w-md">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <input
             type="text"
