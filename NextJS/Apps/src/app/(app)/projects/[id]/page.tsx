@@ -359,7 +359,7 @@ export default function ProjectDetailPage({
             className={`px-8 py-2.5 rounded-md font-medium transition-all ${
               viewMode === "expenses"
                 ? "bg-[#61BC47] text-white shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800"
             }`}
           >
             Expenses
@@ -369,7 +369,7 @@ export default function ProjectDetailPage({
             className={`px-8 py-2.5 rounded-md font-medium transition-all ${
               viewMode === "income"
                 ? "bg-[#61BC47] text-white shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800"
             }`}
           >
             Income
