@@ -56,7 +56,7 @@ function CategorySection({ category, projectId }: { category: BudgetCategory; pr
       {/* Category Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-b border-border hover:bg-gray-100 dark:hover:bg-gray-900/70 transition-colors"
+        className="w-full px-6 py-4 bg-zinc-300 dark:bg-black border-b border-border hover:bg-zinc-400 dark:hover:bg-zinc-900 transition-colors"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -118,20 +118,20 @@ function CategorySection({ category, projectId }: { category: BudgetCategory; pr
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-50 dark:bg-gray-900/50 border-b border-border">
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+              <tr className="bg-zinc-200 dark:bg-zinc-900 border-b border-border">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
                   Item
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
                   Estimated
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
                   Actual
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
                   Variance
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
                   Status
                 </th>
               </tr>
@@ -143,10 +143,10 @@ function CategorySection({ category, projectId }: { category: BudgetCategory; pr
                   item.estimated > 0 ? (itemVariance / item.estimated) * 100 : 0;
 
                 return (
-                  <tr key={item.id}>
+                  <tr key={item.id} className="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
                     <Link
                       href={`/projects/${projectId}/items/${item.id}`}
-                      className="contents hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-colors cursor-pointer"
+                      className="contents cursor-pointer"
                     >
                       <td className="px-6 py-4">
                         <div>
@@ -202,7 +202,7 @@ function CategorySection({ category, projectId }: { category: BudgetCategory; pr
                             item.status === "paid"
                               ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                               : item.status === "ordered"
-                                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                                ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
                                 : item.status === "pending"
                                   ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
                                   : item.status === "received"
@@ -429,7 +429,7 @@ export default function ProjectDetailPage({
                 <h3 className="text-sm font-medium text-muted-foreground">
                   Budget Utilization
                 </h3>
-                <Receipt className="w-5 h-5 text-blue-500" />
+                <Receipt className="w-5 h-5 text-orange-500" />
               </div>
               <div className="text-2xl font-bold text-foreground">
                 {budgetUtilization.toFixed(1)}%
@@ -477,7 +477,7 @@ export default function ProjectDetailPage({
                 <h3 className="text-sm font-medium text-muted-foreground">
                   Income Progress
                 </h3>
-                <TrendingUp className="w-5 h-5 text-blue-500" />
+                <TrendingUp className="w-5 h-5 text-orange-500" />
               </div>
               <div className="text-2xl font-bold text-foreground">
                 {totalRevenueEstimated > 0
