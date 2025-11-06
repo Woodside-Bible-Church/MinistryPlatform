@@ -411,28 +411,37 @@ export default function ProjectDetailPage({
       {/* View Toggle and Add Button */}
       <div className="mb-6 flex justify-between items-center">
         <div className="flex-1" /> {/* Spacer for centering */}
-        <div className="inline-flex rounded-lg border border-border bg-card p-1">
-          <button
-            onClick={() => setViewMode("expenses")}
-            className={`px-8 py-2.5 rounded-md font-medium transition-all ${
+        <button
+          onClick={() => setViewMode(viewMode === "expenses" ? "income" : "expenses")}
+          className="relative inline-flex rounded-xl bg-zinc-100 dark:bg-zinc-800 p-1 shadow-inner cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+        >
+          {/* Sliding background indicator */}
+          <div
+            className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#61BC47] rounded-lg shadow-md transition-all duration-300 ease-in-out pointer-events-none ${
+              viewMode === "expenses" ? "left-1" : "left-[calc(50%+4px-1px)]"
+            }`}
+          />
+
+          {/* Labels */}
+          <div
+            className={`relative z-10 px-8 py-2.5 rounded-lg font-medium transition-all duration-300 pointer-events-none ${
               viewMode === "expenses"
-                ? "bg-[#61BC47] text-white shadow-sm"
-                : "text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                ? "text-white"
+                : "text-muted-foreground"
             }`}
           >
             Expenses
-          </button>
-          <button
-            onClick={() => setViewMode("income")}
-            className={`px-8 py-2.5 rounded-md font-medium transition-all ${
+          </div>
+          <div
+            className={`relative z-10 px-8 py-2.5 rounded-lg font-medium transition-all duration-300 pointer-events-none ${
               viewMode === "income"
-                ? "bg-[#61BC47] text-white shadow-sm"
-                : "text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                ? "text-white"
+                : "text-muted-foreground"
             }`}
           >
             Income
-          </button>
-        </div>
+          </div>
+        </button>
         <div className="flex-1 flex justify-end">
           <button
             onClick={() => setIsAddLineItemOpen(true)}
