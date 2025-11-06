@@ -56,16 +56,16 @@ function CategorySection({ category, projectId }: { category: BudgetCategory; pr
       {/* Category Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-6 py-4 bg-blue-50 dark:bg-blue-900/10 border-b border-border hover:bg-blue-100 dark:hover:bg-blue-900/20 transition-colors"
+        className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-b border-border hover:bg-gray-100 dark:hover:bg-gray-900/70 transition-colors"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {isExpanded ? (
-              <ChevronDown className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <ChevronDown className="w-5 h-5 text-muted-foreground" />
             ) : (
-              <ChevronRight className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
             )}
-            <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
+            <h3 className="text-lg font-semibold text-foreground">
               {category.name}
             </h3>
             <span
