@@ -1,7 +1,7 @@
 "use client";
 
 import { mockProjects, type Transaction } from "@/data/mockProjects";
-import { use, useState, useMemo } from "react";
+import { use, useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -18,6 +18,7 @@ import {
   FileText,
   X,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-US", {
@@ -49,11 +50,18 @@ export default function TransactionsPage({
   const { id } = use(params);
   const project = mockProjects.find((p) => p.id === id);
 
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "expense" | "income">("all");
   const [filterPaymentMethod, setFilterPaymentMethod] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"date" | "amount">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  // Simulate loading for better UX
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Flatten all transactions with context
   const allTransactions = useMemo(() => {
@@ -136,6 +144,65 @@ export default function TransactionsPage({
   const totalIncome = filteredTransactions
     .filter((t) => t.type === "income")
     .reduce((sum, t) => sum + t.amount, 0);
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
+        {/* Header Skeleton */}
+        <div className="mb-8">
+          <Skeleton className="h-4 w-48 mb-4" />
+          <div className="flex justify-between items-start">
+            <div>
+              <Skeleton className="h-10 w-64 mb-2" />
+              <Skeleton className="h-5 w-96" />
+            </div>
+            <div className="flex gap-3">
+              <Skeleton className="h-10 w-28" />
+              <Skeleton className="h-10 w-44" />
+            </div>
+          </div>
+        </div>
+
+        {/* Summary Cards Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-card border border-border rounded-lg p-6">
+              <div className="flex items-center justify-between mb-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-5 w-5 rounded-full" />
+              </div>
+              <Skeleton className="h-9 w-24 mb-2" />
+              <Skeleton className="h-3 w-32" />
+            </div>
+          ))}
+        </div>
+
+        {/* Filters Skeleton */}
+        <div className="bg-card border border-border rounded-lg p-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="lg:col-span-2">
+              <Skeleton className="h-4 w-16 mb-2" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            {[1, 2, 3].map((i) => (
+              <div key={i}>
+                <Skeleton className="h-4 w-16 mb-2" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Table Skeleton */}
+        <div className="bg-card border border-border rounded-lg overflow-hidden">
+          <Skeleton className="h-12 w-full" />
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} className="h-20 w-full" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (!project) {
     return (

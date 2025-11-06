@@ -2,7 +2,7 @@
 
 import { mockProjects, type Project } from "@/data/mockProjects";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   TrendingUp,
   TrendingDown,
@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Search,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function getBudgetStatusColor(status: Project["budgetStatus"]) {
   switch (status) {
@@ -87,7 +88,14 @@ function calculateBudgetUtilization(project: Project) {
 }
 
 export default function ProjectsPage() {
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Simulate loading for better UX
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Filter projects based on search query
   const filteredProjects = mockProjects.filter((project) => {
@@ -100,6 +108,67 @@ export default function ProjectsPage() {
       (project.coordinator?.displayName?.toLowerCase() || "").includes(query)
     );
   });
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
+        {/* Header Skeleton */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <Skeleton className="h-9 w-48 mb-2" />
+            <Skeleton className="h-5 w-96" />
+          </div>
+          <div className="flex gap-3">
+            <Skeleton className="h-12 w-32" />
+            <Skeleton className="h-12 w-40" />
+          </div>
+        </div>
+
+        {/* Search Bar Skeleton */}
+        <div className="mb-6">
+          <Skeleton className="h-12 w-full max-w-md" />
+        </div>
+
+        {/* Project Cards Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="bg-card border border-border rounded-lg overflow-hidden">
+              <div className="p-6 border-b border-border">
+                <Skeleton className="h-7 w-3/4 mb-3" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-6 w-32" />
+                </div>
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <Skeleton className="h-4 w-32 mb-2" />
+                  <Skeleton className="h-2 w-full" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Skeleton className="h-3 w-16 mb-1" />
+                    <Skeleton className="h-6 w-24" />
+                  </div>
+                  <div>
+                    <Skeleton className="h-3 w-16 mb-1" />
+                    <Skeleton className="h-6 w-24" />
+                  </div>
+                </div>
+                <div className="pt-3 border-t border-border">
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              </div>
+              <div className="px-6 pb-6 space-y-2">
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-4 w-48" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
