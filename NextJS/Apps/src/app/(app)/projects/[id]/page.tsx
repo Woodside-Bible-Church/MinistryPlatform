@@ -502,59 +502,65 @@ export default function ProjectDetailPage({
                 </h3>
                 <PieChartIcon className="w-5 h-5 text-muted-foreground" />
               </div>
-              <ChartContainer
-                config={{
-                  estimated: {
-                    label: "Budget",
-                    color: "hsl(217, 91%, 60%)",
-                  },
-                  actual: {
-                    label: "Actual",
-                    color: "hsl(142, 76%, 36%)",
-                  },
-                } satisfies ChartConfig}
-                className="h-[360px]"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart
-                    data={expenseCategories.map((cat) => ({
-                      category: cat.name.length > 20 ? cat.name.substring(0, 18) + "..." : cat.name,
-                      estimated: cat.estimated,
-                      actual: cat.actual,
-                    }))}
-                  >
-                    <PolarGrid stroke="hsl(240, 5%, 84%)" />
-                    <PolarAngleAxis
-                      dataKey="category"
-                      tick={{ fill: "hsl(240, 4%, 46%)", fontSize: 11 }}
-                    />
-                    <PolarRadiusAxis angle={90} domain={[0, 'dataMax']} tick={{ fontSize: 10 }} />
-                    <Radar
-                      name="Budget"
-                      dataKey="estimated"
-                      stroke="hsl(217, 91%, 60%)"
-                      fill="hsl(217, 91%, 60%)"
-                      fillOpacity={0.3}
-                    />
-                    <Radar
-                      name="Actual"
-                      dataKey="actual"
-                      stroke="hsl(142, 76%, 36%)"
-                      fill="hsl(142, 76%, 36%)"
-                      fillOpacity={0.5}
-                    />
-                    <Legend
-                      wrapperStyle={{ fontSize: "12px" }}
-                      iconType="circle"
-                    />
-                    <ChartTooltip
-                      content={<ChartTooltipContent
-                        formatter={(value) => formatCurrency(value as number)}
-                      />}
-                    />
-                  </RadarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
+              {expenseCategories.length === 0 || expenseCategories.every(cat => cat.estimated === 0 && cat.actual === 0) ? (
+                <div className="h-[360px] flex items-center justify-center">
+                  <p className="text-muted-foreground text-sm">No data to show</p>
+                </div>
+              ) : (
+                <ChartContainer
+                  config={{
+                    estimated: {
+                      label: "Budget",
+                      color: "hsl(217, 91%, 60%)",
+                    },
+                    actual: {
+                      label: "Actual",
+                      color: "hsl(142, 76%, 36%)",
+                    },
+                  } satisfies ChartConfig}
+                  className="h-[360px]"
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart
+                      data={expenseCategories.map((cat) => ({
+                        category: cat.name.length > 20 ? cat.name.substring(0, 18) + "..." : cat.name,
+                        estimated: cat.estimated,
+                        actual: cat.actual,
+                      }))}
+                    >
+                      <PolarGrid stroke="hsl(240, 5%, 84%)" />
+                      <PolarAngleAxis
+                        dataKey="category"
+                        tick={{ fill: "hsl(240, 4%, 46%)", fontSize: 11 }}
+                      />
+                      <PolarRadiusAxis angle={90} domain={[0, 'dataMax']} tick={{ fontSize: 10 }} />
+                      <Radar
+                        name="Budget"
+                        dataKey="estimated"
+                        stroke="hsl(217, 91%, 60%)"
+                        fill="hsl(217, 91%, 60%)"
+                        fillOpacity={0.3}
+                      />
+                      <Radar
+                        name="Actual"
+                        dataKey="actual"
+                        stroke="hsl(142, 76%, 36%)"
+                        fill="hsl(142, 76%, 36%)"
+                        fillOpacity={0.5}
+                      />
+                      <Legend
+                        wrapperStyle={{ fontSize: "12px" }}
+                        iconType="circle"
+                      />
+                      <ChartTooltip
+                        content={<ChartTooltipContent
+                          formatter={(value) => formatCurrency(value as number)}
+                        />}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              )}
             </div>
 
             {/* Card 2: Budget Summary - Combined Total Spent + Top Categories */}
@@ -653,59 +659,65 @@ export default function ProjectDetailPage({
                 </h3>
                 <PieChartIcon className="w-5 h-5 text-muted-foreground" />
               </div>
-              <ChartContainer
-                config={{
-                  estimated: {
-                    label: "Projected",
-                    color: "hsl(217, 91%, 60%)",
-                  },
-                  actual: {
-                    label: "Actual",
-                    color: "hsl(142, 76%, 36%)",
-                  },
-                } satisfies ChartConfig}
-                className="h-[360px]"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart
-                    data={revenueCategories.map((cat) => ({
-                      category: cat.name.length > 20 ? cat.name.substring(0, 18) + "..." : cat.name,
-                      estimated: cat.estimated,
-                      actual: cat.actual,
-                    }))}
-                  >
-                    <PolarGrid stroke="hsl(240, 5%, 84%)" />
-                    <PolarAngleAxis
-                      dataKey="category"
-                      tick={{ fill: "hsl(240, 4%, 46%)", fontSize: 11 }}
-                    />
-                    <PolarRadiusAxis angle={90} domain={[0, 'dataMax']} tick={{ fontSize: 10 }} />
-                    <Radar
-                      name="Projected"
-                      dataKey="estimated"
-                      stroke="hsl(217, 91%, 60%)"
-                      fill="hsl(217, 91%, 60%)"
-                      fillOpacity={0.3}
-                    />
-                    <Radar
-                      name="Actual"
-                      dataKey="actual"
-                      stroke="hsl(142, 76%, 36%)"
-                      fill="hsl(142, 76%, 36%)"
-                      fillOpacity={0.5}
-                    />
-                    <Legend
-                      wrapperStyle={{ fontSize: "12px" }}
-                      iconType="circle"
-                    />
-                    <ChartTooltip
-                      content={<ChartTooltipContent
-                        formatter={(value) => formatCurrency(value as number)}
-                      />}
-                    />
-                  </RadarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
+              {revenueCategories.length === 0 || revenueCategories.every(cat => cat.estimated === 0 && cat.actual === 0) ? (
+                <div className="h-[360px] flex items-center justify-center">
+                  <p className="text-muted-foreground text-sm">No data to show</p>
+                </div>
+              ) : (
+                <ChartContainer
+                  config={{
+                    estimated: {
+                      label: "Projected",
+                      color: "hsl(217, 91%, 60%)",
+                    },
+                    actual: {
+                      label: "Actual",
+                      color: "hsl(142, 76%, 36%)",
+                    },
+                  } satisfies ChartConfig}
+                  className="h-[360px]"
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart
+                      data={revenueCategories.map((cat) => ({
+                        category: cat.name.length > 20 ? cat.name.substring(0, 18) + "..." : cat.name,
+                        estimated: cat.estimated,
+                        actual: cat.actual,
+                      }))}
+                    >
+                      <PolarGrid stroke="hsl(240, 5%, 84%)" />
+                      <PolarAngleAxis
+                        dataKey="category"
+                        tick={{ fill: "hsl(240, 4%, 46%)", fontSize: 11 }}
+                      />
+                      <PolarRadiusAxis angle={90} domain={[0, 'dataMax']} tick={{ fontSize: 10 }} />
+                      <Radar
+                        name="Projected"
+                        dataKey="estimated"
+                        stroke="hsl(217, 91%, 60%)"
+                        fill="hsl(217, 91%, 60%)"
+                        fillOpacity={0.3}
+                      />
+                      <Radar
+                        name="Actual"
+                        dataKey="actual"
+                        stroke="hsl(142, 76%, 36%)"
+                        fill="hsl(142, 76%, 36%)"
+                        fillOpacity={0.5}
+                      />
+                      <Legend
+                        wrapperStyle={{ fontSize: "12px" }}
+                        iconType="circle"
+                      />
+                      <ChartTooltip
+                        content={<ChartTooltipContent
+                          formatter={(value) => formatCurrency(value as number)}
+                        />}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              )}
             </div>
 
             {/* Card 2: Income Summary - Combined Total Income + Top Sources */}
