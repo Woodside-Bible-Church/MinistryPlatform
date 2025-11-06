@@ -1,6 +1,6 @@
 "use client";
 
-import { mockProjects, type BudgetCategory } from "@/data/mockProjects";
+import { mockProjects, getProjectsBySeries, getSeriesById, type BudgetCategory } from "@/data/mockProjects";
 import { use } from "react";
 import Link from "next/link";
 import {
@@ -335,6 +335,10 @@ export default function ProjectDetailPage({
   const expenseCategories = project.categories.filter((c) => c.type === "expense");
   const revenueCategories = project.categories.filter((c) => c.type === "revenue");
 
+  // Get series info and related years if project is part of a series
+  const series = project.seriesId ? getSeriesById(project.seriesId) : undefined;
+  const seriesProjects = project.seriesId ? getProjectsBySeries(project.seriesId) : [];
+
   const totalExpensesEstimated = expenseCategories.reduce(
     (sum, c) => sum + c.estimated,
     0
@@ -372,9 +376,34 @@ export default function ProjectDetailPage({
 
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">
-              {project.title}
-            </h1>
+            {/* Title with integrated series dropdown */}
+            {series && seriesProjects.length > 1 ? (
+              <div className="relative inline-block mb-2 group">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <h1 className="text-4xl font-bold text-primary dark:text-foreground group-hover:text-[#61BC47] transition-colors">
+                    {project.title}
+                  </h1>
+                  <ChevronDown className="w-6 h-6 text-primary dark:text-foreground group-hover:text-[#61BC47] transition-colors" />
+                  <select
+                    value={id}
+                    onChange={(e) => {
+                      window.location.href = `/projects/${e.target.value}`;
+                    }}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  >
+                    {seriesProjects.map((seriesProject) => (
+                      <option key={seriesProject.id} value={seriesProject.id}>
+                        {seriesProject.title} ({seriesProject.status})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            ) : (
+              <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">
+                {project.title}
+              </h1>
+            )}
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4" />
