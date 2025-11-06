@@ -139,7 +139,7 @@ export default function TransactionsPage({
 
   if (!project) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold text-foreground mb-2">
             Project Not Found
@@ -160,7 +160,7 @@ export default function TransactionsPage({
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
       {/* Header */}
       <div className="mb-8">
         <Link

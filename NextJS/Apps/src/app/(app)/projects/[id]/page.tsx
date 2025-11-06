@@ -234,6 +234,7 @@ export default function ProjectDetailPage({
   const project = mockProjects.find((p) => p.id === id);
 
   const [isAddLineItemOpen, setIsAddLineItemOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"expenses" | "income">("expenses");
   const [lineItemFormData, setLineItemFormData] = useState({
     name: "",
     description: "",
@@ -247,7 +248,7 @@ export default function ProjectDetailPage({
 
   if (!project) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold text-foreground mb-2">
             Project Not Found
@@ -294,7 +295,7 @@ export default function ProjectDetailPage({
       : 0;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
       {/* Header */}
       <div className="mb-8">
         <Link
@@ -350,99 +351,179 @@ export default function ProjectDetailPage({
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Total Expenses
-            </h3>
-            <DollarSign className="w-5 h-5 text-red-500" />
-          </div>
-          <div className="text-2xl font-bold text-foreground">
-            {formatCurrency(totalExpensesActual)}
-          </div>
-          <div className="text-xs text-muted-foreground mt-1">
-            of {formatCurrency(totalExpensesEstimated)} budgeted
-          </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-3">
-            <div
-              className={`h-full rounded-full ${
-                budgetUtilization < 90
-                  ? "bg-green-500"
-                  : budgetUtilization < 100
-                    ? "bg-yellow-500"
-                    : "bg-red-500"
-              }`}
-              style={{ width: `${Math.min(budgetUtilization, 100)}%` }}
-            />
-          </div>
-        </div>
-
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Total Revenue
-            </h3>
-            <DollarSign className="w-5 h-5 text-green-500" />
-          </div>
-          <div className="text-2xl font-bold text-foreground">
-            {formatCurrency(totalRevenueActual)}
-          </div>
-          <div className="text-xs text-muted-foreground mt-1">
-            of {formatCurrency(totalRevenueEstimated)} projected
-          </div>
-        </div>
-
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Profit / Loss (Est.)
-            </h3>
-            {profitLossEstimated >= 0 ? (
-              <TrendingUp className="w-5 h-5 text-green-500" />
-            ) : (
-              <TrendingDown className="w-5 h-5 text-red-500" />
-            )}
-          </div>
-          <div
-            className={`text-2xl font-bold ${
-              profitLossEstimated >= 0
-                ? "text-green-600 dark:text-green-400"
-                : "text-red-600 dark:text-red-400"
+      {/* View Toggle */}
+      <div className="mb-6 flex justify-center">
+        <div className="inline-flex rounded-lg border border-border bg-card p-1">
+          <button
+            onClick={() => setViewMode("expenses")}
+            className={`px-8 py-2.5 rounded-md font-medium transition-all ${
+              viewMode === "expenses"
+                ? "bg-[#61BC47] text-white shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            {formatCurrency(profitLossEstimated)}
-          </div>
-          <div className="text-xs text-muted-foreground mt-1">Estimated</div>
-        </div>
-
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Profit / Loss (Actual)
-            </h3>
-            {profitLossActual >= 0 ? (
-              <TrendingUp className="w-5 h-5 text-green-500" />
-            ) : (
-              <TrendingDown className="w-5 h-5 text-red-500" />
-            )}
-          </div>
-          <div
-            className={`text-2xl font-bold ${
-              profitLossActual >= 0
-                ? "text-green-600 dark:text-green-400"
-                : "text-red-600 dark:text-red-400"
+            Expenses
+          </button>
+          <button
+            onClick={() => setViewMode("income")}
+            className={`px-8 py-2.5 rounded-md font-medium transition-all ${
+              viewMode === "income"
+                ? "bg-[#61BC47] text-white shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            {formatCurrency(profitLossActual)}
-          </div>
-          <div className="text-xs text-muted-foreground mt-1">Actual</div>
+            Income
+          </button>
         </div>
       </div>
 
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {viewMode === "expenses" ? (
+          <>
+            {/* Expenses View Cards */}
+            <div className="bg-card border border-border rounded-lg p-6">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Total Spent
+                </h3>
+                <DollarSign className="w-5 h-5 text-red-500" />
+              </div>
+              <div className="text-2xl font-bold text-foreground">
+                {formatCurrency(totalExpensesActual)}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                of {formatCurrency(totalExpensesEstimated)} budgeted
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-3">
+                <div
+                  className={`h-full rounded-full ${
+                    budgetUtilization < 90
+                      ? "bg-green-500"
+                      : budgetUtilization < 100
+                        ? "bg-yellow-500"
+                        : "bg-red-500"
+                  }`}
+                  style={{ width: `${Math.min(budgetUtilization, 100)}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg p-6">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Budget Remaining
+                </h3>
+                <DollarSign className="w-5 h-5 text-green-500" />
+              </div>
+              <div className="text-2xl font-bold text-foreground">
+                {formatCurrency(totalExpensesEstimated - totalExpensesActual)}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {((1 - budgetUtilization / 100) * 100).toFixed(1)}% remaining
+              </div>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg p-6">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Budget Utilization
+                </h3>
+                <Receipt className="w-5 h-5 text-blue-500" />
+              </div>
+              <div className="text-2xl font-bold text-foreground">
+                {budgetUtilization.toFixed(1)}%
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                of total budget
+              </div>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg p-6">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Expense Categories
+                </h3>
+                <Receipt className="w-5 h-5 text-purple-500" />
+              </div>
+              <div className="text-2xl font-bold text-foreground">
+                {expenseCategories.length}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {expenseCategories.reduce((sum, c) => sum + c.lineItems.length, 0)} line items
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Income View Cards */}
+            <div className="bg-card border border-border rounded-lg p-6">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Total Income
+                </h3>
+                <DollarSign className="w-5 h-5 text-green-500" />
+              </div>
+              <div className="text-2xl font-bold text-foreground">
+                {formatCurrency(totalRevenueActual)}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                of {formatCurrency(totalRevenueEstimated)} projected
+              </div>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg p-6">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Income Progress
+                </h3>
+                <TrendingUp className="w-5 h-5 text-blue-500" />
+              </div>
+              <div className="text-2xl font-bold text-foreground">
+                {totalRevenueEstimated > 0
+                  ? ((totalRevenueActual / totalRevenueEstimated) * 100).toFixed(1)
+                  : 0}%
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                of projected income
+              </div>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg p-6">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Expected Remaining
+                </h3>
+                <DollarSign className="w-5 h-5 text-purple-500" />
+              </div>
+              <div className="text-2xl font-bold text-foreground">
+                {formatCurrency(totalRevenueEstimated - totalRevenueActual)}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                still to be collected
+              </div>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg p-6">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Income Sources
+                </h3>
+                <PieChart className="w-5 h-5 text-teal-500" />
+              </div>
+              <div className="text-2xl font-bold text-foreground">
+                {revenueCategories.length}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {revenueCategories.reduce((sum, c) => sum + c.lineItems.length, 0)} line items
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
       {/* Expense Categories */}
-      {expenseCategories.length > 0 && (
+      {expenseCategories.length > 0 && viewMode === "expenses" && (
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
             <Receipt className="w-6 h-6 text-[#61bc47]" />
@@ -457,7 +538,7 @@ export default function ProjectDetailPage({
       )}
 
       {/* Revenue Categories */}
-      {revenueCategories.length > 0 && (
+      {revenueCategories.length > 0 && viewMode === "income" && (
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
             <PieChart className="w-6 h-6 text-[#61bc47]" />
