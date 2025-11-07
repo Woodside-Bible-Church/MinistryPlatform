@@ -28,6 +28,11 @@ import {
 type ViewType = "services" | "form" | "confirmation";
 
 export default function RSVPPage() {
+  // Get base URL for assets (works in both Next.js and widget contexts)
+  const baseUrl = typeof window !== 'undefined' && (window as any).RSVP_WIDGET_CONFIG?.apiBaseUrl
+    ? (window as any).RSVP_WIDGET_CONFIG.apiBaseUrl
+    : '';
+
   // State - Default to Troy (campusId: 12)
   // TODO: Get default campus from cookie when embedded in WordPress
   const [currentView, setCurrentView] = useState<ViewType>("services");
@@ -130,7 +135,7 @@ export default function RSVPPage() {
         {/* Background Pattern */}
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('/assets/BG.png')" }}
+          style={{ backgroundImage: `url('${baseUrl}/assets/BG.png')` }}
         />
 
         {/* Content Container */}
@@ -310,7 +315,7 @@ export default function RSVPPage() {
             {/* Christmas Image */}
             <div className="hidden lg:block flex-shrink-0 w-[520px]">
               <img
-                src="/assets/Christmas24_web_1480x1080.jpg"
+                src={`${baseUrl}/assets/Christmas24_web_1480x1080.jpg`}
                 alt="Christmas Service"
                 className="w-full h-auto shadow-2xl"
               />
