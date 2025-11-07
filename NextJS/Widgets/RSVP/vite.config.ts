@@ -21,9 +21,9 @@ export default defineConfig({
     // Generate a single bundle file
     lib: {
       entry: path.resolve(__dirname, 'widget/index.tsx'),
-      name: 'PrayerWidget',
+      name: 'RSVPWidget',
       formats: ['iife'],
-      fileName: () => 'prayer-widget.js',
+      fileName: () => 'rsvp-widget.js',
     },
     rollupOptions: {
       // Don't bundle these - they should be available globally or handled internally
@@ -47,8 +47,7 @@ export default defineConfig({
   define: {
     // Define all environment variables used in the widget
     'process.env.NODE_ENV': JSON.stringify('production'),
-    'process.env.NEXT_PUBLIC_MP_WIDGETS_AUTH_ENDPOINT': JSON.stringify(process.env.NEXT_PUBLIC_MP_WIDGETS_AUTH_ENDPOINT || 'https://my.woodsidebible.org/widgets/Api/Auth/User'),
-    'process.env.NEXT_PUBLIC_APP_NAME': JSON.stringify(process.env.NEXT_PUBLIC_APP_NAME || 'Prayer'),
+    'process.env.NEXTAUTH_URL': JSON.stringify(process.env.NEXTAUTH_URL || 'https://rsvp-wine.vercel.app'),
     // Replace any other process.env references
     'process.env': JSON.stringify({}),
   },

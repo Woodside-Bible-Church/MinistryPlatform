@@ -1,5 +1,5 @@
 /**
- * Prayer Widget - Embeddable Bundle Entry Point
+ * RSVP Widget - Embeddable Bundle Entry Point
  *
  * This file creates a standalone widget that can be embedded on any page.
  * It uses the same React components as the Next.js app but bundles them
@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import PrayerPage from '../src/app/(app)/page';
+import RSVPPage from '../src/app/(app)/page';
 import styleText from '../src/app/globals.css?inline';
 
 // Widget configuration
@@ -20,12 +20,12 @@ interface WidgetConfig {
 // Extend window interface for widget globals
 declare global {
   interface Window {
-    PRAYER_WIDGET_CONFIG?: WidgetConfig;
-    PrayerWidget?: PrayerWidget;
+    RSVP_WIDGET_CONFIG?: WidgetConfig;
+    RSVPWidget?: RSVPWidget;
   }
 }
 
-class PrayerWidget {
+class RSVPWidget {
   private root: ReturnType<typeof createRoot> | null = null;
   private shadowRoot: ShadowRoot | null = null;
   private config: WidgetConfig;
@@ -33,7 +33,7 @@ class PrayerWidget {
   constructor(config: WidgetConfig = {}) {
     this.config = {
       apiBaseUrl: config.apiBaseUrl || window.location.origin,
-      containerId: config.containerId || 'prayer-widget-root',
+      containerId: config.containerId || 'rsvp-widget-root',
       ...config
     };
   }
@@ -45,7 +45,7 @@ class PrayerWidget {
     const container = document.getElementById(this.config.containerId!);
 
     if (!container) {
-      console.error(`Prayer Widget: Container #${this.config.containerId} not found`);
+      console.error(`RSVP Widget: Container #${this.config.containerId} not found`);
       return;
     }
 
@@ -54,7 +54,7 @@ class PrayerWidget {
 
     // Create a mount point inside shadow DOM
     const mountPoint = document.createElement('div');
-    mountPoint.id = 'prayer-widget-app';
+    mountPoint.id = 'rsvp-widget-app';
     this.shadowRoot.appendChild(mountPoint);
 
     // Inject styles into shadow DOM
@@ -66,11 +66,11 @@ class PrayerWidget {
     this.root = createRoot(mountPoint);
     this.root.render(
       <React.StrictMode>
-        <PrayerPage />
+        <RSVPPage />
       </React.StrictMode>
     );
 
-    console.log('Prayer Widget initialized with Shadow DOM');
+    console.log('RSVP Widget initialized with Shadow DOM');
   }
 
   /**
@@ -147,10 +147,10 @@ class PrayerWidget {
 
     // Replace :root and body selectors for Shadow DOM compatibility
     // :host in Shadow DOM is equivalent to :root in regular DOM
-    // #prayer-widget-app is our mount point, equivalent to body
+    // #rsvp-widget-app is our mount point, equivalent to body
     let shadowCSS = styleText
       .replace(/:root\b/g, ':host')
-      .replace(/\bbody\b/g, '#prayer-widget-app');
+      .replace(/\bbody\b/g, '#rsvp-widget-app');
 
     // Inject reset first, then Tailwind styles
     const style = document.createElement('style');
@@ -173,30 +173,30 @@ class PrayerWidget {
 if (typeof window !== 'undefined') {
   // Set default config if not provided
   const defaultConfig: WidgetConfig = {
-    apiBaseUrl: 'https://prayer-gamma.vercel.app',
-    containerId: 'prayer-widget-root'
+    apiBaseUrl: 'https://rsvp-wine.vercel.app',
+    containerId: 'rsvp-widget-root'
   };
 
   const config: WidgetConfig = {
     ...defaultConfig,
-    ...window.PRAYER_WIDGET_CONFIG || {}
+    ...window.RSVP_WIDGET_CONFIG || {}
   };
 
   // Store config globally for API client to access
-  window.PRAYER_WIDGET_CONFIG = config;
+  window.RSVP_WIDGET_CONFIG = config;
 
   // Wait for DOM to be ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-      const widget = new PrayerWidget(config);
+      const widget = new RSVPWidget(config);
       widget.init();
-      window.PrayerWidget = widget;
+      window.RSVPWidget = widget;
     });
   } else {
-    const widget = new PrayerWidget(config);
+    const widget = new RSVPWidget(config);
     widget.init();
-    window.PrayerWidget = widget;
+    window.RSVPWidget = widget;
   }
 }
 
-export default PrayerWidget;
+export default RSVPWidget;

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Unified Widget Endpoint</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        pre { background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        button { padding: 10px 20px; font-size: 16px; margin: 10px 0; cursor: pointer; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Test Unified Prayer Widget Endpoint</h1>
+
+    <button onclick="testEndpoint()">Test /api/prayers/widget-data</button>
+
+    <div id="output"></div>
+
+    <script>
+        async function testEndpoint() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const token = localStorage.getItem('mpp-widgets_AuthToken');
+                if (!token) {
+                    output.innerHTML = '<p class="error">No auth token found in localStorage. Please log in first.</p>';
+                    return;
+                }
+
+                const response = await fetch('http://localhost:3002/api/prayers/widget-data', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    output.innerHTML = `
+                        <p class="error">Error: ${response.status}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    return;
+                }
+
+                // Success - show the data structure
+                output.innerHTML = `
+                    <p class="success">✅ Success! Received ${response.status}</p>
+                    <h3>Top-level keys:</h3>
+                    <pre>${Object.keys(data).join('\n')}</pre>
+                    <h3>User_Stats:</h3>
+                    <pre>${JSON.stringify(data.User_Stats, null, 2)}</pre>
+                    <h3>My_Requests (first item):</h3>
+                    <pre>${JSON.stringify(data.My_Requests?.Items?.[0], null, 2)}</pre>
+                    <h3>Prayer_Partners count:</h3>
+                    <pre>Total: ${data.Prayer_Partners?.Total_Count || 0}</pre>
+                    <h3>Community_Needs count:</h3>
+                    <pre>Total: ${data.Community_Needs?.Total_Count || 0}</pre>
+                    <details>
+                        <summary>Full Response (click to expand)</summary>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </details>
+                `;
+            } catch (error) {
+                output.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
