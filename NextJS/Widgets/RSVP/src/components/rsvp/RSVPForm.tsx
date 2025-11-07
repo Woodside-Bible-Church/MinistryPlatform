@@ -3,23 +3,17 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { motion } from "framer-motion";
 import {
   User,
   Mail,
   Phone,
   Users,
-  ArrowLeft,
   Loader2,
-  Clock,
-  MapPin,
 } from "lucide-react";
 import {
   RSVPFormSchema,
   RSVPFormInput,
   ServiceTimeResponse,
-  formatServiceTime,
-  formatServiceDate,
 } from "@/types/rsvp";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -263,7 +257,7 @@ export default function RSVPForm({
                   This is my first visit to Woodside
                 </Label>
                 <p className="text-sm text-white/70">
-                  We'd love to help you find your way and make you feel welcome!
+                  We&apos;d love to help you find your way and make you feel welcome!
                 </p>
               </div>
             </div>
@@ -272,7 +266,7 @@ export default function RSVPForm({
             <div className="p-4 bg-white/10 border border-white/20">
               <p className="text-sm text-white/70">
                 <strong className="text-white">Please note:</strong> This RSVP
-                doesn't guarantee a spot, but will let everyone know how full each
+                doesn&apos;t guarantee a spot, but will let everyone know how full each
                 service is so we can plan accordingly.
               </p>
             </div>

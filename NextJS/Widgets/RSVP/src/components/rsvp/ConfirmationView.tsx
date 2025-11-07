@@ -2,8 +2,6 @@
 
 import { motion } from "framer-motion";
 import {
-  CheckCircle2,
-  Calendar,
   MapPin,
   Users,
   Mail,
@@ -14,7 +12,6 @@ import {
   RSVPConfirmationResponse,
   formatServiceTime,
   formatServiceDate,
-  formatPartySize,
 } from "@/types/rsvp";
 import { Button } from "@/components/ui/button";
 

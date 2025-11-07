@@ -37,7 +37,7 @@ export default function CampusSelector({
           Select Your Campus
         </h2>
         <p className="text-gray-600">
-          Choose the Woodside location you'd like to attend
+          Choose the Woodside location you&apos;d like to attend
         </p>
       </div>
 

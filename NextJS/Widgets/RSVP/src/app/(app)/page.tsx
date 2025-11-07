@@ -269,10 +269,10 @@ export default function RSVPPage() {
                       {/* Text */}
                       <div>
                         <h2 className="text-2xl font-bold text-white mb-1">
-                          You're All Set!
+                          You&apos;re All Set!
                         </h2>
                         <p className="text-base text-white opacity-80">
-                          We can't wait to see you at Christmas!
+                          We can&apos;t wait to see you at Christmas!
                         </p>
                       </div>
                     </div>
@@ -362,7 +362,7 @@ export default function RSVPPage() {
                     {/* Helper Text */}
                     <div className="text-center pt-2">
                       <p className="text-sm text-white opacity-70">
-                        <strong className="font-semibold text-white opacity-90">Note:</strong> RSVPs help us plan accordingly but don't guarantee a spot.
+                        <strong className="font-semibold text-white opacity-90">Note:</strong> RSVPs help us plan accordingly but don&apos;t guarantee a spot.
                       </p>
                     </div>
                   </motion.div>
