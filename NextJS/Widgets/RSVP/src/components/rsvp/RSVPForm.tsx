@@ -54,6 +54,7 @@ export default function RSVPForm({
     formState: { errors },
     setValue,
     watch,
+    trigger,
   } = useForm({
     resolver: zodResolver(RSVPFormSchema),
     defaultValues: {
@@ -70,7 +71,34 @@ export default function RSVPForm({
   const partySize = watch("partySize");
   const isNewVisitor = watch("isNewVisitor");
 
-  const handleStep1Continue = () => {
+  // Phone number formatting function
+  const formatPhoneNumber = (value: string) => {
+    // Remove all non-digits
+    const phoneNumber = value.replace(/\D/g, "");
+
+    // Format as (XXX) XXX-XXXX
+    if (phoneNumber.length <= 3) {
+      return phoneNumber;
+    } else if (phoneNumber.length <= 6) {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
+    } else {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    setValue("phoneNumber", formatted);
+  };
+
+  const handleStep1Continue = async () => {
+    // Validate step 1 fields before continuing
+    const isValid = await trigger(["firstName", "lastName", "emailAddress", "phoneNumber"]);
+
+    if (!isValid) {
+      return; // Don't proceed if validation fails
+    }
+
     // Save step 1 data
     const step1Data = {
       firstName: watch("firstName"),
@@ -113,7 +141,7 @@ export default function RSVPForm({
                 />
               </div>
               {errors.firstName && (
-                <p className="text-sm text-destructive bg-white/90 px-2 py-1">
+                <p className="text-sm text-red-200 italic">
                   {errors.firstName.message}
                 </p>
               )}
@@ -134,7 +162,7 @@ export default function RSVPForm({
                 />
               </div>
               {errors.lastName && (
-                <p className="text-sm text-destructive bg-white/90 px-2 py-1">
+                <p className="text-sm text-red-200 italic">
                   {errors.lastName.message}
                 </p>
               )}
@@ -157,7 +185,7 @@ export default function RSVPForm({
               />
             </div>
             {errors.emailAddress && (
-              <p className="text-sm text-destructive bg-white/90 px-2 py-1">
+              <p className="text-sm text-red-200 italic">
                 {errors.emailAddress.message}
               </p>
             )}
@@ -171,13 +199,16 @@ export default function RSVPForm({
               <Input
                 id="phoneNumber"
                 type="tel"
+                inputMode="numeric"
                 {...register("phoneNumber")}
+                onChange={handlePhoneChange}
+                maxLength={14}
                 className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
                 placeholder="(810) 555-1234"
               />
             </div>
             {errors.phoneNumber && (
-              <p className="text-sm text-destructive bg-white/90 px-2 py-1">
+              <p className="text-sm text-red-200 italic">
                 {errors.phoneNumber.message}
               </p>
             )}
@@ -233,7 +264,7 @@ export default function RSVPForm({
                 </SelectContent>
               </Select>
               {errors.partySize && (
-                <p className="text-sm text-destructive bg-white/90 px-2 py-1">
+                <p className="text-sm text-red-200 italic">
                   {errors.partySize.message}
                 </p>
               )}
