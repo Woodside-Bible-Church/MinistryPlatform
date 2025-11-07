@@ -54,7 +54,7 @@ export default function RSVPForm({
     formState: { errors },
     setValue,
     watch,
-  } = useForm<RSVPFormInput>({
+  } = useForm({
     resolver: zodResolver(RSVPFormSchema),
     defaultValues: {
       eventId: selectedServiceTime.Event_ID,
@@ -63,7 +63,7 @@ export default function RSVPForm({
       emailAddress: initialData.emailAddress || "",
       phoneNumber: initialData.phoneNumber || "",
       partySize: initialData.partySize || 1,
-      isNewVisitor: initialData.isNewVisitor || false,
+      isNewVisitor: initialData.isNewVisitor ?? false,
     },
   });
 
