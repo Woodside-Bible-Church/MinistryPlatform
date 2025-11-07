@@ -27,10 +27,18 @@ import {
 
 type ViewType = "services" | "form" | "confirmation";
 
+// Extend Window interface for widget config
+interface WidgetWindow extends Window {
+  RSVP_WIDGET_CONFIG?: {
+    apiBaseUrl?: string;
+    containerId?: string;
+  };
+}
+
 export default function RSVPPage() {
   // Get base URL for assets (works in both Next.js and widget contexts)
-  const baseUrl = typeof window !== 'undefined' && (window as any).RSVP_WIDGET_CONFIG?.apiBaseUrl
-    ? (window as any).RSVP_WIDGET_CONFIG.apiBaseUrl
+  const baseUrl = typeof window !== 'undefined' && (window as WidgetWindow).RSVP_WIDGET_CONFIG?.apiBaseUrl
+    ? (window as WidgetWindow).RSVP_WIDGET_CONFIG.apiBaseUrl
     : '';
 
   // State - Default to Troy (campusId: 12)
