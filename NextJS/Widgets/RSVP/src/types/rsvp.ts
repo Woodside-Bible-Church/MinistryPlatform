@@ -135,7 +135,7 @@ export const RSVPFormSchema = z.object({
     .int()
     .min(1, "Party size must be at least 1")
     .max(20, "Party size cannot exceed 20"),
-  isNewVisitor: z.boolean().optional().default(false),
+  isNewVisitor: z.boolean().default(false),
 });
 
 export type RSVPFormInput = z.infer<typeof RSVPFormSchema>;

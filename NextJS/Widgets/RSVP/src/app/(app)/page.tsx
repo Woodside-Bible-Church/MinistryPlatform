@@ -308,7 +308,7 @@ export default function RSVPPage() {
             </div>
 
             {/* Christmas Image */}
-            <div className="hidden lg:block flex-shrink-0 w-[420px]">
+            <div className="hidden lg:block flex-shrink-0 w-[520px]">
               <img
                 src="/assets/Christmas24_web_1480x1080.jpg"
                 alt="Christmas Service"
