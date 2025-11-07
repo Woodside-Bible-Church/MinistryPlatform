@@ -481,7 +481,7 @@ export default function RSVPPage() {
       </section>
 
       {/* Informational Events Section */}
-      {currentView === "services" && filteredInformationalEvents.length > 0 && (
+      {filteredInformationalEvents.length > 0 && (
         <section className="bg-gray-50 py-12">
           <div className="relative mx-auto px-8 max-w-[1600px]">
             <h2 className="text-3xl font-bold text-primary mb-6">
