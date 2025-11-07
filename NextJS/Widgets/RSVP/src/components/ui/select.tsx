@@ -50,6 +50,11 @@ function SelectTrigger({
   )
 }
 
+// Extend Window interface for widget portal container
+interface WidgetWindow extends Window {
+  __RSVP_WIDGET_PORTAL_CONTAINER__?: HTMLElement;
+}
+
 function SelectContent({
   className,
   children,
@@ -58,7 +63,7 @@ function SelectContent({
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
   // Check if we're in a Shadow DOM context (widget mode)
   const portalContainer = typeof window !== 'undefined'
-    ? (window as any).__RSVP_WIDGET_PORTAL_CONTAINER__
+    ? (window as WidgetWindow).__RSVP_WIDGET_PORTAL_CONTAINER__
     : undefined;
 
   return (
