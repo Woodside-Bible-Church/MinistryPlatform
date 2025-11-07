@@ -88,9 +88,14 @@ export default function RSVPPage() {
   const getInitialCampusId = (): number => {
     const wpLocationId = getWordPressLocationId();
     if (wpLocationId) {
-      // WordPress location_id maps directly to our campus ID
-      console.log(`WordPress location detected: ${wpLocationId}`);
-      return wpLocationId;
+      // WordPress location_id corresponds to MinistryPlatform Congregation_ID
+      // Find the campus that matches this Congregation_ID
+      const campus = mockCampuses.find(c => c.congregationId === wpLocationId);
+      if (campus) {
+        console.log(`WordPress location detected: Congregation_ID ${wpLocationId} -> Campus ${campus.name} (id: ${campus.id})`);
+        return campus.id;
+      }
+      console.warn(`WordPress location_id ${wpLocationId} not found in campus list`);
     }
     return 12; // Default to Troy
   };
