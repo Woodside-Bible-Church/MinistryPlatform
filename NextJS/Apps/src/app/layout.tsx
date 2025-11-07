@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
+import DynamicManifest from "@/components/DynamicManifest";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 
@@ -17,7 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Apps | Woodside Bible Church",
   description: "Internal tools platform for Woodside Bible Church staff and volunteers",
-  manifest: "/manifest.json",
+  // Manifest is dynamically loaded by DynamicManifest component based on route
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -69,6 +70,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <DynamicManifest />
           {children}
           <PWAInstallPrompt />
         </ThemeProvider>

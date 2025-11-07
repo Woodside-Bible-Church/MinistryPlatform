@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { UserCircleIcon, ChevronDownIcon, Bars3Icon, XMarkIcon, MapPinIcon } from '@heroicons/react/24/solid';
 import { Activity } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
@@ -12,6 +13,7 @@ import { signIn } from 'next-auth/react';
 import { getCurrentUserProfile, updateUserCongregation } from '@/components/UserMenu/actions';
 import { mpUserProfile } from '@/providers/MinistryPlatform/Interfaces/mpUserProfile';
 import { useCampus } from '@/contexts/CampusContext';
+import { useStandaloneMode, useAppContext } from '@/hooks/useStandaloneMode';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,6 +42,15 @@ export default function Header() {
   const [svgError, setSvgError] = useState(false);
   const session = useSession();
   const { selectedCampus, setSelectedCampus, congregations, isLoading: campusLoading } = useCampus();
+  const pathname = usePathname();
+  const isStandalone = useStandaloneMode();
+  const appContext = useAppContext(pathname);
+
+  // Get app home URL based on context
+  const getAppHomeUrl = () => {
+    if (!isStandalone) return '/';
+    return appContext === 'default' ? '/' : `/${appContext}`;
+  };
 
   // Reset SVG loading states when campus changes
   useEffect(() => {
@@ -131,22 +142,26 @@ export default function Header() {
           <div className="flex items-center justify-between md:gap-2 lg:gap-0 h-16">
             {/* Left - Mobile: Hamburger + Search, Desktop: Logo & Navigation */}
             <div className="flex items-center gap-2 flex-1 md:flex-initial md:shrink-0">
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setMobileMenuOpen(true)}
-                className="md:hidden p-2 -ml-2 text-foreground dark:text-[oklch(0.8_0_0)] hover:text-primary dark:hover:text-[#61bc47] active:text-primary dark:active:text-[#61bc47] transition-colors pointer-events-auto"
-                aria-label="Open menu"
-              >
-                <Bars3Icon className="w-6 h-6" />
-              </button>
+              {/* Mobile Menu Button - Hide in standalone mode */}
+              {!isStandalone && (
+                <button
+                  onClick={() => setMobileMenuOpen(true)}
+                  className="md:hidden p-2 -ml-2 text-foreground dark:text-[oklch(0.8_0_0)] hover:text-primary dark:hover:text-[#61bc47] active:text-primary dark:active:text-[#61bc47] transition-colors pointer-events-auto"
+                  aria-label="Open menu"
+                >
+                  <Bars3Icon className="w-6 h-6" />
+                </button>
+              )}
 
-              {/* Mobile Search Icon */}
-              <div className="md:hidden pointer-events-auto">
-                <GlobalSearch isMobile={true} />
-              </div>
+              {/* Mobile Search Icon - Hide in standalone mode */}
+              {!isStandalone && (
+                <div className="md:hidden pointer-events-auto">
+                  <GlobalSearch isMobile={true} />
+                </div>
+              )}
 
               {/* Desktop Logo */}
-              <Link href="/" className="hidden md:flex items-center logo-link mr-3 pointer-events-auto">
+              <Link href={getAppHomeUrl()} className="hidden md:flex items-center logo-link mr-3 pointer-events-auto">
                 <div className="relative w-10 h-10 shrink-0">
                   <svg className="logo-svg w-full h-full" viewBox="0 0 822.73 822.41" xmlns="http://www.w3.org/2000/svg">
                     <path d="M482.59,292.96c-28.5,75.56-63.52,148.62-91.88,224.24-22.85,60.93-44.5,165.54,5.99,218.03,53.19,55.31,103.27-36.03,126.36-76.12,29.77-51.67,60.19-102.91,92.51-153.1,37.77-58.65,82.78-117.18,128.05-170.34,17.33-20.35,35.58-39.9,55.18-58.05,1.32-.3,1.67.72,2.19,1.61,2.7,4.68,6.16,19.72,7.79,25.79,55.59,207.53-59.67,424.44-261.39,494.49-162.86,56.55-343.5,6.03-452.97-125.71l.02-2.82c22.1-29.38,43.34-59.51,66.31-88.22,46.87-58.59,104.84-117,159.18-168.95,39.21-37.49,94.79-86.04,141.88-112.38,2.97-1.66,18.74-10.3,20.79-8.46Z" fill="currentColor"/>
@@ -156,40 +171,42 @@ export default function Header() {
                 </div>
               </Link>
 
-              {/* Desktop Navigation */}
-              <nav className="hidden md:flex items-center gap-1">
-              <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-1 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground dark:text-[oklch(0.8_0_0)] hover:!text-primary dark:hover:!text-[#61bc47] focus:!text-primary dark:focus:!text-[#61bc47] active:!text-primary dark:active:!text-[#61bc47] transition-colors focus:outline-none !bg-transparent hover:!bg-transparent data-[state=open]:!bg-transparent focus:!bg-transparent active:!bg-transparent !border-none pointer-events-auto">
-                  APPS
-                  <ChevronDownIcon className="w-4 h-4" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-64 bg-white/50 dark:bg-[oklch(0.16_0.005_0)]/95 backdrop-blur-2xl border-white/30 dark:border-[oklch(0.3_0.005_0)] shadow-2xl z-[60]">
-                  {apps.map((app) => {
-                    const Icon = getIcon(app.Icon);
-                    const route = app.Route || '#';
-                    return (
-                      <DropdownMenuItem key={app.Application_ID} asChild className="focus:bg-transparent hover:bg-transparent data-[highlighted]:bg-transparent">
-                        <Link href={route} className="flex items-center gap-3 p-3 cursor-pointer rounded-md transition-colors group">
-                          <div className="w-10 h-10 bg-[#61bc47]/10 group-hover:bg-[#61bc47] group-focus:bg-[#61bc47] rounded-full flex items-center justify-center flex-shrink-0 transition-all">
-                            <Icon className="w-5 h-5 text-[#61bc47] group-hover:text-white group-focus:text-white transition-colors" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm text-foreground group-hover:text-primary dark:group-hover:text-[#61bc47] transition-colors">{app.Application_Name}</p>
-                            <p className="text-xs text-muted-foreground truncate transition-colors">{app.Description}</p>
-                          </div>
-                        </Link>
-                      </DropdownMenuItem>
-                    );
-                  })}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </nav>
+              {/* Desktop Navigation - Hide in standalone mode */}
+              {!isStandalone && (
+                <nav className="hidden md:flex items-center gap-1">
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex items-center gap-1 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-foreground dark:text-[oklch(0.8_0_0)] hover:!text-primary dark:hover:!text-[#61bc47] focus:!text-primary dark:focus:!text-[#61bc47] active:!text-primary dark:active:!text-[#61bc47] transition-colors focus:outline-none !bg-transparent hover:!bg-transparent data-[state=open]:!bg-transparent focus:!bg-transparent active:!bg-transparent !border-none pointer-events-auto">
+                    APPS
+                    <ChevronDownIcon className="w-4 h-4" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-64 bg-white/50 dark:bg-[oklch(0.16_0.005_0)]/95 backdrop-blur-2xl border-white/30 dark:border-[oklch(0.3_0.005_0)] shadow-2xl z-[60]">
+                    {apps.map((app) => {
+                      const Icon = getIcon(app.Icon);
+                      const route = app.Route || '#';
+                      return (
+                        <DropdownMenuItem key={app.Application_ID} asChild className="focus:bg-transparent hover:bg-transparent data-[highlighted]:bg-transparent">
+                          <Link href={route} className="flex items-center gap-3 p-3 cursor-pointer rounded-md transition-colors group">
+                            <div className="w-10 h-10 bg-[#61bc47]/10 group-hover:bg-[#61bc47] group-focus:bg-[#61bc47] rounded-full flex items-center justify-center flex-shrink-0 transition-all">
+                              <Icon className="w-5 h-5 text-[#61bc47] group-hover:text-white group-focus:text-white transition-colors" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm text-foreground group-hover:text-primary dark:group-hover:text-[#61bc47] transition-colors">{app.Application_Name}</p>
+                              <p className="text-xs text-muted-foreground truncate transition-colors">{app.Description}</p>
+                            </div>
+                          </Link>
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </nav>
+              )}
           </div>
 
           {/* Center - Desktop Search (inline at md, centered at lg+) OR Mobile Logo */}
           <div className="md:hidden flex items-center justify-center pointer-events-auto">
             {/* Mobile Logo */}
-            <Link href="/" className="flex items-center logo-link p-2">
+            <Link href={getAppHomeUrl()} className="flex items-center logo-link p-2">
               <div className="relative w-10 h-10 shrink-0">
                 <svg className="logo-svg w-full h-full" viewBox="0 0 822.73 822.41" xmlns="http://www.w3.org/2000/svg">
                   <path d="M482.59,292.96c-28.5,75.56-63.52,148.62-91.88,224.24-22.85,60.93-44.5,165.54,5.99,218.03,53.19,55.31,103.27-36.03,126.36-76.12,29.77-51.67,60.19-102.91,92.51-153.1,37.77-58.65,82.78-117.18,128.05-170.34,17.33-20.35,35.58-39.9,55.18-58.05,1.32-.3,1.67.72,2.19,1.61,2.7,4.68,6.16,19.72,7.79,25.79,55.59,207.53-59.67,424.44-261.39,494.49-162.86,56.55-343.5,6.03-452.97-125.71l.02-2.82c22.1-29.38,43.34-59.51,66.31-88.22,46.87-58.59,104.84-117,159.18-168.95,39.21-37.49,94.79-86.04,141.88-112.38,2.97-1.66,18.74-10.3,20.79-8.46Z" fill="currentColor"/>
@@ -200,9 +217,12 @@ export default function Header() {
             </Link>
           </div>
 
-          <div className="hidden md:flex md:flex-1 md:relative lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:top-1/2 lg:-translate-y-1/2 lg:w-full lg:max-w-md md:px-0 lg:px-4">
-            <GlobalSearch isMobile={false} />
-          </div>
+          {/* Desktop Search - Hide in standalone mode */}
+          {!isStandalone && (
+            <div className="hidden md:flex md:flex-1 md:relative lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:top-1/2 lg:-translate-y-1/2 lg:w-full lg:max-w-md md:px-0 lg:px-4">
+              <GlobalSearch isMobile={false} />
+            </div>
+          )}
 
           {/* Right - Campus Selector + User avatar */}
           <div className="flex items-center gap-2 flex-1 justify-end md:flex-initial md:gap-4 md:shrink-0">
