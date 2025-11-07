@@ -502,7 +502,7 @@ export default function ProjectDetailPage({
                 </h3>
                 <PieChartIcon className="w-5 h-5 text-muted-foreground" />
               </div>
-              {expenseCategories.length === 0 || expenseCategories.every(cat => cat.estimated === 0 && cat.actual === 0) ? (
+              {expenseCategories.filter(cat => cat.estimated > 0 || cat.actual > 0).length < 2 ? (
                 <div className="h-[360px] flex items-center justify-center">
                   <p className="text-muted-foreground text-sm">No data to show</p>
                 </div>
@@ -659,7 +659,7 @@ export default function ProjectDetailPage({
                 </h3>
                 <PieChartIcon className="w-5 h-5 text-muted-foreground" />
               </div>
-              {revenueCategories.length === 0 || revenueCategories.every(cat => cat.estimated === 0 && cat.actual === 0) ? (
+              {revenueCategories.filter(cat => cat.estimated > 0 || cat.actual > 0).length < 2 ? (
                 <div className="h-[360px] flex items-center justify-center">
                   <p className="text-muted-foreground text-sm">No data to show</p>
                 </div>
