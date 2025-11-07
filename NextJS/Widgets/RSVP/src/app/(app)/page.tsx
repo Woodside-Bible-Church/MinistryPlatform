@@ -38,7 +38,7 @@ interface WidgetWindow extends Window {
 export default function RSVPPage() {
   // Get base URL for assets (works in both Next.js and widget contexts)
   const baseUrl = typeof window !== 'undefined' && (window as WidgetWindow).RSVP_WIDGET_CONFIG?.apiBaseUrl
-    ? (window as WidgetWindow).RSVP_WIDGET_CONFIG.apiBaseUrl
+    ? (window as WidgetWindow).RSVP_WIDGET_CONFIG?.apiBaseUrl
     : '';
 
   // State - Default to Troy (campusId: 12)
