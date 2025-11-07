@@ -56,8 +56,13 @@ function SelectContent({
   position = "popper",
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
+  // Check if we're in a Shadow DOM context (widget mode)
+  const portalContainer = typeof window !== 'undefined'
+    ? (window as any).__RSVP_WIDGET_PORTAL_CONTAINER__
+    : undefined;
+
   return (
-    <SelectPrimitive.Portal>
+    <SelectPrimitive.Portal container={portalContainer}>
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(

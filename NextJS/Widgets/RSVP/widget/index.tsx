@@ -57,10 +57,18 @@ class RSVPWidget {
     mountPoint.id = 'rsvp-widget-app';
     this.shadowRoot.appendChild(mountPoint);
 
+    // Create portal container for Radix UI portals (Select, Dialog, etc.)
+    const portalContainer = document.createElement('div');
+    portalContainer.id = 'rsvp-widget-portals';
+    this.shadowRoot.appendChild(portalContainer);
+
     // Inject styles into shadow DOM
     // Note: Vite's css-injected-by-js plugin will inject styles into document.head
     // We need to copy those styles into our shadow DOM
     this.injectStyles();
+
+    // Store portal container globally for Radix UI components to access
+    (window as any).__RSVP_WIDGET_PORTAL_CONTAINER__ = portalContainer;
 
     // Create React root and render inside shadow DOM
     this.root = createRoot(mountPoint);
