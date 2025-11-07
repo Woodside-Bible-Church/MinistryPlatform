@@ -594,17 +594,19 @@ export const mockInformationalEvents: InformationalEvent[] = [
     endDate: new Date("2024-12-22T20:00:00"),
     campusId: 12, // Troy
     campusName: "Troy",
+    imageUrl: "/assets/Algonac_Nativity_MP (1)(1).jpg",
     eventUrl: "https://woodsidebible.org/events/live-nativity",
   },
   {
     eventId: 5002,
-    title: "Christmas Concert",
-    description: "Experience the joy of the season with our annual Christmas concert featuring the Woodside Worship Choir.",
-    startDate: new Date("2024-12-15T19:00:00"),
-    endDate: new Date("2024-12-15T21:00:00"),
-    campusId: 11, // Royal Oak
-    campusName: "Royal Oak",
-    eventUrl: "https://woodsidebible.org/events/christmas-concert",
+    title: "Live Nativity Experience",
+    description: "Join us for a walk-through nativity experience with live animals and actors depicting the birth of Jesus.",
+    startDate: new Date("2024-12-20T18:00:00"),
+    endDate: new Date("2024-12-22T20:00:00"),
+    campusId: 1, // Algonac
+    campusName: "Algonac",
+    imageUrl: "/assets/Algonac_Nativity_MP (1)(1).jpg",
+    eventUrl: "https://woodsidebible.org/events/live-nativity",
   },
 ];
 

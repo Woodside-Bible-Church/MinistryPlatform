@@ -6,11 +6,13 @@ import { MapPin, Clock, ArrowLeft, CheckCircle2 } from "lucide-react";
 import ServiceTimeCard from "@/components/rsvp/ServiceTimeCard";
 import RSVPForm from "@/components/rsvp/RSVPForm";
 import ConfirmationView from "@/components/rsvp/ConfirmationView";
+import InformationalEventCard from "@/components/rsvp/InformationalEventCard";
 import {
   mockCampuses,
   mockServiceTimes,
   simulateRSVPSubmission,
   ServiceTime,
+  mockInformationalEvents,
 } from "@/data/mockData";
 import {
   RSVPFormInput,
@@ -127,6 +129,13 @@ export default function RSVPPage() {
   const filteredServiceTimes = useMemo(() => {
     return mockServiceTimes.filter(
       (service) => service.campusId === selectedCampusId
+    );
+  }, [selectedCampusId]);
+
+  // Filter informational events by selected campus
+  const filteredInformationalEvents = useMemo(() => {
+    return mockInformationalEvents.filter(
+      (event) => event.campusId === selectedCampusId
     );
   }, [selectedCampusId]);
 
@@ -422,6 +431,24 @@ export default function RSVPPage() {
                     </div>
                   ))}
                 </div>
+
+                    {/* Informational Events */}
+                    {filteredInformationalEvents.length > 0 && (
+                      <div className="mt-8 space-y-4">
+                        <h3 className="text-xl font-bold text-white">
+                          Other Christmas Events
+                        </h3>
+                        <div className="flex flex-wrap gap-4">
+                          {filteredInformationalEvents.map((event) => (
+                            <InformationalEventCard
+                              key={event.eventId}
+                              event={event}
+                              baseUrl={baseUrl}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Helper Text */}
                     <div className="text-center pt-2">
