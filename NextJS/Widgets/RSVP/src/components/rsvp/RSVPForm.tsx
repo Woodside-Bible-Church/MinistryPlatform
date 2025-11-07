@@ -91,8 +91,6 @@ export default function RSVPForm({
     }
   };
 
-  const startDate = new Date(selectedServiceTime.Event_Start_Date);
-
   return (
     <div className="space-y-6">
       {/* Step 1: Tell Us About Yourself */}
