@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Clock, Users, CheckCircle2 } from "lucide-react";
+import { Clock, Users, CheckCircle2, ChevronRight } from "lucide-react";
 import {
   ServiceTimeResponse,
   formatServiceTime,
@@ -107,6 +107,23 @@ export default function ServiceTimeCard({
             </span>
           </div>
         </div>
+
+        {/* RSVP Call-to-Action */}
+        {serviceTime.Is_Available && !selected && (
+          <div className="mt-4 pt-4 border-t border-white/20">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-extrabold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent uppercase tracking-wider">
+                Click to RSVP
+              </span>
+              <motion.div
+                animate={{ x: [0, 4, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <ChevronRight className="w-5 h-5 text-white" />
+              </motion.div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Full Badge */}
