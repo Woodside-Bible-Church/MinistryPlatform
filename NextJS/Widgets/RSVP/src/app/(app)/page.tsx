@@ -505,12 +505,6 @@ export default function RSVPPage() {
         </section>
       )}
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 mt-12 py-8">
-        <div className="container mx-auto px-4 text-center text-sm text-gray-600">
-          {/* Footer content handled by WordPress theme */}
-        </div>
-      </footer>
     </div>
   );
 }
