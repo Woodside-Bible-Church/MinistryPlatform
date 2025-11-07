@@ -495,7 +495,7 @@ export function getServiceTimeById(eventId: number): ServiceTime | undefined {
  */
 export function simulateRSVPSubmission(
   submission: RSVPSubmission
-): Record<string, string | number | null> {
+) {
   const serviceTime = getServiceTimeById(submission.eventId);
   if (!serviceTime) {
     throw new Error(`Service time not found for event ID: ${submission.eventId}`);

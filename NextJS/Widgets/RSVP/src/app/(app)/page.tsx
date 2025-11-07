@@ -126,7 +126,7 @@ export default function RSVPPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header with Background Image and Content */}
-      <section className="relative text-white overflow-hidden pb-16">
+      <section className="relative text-white overflow-hidden pt-16 pb-16">
         {/* Background Pattern */}
         <div
           className="absolute inset-0 bg-cover bg-center"
@@ -134,7 +134,7 @@ export default function RSVPPage() {
         />
 
         {/* Content Container */}
-        <div className="relative mx-auto px-8 py-16 max-w-[1600px]">
+        <div className="relative mx-auto px-8 max-w-[1600px]">
           {/* Top Section - Header and Image */}
           <div className="flex gap-8 mb-12">
             {/* Left: Header Text + Instructions */}
