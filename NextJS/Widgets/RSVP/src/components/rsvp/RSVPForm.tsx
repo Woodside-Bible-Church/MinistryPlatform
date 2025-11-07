@@ -189,14 +189,15 @@ export default function RSVPForm({
               type="button"
               onClick={onBack}
               variant="outline"
-              className="flex-1 h-12 text-base font-bold uppercase tracking-wide bg-white/10 text-white border-white/20 hover:bg-white/20"
+              className="flex-1 h-12 text-base border-2 border-secondary text-secondary hover:bg-secondary hover:text-primary bg-transparent font-bold uppercase tracking-wide"
             >
               Back
             </Button>
             <Button
               type="button"
               onClick={handleStep1Continue}
-              className="flex-1 h-12 text-base bg-secondary hover:bg-secondary/90 text-primary font-bold uppercase tracking-wide"
+              variant="secondary"
+              className="flex-1 h-12 text-base font-bold uppercase tracking-wide"
             >
               Continue
             </Button>
@@ -275,14 +276,15 @@ export default function RSVPForm({
                 type="button"
                 onClick={() => onStepChange(1)}
                 variant="outline"
-                className="flex-1 h-12 text-base font-bold uppercase tracking-wide bg-white/10 text-white border-white/20 hover:bg-white/20"
+                className="flex-1 h-12 text-base border-2 border-secondary text-secondary hover:bg-secondary hover:text-primary bg-transparent font-bold uppercase tracking-wide"
               >
                 Back
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 h-12 text-base bg-secondary hover:bg-secondary/90 text-primary font-bold uppercase tracking-wide"
+                variant="secondary"
+                className="flex-1 h-12 text-base font-bold uppercase tracking-wide"
               >
                 {isSubmitting ? (
                   <>
