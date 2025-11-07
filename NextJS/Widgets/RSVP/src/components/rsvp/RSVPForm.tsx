@@ -136,6 +136,8 @@ export default function RSVPForm({
                 <Input
                   id="firstName"
                   {...register("firstName")}
+                  name="firstName"
+                  autoComplete="given-name"
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   placeholder="John"
                 />
@@ -157,6 +159,8 @@ export default function RSVPForm({
                 <Input
                   id="lastName"
                   {...register("lastName")}
+                  name="lastName"
+                  autoComplete="family-name"
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   placeholder="Doe"
                 />
@@ -180,6 +184,8 @@ export default function RSVPForm({
                 id="emailAddress"
                 type="email"
                 {...register("emailAddress")}
+                name="emailAddress"
+                autoComplete="email"
                 className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
                 placeholder="john.doe@example.com"
               />
@@ -201,6 +207,8 @@ export default function RSVPForm({
                 type="tel"
                 inputMode="numeric"
                 {...register("phoneNumber")}
+                name="phoneNumber"
+                autoComplete="tel"
                 onChange={handlePhoneChange}
                 maxLength={14}
                 className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
