@@ -508,15 +508,7 @@ export default function RSVPPage() {
       {/* Footer */}
       <footer className="border-t border-gray-200 mt-12 py-8">
         <div className="container mx-auto px-4 text-center text-sm text-gray-600">
-          <p>
-            Questions?{" "}
-            <a
-              href="https://woodsidebible.org/contact"
-              className="text-primary hover:underline"
-            >
-              Contact us
-            </a>
-          </p>
+          {/* Footer content handled by WordPress theme */}
         </div>
       </footer>
     </div>
