@@ -432,24 +432,6 @@ export default function RSVPPage() {
                   ))}
                 </div>
 
-                    {/* Informational Events */}
-                    {filteredInformationalEvents.length > 0 && (
-                      <div className="mt-8 space-y-4">
-                        <h3 className="text-xl font-bold text-white">
-                          Other Christmas Events
-                        </h3>
-                        <div className="flex flex-wrap gap-4">
-                          {filteredInformationalEvents.map((event) => (
-                            <InformationalEventCard
-                              key={event.eventId}
-                              event={event}
-                              baseUrl={baseUrl}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
                     {/* Helper Text */}
                     <div className="text-center pt-2">
                       <p className="text-sm text-white opacity-70">
@@ -497,6 +479,26 @@ export default function RSVPPage() {
           </div>
         </div>
       </section>
+
+      {/* Informational Events Section */}
+      {currentView === "services" && filteredInformationalEvents.length > 0 && (
+        <section className="bg-gray-50 py-12">
+          <div className="relative mx-auto px-8 max-w-[1600px]">
+            <h2 className="text-3xl font-bold text-primary mb-6">
+              Other Christmas Events
+            </h2>
+            <div className="flex flex-wrap gap-4">
+              {filteredInformationalEvents.map((event) => (
+                <InformationalEventCard
+                  key={event.eventId}
+                  event={event}
+                  baseUrl={baseUrl}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Footer */}
       <footer className="border-t border-gray-200 mt-12 py-8">
