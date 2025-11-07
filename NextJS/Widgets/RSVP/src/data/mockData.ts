@@ -21,6 +21,18 @@ export interface ServiceTime {
   isAvailable: boolean;
 }
 
+export interface InformationalEvent {
+  eventId: number;
+  title: string;
+  description: string;
+  startDate: Date;
+  endDate: Date;
+  campusId: number;
+  campusName: string;
+  imageUrl?: string;
+  eventUrl: string; // Link to full event details
+}
+
 export interface EventSeries {
   seriesId: number;
   seriesName: string;
@@ -62,21 +74,22 @@ export interface RSVPConfirmation {
 // ============================================================================
 // 14 Woodside Bible Church Campuses
 // ============================================================================
+// Congregation IDs from MinistryPlatform (as of 2024-11-07)
 export const mockCampuses: Campus[] = [
-  { id: 1, name: "Algonac", congregationId: 1 },
-  { id: 2, name: "Chesterfield", congregationId: 2 },
-  { id: 3, name: "Detroit", congregationId: 3 },
-  { id: 4, name: "Downriver", congregationId: 4 },
-  { id: 5, name: "Farmington Hills", congregationId: 5 },
-  { id: 6, name: "Lake Orion", congregationId: 6 },
-  { id: 7, name: "Lapeer", congregationId: 7 },
-  { id: 8, name: "Plymouth", congregationId: 8 },
-  { id: 9, name: "Pontiac", congregationId: 9 },
-  { id: 10, name: "Romeo", congregationId: 10 },
-  { id: 11, name: "Royal Oak", congregationId: 11 },
-  { id: 12, name: "Troy", congregationId: 12 },
-  { id: 13, name: "Warren", congregationId: 13 },
-  { id: 14, name: "White Lake", congregationId: 14 },
+  { id: 1, name: "Algonac", congregationId: 4 },
+  { id: 2, name: "Chesterfield", congregationId: 20 },
+  { id: 3, name: "Detroit", congregationId: 6 },
+  { id: 4, name: "Downriver", congregationId: 26 },
+  { id: 5, name: "Farmington Hills", congregationId: 8 },
+  { id: 6, name: "Lake Orion", congregationId: 9 },
+  { id: 7, name: "Lapeer", congregationId: 10 },
+  { id: 8, name: "Plymouth", congregationId: 11 },
+  { id: 9, name: "Pontiac", congregationId: 12 },
+  { id: 10, name: "Romeo", congregationId: 13 },
+  { id: 11, name: "Royal Oak", congregationId: 14 },
+  { id: 12, name: "Troy", congregationId: 15 },
+  { id: 13, name: "Warren", congregationId: 16 },
+  { id: 14, name: "White Lake", congregationId: 17 },
 ];
 
 // ============================================================================
@@ -566,4 +579,38 @@ export function getCapacityColor(percentage: number): string {
   if (percentage < 75) return "bg-yellow-500";
   if (percentage < 90) return "bg-orange-500";
   return "bg-red-500";
+}
+
+// ============================================================================
+// Informational Events (No RSVP Required)
+// ============================================================================
+// These are events we want to promote but don't need RSVPs
+export const mockInformationalEvents: InformationalEvent[] = [
+  {
+    eventId: 5001,
+    title: "Live Nativity Experience",
+    description: "Join us for a walk-through nativity experience with live animals and actors depicting the birth of Jesus.",
+    startDate: new Date("2024-12-20T18:00:00"),
+    endDate: new Date("2024-12-22T20:00:00"),
+    campusId: 12, // Troy
+    campusName: "Troy",
+    eventUrl: "https://woodsidebible.org/events/live-nativity",
+  },
+  {
+    eventId: 5002,
+    title: "Christmas Concert",
+    description: "Experience the joy of the season with our annual Christmas concert featuring the Woodside Worship Choir.",
+    startDate: new Date("2024-12-15T19:00:00"),
+    endDate: new Date("2024-12-15T21:00:00"),
+    campusId: 11, // Royal Oak
+    campusName: "Royal Oak",
+    eventUrl: "https://woodsidebible.org/events/christmas-concert",
+  },
+];
+
+/**
+ * Get informational events for a specific campus
+ */
+export function getInformationalEventsByCampus(campusId: number): InformationalEvent[] {
+  return mockInformationalEvents.filter((event) => event.campusId === campusId);
 }

@@ -35,16 +35,67 @@ interface WidgetWindow extends Window {
   };
 }
 
+// WordPress location cookie structure
+interface WPLocationCookie {
+  user_id: number;
+  location_id: number;
+  location_name: string;
+  location_short_name: string;
+  location_url: string;
+}
+
+/**
+ * Read and decode WordPress location cookie from parent page
+ * Cookie name: tbx-ws__selected-location
+ * Value is base64-encoded JSON
+ */
+function getWordPressLocationId(): number | null {
+  if (typeof document === 'undefined') return null;
+
+  try {
+    // Get cookie from document.cookie (accessible from Shadow DOM)
+    const cookies = document.cookie.split(';');
+    const locationCookie = cookies
+      .find(c => c.trim().startsWith('tbx-ws__selected-location='));
+
+    if (!locationCookie) return null;
+
+    // Extract value after '='
+    const cookieValue = locationCookie.split('=')[1];
+    if (!cookieValue) return null;
+
+    // Decode base64
+    const decoded = atob(cookieValue);
+    const data: WPLocationCookie = JSON.parse(decoded);
+
+    // Return location_id from cookie
+    return data.location_id;
+  } catch (error) {
+    console.warn('Failed to parse WordPress location cookie:', error);
+    return null;
+  }
+}
+
 export default function RSVPPage() {
   // Get base URL for assets (works in both Next.js and widget contexts)
   const baseUrl = typeof window !== 'undefined' && (window as WidgetWindow).RSVP_WIDGET_CONFIG?.apiBaseUrl
     ? (window as WidgetWindow).RSVP_WIDGET_CONFIG?.apiBaseUrl
     : '';
 
-  // State - Default to Troy (campusId: 12)
-  // TODO: Get default campus from cookie when embedded in WordPress
+  // Get default campus from WordPress cookie, fallback to Troy (12)
+  const getInitialCampusId = (): number => {
+    const wpLocationId = getWordPressLocationId();
+    if (wpLocationId) {
+      // WordPress location_id maps directly to our campus ID
+      console.log(`WordPress location detected: ${wpLocationId}`);
+      return wpLocationId;
+    }
+    return 12; // Default to Troy
+  };
+
+  // State
   const [currentView, setCurrentView] = useState<ViewType>("services");
-  const [selectedCampusId, setSelectedCampusId] = useState<number>(12); // Troy
+  const [selectedCampusId, setSelectedCampusId] = useState<number>(getInitialCampusId());
   const [selectedServiceTime, setSelectedServiceTime] =
     useState<ServiceTimeResponse | null>(null);
   const [confirmation, setConfirmation] =
