@@ -236,7 +236,7 @@ export default function RSVPForm({
               type="button"
               onClick={handleStep1Continue}
               variant="secondary"
-              className="flex-1 h-12 text-base font-bold uppercase tracking-wide text-primary border-2 border-secondary"
+              className="flex-1 h-12 text-base font-bold uppercase tracking-wide text-primary border-2 border-secondary hover:border-background"
             >
               Continue
             </Button>
@@ -314,7 +314,7 @@ export default function RSVPForm({
                 type="submit"
                 disabled={isSubmitting}
                 variant="secondary"
-                className="flex-1 h-12 text-base font-bold uppercase tracking-wide text-primary border-2 border-secondary"
+                className="flex-1 h-12 text-base font-bold uppercase tracking-wide text-primary border-2 border-secondary hover:border-background"
               >
                 {isSubmitting ? (
                   <>

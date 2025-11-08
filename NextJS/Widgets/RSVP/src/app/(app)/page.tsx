@@ -265,11 +265,11 @@ export default function RSVPPage() {
                       </h2>
 
                       {/* Cards Container */}
-                      <div className="flex flex-wrap gap-4">
+                      <div className="flex flex-col md:flex-row gap-4">
                         {/* Service Selection Card - Clickable */}
                         <button
                           onClick={handleBackToServices}
-                          className="bg-primary px-4 py-3 w-full md:max-w-fit text-left hover:bg-primary/90 transition-colors"
+                          className="bg-primary px-4 py-3 w-full md:w-auto text-left hover:bg-primary/90 transition-colors"
                         >
                           <div className="flex items-center gap-3">
                             {/* Back Arrow - Left Side */}
@@ -299,7 +299,7 @@ export default function RSVPPage() {
                         {formStep === 2 && formData.firstName && (
                           <button
                             onClick={() => setFormStep(1)}
-                            className="bg-primary px-4 py-3 w-full md:max-w-fit text-left hover:bg-primary/90 transition-colors"
+                            className="bg-primary px-4 py-3 w-full md:w-auto text-left hover:bg-primary/90 transition-colors"
                           >
                             <div className="flex items-center gap-3">
                               {/* Back Arrow - Left Side */}
@@ -434,17 +434,8 @@ export default function RSVPPage() {
                         <div key={campusName} className="space-y-4">
                           {/* Service Time Cards - Flexible auto-flowing layout */}
                           <div className="relative md:static">
-                            <div className="flex md:flex-wrap gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth md:overflow-x-visible scrollbar-hide md:ml-0" style={{ marginLeft: 'calc(50% - 50vw)', marginRight: 'calc(50% - 50vw)', paddingLeft: '2rem', paddingRight: '2rem' }}>
-                              <style jsx>{`
-                                @media (min-width: 768px) {
-                                  div[style*="marginLeft"] {
-                                    margin-left: 0 !important;
-                                    margin-right: 0 !important;
-                                    padding-left: 0 !important;
-                                    padding-right: 0 !important;
-                                  }
-                                }
-                              `}</style>
+                            {/* Mobile: full-width scroll | Desktop: normal flexbox within container */}
+                            <div className="flex md:flex-wrap gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth md:overflow-x-visible scrollbar-hide -mx-8 px-8 md:mx-0 md:px-0">
                               {services.map((service) => (
                                 <ServiceTimeCard
                                   key={service.eventId}
