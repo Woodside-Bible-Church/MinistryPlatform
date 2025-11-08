@@ -103,25 +103,25 @@ export default function RSVPForm({
   // Phone number formatting function
   const formatPhoneNumber = (value: string) => {
     // Remove all non-digits
-    let phoneNumber = value.replace(/\D/g, "");
+    const phoneNumber = value.replace(/\D/g, "");
 
-    // Remove leading "1" only if:
-    // 1. It's an 11-digit number AND
-    // 2. The second digit is 2-9 (valid area code start, meaning the "1" is country code)
-    // This prevents stripping "1" from numbers like (124) xxx-xxxx
+    // Handle 11-digit numbers (with country code)
     if (phoneNumber.length === 11 && phoneNumber.startsWith("1")) {
-      const secondDigit = phoneNumber.charAt(1);
-      if (secondDigit >= "2" && secondDigit <= "9") {
-        phoneNumber = phoneNumber.slice(1);
-      }
+      const areaCode = phoneNumber.slice(1, 4);
+      const firstPart = phoneNumber.slice(4, 7);
+      const secondPart = phoneNumber.slice(7, 11);
+      return `1 (${areaCode}) ${firstPart}-${secondPart}`;
     }
 
-    // Format as (XXX) XXX-XXXX
+    // Handle 10-digit numbers (standard format)
     if (phoneNumber.length <= 3) {
       return phoneNumber;
     } else if (phoneNumber.length <= 6) {
       return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
+    } else if (phoneNumber.length <= 10) {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
     } else {
+      // For numbers longer than 11, just format as 10-digit
       return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
     }
   };
@@ -250,7 +250,7 @@ export default function RSVPForm({
                 name="phoneNumber"
                 autoComplete="tel"
                 onChange={handlePhoneChange}
-                maxLength={14}
+                maxLength={17}
                 className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
                 placeholder="(810) 555-1234"
               />
