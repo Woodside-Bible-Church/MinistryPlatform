@@ -49,6 +49,7 @@ export default function RSVPForm({
     setValue,
     watch,
     trigger,
+    setFocus,
   } = useForm({
     resolver: zodResolver(RSVPFormSchema),
     defaultValues: {
@@ -65,38 +66,40 @@ export default function RSVPForm({
   const partySize = watch("partySize");
   const isNewVisitor = watch("isNewVisitor");
 
-  // Refs for input fields to enable auto-advance
-  const firstNameRef = useRef<HTMLInputElement>(null);
-  const lastNameRef = useRef<HTMLInputElement>(null);
-  const emailRef = useRef<HTMLInputElement>(null);
-  const phoneRef = useRef<HTMLInputElement>(null);
-
   // Watch form values to detect autocomplete changes
   const firstName = watch("firstName");
   const lastName = watch("lastName");
   const emailAddress = watch("emailAddress");
+  const phoneNumber = watch("phoneNumber");
+
+  // Track previous values to detect when autocomplete fills a field
+  const prevFirstName = useRef("");
+  const prevLastName = useRef("");
+  const prevEmailAddress = useRef("");
 
   // Auto-advance when autocomplete fills a field
   useEffect(() => {
-    if (firstName && firstNameRef.current === document.activeElement) {
-      // First name was filled, move to last name
-      lastNameRef.current?.focus();
+    // Only advance if value changed from empty to filled (autocomplete behavior)
+    if (!prevFirstName.current && firstName) {
+      // Small delay to ensure the field is fully populated
+      setTimeout(() => setFocus("lastName"), 50);
     }
-  }, [firstName]);
+    prevFirstName.current = firstName;
+  }, [firstName, setFocus]);
 
   useEffect(() => {
-    if (lastName && lastNameRef.current === document.activeElement) {
-      // Last name was filled, move to email
-      emailRef.current?.focus();
+    if (!prevLastName.current && lastName) {
+      setTimeout(() => setFocus("emailAddress"), 50);
     }
-  }, [lastName]);
+    prevLastName.current = lastName;
+  }, [lastName, setFocus]);
 
   useEffect(() => {
-    if (emailAddress && emailRef.current === document.activeElement) {
-      // Email was filled, move to phone
-      phoneRef.current?.focus();
+    if (!prevEmailAddress.current && emailAddress) {
+      setTimeout(() => setFocus("phoneNumber"), 50);
     }
-  }, [emailAddress]);
+    prevEmailAddress.current = emailAddress;
+  }, [emailAddress, setFocus]);
 
   // Phone number formatting function
   const formatPhoneNumber = (value: string) => {
@@ -168,7 +171,6 @@ export default function RSVPForm({
                 <Input
                   id="firstName"
                   {...register("firstName")}
-                  ref={firstNameRef}
                   name="firstName"
                   autoComplete="given-name"
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
@@ -192,7 +194,6 @@ export default function RSVPForm({
                 <Input
                   id="lastName"
                   {...register("lastName")}
-                  ref={lastNameRef}
                   name="lastName"
                   autoComplete="family-name"
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
@@ -218,7 +219,6 @@ export default function RSVPForm({
                 id="emailAddress"
                 type="email"
                 {...register("emailAddress")}
-                ref={emailRef}
                 name="emailAddress"
                 autoComplete="email"
                 className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
@@ -242,7 +242,6 @@ export default function RSVPForm({
                 type="tel"
                 inputMode="numeric"
                 {...register("phoneNumber")}
-                ref={phoneRef}
                 name="phoneNumber"
                 autoComplete="tel"
                 onChange={handlePhoneChange}
