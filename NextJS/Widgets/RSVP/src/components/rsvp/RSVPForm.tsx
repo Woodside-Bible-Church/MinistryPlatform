@@ -71,30 +71,52 @@ export default function RSVPForm({
   const lastName = watch("lastName");
   const emailAddress = watch("emailAddress");
 
-  // Track previous values to detect when autocomplete fills a field
+  // Track previous values and focused field to detect autocomplete
   const prevFirstName = useRef("");
   const prevLastName = useRef("");
   const prevEmailAddress = useRef("");
+  const currentlyFocusedField = useRef<string | null>(null);
+
+  // Track which field is focused
+  useEffect(() => {
+    const handleFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLInputElement;
+      if (target.name) {
+        currentlyFocusedField.current = target.name;
+      }
+    };
+
+    const handleFocusOut = () => {
+      currentlyFocusedField.current = null;
+    };
+
+    document.addEventListener("focusin", handleFocusIn);
+    document.addEventListener("focusout", handleFocusOut);
+
+    return () => {
+      document.removeEventListener("focusin", handleFocusIn);
+      document.removeEventListener("focusout", handleFocusOut);
+    };
+  }, []);
 
   // Auto-advance when autocomplete fills a field
+  // Only advance if the field is NOT currently focused (autocomplete behavior)
   useEffect(() => {
-    // Only advance if value changed from empty to filled (autocomplete behavior)
-    if (!prevFirstName.current && firstName) {
-      // Small delay to ensure the field is fully populated
+    if (!prevFirstName.current && firstName && currentlyFocusedField.current !== "firstName") {
       setTimeout(() => setFocus("lastName"), 50);
     }
     prevFirstName.current = firstName;
   }, [firstName, setFocus]);
 
   useEffect(() => {
-    if (!prevLastName.current && lastName) {
+    if (!prevLastName.current && lastName && currentlyFocusedField.current !== "lastName") {
       setTimeout(() => setFocus("emailAddress"), 50);
     }
     prevLastName.current = lastName;
   }, [lastName, setFocus]);
 
   useEffect(() => {
-    if (!prevEmailAddress.current && emailAddress) {
+    if (!prevEmailAddress.current && emailAddress && currentlyFocusedField.current !== "emailAddress") {
       setTimeout(() => setFocus("phoneNumber"), 50);
     }
     prevEmailAddress.current = emailAddress;
