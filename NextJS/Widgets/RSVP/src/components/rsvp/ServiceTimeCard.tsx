@@ -25,7 +25,6 @@ export default function ServiceTimeCard({
 }: ServiceTimeCardProps) {
   const startDate = new Date(serviceTime.Event_Start_Date);
   const capacityPercentage = Math.round(serviceTime.Capacity_Percentage);
-  const spotsRemaining = serviceTime.Max_Capacity - serviceTime.Total_Attendees;
 
   return (
     <motion.button
