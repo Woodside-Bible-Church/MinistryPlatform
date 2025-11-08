@@ -9,6 +9,8 @@ import {
   Phone,
   Users,
   Loader2,
+  Minus,
+  Plus,
 } from "lucide-react";
 import {
   RSVPFormSchema,
@@ -248,29 +250,53 @@ export default function RSVPForm({
       {formStep === 2 && (
         <form onSubmit={handleSubmit(handleStep2Submit)}>
           <div className="bg-primary p-6 space-y-6">
-            {/* Party Size */}
+            {/* Party Size Counter */}
             <div className="space-y-2">
               <Label htmlFor="partySize" className="text-white">
                 How many people? <span className="text-destructive">*</span>
               </Label>
-              <Select
-                value={partySize?.toString()}
-                onValueChange={(value) => setValue("partySize", parseInt(value))}
-              >
-                <SelectTrigger id="partySize" className="w-full bg-white/10 border-white/20 text-white">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-white/60" />
-                    <SelectValue placeholder="Select party size" />
+              <div className="flex items-center gap-4">
+                {/* Minus Button */}
+                <button
+                  type="button"
+                  onClick={() => setValue("partySize", Math.max(1, (partySize || 1) - 1))}
+                  disabled={(partySize || 1) <= 1}
+                  className="h-14 w-14 flex items-center justify-center bg-white/10 border-2 border-white/20 text-white rounded-lg hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  <Minus className="w-6 h-6" />
+                </button>
+
+                {/* Counter Input */}
+                <div className="flex-1 relative">
+                  <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
+                  <Input
+                    id="partySize"
+                    type="number"
+                    inputMode="numeric"
+                    min="1"
+                    max="99"
+                    value={partySize || 1}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 1;
+                      setValue("partySize", Math.max(1, Math.min(99, val)));
+                    }}
+                    className="h-14 pl-12 pr-4 text-center text-2xl font-bold bg-white/10 border-2 border-white/20 text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-white/60 font-medium">
+                    {partySize === 1 ? "person" : "people"}
                   </div>
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
-                    <SelectItem key={num} value={num.toString()}>
-                      {num} {num === 1 ? "person" : "people"}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                </div>
+
+                {/* Plus Button */}
+                <button
+                  type="button"
+                  onClick={() => setValue("partySize", Math.min(99, (partySize || 1) + 1))}
+                  disabled={(partySize || 1) >= 99}
+                  className="h-14 w-14 flex items-center justify-center bg-white/10 border-2 border-white/20 text-white rounded-lg hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  <Plus className="w-6 h-6" />
+                </button>
+              </div>
               {errors.partySize && (
                 <p className="text-sm text-red-200 italic">
                   {errors.partySize.message}
