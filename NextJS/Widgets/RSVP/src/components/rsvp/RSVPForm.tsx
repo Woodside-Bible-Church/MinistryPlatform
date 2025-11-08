@@ -189,7 +189,7 @@ export default function RSVPForm({
                   name="firstName"
                   autoComplete="given-name"
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                  placeholder="John"
+                  placeholder="First Name"
                 />
               </div>
               {errors.firstName && (
@@ -212,7 +212,7 @@ export default function RSVPForm({
                   name="lastName"
                   autoComplete="family-name"
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                  placeholder="Doe"
+                  placeholder="Last Name"
                 />
               </div>
               {errors.lastName && (
@@ -237,7 +237,7 @@ export default function RSVPForm({
                 name="emailAddress"
                 autoComplete="email"
                 className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                placeholder="john.doe@example.com"
+                placeholder="email@example.com"
               />
             </div>
             {errors.emailAddress && (
@@ -262,7 +262,7 @@ export default function RSVPForm({
                 onChange={handlePhoneChange}
                 maxLength={17}
                 className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                placeholder="(810) 555-1234"
+                placeholder="(123) 456-7890"
               />
             </div>
             {errors.phoneNumber && (
