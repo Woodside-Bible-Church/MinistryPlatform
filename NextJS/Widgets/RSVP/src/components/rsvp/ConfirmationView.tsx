@@ -5,7 +5,6 @@ import {
   MapPin,
   Users,
   Mail,
-  Navigation,
   Clock,
   RotateCcw,
 } from "lucide-react";
@@ -66,16 +65,23 @@ export default function ConfirmationView({
             </div>
           </div>
 
-          {/* Campus */}
-          <div className="flex items-start gap-3">
-            <MapPin className="w-5 h-5 text-white/70 mt-0.5" />
-            <div>
+          {/* Campus - Clickable for Directions */}
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-start gap-3 group cursor-pointer hover:opacity-80 transition-opacity"
+          >
+            <MapPin className="w-5 h-5 text-white/70 mt-0.5 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
               <p className="text-lg font-bold text-white">
                 {confirmation.Campus_Name} Campus
               </p>
-              <p className="text-sm text-white/70">{fullAddress}</p>
+              <p className="text-sm text-white/70 underline decoration-white/30 group-hover:decoration-white/60 transition-colors">
+                {fullAddress}
+              </p>
             </div>
-          </div>
+          </a>
 
           {/* Divider */}
           <div className="border-t border-white/20"></div>
@@ -84,7 +90,7 @@ export default function ConfirmationView({
           <div className="flex items-start gap-3">
             <Mail className="w-5 h-5 text-white/70 mt-0.5 flex-shrink-0" />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-white break-words">{confirmation.Email_Address}</p>
+              <p className="text-xs font-bold text-white break-words">{confirmation.Email_Address}</p>
               <p className="text-sm text-white/70">Confirmation email sent</p>
             </div>
           </div>
@@ -101,20 +107,12 @@ export default function ConfirmationView({
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          <Button
-            onClick={() => window.open(mapsUrl, "_blank")}
-            variant="secondary"
-            className="w-full h-12 text-base font-bold uppercase tracking-wide"
-          >
-            <Navigation className="w-5 h-5 mr-2" />
-            Get Directions
-          </Button>
+        {/* Action Button */}
+        <div>
           <Button
             onClick={onReset}
-            variant="outline"
-            className="w-full h-12 text-base border-2 border-secondary text-secondary hover:bg-secondary hover:text-primary bg-transparent font-bold uppercase tracking-wide transition-colors"
+            variant="secondary"
+            className="w-full h-12 text-base font-bold uppercase tracking-wide"
           >
             <RotateCcw className="w-5 h-5 mr-2" />
             RSVP Again
