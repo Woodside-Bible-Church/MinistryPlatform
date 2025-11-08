@@ -113,7 +113,7 @@ export default function ServiceTimeCard({
         {serviceTime.Is_Available && !selected && (
           <div className="mt-4 pt-4 border-t border-white/20">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-extrabold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent uppercase tracking-wider">
+              <span className="text-sm font-extrabold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent uppercase tracking-wider">
                 Click to RSVP
               </span>
               <motion.div
