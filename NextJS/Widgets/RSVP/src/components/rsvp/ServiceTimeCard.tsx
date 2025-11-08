@@ -34,7 +34,7 @@ export default function ServiceTimeCard({
       onClick={onSelect}
       disabled={!serviceTime.Is_Available}
       className={`
-        relative flex-1 min-w-[300px] md:max-w-[450px] transition-all duration-200 text-left overflow-hidden
+        relative flex-1 min-w-[300px] md:flex-none md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.667rem)] transition-all duration-200 text-left overflow-hidden
         snap-center flex-shrink-0
         focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2
         ${
