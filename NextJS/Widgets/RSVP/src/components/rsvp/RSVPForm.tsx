@@ -273,22 +273,22 @@ export default function RSVPForm({
           </div>
 
           {/* Back and Continue Buttons */}
-          <div className="flex flex-col-reverse sm:flex-row gap-4">
-            <Button
-              type="button"
-              onClick={onBack}
-              variant="outline"
-              className="flex-1 h-12 text-base border-2 border-secondary text-secondary hover:bg-secondary hover:text-primary bg-transparent font-bold uppercase tracking-wide"
-            >
-              Back
-            </Button>
+          <div className="flex flex-col sm:flex-row-reverse gap-4">
             <Button
               type="button"
               onClick={handleStep1Continue}
               variant="secondary"
-              className="flex-1 h-12 text-base font-bold uppercase tracking-wide text-primary border-2 border-secondary hover:border-background"
+              className="flex-1 h-12 text-base font-bold uppercase tracking-wide text-primary border-2 border-secondary hover:border-background hover:bg-background focus-visible:border-background focus-visible:bg-background focus-visible:ring-0"
             >
               Continue
+            </Button>
+            <Button
+              type="button"
+              onClick={onBack}
+              variant="outline"
+              className="flex-1 h-12 text-base border-2 border-secondary text-secondary hover:bg-secondary hover:text-primary focus-visible:bg-secondary focus-visible:text-primary focus-visible:ring-0 bg-transparent font-bold uppercase tracking-wide"
+            >
+              Back
             </Button>
           </div>
         </div>
@@ -371,20 +371,12 @@ export default function RSVPForm({
             </div>
 
             {/* Back and Submit Buttons */}
-            <div className="flex flex-col-reverse sm:flex-row gap-4">
-              <Button
-                type="button"
-                onClick={() => onStepChange(1)}
-                variant="outline"
-                className="flex-1 h-12 text-base border-2 border-secondary text-secondary hover:bg-secondary hover:text-primary bg-transparent font-bold uppercase tracking-wide"
-              >
-                Back
-              </Button>
+            <div className="flex flex-col sm:flex-row-reverse gap-4">
               <Button
                 type="submit"
                 disabled={isSubmitting}
                 variant="secondary"
-                className="flex-1 h-12 text-base font-bold uppercase tracking-wide text-primary border-2 border-secondary hover:border-background"
+                className="flex-1 h-12 text-base font-bold uppercase tracking-wide text-primary border-2 border-secondary hover:border-background hover:bg-background focus-visible:border-background focus-visible:bg-background focus-visible:ring-0"
               >
                 {isSubmitting ? (
                   <>
@@ -394,6 +386,14 @@ export default function RSVPForm({
                 ) : (
                   "Complete RSVP"
                 )}
+              </Button>
+              <Button
+                type="button"
+                onClick={() => onStepChange(1)}
+                variant="outline"
+                className="flex-1 h-12 text-base border-2 border-secondary text-secondary hover:bg-secondary hover:text-primary focus-visible:bg-secondary focus-visible:text-primary focus-visible:ring-0 bg-transparent font-bold uppercase tracking-wide"
+              >
+                Back
               </Button>
             </div>
           </div>
