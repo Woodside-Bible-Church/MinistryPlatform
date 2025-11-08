@@ -505,8 +505,8 @@ export default function RSVPPage() {
                         <div key={campusName} className="space-y-4">
                           {/* Service Time Cards - Flexible auto-flowing layout */}
                           <div className="relative md:static">
-                            {/* Mobile: full-width scroll | Desktop: normal flexbox within container */}
-                            <div className="flex md:flex-wrap gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth md:overflow-x-visible scrollbar-hide -mx-8 px-8 md:mx-0 md:px-0">
+                            {/* Mobile: full-width scroll (if multiple) | Desktop: normal flexbox within container */}
+                            <div className={`flex md:flex-wrap gap-4 pb-2 scroll-smooth md:overflow-x-visible scrollbar-hide ${services.length > 1 ? 'overflow-x-auto snap-x snap-mandatory -mx-8 px-8 md:mx-0 md:px-0' : 'overflow-x-visible'}`}>
                               {services.map((service) => (
                                 <ServiceTimeCard
                                   key={service.eventId}
@@ -525,6 +525,7 @@ export default function RSVPPage() {
                                   }}
                                   selected={false}
                                   onSelect={() => handleServiceSelect(service)}
+                                  isCarousel={services.length > 1}
                                 />
                               ))}
                             </div>

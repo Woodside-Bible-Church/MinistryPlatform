@@ -206,7 +206,7 @@ export const mockServiceTimes: ServiceTime[] = [
     isAvailable: true,
   },
 
-  // Detroit
+  // Detroit - Single service only (testing single card layout)
   {
     eventId: 401,
     title: "Christmas Day - Detroit",
@@ -277,7 +277,7 @@ export const mockServiceTimes: ServiceTime[] = [
     isAvailable: true,
   },
 
-  // Lapeer
+  // Lapeer - Single service only (testing single card layout)
   {
     eventId: 701,
     title: "Christmas Eve - Lapeer",
@@ -320,7 +320,7 @@ export const mockServiceTimes: ServiceTime[] = [
     isAvailable: true,
   },
 
-  // Pontiac
+  // Pontiac - Single service only (testing single card layout)
   {
     eventId: 901,
     title: "Christmas Eve - Pontiac",
