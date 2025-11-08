@@ -76,9 +76,6 @@ export default function RSVPForm({
   const prevLastName = useRef("");
   const prevEmailAddress = useRef("");
 
-  // Track if we're currently typing (short values = typing, long values = autocomplete)
-  const isTypingRef = useRef(false);
-
   // Auto-advance when autocomplete fills a field
   // Autocomplete typically fills the entire field at once (length > 2)
   // Manual typing happens one character at a time
