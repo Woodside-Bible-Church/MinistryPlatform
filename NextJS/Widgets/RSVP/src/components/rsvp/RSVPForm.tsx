@@ -105,9 +105,15 @@ export default function RSVPForm({
     // Remove all non-digits
     let phoneNumber = value.replace(/\D/g, "");
 
-    // Remove leading "1" if it's an 11-digit number (North American country code)
+    // Remove leading "1" only if:
+    // 1. It's an 11-digit number AND
+    // 2. The second digit is 2-9 (valid area code start, meaning the "1" is country code)
+    // This prevents stripping "1" from numbers like (124) xxx-xxxx
     if (phoneNumber.length === 11 && phoneNumber.startsWith("1")) {
-      phoneNumber = phoneNumber.slice(1);
+      const secondDigit = phoneNumber.charAt(1);
+      if (secondDigit >= "2" && secondDigit <= "9") {
+        phoneNumber = phoneNumber.slice(1);
+      }
     }
 
     // Format as (XXX) XXX-XXXX
