@@ -3,8 +3,6 @@
 import { motion } from "framer-motion";
 import {
   MapPin,
-  Users,
-  Mail,
   Clock,
   RotateCcw,
 } from "lucide-react";
@@ -48,10 +46,17 @@ export default function ConfirmationView({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-primary p-6 w-full md:min-w-[400px] md:flex-1 space-y-6"
+        className="bg-primary p-6 w-full md:min-w-[400px] md:flex-1 flex flex-col"
       >
+        {/* Personalized Greeting */}
+        <div className="py-2">
+          <p className="text-2xl font-bold text-white">
+            {confirmation.First_Name}, we&apos;ll see you soon!
+          </p>
+        </div>
+
         {/* RSVP Details */}
-        <div className="space-y-4">
+        <div className="space-y-4 mb-6">
           {/* Service Time */}
           <div className="flex items-start gap-3">
             <Clock className="w-5 h-5 text-white/70 mt-0.5" />
@@ -82,33 +87,10 @@ export default function ConfirmationView({
               </p>
             </div>
           </a>
-
-          {/* Divider */}
-          <div className="border-t border-white/20"></div>
-
-          {/* Email */}
-          <div className="flex items-start gap-3">
-            <Mail className="w-5 h-5 text-white/70 mt-0.5 flex-shrink-0" />
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-white break-words">{confirmation.Email_Address}</p>
-              <p className="text-sm text-white/70">Confirmation email sent</p>
-            </div>
-          </div>
-
-          {/* Party Size */}
-          <div className="flex items-start gap-3">
-            <Users className="w-5 h-5 text-white/70 mt-0.5" />
-            <div>
-              <p className="text-lg font-bold text-white">
-                {confirmation.Party_Size} {confirmation.Party_Size === 1 ? "Person" : "People"}
-              </p>
-              <p className="text-sm text-white/70">Party size</p>
-            </div>
-          </div>
         </div>
 
-        {/* Action Button */}
-        <div>
+        {/* Action Button - Pushed to bottom */}
+        <div className="mt-auto">
           <Button
             onClick={onReset}
             variant="secondary"
