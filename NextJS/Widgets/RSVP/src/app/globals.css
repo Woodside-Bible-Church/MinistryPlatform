@@ -165,12 +165,14 @@ input[type="submit"],
 /* Horizontal Scrollbar Styling for Carousels */
 /* Hide scrollbar but keep functionality for horizontal scroll containers */
 .horizontal-scroll,
+.scrollbar-hide,
 [data-orientation="horizontal"] {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
 
 .horizontal-scroll::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar,
 [data-orientation="horizontal"]::-webkit-scrollbar {
   display: none;  /* Chrome, Safari, Opera */
 }

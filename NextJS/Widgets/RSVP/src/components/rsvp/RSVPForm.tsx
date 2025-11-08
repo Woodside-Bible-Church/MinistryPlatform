@@ -223,7 +223,7 @@ export default function RSVPForm({
           </div>
 
           {/* Back and Continue Buttons */}
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <Button
               type="button"
               onClick={onBack}
@@ -310,7 +310,7 @@ export default function RSVPForm({
             </div>
 
             {/* Back and Submit Buttons */}
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
               <Button
                 type="button"
                 onClick={() => onStepChange(1)}

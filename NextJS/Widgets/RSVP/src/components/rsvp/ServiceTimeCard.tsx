@@ -34,7 +34,8 @@ export default function ServiceTimeCard({
       onClick={onSelect}
       disabled={!serviceTime.Is_Available}
       className={`
-        relative flex-1 min-w-[300px] max-w-[450px] transition-all duration-200 text-left overflow-hidden
+        relative flex-1 min-w-[300px] md:max-w-[450px] transition-all duration-200 text-left overflow-hidden
+        snap-center flex-shrink-0
         focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2
         ${
           selected
@@ -112,7 +113,7 @@ export default function ServiceTimeCard({
         {serviceTime.Is_Available && !selected && (
           <div className="mt-4 pt-4 border-t border-white/20">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-extrabold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent uppercase tracking-wider">
+              <span className="text-sm font-extrabold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent uppercase tracking-wider">
                 Click to RSVP
               </span>
               <motion.div

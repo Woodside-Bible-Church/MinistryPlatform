@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Clock, ArrowLeft, CheckCircle2 } from "lucide-react";
 import ServiceTimeCard from "@/components/rsvp/ServiceTimeCard";
@@ -109,6 +109,14 @@ export default function RSVPPage() {
     useState<RSVPConfirmationResponse | null>(null);
   const [formStep, setFormStep] = useState<1 | 2>(1); // Track form step
   const [formData, setFormData] = useState<Partial<RSVPFormInput>>({}); // Store partial form data
+  const instructionRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to instructions when view or form step changes
+  useEffect(() => {
+    if (instructionRef.current) {
+      instructionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [currentView, formStep]);
 
   // Send height updates to parent window (for iframe embedding)
   useEffect(() => {
@@ -214,30 +222,30 @@ export default function RSVPPage() {
         {/* Content Container */}
         <div className="relative mx-auto px-8 max-w-[1600px]">
           {/* Top Section - Header and Image */}
-          <div className="flex gap-8 mb-12">
+          <div className="flex gap-8 mb-8 md:mb-12">
             {/* Left: Header Text + Instructions */}
-            <div className="flex-1 flex flex-col justify-between">
+            <div className="flex-1 flex flex-col justify-between gap-6 md:gap-0">
               {/* Main Header - Aligned with top of image */}
               <div>
-                <h1 className="text-4xl md:text-5xl font-bold mb-3 leading-tight text-white">
+                <h1 className="text-3xl md:text-5xl font-bold mb-2 md:mb-3 leading-tight text-white">
                   Join us for Christmas Services!
                 </h1>
-                <p className="text-lg md:text-xl leading-relaxed text-white opacity-90">
+                <p className="text-base md:text-xl leading-relaxed text-white opacity-90">
                   Our hope is that you, along with your friends and family, come and
                   celebrate Christmas at Woodside!
                 </p>
               </div>
 
               {/* Dynamic Instructions + Campus Filter - Aligned with bottom of image */}
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 {/* Instructions based on current view */}
-                <div>
+                <div ref={instructionRef}>
                   {currentView === "services" && (
                     <>
-                      <h2 className="text-2xl font-bold text-white mb-1">
+                      <h2 className="text-xl md:text-2xl font-bold text-white mb-1">
                         Service Times & Availability
                       </h2>
-                      <p className="text-base text-white opacity-80">
+                      <p className="text-sm md:text-base text-white opacity-80">
                         Select a service time to RSVP
                       </p>
                     </>
@@ -253,7 +261,7 @@ export default function RSVPPage() {
                         {/* Service Selection Card - Clickable */}
                         <button
                           onClick={handleBackToServices}
-                          className="bg-primary px-4 py-3 max-w-fit text-left hover:bg-primary/90 transition-colors"
+                          className="bg-primary px-4 py-3 w-full md:max-w-fit text-left hover:bg-primary/90 transition-colors"
                         >
                           <div className="flex items-center gap-3">
                             {/* Back Arrow - Left Side */}
@@ -283,7 +291,7 @@ export default function RSVPPage() {
                         {formStep === 2 && formData.firstName && (
                           <button
                             onClick={() => setFormStep(1)}
-                            className="bg-primary px-4 py-3 max-w-fit text-left hover:bg-primary/90 transition-colors"
+                            className="bg-primary px-4 py-3 w-full md:max-w-fit text-left hover:bg-primary/90 transition-colors"
                           >
                             <div className="flex items-center gap-3">
                               {/* Back Arrow - Left Side */}
@@ -359,14 +367,14 @@ export default function RSVPPage() {
 
                 {/* Campus Filter - Only show on services view */}
                 {currentView === "services" && (
-                  <div className="w-full max-w-md">
+                  <div className="w-full md:max-w-md">
                     <Select
                       value={selectedCampusId.toString()}
                       onValueChange={(value) =>
                         setSelectedCampusId(parseInt(value))
                       }
                     >
-                      <SelectTrigger className="h-12 bg-white border-2 border-white/50 hover:border-white transition-colors text-base font-semibold text-primary shadow-md">
+                      <SelectTrigger className="w-full h-12 bg-white border-2 border-white/50 hover:border-white transition-colors text-base font-semibold text-primary shadow-md">
                         <div className="flex items-center gap-3">
                           <MapPin className="w-5 h-5 text-primary" />
                           <SelectValue placeholder="Select Campus" />
@@ -411,28 +419,73 @@ export default function RSVPPage() {
                       {Object.entries(groupedServiceTimes).map(([campusName, services]) => (
                         <div key={campusName} className="space-y-4">
                           {/* Service Time Cards - Flexible auto-flowing layout */}
-                          <div className="flex flex-wrap gap-4">
-                        {services.map((service) => (
-                          <ServiceTimeCard
-                            key={service.eventId}
-                            serviceTime={{
-                              Event_ID: service.eventId,
-                              Event_Title: service.title,
-                              Event_Start_Date: service.startDate.toISOString(),
-                              Event_End_Date: service.endDate.toISOString(),
-                              Campus_Name: service.campusName,
-                              Congregation_ID: service.campusId,
-                              Max_Capacity: service.maxCapacity,
-                              Total_RSVPs: service.totalRSVPs,
-                              Total_Attendees: service.totalAttendees,
-                              Capacity_Percentage: service.capacityPercentage,
-                              Is_Available: service.isAvailable,
-                            }}
-                            selected={false}
-                            onSelect={() => handleServiceSelect(service)}
-                          />
-                        ))}
-                      </div>
+                          <div className="relative md:static">
+                            <div className="flex md:flex-wrap gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth md:overflow-x-visible scrollbar-hide md:ml-0" style={{ marginLeft: 'calc(50% - 50vw)', marginRight: 'calc(50% - 50vw)', paddingLeft: '2rem', paddingRight: '2rem' }}>
+                              <style jsx>{`
+                                @media (min-width: 768px) {
+                                  div[style*="marginLeft"] {
+                                    margin-left: 0 !important;
+                                    margin-right: 0 !important;
+                                    padding-left: 0 !important;
+                                    padding-right: 0 !important;
+                                  }
+                                }
+                              `}</style>
+                              {services.map((service) => (
+                                <ServiceTimeCard
+                                  key={service.eventId}
+                                  serviceTime={{
+                                    Event_ID: service.eventId,
+                                    Event_Title: service.title,
+                                    Event_Start_Date: service.startDate.toISOString(),
+                                    Event_End_Date: service.endDate.toISOString(),
+                                    Campus_Name: service.campusName,
+                                    Congregation_ID: service.campusId,
+                                    Max_Capacity: service.maxCapacity,
+                                    Total_RSVPs: service.totalRSVPs,
+                                    Total_Attendees: service.totalAttendees,
+                                    Capacity_Percentage: service.capacityPercentage,
+                                    Is_Available: service.isAvailable,
+                                  }}
+                                  selected={false}
+                                  onSelect={() => handleServiceSelect(service)}
+                                />
+                              ))}
+                            </div>
+
+                            {/* Swipe Indicator - Only show on mobile when there are multiple cards */}
+                            {services.length > 1 && (
+                              <div className="flex items-center justify-center gap-2 mt-4 md:hidden">
+                                <motion.div
+                                  animate={{ x: [0, 8, 0] }}
+                                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                                  className="flex items-center gap-1"
+                                >
+                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-white/60">
+                                    <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-white/60">
+                                    <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                </motion.div>
+                                <span className="text-sm text-white/70 font-medium uppercase tracking-wide">
+                                  Swipe to see more
+                                </span>
+                                <motion.div
+                                  animate={{ x: [0, 8, 0] }}
+                                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                                  className="flex items-center gap-1"
+                                >
+                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-white/60">
+                                    <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-white/60">
+                                    <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                </motion.div>
+                              </div>
+                            )}
+                          </div>
                     </div>
                   ))}
                 </div>
