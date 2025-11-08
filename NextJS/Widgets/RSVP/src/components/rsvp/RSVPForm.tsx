@@ -260,22 +260,24 @@ export default function RSVPForm({
                 </button>
 
                 {/* Counter Input */}
-                <div className="flex-1 relative">
-                  <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
-                  <Input
-                    id="partySize"
-                    type="number"
-                    inputMode="numeric"
-                    min="1"
-                    max="99"
-                    value={partySize || 1}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value) || 1;
-                      setValue("partySize", Math.max(1, Math.min(99, val)));
-                    }}
-                    className="h-14 pl-12 pr-4 text-center text-2xl font-bold bg-white/10 border-2 border-white/20 text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-white/60 font-medium">
+                <div className="flex-1 flex flex-col items-center gap-1">
+                  <div className="relative w-full">
+                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
+                    <Input
+                      id="partySize"
+                      type="number"
+                      inputMode="numeric"
+                      min="1"
+                      max="99"
+                      value={partySize || 1}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 1;
+                        setValue("partySize", Math.max(1, Math.min(99, val)));
+                      }}
+                      className="h-14 pl-12 pr-4 text-center text-2xl font-bold bg-white/10 border-2 border-white/20 text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                  </div>
+                  <div className="text-sm text-white/60 font-medium">
                     {partySize === 1 ? "person" : "people"}
                   </div>
                 </div>
