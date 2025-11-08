@@ -37,6 +37,12 @@ interface WidgetWindow extends Window {
   };
 }
 
+// Widget params from data-params attribute
+interface WidgetParams {
+  CongregationID?: number;
+  ProjectRsvpID?: number;
+}
+
 // WordPress location cookie structure
 interface WPLocationCookie {
   user_id: number;
@@ -44,6 +50,45 @@ interface WPLocationCookie {
   location_name: string;
   location_short_name: string;
   location_url: string;
+}
+
+/**
+ * Parse data-params attribute from widget container
+ * Format: "@ParamName=value, @ParamName2=value2"
+ * Example: "@CongregationID=9, @ProjectRsvpID=1"
+ */
+function parseWidgetParams(): WidgetParams {
+  if (typeof document === 'undefined') return {};
+
+  try {
+    const container = document.getElementById('rsvp-widget-root');
+    if (!container) return {};
+
+    const dataParams = container.getAttribute('data-params');
+    if (!dataParams) return {};
+
+    const params: WidgetParams = {};
+
+    // Split by comma and parse each parameter
+    dataParams.split(',').forEach(param => {
+      const trimmed = param.trim();
+      // Match @ParamName=value pattern
+      const match = trimmed.match(/@(\w+)=(\d+)/);
+      if (match) {
+        const [, key, value] = match;
+        if (key === 'CongregationID') {
+          params.CongregationID = parseInt(value);
+        } else if (key === 'ProjectRsvpID') {
+          params.ProjectRsvpID = parseInt(value);
+        }
+      }
+    });
+
+    return params;
+  } catch (error) {
+    console.warn('Failed to parse widget data-params:', error);
+    return {};
+  }
 }
 
 /**
@@ -84,12 +129,24 @@ export default function RSVPPage() {
     ? (window as WidgetWindow).RSVP_WIDGET_CONFIG?.apiBaseUrl
     : '';
 
-  // Get default campus from WordPress cookie, fallback to Troy (12)
+  // Parse widget params from data-params attribute
+  const widgetParams = parseWidgetParams();
+
+  // Get default campus with priority: data-params > WordPress cookie > default (Troy)
   const getInitialCampusId = (): number => {
+    // Priority 1: data-params @CongregationID (overrides everything)
+    if (widgetParams.CongregationID) {
+      const campus = mockCampuses.find(c => c.congregationId === widgetParams.CongregationID);
+      if (campus) {
+        console.log(`Widget param detected: Congregation_ID ${widgetParams.CongregationID} -> Campus ${campus.name} (id: ${campus.id})`);
+        return campus.id;
+      }
+      console.warn(`Widget param Congregation_ID ${widgetParams.CongregationID} not found in campus list`);
+    }
+
+    // Priority 2: WordPress location cookie
     const wpLocationId = getWordPressLocationId();
     if (wpLocationId) {
-      // WordPress location_id corresponds to MinistryPlatform Congregation_ID
-      // Find the campus that matches this Congregation_ID
       const campus = mockCampuses.find(c => c.congregationId === wpLocationId);
       if (campus) {
         console.log(`WordPress location detected: Congregation_ID ${wpLocationId} -> Campus ${campus.name} (id: ${campus.id})`);
@@ -97,8 +154,13 @@ export default function RSVPPage() {
       }
       console.warn(`WordPress location_id ${wpLocationId} not found in campus list`);
     }
-    return 12; // Default to Troy
+
+    // Priority 3: Default to Troy (12)
+    return 12;
   };
+
+  // Determine if campus dropdown should be hidden
+  const hideCampusDropdown = !!widgetParams.CongregationID;
 
   // State
   const [currentView, setCurrentView] = useState<ViewType>("services");
@@ -388,8 +450,8 @@ export default function RSVPPage() {
                   )}
                 </div>
 
-                {/* Campus Filter - Only show on services view */}
-                {currentView === "services" && (
+                {/* Campus Filter - Only show on services view and when not hardcoded via data-params */}
+                {currentView === "services" && !hideCampusDropdown && (
                   <div className="w-full md:max-w-md">
                     <Select
                       value={selectedCampusId.toString()}
