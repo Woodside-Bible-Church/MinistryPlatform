@@ -439,10 +439,10 @@ export default function RSVPPage() {
 
                       {/* Text */}
                       <div>
-                        <h2 className="text-2xl font-bold text-white mb-1">
+                        <h2 className="text-2xl font-bold text-white mb-1 text-right md:text-left">
                           You&apos;re All Set
                         </h2>
-                        <p className="text-base text-white opacity-80">
+                        <p className="text-base text-white opacity-80 text-right md:text-left">
                           We can&apos;t wait to see you at Christmas.
                         </p>
                       </div>
