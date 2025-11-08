@@ -99,16 +99,6 @@ export default function ServiceTimeCard({
               className={`h-full ${getCapacityColorClass(capacityPercentage)}`}
             />
           </div>
-
-          {/* Stats */}
-          <div className="flex justify-between text-xs text-white/60 font-medium uppercase tracking-wide">
-            <span>{serviceTime.Total_Attendees} attending</span>
-            <span>
-              {serviceTime.Is_Available
-                ? `${spotsRemaining} spots left`
-                : "Full"}
-            </span>
-          </div>
         </div>
 
         {/* RSVP Call-to-Action */}
