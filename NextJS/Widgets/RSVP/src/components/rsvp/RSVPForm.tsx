@@ -75,52 +75,30 @@ export default function RSVPForm({
   const prevFirstName = useRef("");
   const prevLastName = useRef("");
   const prevEmailAddress = useRef("");
-  const currentlyFocusedField = useRef<string | null>(null);
-
-  // Track which field is focused
-  useEffect(() => {
-    const handleFocusIn = (e: FocusEvent) => {
-      const target = e.target as HTMLInputElement;
-      if (target.name) {
-        currentlyFocusedField.current = target.name;
-      }
-    };
-
-    const handleFocusOut = () => {
-      currentlyFocusedField.current = null;
-    };
-
-    document.addEventListener("focusin", handleFocusIn);
-    document.addEventListener("focusout", handleFocusOut);
-
-    return () => {
-      document.removeEventListener("focusin", handleFocusIn);
-      document.removeEventListener("focusout", handleFocusOut);
-    };
-  }, []);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   // Auto-advance when autocomplete fills a field
   // Only advance if the field is NOT currently focused (autocomplete behavior)
   useEffect(() => {
-    if (!prevFirstName.current && firstName && currentlyFocusedField.current !== "firstName") {
+    if (!prevFirstName.current && firstName && focusedField !== "firstName") {
       setTimeout(() => setFocus("lastName"), 50);
     }
     prevFirstName.current = firstName;
-  }, [firstName, setFocus]);
+  }, [firstName, setFocus, focusedField]);
 
   useEffect(() => {
-    if (!prevLastName.current && lastName && currentlyFocusedField.current !== "lastName") {
+    if (!prevLastName.current && lastName && focusedField !== "lastName") {
       setTimeout(() => setFocus("emailAddress"), 50);
     }
     prevLastName.current = lastName;
-  }, [lastName, setFocus]);
+  }, [lastName, setFocus, focusedField]);
 
   useEffect(() => {
-    if (!prevEmailAddress.current && emailAddress && currentlyFocusedField.current !== "emailAddress") {
+    if (!prevEmailAddress.current && emailAddress && focusedField !== "emailAddress") {
       setTimeout(() => setFocus("phoneNumber"), 50);
     }
     prevEmailAddress.current = emailAddress;
-  }, [emailAddress, setFocus]);
+  }, [emailAddress, setFocus, focusedField]);
 
   // Phone number formatting function
   const formatPhoneNumber = (value: string) => {
@@ -200,6 +178,8 @@ export default function RSVPForm({
                   {...register("firstName")}
                   name="firstName"
                   autoComplete="given-name"
+                  onFocus={() => setFocusedField("firstName")}
+                  onBlur={() => setFocusedField(null)}
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   placeholder="John"
                 />
@@ -223,6 +203,8 @@ export default function RSVPForm({
                   {...register("lastName")}
                   name="lastName"
                   autoComplete="family-name"
+                  onFocus={() => setFocusedField("lastName")}
+                  onBlur={() => setFocusedField(null)}
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   placeholder="Doe"
                 />
@@ -248,6 +230,8 @@ export default function RSVPForm({
                 {...register("emailAddress")}
                 name="emailAddress"
                 autoComplete="email"
+                onFocus={() => setFocusedField("emailAddress")}
+                onBlur={() => setFocusedField(null)}
                 className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
                 placeholder="john.doe@example.com"
               />
