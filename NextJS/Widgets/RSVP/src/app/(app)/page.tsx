@@ -114,7 +114,13 @@ export default function RSVPPage() {
   // Scroll to instructions when view or form step changes
   useEffect(() => {
     if (instructionRef.current) {
-      instructionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      const elementPosition = instructionRef.current.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = elementPosition - (2.5 * 16); // 2.5em offset (assuming 16px base font size)
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
     }
   }, [currentView, formStep]);
 
@@ -207,6 +213,8 @@ export default function RSVPPage() {
     setSelectedCampusId(12); // Reset to Troy default
     setSelectedServiceTime(null);
     setConfirmation(null);
+    setFormStep(1); // Reset to step 1
+    setFormData({}); // Clear form data
   };
 
   return (

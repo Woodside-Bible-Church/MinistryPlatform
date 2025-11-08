@@ -223,7 +223,7 @@ export default function RSVPForm({
           </div>
 
           {/* Back and Continue Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col-reverse sm:flex-row gap-4">
             <Button
               type="button"
               onClick={onBack}
@@ -257,7 +257,7 @@ export default function RSVPForm({
                 value={partySize?.toString()}
                 onValueChange={(value) => setValue("partySize", parseInt(value))}
               >
-                <SelectTrigger id="partySize" className="bg-white/10 border-white/20 text-white">
+                <SelectTrigger id="partySize" className="w-full bg-white/10 border-white/20 text-white">
                   <div className="flex items-center gap-2">
                     <Users className="w-5 h-5 text-white/60" />
                     <SelectValue placeholder="Select party size" />
@@ -310,7 +310,7 @@ export default function RSVPForm({
             </div>
 
             {/* Back and Submit Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col-reverse sm:flex-row gap-4">
               <Button
                 type="button"
                 onClick={() => onStepChange(1)}
