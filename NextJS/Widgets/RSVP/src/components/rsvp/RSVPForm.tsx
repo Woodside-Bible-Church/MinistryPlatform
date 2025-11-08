@@ -101,7 +101,12 @@ export default function RSVPForm({
   // Phone number formatting function
   const formatPhoneNumber = (value: string) => {
     // Remove all non-digits
-    const phoneNumber = value.replace(/\D/g, "");
+    let phoneNumber = value.replace(/\D/g, "");
+
+    // Remove leading "1" if it's an 11-digit number (North American country code)
+    if (phoneNumber.length === 11 && phoneNumber.startsWith("1")) {
+      phoneNumber = phoneNumber.slice(1);
+    }
 
     // Format as (XXX) XXX-XXXX
     if (phoneNumber.length <= 3) {
