@@ -71,34 +71,47 @@ export default function RSVPForm({
   const lastName = watch("lastName");
   const emailAddress = watch("emailAddress");
 
-  // Track previous values and focused field to detect autocomplete
+  // Track previous values to detect autocomplete
   const prevFirstName = useRef("");
   const prevLastName = useRef("");
   const prevEmailAddress = useRef("");
-  const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  // Track if we're currently typing (short values = typing, long values = autocomplete)
+  const isTypingRef = useRef(false);
 
   // Auto-advance when autocomplete fills a field
-  // Only advance if the field is NOT currently focused (autocomplete behavior)
+  // Autocomplete typically fills the entire field at once (length > 2)
+  // Manual typing happens one character at a time
   useEffect(() => {
-    if (!prevFirstName.current && firstName && focusedField !== "firstName") {
-      setTimeout(() => setFocus("lastName"), 50);
+    const prevLength = prevFirstName.current.length;
+    const currentLength = firstName.length;
+
+    // If field went from empty/small to large (3+ chars), likely autocomplete
+    if (prevLength <= 1 && currentLength >= 3) {
+      setTimeout(() => setFocus("lastName"), 100);
     }
     prevFirstName.current = firstName;
-  }, [firstName, setFocus, focusedField]);
+  }, [firstName, setFocus]);
 
   useEffect(() => {
-    if (!prevLastName.current && lastName && focusedField !== "lastName") {
-      setTimeout(() => setFocus("emailAddress"), 50);
+    const prevLength = prevLastName.current.length;
+    const currentLength = lastName.length;
+
+    if (prevLength <= 1 && currentLength >= 3) {
+      setTimeout(() => setFocus("emailAddress"), 100);
     }
     prevLastName.current = lastName;
-  }, [lastName, setFocus, focusedField]);
+  }, [lastName, setFocus]);
 
   useEffect(() => {
-    if (!prevEmailAddress.current && emailAddress && focusedField !== "emailAddress") {
-      setTimeout(() => setFocus("phoneNumber"), 50);
+    const prevLength = prevEmailAddress.current.length;
+    const currentLength = emailAddress.length;
+
+    if (prevLength <= 1 && currentLength >= 5) {
+      setTimeout(() => setFocus("phoneNumber"), 100);
     }
     prevEmailAddress.current = emailAddress;
-  }, [emailAddress, setFocus, focusedField]);
+  }, [emailAddress, setFocus]);
 
   // Phone number formatting function
   const formatPhoneNumber = (value: string) => {
@@ -178,8 +191,6 @@ export default function RSVPForm({
                   {...register("firstName")}
                   name="firstName"
                   autoComplete="given-name"
-                  onFocus={() => setFocusedField("firstName")}
-                  onBlur={() => setFocusedField(null)}
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   placeholder="John"
                 />
@@ -203,8 +214,6 @@ export default function RSVPForm({
                   {...register("lastName")}
                   name="lastName"
                   autoComplete="family-name"
-                  onFocus={() => setFocusedField("lastName")}
-                  onBlur={() => setFocusedField(null)}
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   placeholder="Doe"
                 />
@@ -230,8 +239,6 @@ export default function RSVPForm({
                 {...register("emailAddress")}
                 name="emailAddress"
                 autoComplete="email"
-                onFocus={() => setFocusedField("emailAddress")}
-                onBlur={() => setFocusedField(null)}
                 className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
                 placeholder="john.doe@example.com"
               />
