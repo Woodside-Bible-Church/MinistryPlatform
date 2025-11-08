@@ -236,7 +236,7 @@ export default function RSVPForm({
               type="button"
               onClick={handleStep1Continue}
               variant="secondary"
-              className="flex-1 h-12 text-base font-bold uppercase tracking-wide"
+              className="flex-1 h-12 text-base font-bold uppercase tracking-wide text-primary border-2 border-secondary"
             >
               Continue
             </Button>
@@ -295,18 +295,9 @@ export default function RSVPForm({
                   This is my first visit to Woodside
                 </Label>
                 <p className="text-sm text-white/70">
-                  We&apos;d love to help you find your way and make you feel welcome!
+                  We&apos;d love to help you find your way and make you feel welcome.
                 </p>
               </div>
-            </div>
-
-            {/* Disclaimer */}
-            <div className="p-4 bg-white/10 border border-white/20">
-              <p className="text-sm text-white/70">
-                <strong className="text-white">Please note:</strong> This RSVP
-                doesn&apos;t guarantee a spot, but will let everyone know how full each
-                service is so we can plan accordingly.
-              </p>
             </div>
 
             {/* Back and Submit Buttons */}
@@ -323,7 +314,7 @@ export default function RSVPForm({
                 type="submit"
                 disabled={isSubmitting}
                 variant="secondary"
-                className="flex-1 h-12 text-base font-bold uppercase tracking-wide"
+                className="flex-1 h-12 text-base font-bold uppercase tracking-wide text-primary border-2 border-secondary"
               >
                 {isSubmitting ? (
                   <>

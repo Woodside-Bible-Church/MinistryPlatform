@@ -236,11 +236,11 @@ export default function RSVPPage() {
               {/* Main Header - Aligned with top of image */}
               <div>
                 <h1 className="text-3xl md:text-5xl font-bold mb-2 md:mb-3 leading-tight text-white">
-                  Join us for Christmas Services!
+                  Join us for Christmas Services
                 </h1>
                 <p className="text-base md:text-xl leading-relaxed text-white opacity-90">
                   Our hope is that you, along with your friends and family, come and
-                  celebrate Christmas at Woodside!
+                  celebrate Christmas at Woodside.
                 </p>
               </div>
 
@@ -278,7 +278,7 @@ export default function RSVPPage() {
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
                                 <Clock className="w-4 h-4 text-white" />
-                                <span className="text-xl font-bold text-white">
+                                <span className="text-lg font-bold text-white">
                                   {new Date(selectedServiceTime.Event_Start_Date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                                 </span>
                               </div>
@@ -305,15 +305,21 @@ export default function RSVPPage() {
                               {/* Back Arrow - Left Side */}
                               <ArrowLeft className="w-5 h-5 text-white/70 flex-shrink-0" />
 
-                              <div>
-                                <p className="text-xl font-bold text-white mb-1">
-                                  {formData.firstName} {formData.lastName}
-                                </p>
-                                <p className="text-xs text-white/70">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                  </svg>
+                                  <span className="text-lg font-bold text-white">
+                                    {formData.firstName} {formData.lastName}
+                                  </span>
+                                </div>
+                                <p className="text-xs font-medium text-white/70 uppercase tracking-wide">
                                   {formData.emailAddress}
                                 </p>
                                 {formData.phoneNumber && (
-                                  <p className="text-xs text-white/70 mt-1">
+                                  <p className="text-xs text-white/80 font-medium uppercase tracking-wide mt-1">
                                     {formData.phoneNumber}
                                   </p>
                                 )}
@@ -363,10 +369,10 @@ export default function RSVPPage() {
                       {/* Text */}
                       <div>
                         <h2 className="text-2xl font-bold text-white mb-1">
-                          You&apos;re All Set!
+                          You&apos;re All Set
                         </h2>
                         <p className="text-base text-white opacity-80">
-                          We can&apos;t wait to see you at Christmas!
+                          We can&apos;t wait to see you at Christmas.
                         </p>
                       </div>
                     </div>

@@ -94,7 +94,7 @@ export default function ConfirmationView({
           <Button
             onClick={onReset}
             variant="secondary"
-            className="w-full h-12 text-base font-bold uppercase tracking-wide"
+            className="w-full h-12 text-base font-bold uppercase tracking-wide text-primary border-2 border-secondary"
           >
             <RotateCcw className="w-5 h-5 mr-2" />
             RSVP Again
