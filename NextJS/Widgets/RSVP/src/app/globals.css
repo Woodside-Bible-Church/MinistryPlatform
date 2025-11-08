@@ -46,7 +46,18 @@
 
 :root {
   --radius: 0.125rem;
-  /* Theme Colors - Can be overridden dynamically */
+  /*
+   * Theme Colors - Can be overridden dynamically via API
+   *
+   * To customize theme colors from your API or widget configuration:
+   *
+   * JavaScript example:
+   * document.documentElement.style.setProperty('--theme-primary', '#4F624C');
+   * document.documentElement.style.setProperty('--theme-secondary', '#C5AB94');
+   * document.documentElement.style.setProperty('--theme-accent', '#E8DDD0');
+   *
+   * This will update all buttons and theme elements that use these CSS variables.
+   */
   --theme-primary: #4F624C; /* Primary theme color (dark green) */
   --theme-secondary: #C5AB94; /* Secondary theme color (warm tan) */
   --theme-accent: #E8DDD0; /* Light accent color (cream) */
@@ -144,6 +155,57 @@
   }
   .border-theme-secondary {
     border-color: var(--theme-secondary);
+  }
+
+  /* RSVP Button Styles - Uses CSS variables for dynamic theming via API */
+  .btn-primary {
+    @apply font-bold uppercase tracking-wide;
+    color: var(--theme-primary);
+    background-color: var(--theme-secondary);
+    border: 2px solid var(--theme-secondary);
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--background);
+    border-color: var(--background);
+  }
+
+  .btn-primary:focus-visible {
+    background-color: var(--background);
+    border-color: var(--background);
+    outline: none;
+    box-shadow: none;
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    @apply font-bold uppercase tracking-wide;
+    color: var(--theme-secondary);
+    background-color: transparent;
+    border: 2px solid var(--theme-secondary);
+    transition: all 0.2s ease;
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--theme-secondary);
+    color: var(--theme-primary);
+  }
+
+  .btn-secondary:focus-visible {
+    background-color: var(--theme-secondary);
+    color: var(--theme-primary);
+    outline: none;
+    box-shadow: none;
+  }
+
+  .btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 

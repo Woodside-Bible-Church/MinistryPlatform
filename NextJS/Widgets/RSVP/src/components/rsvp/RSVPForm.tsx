@@ -278,7 +278,7 @@ export default function RSVPForm({
               type="button"
               onClick={handleStep1Continue}
               variant="secondary"
-              className="flex-1 h-12 text-base font-bold uppercase tracking-wide text-primary border-2 border-secondary hover:border-background hover:bg-background focus-visible:border-background focus-visible:bg-background focus-visible:ring-0"
+              className="btn-primary flex-1 h-12 text-base"
             >
               Continue
             </Button>
@@ -286,7 +286,7 @@ export default function RSVPForm({
               type="button"
               onClick={onBack}
               variant="outline"
-              className="flex-1 h-12 text-base border-2 border-secondary text-secondary hover:bg-secondary hover:text-primary focus-visible:bg-secondary focus-visible:text-primary focus-visible:ring-0 bg-transparent font-bold uppercase tracking-wide"
+              className="btn-secondary flex-1 h-12 text-base"
             >
               Back
             </Button>
@@ -376,7 +376,7 @@ export default function RSVPForm({
                 type="submit"
                 disabled={isSubmitting}
                 variant="secondary"
-                className="flex-1 h-12 text-base font-bold uppercase tracking-wide text-primary border-2 border-secondary hover:border-background hover:bg-background focus-visible:border-background focus-visible:bg-background focus-visible:ring-0"
+                className="btn-primary flex-1 h-12 text-base"
               >
                 {isSubmitting ? (
                   <>
@@ -391,7 +391,7 @@ export default function RSVPForm({
                 type="button"
                 onClick={() => onStepChange(1)}
                 variant="outline"
-                className="flex-1 h-12 text-base border-2 border-secondary text-secondary hover:bg-secondary hover:text-primary focus-visible:bg-secondary focus-visible:text-primary focus-visible:ring-0 bg-transparent font-bold uppercase tracking-wide"
+                className="btn-secondary flex-1 h-12 text-base"
               >
                 Back
               </Button>
