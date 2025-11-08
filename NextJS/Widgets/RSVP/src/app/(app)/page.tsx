@@ -232,7 +232,7 @@ export default function RSVPPage() {
           {/* Top Section - Header and Image */}
           <div className="flex gap-8 mb-8 md:mb-12">
             {/* Left: Header Text + Instructions */}
-            <div className="flex-1 flex flex-col justify-between gap-6 md:gap-0">
+            <div className="flex-1 flex flex-col justify-between gap-6 xl:gap-0">
               {/* Main Header - Aligned with top of image */}
               <div>
                 <h1 className="text-3xl md:text-5xl font-bold mb-2 md:mb-3 leading-tight text-white">
@@ -242,6 +242,15 @@ export default function RSVPPage() {
                   Our hope is that you, along with your friends and family, come and
                   celebrate Christmas at Woodside.
                 </p>
+              </div>
+
+              {/* Christmas Image - Mobile/Tablet (between blurb and instructions) */}
+              <div className="xl:hidden my-2">
+                <img
+                  src={`${baseUrl}/assets/Christmas24_web_1480x1080.jpg`}
+                  alt="Christmas Service"
+                  className="w-full h-auto shadow-2xl max-w-md mx-auto"
+                />
               </div>
 
               {/* Dynamic Instructions + Campus Filter - Aligned with bottom of image */}
@@ -407,8 +416,8 @@ export default function RSVPPage() {
               </div>
             </div>
 
-            {/* Christmas Image */}
-            <div className="hidden lg:block flex-shrink-0 w-[520px]">
+            {/* Christmas Image - Desktop Only (right side) */}
+            <div className="hidden xl:block flex-shrink-0 w-[520px]">
               <img
                 src={`${baseUrl}/assets/Christmas24_web_1480x1080.jpg`}
                 alt="Christmas Service"
