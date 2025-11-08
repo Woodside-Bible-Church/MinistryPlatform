@@ -70,7 +70,6 @@ export default function RSVPForm({
   const firstName = watch("firstName");
   const lastName = watch("lastName");
   const emailAddress = watch("emailAddress");
-  const phoneNumber = watch("phoneNumber");
 
   // Track previous values to detect when autocomplete fills a field
   const prevFirstName = useRef("");
