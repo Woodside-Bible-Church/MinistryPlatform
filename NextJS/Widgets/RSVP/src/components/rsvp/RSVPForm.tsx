@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -64,6 +64,39 @@ export default function RSVPForm({
 
   const partySize = watch("partySize");
   const isNewVisitor = watch("isNewVisitor");
+
+  // Refs for input fields to enable auto-advance
+  const firstNameRef = useRef<HTMLInputElement>(null);
+  const lastNameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+
+  // Watch form values to detect autocomplete changes
+  const firstName = watch("firstName");
+  const lastName = watch("lastName");
+  const emailAddress = watch("emailAddress");
+
+  // Auto-advance when autocomplete fills a field
+  useEffect(() => {
+    if (firstName && firstNameRef.current === document.activeElement) {
+      // First name was filled, move to last name
+      lastNameRef.current?.focus();
+    }
+  }, [firstName]);
+
+  useEffect(() => {
+    if (lastName && lastNameRef.current === document.activeElement) {
+      // Last name was filled, move to email
+      emailRef.current?.focus();
+    }
+  }, [lastName]);
+
+  useEffect(() => {
+    if (emailAddress && emailRef.current === document.activeElement) {
+      // Email was filled, move to phone
+      phoneRef.current?.focus();
+    }
+  }, [emailAddress]);
 
   // Phone number formatting function
   const formatPhoneNumber = (value: string) => {
@@ -130,6 +163,7 @@ export default function RSVPForm({
                 <Input
                   id="firstName"
                   {...register("firstName")}
+                  ref={firstNameRef}
                   name="firstName"
                   autoComplete="given-name"
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
@@ -153,6 +187,7 @@ export default function RSVPForm({
                 <Input
                   id="lastName"
                   {...register("lastName")}
+                  ref={lastNameRef}
                   name="lastName"
                   autoComplete="family-name"
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
@@ -178,6 +213,7 @@ export default function RSVPForm({
                 id="emailAddress"
                 type="email"
                 {...register("emailAddress")}
+                ref={emailRef}
                 name="emailAddress"
                 autoComplete="email"
                 className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
@@ -201,6 +237,7 @@ export default function RSVPForm({
                 type="tel"
                 inputMode="numeric"
                 {...register("phoneNumber")}
+                ref={phoneRef}
                 name="phoneNumber"
                 autoComplete="tel"
                 onChange={handlePhoneChange}
