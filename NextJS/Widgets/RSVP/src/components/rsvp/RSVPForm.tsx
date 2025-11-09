@@ -10,6 +10,8 @@ import {
   Loader2,
   Minus,
   Plus,
+  Sparkles,
+  Check,
 } from "lucide-react";
 import {
   RSVPFormSchema,
@@ -19,7 +21,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 
 interface RSVPFormProps {
   selectedServiceTime: ServiceTimeResponse;
@@ -349,21 +350,25 @@ export default function RSVPForm({
             </div>
 
             {/* New Visitor Checkbox */}
-            <div className="flex items-start space-x-3 p-4 border border-white/20 bg-white/10">
-              <Checkbox
-                id="isNewVisitor"
-                checked={isNewVisitor}
-                onCheckedChange={(checked) =>
-                  setValue("isNewVisitor", checked as boolean)
-                }
-              />
-              <div className="space-y-1">
-                <Label
-                  htmlFor="isNewVisitor"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer text-white"
-                >
+            <div
+              onClick={() => setValue("isNewVisitor", !isNewVisitor)}
+              className="flex items-start gap-3 p-4 border-2 border-white/20 bg-white/5 cursor-pointer hover:bg-white/10 hover:border-white/30 transition-all select-none"
+            >
+              <div className="flex items-center gap-3">
+                {/* Custom Checkbox Visual */}
+                <div className={`w-5 h-5 border-2 flex items-center justify-center transition-all ${
+                  isNewVisitor
+                    ? 'bg-white border-white'
+                    : 'bg-transparent border-white/50'
+                }`}>
+                  {isNewVisitor && <Check className="w-4 h-4 text-primary" strokeWidth={3} />}
+                </div>
+                <Sparkles className="w-5 h-5 text-white/70" />
+              </div>
+              <div className="space-y-1 flex-1">
+                <div className="text-sm font-medium leading-none text-white">
                   This is my first visit to Woodside
-                </Label>
+                </div>
                 <p className="text-sm text-white/70">
                   We&apos;d love to help you find your way and make you feel welcome.
                 </p>
