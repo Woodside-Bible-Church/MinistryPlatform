@@ -15,6 +15,19 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "img-src 'self' data: https://maps.googleapis.com https://my.woodsidebible.org;",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

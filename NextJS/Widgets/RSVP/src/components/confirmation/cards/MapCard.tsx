@@ -7,6 +7,7 @@ import { useState } from "react";
 
 export function MapCard({ config, rsvpData }: CardProps<MapCardConfig>) {
   const [showMapSelector, setShowMapSelector] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   // Use configured address or fallback to campus address
   const address = config.address || [
@@ -67,12 +68,17 @@ export function MapCard({ config, rsvpData }: CardProps<MapCardConfig>) {
         )}
 
         {/* Static Map Image with clickable overlay */}
-        {staticMapUrl && (
+        {staticMapUrl && !imageError && (
           <div className="relative w-full h-64 rounded-lg overflow-hidden mt-4">
             <img
               src={staticMapUrl}
               alt="Map location"
               className="w-full h-full object-cover"
+              onError={(e) => {
+                console.error("Map image failed to load:", e);
+                console.error("URL:", staticMapUrl);
+                setImageError(true);
+              }}
             />
 
             {/* Clickable overlay */}
@@ -87,6 +93,13 @@ export function MapCard({ config, rsvpData }: CardProps<MapCardConfig>) {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Error fallback */}
+        {imageError && (
+          <div className="relative w-full h-64 rounded-lg overflow-hidden mt-4 bg-white/10 flex items-center justify-center">
+            <p className="text-white/70 text-sm">Map temporarily unavailable</p>
           </div>
         )}
 
