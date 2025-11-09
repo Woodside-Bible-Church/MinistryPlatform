@@ -17,7 +17,7 @@ export interface ConfirmationCard {
 // Base configuration that all cards support
 export interface BaseCardConfiguration {
   title: string;
-  [key: string]: any; // Allow additional properties
+  [key: string]: unknown; // Allow additional properties
 }
 
 export type CardConfiguration =
