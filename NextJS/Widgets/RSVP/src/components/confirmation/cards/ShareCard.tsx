@@ -3,12 +3,13 @@
 import { motion } from "framer-motion";
 import { Share2, Mail, MessageSquare, Copy, Check } from "lucide-react";
 import { CardProps, ShareCardConfig, replaceTokens, buildEventShareUrl } from "@/types/confirmationCards";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import * as Popover from "@radix-ui/react-popover";
 
 export function ShareCard({ config, rsvpData }: CardProps<ShareCardConfig>) {
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Build share URL
   const shareUrl = config.shareUrl || buildEventShareUrl(rsvpData.Event_ID);
@@ -74,6 +75,7 @@ export function ShareCard({ config, rsvpData }: CardProps<ShareCardConfig>) {
 
   return (
     <motion.div
+      ref={containerRef}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="bg-gradient-to-br from-primary to-primary/90 p-8 w-full flex flex-col relative overflow-hidden h-full"
@@ -103,7 +105,7 @@ export function ShareCard({ config, rsvpData }: CardProps<ShareCardConfig>) {
             </button>
           </Popover.Trigger>
 
-          <Popover.Portal>
+          <Popover.Portal container={containerRef.current}>
             <Popover.Content
               className="bg-primary border-2 border-white/20 rounded-lg p-3 shadow-xl backdrop-blur-md z-50"
               sideOffset={8}

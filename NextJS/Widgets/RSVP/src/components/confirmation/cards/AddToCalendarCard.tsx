@@ -4,11 +4,12 @@ import { motion } from "framer-motion";
 import { Calendar, Download } from "lucide-react";
 import { FaGoogle, FaApple, FaMicrosoft } from "react-icons/fa";
 import { CardProps, AddToCalendarCardConfig, generateICSContent } from "@/types/confirmationCards";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import * as Popover from "@radix-ui/react-popover";
 
 export function AddToCalendarCard({ config, rsvpData }: CardProps<AddToCalendarCardConfig>) {
   const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const startDate = new Date(rsvpData.Event_Start_Date);
   const endDate = new Date(rsvpData.Event_End_Date);
 
@@ -80,6 +81,7 @@ export function AddToCalendarCard({ config, rsvpData }: CardProps<AddToCalendarC
 
   return (
     <motion.div
+      ref={containerRef}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="bg-gradient-to-br from-primary to-primary/90 p-8 w-full flex flex-col relative overflow-hidden h-full"
@@ -109,7 +111,7 @@ export function AddToCalendarCard({ config, rsvpData }: CardProps<AddToCalendarC
             </button>
           </Popover.Trigger>
 
-          <Popover.Portal>
+          <Popover.Portal container={containerRef.current}>
             <Popover.Content
               className="bg-primary border-2 border-white/20 rounded-lg p-3 shadow-xl backdrop-blur-md z-50"
               sideOffset={8}
