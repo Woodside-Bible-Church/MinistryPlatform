@@ -11,7 +11,6 @@ import {
   Minus,
   Plus,
   Sparkles,
-  Check,
 } from "lucide-react";
 import {
   RSVPFormSchema,
