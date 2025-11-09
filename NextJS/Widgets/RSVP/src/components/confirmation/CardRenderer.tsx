@@ -52,7 +52,7 @@ export function CardListRenderer({ cards, rsvpData }: CardListRendererProps) {
   const sortedCards = [...cards].sort((a, b) => a.Display_Order - b.Display_Order);
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,350px),1fr))] gap-6">
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,450px),1fr))] gap-6">
       {sortedCards.map((card) => (
         <CardRenderer
           key={`${card.Card_Type_ID}-${card.Display_Order}`}

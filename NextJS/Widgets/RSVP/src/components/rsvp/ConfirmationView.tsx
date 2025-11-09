@@ -126,7 +126,7 @@ export default function ConfirmationView({
   ];
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,350px),1fr))] gap-6">
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,450px),1fr))] gap-6">
       {/* RSVP Summary Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
