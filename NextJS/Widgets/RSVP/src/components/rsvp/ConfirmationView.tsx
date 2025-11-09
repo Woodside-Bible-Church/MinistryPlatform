@@ -12,6 +12,8 @@ import {
   formatServiceDate,
 } from "@/types/rsvp";
 import { Button } from "@/components/ui/button";
+import { CardListRenderer } from "@/components/confirmation/CardRenderer";
+import { ConfirmationCard } from "@/types/confirmationCards";
 
 interface ConfirmationViewProps {
   confirmation: RSVPConfirmationResponse;
@@ -39,14 +41,98 @@ export default function ConfirmationView({
     fullAddress
   )}`;
 
+  // Mock card configuration - in production this would come from the database
+  const cards: ConfirmationCard[] = [
+    {
+      Card_Type_ID: 1,
+      Card_Type_Name: "Instructions",
+      Component_Name: "InstructionsCard",
+      Icon_Name: "Info",
+      Display_Order: 1,
+      Configuration: {
+        title: "What to Expect",
+        bullets: [
+          {
+            icon: "Clock",
+            text: "Arrive early to find parking and get seated comfortably",
+          },
+          {
+            icon: "Baby",
+            text: "Kids programming available for all ages",
+          },
+          {
+            icon: "Timer",
+            text: "Services last approximately 60 minutes",
+          },
+          {
+            icon: "Shirt",
+            text: "Dress casually - come as you are!",
+          },
+        ],
+      },
+    },
+    {
+      Card_Type_ID: 2,
+      Card_Type_Name: "Map",
+      Component_Name: "MapCard",
+      Icon_Name: "Map",
+      Display_Order: 2,
+      Configuration: {
+        title: "Find Us",
+        showDirectionsLink: true,
+        mapProvider: "google",
+        customInstructions: "Enter through the main entrance",
+      },
+    },
+    {
+      Card_Type_ID: 4,
+      Card_Type_Name: "QRCode",
+      Component_Name: "QRCodeCard",
+      Icon_Name: "QrCode",
+      Display_Order: 3,
+      Configuration: {
+        title: "Check-In Code",
+        qrType: "checkin",
+        qrData: "{confirmation_number}",
+        description: "Show this code when you arrive for faster check-in",
+        includeConfirmationNumber: true,
+        size: 200,
+      },
+    },
+    {
+      Card_Type_ID: 5,
+      Card_Type_Name: "Share",
+      Component_Name: "ShareCard",
+      Icon_Name: "Share2",
+      Display_Order: 4,
+      Configuration: {
+        title: "Invite a Friend",
+        enabledMethods: ["sms", "email", "copy"],
+        customMessage: "Join me at {event_title} on {event_date}!",
+      },
+    },
+    {
+      Card_Type_ID: 6,
+      Card_Type_Name: "AddToCalendar",
+      Component_Name: "AddToCalendarCard",
+      Icon_Name: "Calendar",
+      Display_Order: 5,
+      Configuration: {
+        title: "Save the Date",
+        providers: ["google", "apple", "outlook", "ics"],
+        eventDescription: `Join us for ${confirmation.Event_Title}`,
+      },
+    },
+  ];
+
   return (
-    <div className="flex flex-col md:flex-row gap-4">
-      {/* Left Card: RSVP Summary with Get Directions */}
+    <div className="space-y-6">
+      {/* RSVP Summary Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-primary p-6 w-full md:min-w-[400px] md:flex-1 flex flex-col"
+        className="bg-primary p-6 w-full flex flex-col"
       >
         {/* Personalized Greeting */}
         <div className="py-2">
@@ -89,8 +175,8 @@ export default function ConfirmationView({
           </a>
         </div>
 
-        {/* Action Button - Pushed to bottom */}
-        <div className="mt-auto">
+        {/* Action Button */}
+        <div>
           <Button
             onClick={onReset}
             variant="secondary"
@@ -102,59 +188,8 @@ export default function ConfirmationView({
         </div>
       </motion.div>
 
-      {/* Right Card: What to Expect */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="bg-gradient-to-br from-primary to-primary/90 p-8 w-full md:min-w-[400px] md:flex-1 flex flex-col relative overflow-hidden"
-      >
-        {/* Decorative background elements */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-secondary/5 rounded-full blur-2xl"></div>
-
-        <h3 className="text-2xl font-bold text-white mb-8 relative">
-          What to Expect
-        </h3>
-        <ul className="space-y-6 text-base text-white/90 relative">
-          <li className="flex items-start gap-4 group">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center mt-0.5 group-hover:bg-secondary/30 transition-colors">
-              <span className="text-secondary text-lg font-bold">1</span>
-            </div>
-            <span className="leading-relaxed">
-              <strong className="text-white font-bold">Arrive early</strong> to find
-              parking and get seated comfortably
-            </span>
-          </li>
-          <li className="flex items-start gap-4 group">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center mt-0.5 group-hover:bg-secondary/30 transition-colors">
-              <span className="text-secondary text-lg font-bold">2</span>
-            </div>
-            <span className="leading-relaxed">
-              <strong className="text-white font-bold">Kids programming</strong>{" "}
-              available for all ages
-            </span>
-          </li>
-          <li className="flex items-start gap-4 group">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center mt-0.5 group-hover:bg-secondary/30 transition-colors">
-              <span className="text-secondary text-lg font-bold">3</span>
-            </div>
-            <span className="leading-relaxed">
-              <strong className="text-white font-bold">Services last</strong>{" "}
-              approximately 60 minutes
-            </span>
-          </li>
-          <li className="flex items-start gap-4 group">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center mt-0.5 group-hover:bg-secondary/30 transition-colors">
-              <span className="text-secondary text-lg font-bold">4</span>
-            </div>
-            <span className="leading-relaxed">
-              <strong className="text-white font-bold">Dress casually</strong> - come
-              as you are!
-            </span>
-          </li>
-        </ul>
-      </motion.div>
+      {/* Dynamic Cards */}
+      <CardListRenderer cards={cards} rsvpData={confirmation} />
     </div>
   );
 }
