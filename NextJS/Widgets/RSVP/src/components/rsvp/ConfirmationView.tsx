@@ -12,7 +12,7 @@ import {
   formatServiceDate,
 } from "@/types/rsvp";
 import { Button } from "@/components/ui/button";
-import { CardListRenderer } from "@/components/confirmation/CardRenderer";
+import { CardRenderer } from "@/components/confirmation/CardRenderer";
 import { ConfirmationCard } from "@/types/confirmationCards";
 
 interface ConfirmationViewProps {
@@ -126,7 +126,7 @@ export default function ConfirmationView({
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 auto-rows-fr">
       {/* RSVP Summary Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -189,7 +189,13 @@ export default function ConfirmationView({
       </motion.div>
 
       {/* Dynamic Cards */}
-      <CardListRenderer cards={cards} rsvpData={confirmation} />
+      {cards.sort((a, b) => a.Display_Order - b.Display_Order).map((card) => (
+        <CardRenderer
+          key={`${card.Card_Type_ID}-${card.Display_Order}`}
+          card={card}
+          rsvpData={confirmation}
+        />
+      ))}
     </div>
   );
 }
