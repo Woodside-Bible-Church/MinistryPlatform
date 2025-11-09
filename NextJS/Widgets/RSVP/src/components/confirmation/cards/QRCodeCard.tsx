@@ -32,13 +32,15 @@ export function QRCodeCard({ config, rsvpData }: CardProps<QRCodeCardConfig>) {
         <p className="text-white/90 text-center mb-6 relative">{description}</p>
       )}
 
-      {/* QR Code */}
-      <div className="bg-white p-6 rounded-lg relative">
+      {/* QR Code with Glass Morphism */}
+      <div className="bg-white/10 backdrop-blur-md p-6 rounded-lg border-2 border-white/20 relative">
         <QRCodeSVG
           value={qrData}
           size={config.size || 200}
           level="H"
           includeMargin={true}
+          fgColor="#FFFFFF"
+          bgColor="transparent"
         />
       </div>
 
