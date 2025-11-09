@@ -352,24 +352,26 @@ export default function RSVPForm({
             {/* New Visitor Checkbox */}
             <div
               onClick={() => setValue("isNewVisitor", !isNewVisitor)}
-              className="flex items-start gap-3 p-4 border-2 border-white/20 bg-white/5 cursor-pointer hover:bg-white/10 hover:border-white/30 transition-all select-none"
+              className={`flex items-start gap-3 p-4 border-2 transition-all select-none cursor-pointer ${
+                isNewVisitor
+                  ? 'border-white bg-white/15'
+                  : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
+              }`}
             >
-              <div className="flex items-center gap-3">
-                {/* Custom Checkbox Visual */}
-                <div className={`w-5 h-5 border-2 flex items-center justify-center transition-all ${
-                  isNewVisitor
-                    ? 'bg-white border-white'
-                    : 'bg-transparent border-white/50'
-                }`}>
-                  {isNewVisitor && <Check className="w-4 h-4 text-primary" strokeWidth={3} />}
-                </div>
-                <Sparkles className="w-5 h-5 text-white/70" />
+              <div className="flex items-center">
+                <Sparkles className={`w-6 h-6 transition-all ${
+                  isNewVisitor ? 'text-white' : 'text-white/50'
+                }`} />
               </div>
               <div className="space-y-1 flex-1">
-                <div className="text-sm font-medium leading-none text-white">
+                <div className={`text-sm font-medium leading-none transition-colors ${
+                  isNewVisitor ? 'text-white' : 'text-white/90'
+                }`}>
                   This is my first visit to Woodside
                 </div>
-                <p className="text-sm text-white/70">
+                <p className={`text-sm transition-colors ${
+                  isNewVisitor ? 'text-white/90' : 'text-white/70'
+                }`}>
                   We&apos;d love to help you find your way and make you feel welcome.
                 </p>
               </div>
