@@ -20,39 +20,10 @@ export function AddToCalendarCard({ config, rsvpData }: CardProps<AddToCalendarC
   const location = config.location || `${rsvpData.Campus_Name}, ${rsvpData.Campus_Address_Line_1}, ${rsvpData.Campus_City}, ${rsvpData.Campus_State} ${rsvpData.Campus_Postal_Code}`;
   const description = config.eventDescription || "";
 
-  const handleNativeShare = async () => {
-    // Try native share with ICS file on mobile
-    if (navigator.share && navigator.canShare) {
-      try {
-        const icsContent = generateICSContent(rsvpData, config);
-        const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
-        const file = new File([blob], `${rsvpData.Event_Title.replace(/[^a-z0-9]/gi, "_")}.ics`, {
-          type: "text/calendar",
-        });
-
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: rsvpData.Event_Title,
-            text: "Add this event to your calendar",
-          });
-          return true;
-        }
-      } catch (err) {
-        if ((err as Error).name !== 'AbortError') {
-          console.error('Error sharing:', err);
-        }
-      }
-    }
-    return false;
-  };
-
-  const handleCalendarClick = async () => {
-    const shared = await handleNativeShare();
-    if (!shared) {
-      // Open popover if native share not available or failed
-      setOpen(true);
-    }
+  const handleCalendarClick = () => {
+    // Always open popover - don't use native share for calendar
+    // (Native share doesn't provide good calendar app selection on iOS)
+    setOpen(true);
   };
 
   const handleAddToCalendar = (provider: string) => {

@@ -39,12 +39,17 @@ export function ShareCard({ config, rsvpData }: CardProps<ShareCardConfig>) {
     return false;
   };
 
-  const handleShareClick = async () => {
-    const shared = await handleNativeShare();
-    if (!shared) {
-      // Open popover if native share not available or failed
-      setOpen(true);
+  const handleShareClick = async (e: React.MouseEvent) => {
+    // If native share is available, use it and prevent popover from opening
+    if ('share' in navigator) {
+      e.preventDefault(); // Prevent popover trigger
+      const shared = await handleNativeShare();
+      if (shared) {
+        return; // Successfully shared, don't open popover
+      }
     }
+    // If native share not available or failed, popover will open automatically
+    setOpen(true);
   };
 
   const handleShare = (method: string) => {
