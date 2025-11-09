@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Share2, Mail, MessageSquare, Copy, Check, X } from "lucide-react";
+import { Share2, Mail, MessageSquare, Copy, Check } from "lucide-react";
 import { CardProps, ShareCardConfig, replaceTokens, buildEventShareUrl } from "@/types/confirmationCards";
 import { useState } from "react";
 import * as Popover from "@radix-ui/react-popover";

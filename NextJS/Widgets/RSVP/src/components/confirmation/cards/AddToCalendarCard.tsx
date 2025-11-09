@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Calendar, Download, X } from "lucide-react";
+import { Calendar, Download } from "lucide-react";
 import { FaGoogle, FaApple, FaMicrosoft } from "react-icons/fa";
 import { CardProps, AddToCalendarCardConfig, generateICSContent } from "@/types/confirmationCards";
 import { useState } from "react";
