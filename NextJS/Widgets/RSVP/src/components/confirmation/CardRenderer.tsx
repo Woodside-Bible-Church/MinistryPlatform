@@ -33,8 +33,9 @@ export function CardRenderer({ card, rsvpData }: CardRendererProps) {
     return null;
   }
 
-  // TypeScript can't infer the correct config type from the union, so we use 'as any'
+  // TypeScript can't infer the correct config type from the union
   // Each card component will validate its own config type at runtime
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return <CardComponent config={card.Configuration as any} rsvpData={rsvpData} />;
 }
 
