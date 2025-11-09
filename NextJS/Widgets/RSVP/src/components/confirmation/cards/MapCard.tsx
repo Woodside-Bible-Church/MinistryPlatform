@@ -3,8 +3,8 @@
 import { motion } from "framer-motion";
 import { Map, Navigation } from "lucide-react";
 import { CardProps, MapCardConfig } from "@/types/confirmationCards";
-import { APIProvider, Map as GoogleMap, Marker } from "@vis.gl/react-google-maps";
 import { useState } from "react";
+import Image from "next/image";
 
 export function MapCard({ config, rsvpData }: CardProps<MapCardConfig>) {
   const [showMapSelector, setShowMapSelector] = useState(false);
@@ -23,12 +23,17 @@ export function MapCard({ config, rsvpData }: CardProps<MapCardConfig>) {
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
   const appleMapsUrl = `http://maps.apple.com/?q=${encodeURIComponent(address)}`;
 
-  // Get coordinates from config or use default (will be replaced by geocoding in production)
+  // Get coordinates from config or use address for Static API
   const center = config.latitude && config.longitude
-    ? { lat: config.latitude, lng: config.longitude }
-    : { lat: 42.331429, lng: -83.045753 }; // Default to Woodside Bible Church
+    ? `${config.latitude},${config.longitude}`
+    : encodeURIComponent(address);
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
+
+  // Google Maps Static API URL
+  const staticMapUrl = apiKey
+    ? `https://maps.googleapis.com/maps/api/staticmap?center=${center}&zoom=15&size=600x300&markers=color:red%7C${center}&key=${apiKey}&scale=2`
+    : null;
 
   const handleMapClick = () => {
     setShowMapSelector(true);
@@ -62,35 +67,31 @@ export function MapCard({ config, rsvpData }: CardProps<MapCardConfig>) {
           <p className="text-white/70 text-sm">{config.customInstructions}</p>
         )}
 
-        {/* Embedded Google Map with clickable overlay */}
-        <div className="relative w-full h-64 rounded-lg overflow-hidden mt-4">
-          {apiKey && (
-            <APIProvider apiKey={apiKey}>
-              <GoogleMap
-                center={center}
-                zoom={15}
-                gestureHandling="none"
-                disableDefaultUI={true}
-                mapId="rsvp-map"
-              >
-                <Marker position={center} />
-              </GoogleMap>
-            </APIProvider>
-          )}
+        {/* Static Map Image with clickable overlay */}
+        {staticMapUrl && (
+          <div className="relative w-full h-64 rounded-lg overflow-hidden mt-4">
+            <Image
+              src={staticMapUrl}
+              alt="Map location"
+              fill
+              className="object-cover"
+              unoptimized
+            />
 
-          {/* Clickable overlay */}
-          <div
-            onClick={handleMapClick}
-            className="absolute inset-0 bg-transparent cursor-pointer group"
-          >
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 px-6 py-3 rounded-lg flex items-center gap-2">
-                <Navigation className="w-5 h-5 text-primary" />
-                <span className="text-primary font-bold">Get Directions</span>
+            {/* Clickable overlay */}
+            <div
+              onClick={handleMapClick}
+              className="absolute inset-0 bg-transparent cursor-pointer group"
+            >
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 px-6 py-3 rounded-lg flex items-center gap-2">
+                  <Navigation className="w-5 h-5 text-primary" />
+                  <span className="text-primary font-bold">Get Directions</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Map Selector Modal */}
         {showMapSelector && (
