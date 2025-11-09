@@ -33,7 +33,9 @@ export function CardRenderer({ card, rsvpData }: CardRendererProps) {
     return null;
   }
 
-  return <CardComponent config={card.Configuration} rsvpData={rsvpData} />;
+  // TypeScript can't infer the correct config type from the union, so we use 'as any'
+  // Each card component will validate its own config type at runtime
+  return <CardComponent config={card.Configuration as any} rsvpData={rsvpData} />;
 }
 
 interface CardListRendererProps {
