@@ -17,7 +17,7 @@ export function QRCodeCard({ config, rsvpData }: CardProps<QRCodeCardConfig>) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-br from-primary to-primary/90 p-8 w-full flex flex-col items-center relative overflow-hidden"
+      className="bg-gradient-to-br from-primary to-primary/90 p-8 w-full flex flex-col items-center relative overflow-hidden h-full"
     >
       {/* Decorative background */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-3xl"></div>

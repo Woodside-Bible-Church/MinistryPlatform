@@ -43,7 +43,7 @@ export function AddToCalendarCard({ config, rsvpData }: CardProps<AddToCalendarC
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-br from-primary to-primary/90 p-8 w-full flex flex-col relative overflow-hidden"
+      className="bg-gradient-to-br from-primary to-primary/90 p-8 w-full flex flex-col relative overflow-hidden h-full"
     >
       {/* Decorative background */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-3xl"></div>
@@ -54,11 +54,11 @@ export function AddToCalendarCard({ config, rsvpData }: CardProps<AddToCalendarC
         <h3 className="text-2xl font-bold text-white">{config.title}</h3>
       </div>
 
-      <p className="text-white/90 mb-6 relative">
+      <p className="text-white/90 mb-6 relative flex-1">
         Never forget! Add this event to your calendar.
       </p>
 
-      <div className="grid grid-cols-2 gap-3 relative">
+      <div className="grid grid-cols-2 gap-3 relative mt-auto">
         {config.providers.includes("google") && (
           <Button
             onClick={() => handleAddToCalendar("google")}

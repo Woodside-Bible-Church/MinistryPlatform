@@ -10,7 +10,7 @@ export function InstructionsCard({ config }: CardProps<InstructionsCardConfig>) 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="bg-gradient-to-br from-primary to-primary/90 p-8 w-full flex flex-col relative overflow-hidden"
+      className="bg-gradient-to-br from-primary to-primary/90 p-8 w-full flex flex-col relative overflow-hidden h-full"
     >
       {/* Decorative background elements */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-3xl"></div>
@@ -27,8 +27,8 @@ export function InstructionsCard({ config }: CardProps<InstructionsCardConfig>) 
             LucideIcons[bullet.icon as keyof typeof LucideIcons] as React.ComponentType<{ className?: string }>;
 
           return (
-            <li key={index} className="flex items-start gap-4 group">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center mt-0.5 group-hover:bg-secondary/30 transition-colors">
+            <li key={index} className="flex items-center gap-4 group">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center group-hover:bg-secondary/30 transition-colors">
                 {IconComponent ? (
                   <IconComponent className="w-5 h-5 text-secondary" />
                 ) : (

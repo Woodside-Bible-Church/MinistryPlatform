@@ -126,13 +126,13 @@ export default function ConfirmationView({
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 auto-rows-fr">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* RSVP Summary Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-primary p-6 w-full flex flex-col"
+        className="bg-primary p-6 w-full flex flex-col h-full"
       >
         {/* Personalized Greeting */}
         <div className="py-2">
@@ -142,7 +142,7 @@ export default function ConfirmationView({
         </div>
 
         {/* RSVP Details */}
-        <div className="space-y-4 mb-6">
+        <div className="space-y-4 mb-6 flex-1">
           {/* Service Time */}
           <div className="flex items-start gap-3">
             <Clock className="w-5 h-5 text-white/70 mt-0.5" />
