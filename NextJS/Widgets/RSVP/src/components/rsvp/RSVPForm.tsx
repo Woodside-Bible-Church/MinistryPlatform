@@ -247,9 +247,9 @@ export default function RSVPForm({
             )}
           </div>
 
-          {/* Phone (Optional) */}
+          {/* Phone */}
           <div className="space-y-2">
-            <Label htmlFor="phoneNumber" className="text-white">Phone Number (Optional)</Label>
+            <Label htmlFor="phoneNumber" className="text-white">Phone Number</Label>
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
               <Input
