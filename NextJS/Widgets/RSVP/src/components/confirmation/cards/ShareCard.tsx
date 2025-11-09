@@ -1,12 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Share2, Mail, MessageSquare, Copy, Check } from "lucide-react";
+import { Share2, Mail, MessageSquare, Copy, Check, X } from "lucide-react";
 import { CardProps, ShareCardConfig, replaceTokens, buildEventShareUrl } from "@/types/confirmationCards";
 import { useState } from "react";
+import * as Popover from "@radix-ui/react-popover";
 
 export function ShareCard({ config, rsvpData }: CardProps<ShareCardConfig>) {
   const [copied, setCopied] = useState(false);
+  const [open, setOpen] = useState(false);
 
   // Build share URL
   const shareUrl = config.shareUrl || buildEventShareUrl(rsvpData.Event_ID);
@@ -15,6 +17,34 @@ export function ShareCard({ config, rsvpData }: CardProps<ShareCardConfig>) {
   const customMessage = config.customMessage
     ? replaceTokens(config.customMessage, rsvpData)
     : `Join me at ${rsvpData.Event_Title}!`;
+
+  const handleNativeShare = async () => {
+    // Try native share API first (mobile devices)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: rsvpData.Event_Title,
+          text: customMessage,
+          url: shareUrl,
+        });
+        return true;
+      } catch (err) {
+        // User cancelled or error - fall through to popover
+        if ((err as Error).name !== 'AbortError') {
+          console.error('Error sharing:', err);
+        }
+      }
+    }
+    return false;
+  };
+
+  const handleShareClick = async () => {
+    const shared = await handleNativeShare();
+    if (!shared) {
+      // Open popover if native share not available or failed
+      setOpen(true);
+    }
+  };
 
   const handleShare = (method: string) => {
     const encodedUrl = encodeURIComponent(shareUrl);
@@ -39,6 +69,7 @@ export function ShareCard({ config, rsvpData }: CardProps<ShareCardConfig>) {
         setTimeout(() => setCopied(false), 2000);
         break;
     }
+    setOpen(false);
   };
 
   return (
@@ -60,49 +91,62 @@ export function ShareCard({ config, rsvpData }: CardProps<ShareCardConfig>) {
         Invite your friends and family to join you!
       </p>
 
-      <div className="grid grid-cols-2 gap-3 relative mt-auto">
-        {config.enabledMethods.includes("sms") && (
-          <button
-            onClick={() => handleShare("sms")}
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-white/10 text-white border-2 border-white/20 font-semibold rounded-lg hover:bg-white/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
-          >
-            <MessageSquare className="w-5 h-5" />
-            <span>Text</span>
-          </button>
-        )}
+      <div className="relative mt-auto">
+        <Popover.Root open={open} onOpenChange={setOpen}>
+          <Popover.Trigger asChild>
+            <button
+              onClick={handleShareClick}
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-white/10 text-white border-2 border-white/20 font-semibold rounded-lg hover:bg-white/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+            >
+              <Share2 className="w-5 h-5" />
+              <span>Share</span>
+            </button>
+          </Popover.Trigger>
 
-        {config.enabledMethods.includes("email") && (
-          <button
-            onClick={() => handleShare("email")}
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-white/10 text-white border-2 border-white/20 font-semibold rounded-lg hover:bg-white/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
-          >
-            <Mail className="w-5 h-5" />
-            <span>Email</span>
-          </button>
-        )}
+          <Popover.Portal>
+            <Popover.Content
+              className="bg-primary border-2 border-white/20 rounded-lg p-3 shadow-xl backdrop-blur-md z-50"
+              sideOffset={8}
+              align="center"
+            >
+              <div className="flex items-center gap-2">
+                {config.enabledMethods.includes("sms") && (
+                  <button
+                    onClick={() => handleShare("sms")}
+                    className="w-12 h-12 flex items-center justify-center bg-white/10 text-white border border-white/20 rounded-full hover:bg-white/20 transition-all"
+                    title="Text Message"
+                  >
+                    <MessageSquare className="w-5 h-5" />
+                  </button>
+                )}
 
-        {config.enabledMethods.includes("copy") && (
-          <button
-            onClick={() => handleShare("copy")}
-            className={`col-span-2 flex items-center justify-center gap-2 px-4 py-3 font-semibold rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary ${
-              copied
-                ? 'bg-green-600 text-white shadow-lg'
-                : 'bg-white/10 text-white border-2 border-white/20 hover:bg-white/20'
-            }`}
-          >
-            {copied ? (
-              <>
-                <Check className="w-5 h-5" />
-                <span>Copied!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-5 h-5" />
-                <span>Copy Link</span>
-              </>
-            )}
-          </button>
-        )}
+                {config.enabledMethods.includes("email") && (
+                  <button
+                    onClick={() => handleShare("email")}
+                    className="w-12 h-12 flex items-center justify-center bg-white/10 text-white border border-white/20 rounded-full hover:bg-white/20 transition-all"
+                    title="Email"
+                  >
+                    <Mail className="w-5 h-5" />
+                  </button>
+                )}
+
+                {config.enabledMethods.includes("copy") && (
+                  <button
+                    onClick={() => handleShare("copy")}
+                    className={`w-12 h-12 flex items-center justify-center rounded-full transition-all ${
+                      copied
+                        ? 'bg-green-600 text-white'
+                        : 'bg-white/10 text-white border border-white/20 hover:bg-white/20'
+                    }`}
+                    title={copied ? 'Copied!' : 'Copy Link'}
+                  >
+                    {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                  </button>
+                )}
+              </div>
+            </Popover.Content>
+          </Popover.Portal>
+        </Popover.Root>
       </div>
     </motion.div>
   );

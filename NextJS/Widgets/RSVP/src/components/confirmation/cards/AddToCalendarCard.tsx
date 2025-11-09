@@ -1,11 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Calendar, Download } from "lucide-react";
+import { Calendar, Download, X } from "lucide-react";
 import { FaGoogle, FaApple, FaMicrosoft } from "react-icons/fa";
 import { CardProps, AddToCalendarCardConfig, generateICSContent } from "@/types/confirmationCards";
+import { useState } from "react";
+import * as Popover from "@radix-ui/react-popover";
 
 export function AddToCalendarCard({ config, rsvpData }: CardProps<AddToCalendarCardConfig>) {
+  const [open, setOpen] = useState(false);
   const startDate = new Date(rsvpData.Event_Start_Date);
   const endDate = new Date(rsvpData.Event_End_Date);
 
@@ -15,6 +18,41 @@ export function AddToCalendarCard({ config, rsvpData }: CardProps<AddToCalendarC
 
   const location = config.location || `${rsvpData.Campus_Name}, ${rsvpData.Campus_Address_Line_1}, ${rsvpData.Campus_City}, ${rsvpData.Campus_State} ${rsvpData.Campus_Postal_Code}`;
   const description = config.eventDescription || "";
+
+  const handleNativeShare = async () => {
+    // Try native share with ICS file on mobile
+    if (navigator.share && navigator.canShare) {
+      try {
+        const icsContent = generateICSContent(rsvpData, config);
+        const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+        const file = new File([blob], `${rsvpData.Event_Title.replace(/[^a-z0-9]/gi, "_")}.ics`, {
+          type: "text/calendar",
+        });
+
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: rsvpData.Event_Title,
+            text: "Add this event to your calendar",
+          });
+          return true;
+        }
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          console.error('Error sharing:', err);
+        }
+      }
+    }
+    return false;
+  };
+
+  const handleCalendarClick = async () => {
+    const shared = await handleNativeShare();
+    if (!shared) {
+      // Open popover if native share not available or failed
+      setOpen(true);
+    }
+  };
 
   const handleAddToCalendar = (provider: string) => {
     switch (provider) {
@@ -37,6 +75,7 @@ export function AddToCalendarCard({ config, rsvpData }: CardProps<AddToCalendarC
         document.body.removeChild(link);
         break;
     }
+    setOpen(false);
   };
 
   return (
@@ -58,46 +97,68 @@ export function AddToCalendarCard({ config, rsvpData }: CardProps<AddToCalendarC
         Never forget! Add this event to your calendar.
       </p>
 
-      <div className="grid grid-cols-2 gap-3 relative mt-auto">
-        {config.providers.includes("google") && (
-          <button
-            onClick={() => handleAddToCalendar("google")}
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-white/10 text-white border-2 border-white/20 font-semibold rounded-lg hover:bg-white/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
-          >
-            <FaGoogle className="w-5 h-5" />
-            <span>Google</span>
-          </button>
-        )}
+      <div className="relative mt-auto">
+        <Popover.Root open={open} onOpenChange={setOpen}>
+          <Popover.Trigger asChild>
+            <button
+              onClick={handleCalendarClick}
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-white/10 text-white border-2 border-white/20 font-semibold rounded-lg hover:bg-white/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+            >
+              <Calendar className="w-5 h-5" />
+              <span>Add to Calendar</span>
+            </button>
+          </Popover.Trigger>
 
-        {config.providers.includes("apple") && (
-          <button
-            onClick={() => handleAddToCalendar("apple")}
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-white/10 text-white border-2 border-white/20 font-semibold rounded-lg hover:bg-white/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
-          >
-            <FaApple className="w-5 h-5" />
-            <span>Apple</span>
-          </button>
-        )}
+          <Popover.Portal>
+            <Popover.Content
+              className="bg-primary border-2 border-white/20 rounded-lg p-3 shadow-xl backdrop-blur-md z-50"
+              sideOffset={8}
+              align="center"
+            >
+              <div className="flex items-center gap-2">
+                {config.providers.includes("google") && (
+                  <button
+                    onClick={() => handleAddToCalendar("google")}
+                    className="w-12 h-12 flex items-center justify-center bg-white/10 text-white border border-white/20 rounded-full hover:bg-white/20 transition-all"
+                    title="Google Calendar"
+                  >
+                    <FaGoogle className="w-5 h-5" />
+                  </button>
+                )}
 
-        {config.providers.includes("outlook") && (
-          <button
-            onClick={() => handleAddToCalendar("outlook")}
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-white/10 text-white border-2 border-white/20 font-semibold rounded-lg hover:bg-white/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
-          >
-            <FaMicrosoft className="w-5 h-5" />
-            <span>Outlook</span>
-          </button>
-        )}
+                {config.providers.includes("apple") && (
+                  <button
+                    onClick={() => handleAddToCalendar("apple")}
+                    className="w-12 h-12 flex items-center justify-center bg-white/10 text-white border border-white/20 rounded-full hover:bg-white/20 transition-all"
+                    title="Apple Calendar"
+                  >
+                    <FaApple className="w-5 h-5" />
+                  </button>
+                )}
 
-        {config.providers.includes("ics") && (
-          <button
-            onClick={() => handleAddToCalendar("ics")}
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-white/10 text-white border-2 border-white/20 font-semibold rounded-lg hover:bg-white/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
-          >
-            <Download className="w-5 h-5" />
-            <span>Download</span>
-          </button>
-        )}
+                {config.providers.includes("outlook") && (
+                  <button
+                    onClick={() => handleAddToCalendar("outlook")}
+                    className="w-12 h-12 flex items-center justify-center bg-white/10 text-white border border-white/20 rounded-full hover:bg-white/20 transition-all"
+                    title="Outlook Calendar"
+                  >
+                    <FaMicrosoft className="w-5 h-5" />
+                  </button>
+                )}
+
+                {config.providers.includes("ics") && (
+                  <button
+                    onClick={() => handleAddToCalendar("ics")}
+                    className="w-12 h-12 flex items-center justify-center bg-white/10 text-white border border-white/20 rounded-full hover:bg-white/20 transition-all"
+                    title="Download ICS"
+                  >
+                    <Download className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+            </Popover.Content>
+          </Popover.Portal>
+        </Popover.Root>
       </div>
     </motion.div>
   );
