@@ -28,24 +28,27 @@ export function ShareCard({ config, rsvpData }: CardProps<ShareCardConfig>) {
           text: customMessage,
           url: shareUrl,
         });
-        return true;
+        return { success: true };
       } catch (err) {
-        // User cancelled or error - fall through to popover
-        if ((err as Error).name !== 'AbortError') {
-          console.error('Error sharing:', err);
+        // User cancelled - don't show popover
+        if ((err as Error).name === 'AbortError') {
+          return { success: false, cancelled: true };
         }
+        // Other error - could show popover as fallback
+        console.error('Error sharing:', err);
+        return { success: false, cancelled: false };
       }
     }
-    return false;
+    return { success: false, cancelled: false };
   };
 
   const handleShareClick = async (e: React.MouseEvent) => {
     // If native share is available, use it and prevent popover from opening
     if ('share' in navigator) {
       e.preventDefault(); // Prevent popover trigger
-      const shared = await handleNativeShare();
-      if (shared) {
-        return; // Successfully shared, don't open popover
+      const result = await handleNativeShare();
+      if (result.success || result.cancelled) {
+        return; // Successfully shared or user cancelled - don't open popover
       }
     }
     // If native share not available or failed, popover will open automatically
