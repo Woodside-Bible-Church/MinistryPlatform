@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { Map, Navigation } from "lucide-react";
 import { CardProps, MapCardConfig } from "@/types/confirmationCards";
 import { useState } from "react";
-import Image from "next/image";
 
 export function MapCard({ config, rsvpData }: CardProps<MapCardConfig>) {
   const [showMapSelector, setShowMapSelector] = useState(false);
@@ -70,12 +69,10 @@ export function MapCard({ config, rsvpData }: CardProps<MapCardConfig>) {
         {/* Static Map Image with clickable overlay */}
         {staticMapUrl && (
           <div className="relative w-full h-64 rounded-lg overflow-hidden mt-4">
-            <Image
+            <img
               src={staticMapUrl}
               alt="Map location"
-              fill
-              className="object-cover"
-              unoptimized
+              className="w-full h-full object-cover"
             />
 
             {/* Clickable overlay */}
