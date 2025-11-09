@@ -2,8 +2,8 @@
 
 import { motion } from "framer-motion";
 import { Calendar, Download } from "lucide-react";
+import { FaGoogle, FaApple, FaMicrosoft } from "react-icons/fa";
 import { CardProps, AddToCalendarCardConfig, generateICSContent } from "@/types/confirmationCards";
-import { Button } from "@/components/ui/button";
 
 export function AddToCalendarCard({ config, rsvpData }: CardProps<AddToCalendarCardConfig>) {
   const startDate = new Date(rsvpData.Event_Start_Date);
@@ -60,47 +60,43 @@ export function AddToCalendarCard({ config, rsvpData }: CardProps<AddToCalendarC
 
       <div className="grid grid-cols-2 gap-3 relative mt-auto">
         {config.providers.includes("google") && (
-          <Button
+          <button
             onClick={() => handleAddToCalendar("google")}
-            variant="secondary"
-            className="btn-primary"
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-white/10 text-white border-2 border-white/20 font-semibold rounded-lg hover:bg-white/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
           >
-            <Calendar className="w-4 h-4 mr-2" />
-            Google
-          </Button>
+            <FaGoogle className="w-5 h-5" />
+            <span>Google</span>
+          </button>
         )}
 
         {config.providers.includes("apple") && (
-          <Button
+          <button
             onClick={() => handleAddToCalendar("apple")}
-            variant="secondary"
-            className="btn-primary"
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-white/10 text-white border-2 border-white/20 font-semibold rounded-lg hover:bg-white/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
           >
-            <Download className="w-4 h-4 mr-2" />
-            Apple
-          </Button>
+            <FaApple className="w-5 h-5" />
+            <span>Apple</span>
+          </button>
         )}
 
         {config.providers.includes("outlook") && (
-          <Button
+          <button
             onClick={() => handleAddToCalendar("outlook")}
-            variant="secondary"
-            className="btn-primary"
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-white/10 text-white border-2 border-white/20 font-semibold rounded-lg hover:bg-white/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
           >
-            <Download className="w-4 h-4 mr-2" />
-            Outlook
-          </Button>
+            <FaMicrosoft className="w-5 h-5" />
+            <span>Outlook</span>
+          </button>
         )}
 
         {config.providers.includes("ics") && (
-          <Button
+          <button
             onClick={() => handleAddToCalendar("ics")}
-            variant="secondary"
-            className="btn-primary"
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-white/10 text-white border-2 border-white/20 font-semibold rounded-lg hover:bg-white/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
           >
-            <Download className="w-4 h-4 mr-2" />
-            Download ICS
-          </Button>
+            <Download className="w-5 h-5" />
+            <span>Download</span>
+          </button>
         )}
       </div>
     </motion.div>
