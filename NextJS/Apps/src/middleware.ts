@@ -306,24 +306,30 @@ export async function middleware(request: NextRequest) {
                 }
 
                 // Fetch Security Roles
-                const securityRoleLinks = await mp.getTableRecords<{ Role_ID: number }>({
-                  table: 'dp_User_Security_Roles',
-                  select: 'Role_ID',
-                  filter: `User_ID=${userId}`,
-                });
-
-                const roleIds = securityRoleLinks.map(r => r.Role_ID).filter(Boolean);
-
-                if (roleIds.length > 0) {
-                  // Use IN() clause for cleaner query
-                  const roleIdList = roleIds.join(',');
-                  const securityRoles = await mp.getTableRecords<{ Role_Name: string }>({
-                    table: 'dp_Security_Roles',
-                    select: 'Role_Name',
-                    filter: `Role_ID IN (${roleIdList})`,
+                // Note: Security Roles come from OAuth, but we fetch them here for impersonation
+                // If the API user doesn't have access to these tables, we skip this step
+                try {
+                  const securityRoleLinks = await mp.getTableRecords<{ Role_ID: number }>({
+                    table: 'dp_User_Security_Roles',
+                    select: 'Role_ID',
+                    filter: `User_ID=${userId}`,
                   });
 
-                  userRoles.push(...securityRoles.map(r => r.Role_Name).filter(Boolean));
+                  const roleIds = securityRoleLinks.map(r => r.Role_ID).filter(Boolean);
+
+                  if (roleIds.length > 0) {
+                    // Use IN() clause for cleaner query
+                    const roleIdList = roleIds.join(',');
+                    const securityRoles = await mp.getTableRecords<{ Role_Name: string }>({
+                      table: 'dp_Security_Roles',
+                      select: 'Role_Name',
+                      filter: `Role_ID IN (${roleIdList})`,
+                    });
+
+                    userRoles.push(...securityRoles.map(r => r.Role_Name).filter(Boolean));
+                  }
+                } catch (securityRoleError) {
+                  console.log('Middleware: Could not fetch Security Roles (API user may not have access). Security Roles are included from OAuth token.');
                 }
 
                 console.log(`Middleware: Impersonation active - using roles (User Groups + Security Roles):`, userRoles);
