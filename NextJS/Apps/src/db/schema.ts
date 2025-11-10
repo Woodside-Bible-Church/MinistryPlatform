@@ -79,19 +79,6 @@ export const appPermissions = pgTable('app_permissions', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-/**
- * App Simulations Table
- * Allows admins to simulate non-admin permissions for testing app-specific access control
- */
-export const appSimulations = pgTable('app_simulations', {
-  id: serial('id').primaryKey(),
-  applicationId: integer('application_id').notNull().references(() => applications.id, { onDelete: 'cascade' }),
-  userEmail: varchar('user_email', { length: 255 }).notNull(), // The admin user testing permissions
-  isActive: boolean('is_active').default(true),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-});
-
 // Export types
 export type Application = typeof applications.$inferSelect;
 export type NewApplication = typeof applications.$inferInsert;
@@ -101,5 +88,3 @@ export type WidgetField = typeof widgetFields.$inferSelect;
 export type NewWidgetField = typeof widgetFields.$inferInsert;
 export type AppPermission = typeof appPermissions.$inferSelect;
 export type NewAppPermission = typeof appPermissions.$inferInsert;
-export type AppSimulation = typeof appSimulations.$inferSelect;
-export type NewAppSimulation = typeof appSimulations.$inferInsert;

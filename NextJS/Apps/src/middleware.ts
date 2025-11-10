@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { db } from '@/db';
-import { applications, appPermissions, appSimulations } from '@/db/schema';
+import { applications, appPermissions } from '@/db/schema';
 import { eq, inArray, or, and } from 'drizzle-orm';
 
 // Cache for public app routes to avoid repeated API calls
@@ -258,29 +258,27 @@ export async function middleware(request: NextRequest) {
     const userEmail = token.email as string;
     let userRoles = (token.roles as string[]) || [];
 
-    // Check for app-specific permission simulation
+    // Check for app-specific permission simulation (cookie-based)
     const isAdmin = userRoles.includes('Administrators');
     if (isAdmin) {
-      // Find the application with this route
-      const app = await db.query.applications.findFirst({
-        where: eq(applications.route, pathname),
-      });
+      const simulationCookie = request.cookies.get('admin-app-simulation');
+      if (simulationCookie) {
+        try {
+          const simulation = JSON.parse(simulationCookie.value);
 
-      // Check if admin has an active simulation for this app
-      if (app) {
-        const activeSimulation = await db.query.appSimulations.findFirst({
-          where: and(
-            eq(appSimulations.userEmail, userEmail),
-            eq(appSimulations.applicationId, app.id),
-            eq(appSimulations.isActive, true)
-          ),
-        });
+          // Find the application with this route
+          const app = await db.query.applications.findFirst({
+            where: eq(applications.route, pathname),
+          });
 
-        if (activeSimulation) {
-          // Remove "Administrators" role to force permission checks
-          userRoles = userRoles.filter(role => role !== 'Administrators');
-          console.log(`Middleware: App simulation active for ${app.name} - removed admin privileges`);
-          console.log(`Middleware: Current roles for simulation:`, userRoles);
+          // If cookie's applicationId matches current app, remove admin role
+          if (app && simulation.applicationId === app.id) {
+            userRoles = userRoles.filter(role => role !== 'Administrators');
+            console.log(`Middleware: App simulation active for ${app.name} - removed admin privileges`);
+            console.log(`Middleware: Current roles for simulation:`, userRoles);
+          }
+        } catch (error) {
+          console.error('Middleware: Error parsing app simulation cookie:', error);
         }
       }
     }

@@ -29,10 +29,11 @@ export default function AppSimulationToggle({ applicationId, applicationName }: 
 
   const fetchSimulationStatus = async () => {
     try {
-      const response = await fetch(`/api/admin/simulation/app/status?applicationId=${applicationId}`);
+      const response = await fetch('/api/admin/simulation/app');
       if (response.ok) {
         const data = await response.json();
-        setIsSimulating(data.active);
+        // Check if simulation is active AND for this specific app
+        setIsSimulating(data.active && data.applicationId === applicationId);
       }
     } catch (error) {
       console.error('Error fetching simulation status:', error);
@@ -44,14 +45,13 @@ export default function AppSimulationToggle({ applicationId, applicationName }: 
   const handleToggle = async (checked: boolean) => {
     try {
       setLoading(true);
-      const endpoint = checked
-        ? '/api/admin/simulation/app/enable'
-        : '/api/admin/simulation/app/disable';
 
-      const response = await fetch(endpoint, {
+      const response = await fetch('/api/admin/simulation/app', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ applicationId }),
+        body: JSON.stringify({
+          applicationId: checked ? applicationId : null, // null = disable
+        }),
       });
 
       if (response.ok) {
