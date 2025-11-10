@@ -13,6 +13,7 @@ import {
   ChevronRight,
   ChevronDown,
   Search,
+  ChevronUp,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -391,75 +392,242 @@ export default function ProjectsPage() {
           </Link>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {/* Series Sections */}
           {mockProjectSeries.map((series) => {
             const seriesProjects = projectsBySeries[series.id] || [];
             if (seriesProjects.length === 0) return null;
 
-            const isExpanded = expandedSeries[series.id];
+            // Get most recent project (already sorted by year descending)
+            const mostRecentProject = seriesProjects[0];
 
             return (
-              <div key={series.id} className="bg-card border border-border rounded-lg overflow-hidden">
-                {/* Series Header */}
-                <button
-                  onClick={() => toggleSeries(series.id)}
-                  className="w-full px-6 py-4 bg-zinc-50 dark:bg-zinc-900 border-b border-border hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`transform transition-transform ${isExpanded ? 'rotate-0' : '-rotate-90'}`}>
-                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                    </div>
-                    <div className="text-left">
-                      <h2 className="text-2xl font-bold text-foreground">
-                        {series.name}
-                      </h2>
-                      {series.description && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {series.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {seriesProjects.length} {seriesProjects.length === 1 ? "project" : "projects"}
-                  </div>
-                </button>
-
-                {/* Series Projects */}
-                {isExpanded && (
+              <div key={series.id} className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all">
+                <Link href={`/projects/${mostRecentProject.id}`} className="block">
                   <div className="p-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                      {seriesProjects.map((project) => (
-                        <ProjectCard key={project.id} project={project} />
-                      ))}
+                    {/* Title with integrated series dropdown */}
+                    {seriesProjects.length > 1 ? (
+                      <div className="relative inline-block mb-3 group">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <h2 className="text-2xl font-bold text-foreground group-hover:text-[#61BC47] transition-colors">
+                            {mostRecentProject.title}
+                          </h2>
+                          <ChevronDown className="w-5 h-5 text-foreground group-hover:text-[#61BC47] transition-colors" />
+                          <select
+                            value={mostRecentProject.id}
+                            onChange={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              window.location.href = `/projects/${e.target.value}`;
+                            }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                          >
+                            {seriesProjects.map((seriesProject) => (
+                              <option key={seriesProject.id} value={seriesProject.id}>
+                                {seriesProject.title} ({seriesProject.status})
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+                    ) : (
+                      <h2 className="text-2xl font-bold text-foreground mb-3">
+                        {mostRecentProject.title}
+                      </h2>
+                    )}
+
+                    {/* Status Badges */}
+                    <div className="mb-4 flex gap-2 flex-wrap">
+                      <span
+                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                          mostRecentProject.status
+                        )}`}
+                      >
+                        {mostRecentProject.status.replace("-", " ")}
+                      </span>
+                      <span
+                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold border ${getBudgetStatusColor(
+                          mostRecentProject.budgetStatus
+                        )}`}
+                      >
+                        {getBudgetStatusIcon(mostRecentProject.budgetStatus)}
+                        {getBudgetStatusText(mostRecentProject.budgetStatus)}
+                      </span>
+                    </div>
+
+                    {/* Project Details */}
+                    <div className="space-y-3 mb-4">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <User className="w-4 h-4" />
+                        <span>{mostRecentProject.coordinator.displayName}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="w-4 h-4" />
+                        <span>
+                          {formatDate(mostRecentProject.startDate)} -{" "}
+                          {formatDate(mostRecentProject.endDate)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Budget Summary */}
+                    <div className="pt-4 border-t border-border">
+                      <div className="grid grid-cols-2 gap-4 mb-3">
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1">Budget</div>
+                          <div className="text-lg font-bold text-foreground">
+                            {formatCurrency(mostRecentProject.totalEstimated)}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1">Actual</div>
+                          <div className="text-lg font-bold text-foreground">
+                            {formatCurrency(mostRecentProject.totalActual)}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Budget Progress Bar */}
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            calculateBudgetUtilization(mostRecentProject) < 90
+                              ? "bg-[#61bc47]"
+                              : calculateBudgetUtilization(mostRecentProject) < 100
+                                ? "bg-yellow-500"
+                                : "bg-red-500"
+                          }`}
+                          style={{
+                            width: `${Math.min(calculateBudgetUtilization(mostRecentProject), 100)}%`,
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-xs text-muted-foreground">
+                          {calculateBudgetUtilization(mostRecentProject).toFixed(1)}% utilized
+                        </span>
+                        <span
+                          className={`text-xs font-semibold ${
+                            mostRecentProject.totalActual - mostRecentProject.totalEstimated < 0
+                              ? "text-green-600 dark:text-green-400"
+                              : mostRecentProject.totalActual - mostRecentProject.totalEstimated > 0
+                                ? "text-red-600 dark:text-red-400"
+                                : "text-muted-foreground"
+                          }`}
+                        >
+                          {mostRecentProject.totalActual - mostRecentProject.totalEstimated >= 0 ? "+" : ""}
+                          {formatCurrency(mostRecentProject.totalActual - mostRecentProject.totalEstimated)}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                )}
+                </Link>
               </div>
             );
           })}
 
-          {/* Standalone Projects */}
-          {standaloneProjects.length > 0 && (
-            <div className="bg-card border border-border rounded-lg overflow-hidden">
-              <div className="px-6 py-4 bg-zinc-50 dark:bg-zinc-900 border-b border-border">
-                <h2 className="text-2xl font-bold text-foreground">
-                  Other Projects
-                </h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Projects not part of a recurring series
-                </p>
-              </div>
-              <div className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {standaloneProjects.map((project) => (
-                    <ProjectCard key={project.id} project={project} />
-                  ))}
+          {/* Standalone Projects (shown as individual cards without dropdown) */}
+          {standaloneProjects.map((project) => (
+            <div key={project.id} className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all">
+              <Link href={`/projects/${project.id}`} className="block">
+                <div className="p-6">
+                  {/* Title without dropdown */}
+                  <h2 className="text-2xl font-bold text-foreground mb-3 hover:text-[#61BC47] transition-colors">
+                    {project.title}
+                  </h2>
+
+                  {/* Status Badges */}
+                  <div className="mb-4 flex gap-2 flex-wrap">
+                    <span
+                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                        project.status
+                      )}`}
+                    >
+                      {project.status.replace("-", " ")}
+                    </span>
+                    <span
+                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold border ${getBudgetStatusColor(
+                        project.budgetStatus
+                      )}`}
+                    >
+                      {getBudgetStatusIcon(project.budgetStatus)}
+                      {getBudgetStatusText(project.budgetStatus)}
+                    </span>
+                  </div>
+
+                  {/* Project Details */}
+                  <div className="space-y-3 mb-4">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <User className="w-4 h-4" />
+                      <span>{project.coordinator.displayName}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="w-4 h-4" />
+                      <span>
+                        {formatDate(project.startDate)} -{" "}
+                        {formatDate(project.endDate)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Budget Summary */}
+                  <div className="pt-4 border-t border-border">
+                    <div className="grid grid-cols-2 gap-4 mb-3">
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Budget</div>
+                        <div className="text-lg font-bold text-foreground">
+                          {formatCurrency(project.totalEstimated)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Actual</div>
+                        <div className="text-lg font-bold text-foreground">
+                          {formatCurrency(project.totalActual)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Budget Progress Bar */}
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          calculateBudgetUtilization(project) < 90
+                            ? "bg-[#61bc47]"
+                            : calculateBudgetUtilization(project) < 100
+                              ? "bg-yellow-500"
+                              : "bg-red-500"
+                        }`}
+                        style={{
+                          width: `${Math.min(calculateBudgetUtilization(project), 100)}%`,
+                        }}
+                      />
+                    </div>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-xs text-muted-foreground">
+                        {calculateBudgetUtilization(project).toFixed(1)}% utilized
+                      </span>
+                      <span
+                        className={`text-xs font-semibold ${
+                          project.totalActual - project.totalEstimated < 0
+                            ? "text-green-600 dark:text-green-400"
+                            : project.totalActual - project.totalEstimated > 0
+                              ? "text-red-600 dark:text-red-400"
+                              : "text-muted-foreground"
+                        }`}
+                      >
+                        {project.totalActual - project.totalEstimated >= 0 ? "+" : ""}
+                        {formatCurrency(project.totalActual - project.totalEstimated)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </Link>
             </div>
-          )}
+          ))}
         </div>
       )}
     </div>
