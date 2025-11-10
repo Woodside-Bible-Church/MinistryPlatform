@@ -139,7 +139,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           // Update contactId if it wasn't set from token
           if (!session.contactId) {
-            session.contactId = users[0].Contact_ID
+            session.contactId = String(users[0].Contact_ID)
           }
 
           // Fetch ALL user group IDs
