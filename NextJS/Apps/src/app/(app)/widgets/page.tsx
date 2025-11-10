@@ -1,0 +1,239 @@
+"use client";
+
+import { useState } from "react";
+import { Copy, Check } from "lucide-react";
+import { getAllWidgets, type WidgetConfig } from "@/config/widgets";
+import { WidgetPreview } from "@/components/widgets/WidgetPreview";
+
+const allWidgets = getAllWidgets();
+
+export default function WidgetConfiguratorPage() {
+  const [selectedWidgetId, setSelectedWidgetId] = useState<string>(allWidgets[0]?.id || "");
+  const [formValues, setFormValues] = useState<Record<string, any>>({});
+  const [appliedValues, setAppliedValues] = useState<Record<string, any>>({});
+  const [copiedEmbed, setCopiedEmbed] = useState(false);
+
+  const currentConfig = allWidgets.find((w) => w.id === selectedWidgetId);
+
+  if (!currentConfig) {
+    return <div>No widgets configured</div>;
+  }
+
+  // Get form value with fallback to default
+  const getFormValue = (fieldId: string) => {
+    if (formValues[fieldId] !== undefined) return formValues[fieldId];
+    const field = currentConfig.fields.find((f) => f.id === fieldId);
+    return field?.defaultValue ?? "";
+  };
+
+  // Get applied value with fallback to default
+  const getAppliedValue = (fieldId: string) => {
+    if (appliedValues[fieldId] !== undefined) return appliedValues[fieldId];
+    const field = currentConfig.fields.find((f) => f.id === fieldId);
+    return field?.defaultValue ?? "";
+  };
+
+  const handleFieldChange = (fieldId: string, value: any) => {
+    setFormValues((prev) => ({ ...prev, [fieldId]: value }));
+  };
+
+  const handleApply = () => {
+    setAppliedValues({ ...formValues });
+  };
+
+  // Generate embed code with applied values
+  const embedCode = currentConfig.generateEmbedCode(
+    currentConfig.fields.reduce((acc, field) => {
+      acc[field.id] = getAppliedValue(field.id);
+      return acc;
+    }, {} as Record<string, any>)
+  );
+
+  const copyEmbedCode = () => {
+    navigator.clipboard.writeText(embedCode);
+    setCopiedEmbed(true);
+    setTimeout(() => setCopiedEmbed(false), 2000);
+  };
+
+  return (
+    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-primary dark:text-foreground mb-2">
+          Widget Configurator
+        </h1>
+        <p className="text-muted-foreground">
+          Configure and generate embed codes for Woodside widgets
+        </p>
+      </div>
+
+      <div className="space-y-6">
+        {/* Configuration Panel */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Widget Selector */}
+          <div className="bg-card border border-border rounded-lg p-6">
+            <label className="block text-sm font-semibold text-foreground mb-3">
+              Widget:
+            </label>
+            <select
+              value={selectedWidgetId}
+              onChange={(e) => {
+                setSelectedWidgetId(e.target.value);
+                setFormValues({});
+                setAppliedValues({});
+              }}
+              className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+            >
+              {allWidgets.map((widget) => (
+                <option key={widget.id} value={widget.id}>
+                  {widget.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-sm text-muted-foreground mt-3">
+              {currentConfig.description}
+            </p>
+          </div>
+
+          {/* Configuration Fields */}
+          <div className="bg-card border border-border rounded-lg p-6 space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">Configuration</h2>
+              {currentConfig.fields.length > 0 && (
+                <button
+                  onClick={handleApply}
+                  className="px-4 py-2 bg-[#61BC47] hover:bg-[#4fa037] text-white rounded-lg transition-colors text-sm font-medium"
+                >
+                  Apply
+                </button>
+              )}
+            </div>
+
+            {currentConfig.fields.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No configuration options for this widget
+              </p>
+            )}
+
+            {currentConfig.fields.map((field) => (
+              <div key={field.id}>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  {field.label}
+                  {field.required && <span className="text-red-500 ml-1">*</span>}
+                  {field.helpText && (
+                    <span className="block text-xs text-muted-foreground font-normal mt-1">
+                      {field.helpText}
+                    </span>
+                  )}
+                </label>
+
+                {field.type === "select" ? (
+                  <select
+                    value={String(getFormValue(field.id))}
+                    onChange={(e) => handleFieldChange(field.id, e.target.value)}
+                    className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                  >
+                    {field.options?.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : field.type === "color" ? (
+                  <div className="flex gap-3">
+                    <input
+                      type="color"
+                      value={String(getFormValue(field.id))}
+                      onChange={(e) => handleFieldChange(field.id, e.target.value)}
+                      className="h-10 w-20 border border-border rounded cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={String(getFormValue(field.id))}
+                      onChange={(e) => handleFieldChange(field.id, e.target.value)}
+                      placeholder={field.placeholder}
+                      className="flex-1 px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                    />
+                  </div>
+                ) : field.type === "checkbox" ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(getFormValue(field.id))}
+                      onChange={(e) => handleFieldChange(field.id, e.target.checked)}
+                      className="w-4 h-4 text-[#61BC47] border-border rounded focus:ring-[#61bc47]"
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      {field.helpText || "Enable this option"}
+                    </span>
+                  </div>
+                ) : field.type === "number" ? (
+                  <input
+                    type="number"
+                    value={String(getFormValue(field.id))}
+                    onChange={(e) => handleFieldChange(field.id, e.target.value)}
+                    placeholder={field.placeholder}
+                    required={field.required}
+                    className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    value={String(getFormValue(field.id))}
+                    onChange={(e) => handleFieldChange(field.id, e.target.value)}
+                    placeholder={field.placeholder}
+                    required={field.required}
+                    className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Embed Code */}
+          <div className="bg-card border border-border rounded-lg p-6 md:col-span-2">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-foreground">Embed Code</h2>
+              <button
+                onClick={copyEmbedCode}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-[#61BC47] hover:bg-[#4fa037] text-white rounded-lg transition-colors"
+              >
+                {copiedEmbed ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    Copy Code
+                  </>
+                )}
+              </button>
+            </div>
+            <pre className="bg-zinc-950 text-green-400 p-4 rounded-lg overflow-x-auto text-sm font-mono">
+              {embedCode}
+            </pre>
+          </div>
+        </div>
+
+        {/* Preview Panel - Full Width Below */}
+        <WidgetPreview embedCode={embedCode} widgetName={currentConfig.name} />
+
+        {/* Implementation Notes */}
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+          <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-400 mb-2">
+            Implementation Notes
+          </h3>
+          <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
+            <li>• Copy the embed code and paste it into your WordPress page or HTML</li>
+            <li>• The widget is bundled with Vite and loads directly (no iframes)</li>
+            <li>• Widget JavaScript will auto-initialize from data attributes</li>
+            <li>• System-level configs (API keys) are injected at build time</li>
+            <li>• Test on your staging site before deploying to production</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
