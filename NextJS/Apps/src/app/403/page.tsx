@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ShieldAlert } from "lucide-react";
 
-export default function AccessDeniedPage() {
+function AccessDeniedContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const attemptedPath = searchParams.get("path") || "this page";
@@ -47,5 +47,27 @@ export default function AccessDeniedPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AccessDeniedPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="bg-card border border-border rounded-lg p-8 max-w-md w-full text-center space-y-6 shadow-sm">
+          <div className="flex justify-center">
+            <div className="bg-red-100 dark:bg-red-900/20 p-6 rounded-full">
+              <ShieldAlert className="w-16 h-16 text-red-600 dark:text-red-400" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold text-red-600 dark:text-red-400">403</h1>
+            <h2 className="text-2xl font-semibold text-foreground">Access Denied</h2>
+          </div>
+        </div>
+      </div>
+    }>
+      <AccessDeniedContent />
+    </Suspense>
   );
 }
