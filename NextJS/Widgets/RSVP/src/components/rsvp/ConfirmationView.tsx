@@ -135,17 +135,19 @@ export default function ConfirmationView({
         className="bg-primary p-6 w-full flex flex-col h-full"
       >
         {/* Personalized Greeting */}
-        <div className="py-2">
+        <div className="py-2 mb-4">
           <p className="text-2xl font-bold text-white">
             {confirmation.First_Name}, we&apos;ll see you soon!
           </p>
         </div>
 
         {/* RSVP Details */}
-        <div className="space-y-4 mb-6 flex-1">
+        <div className="space-y-6 flex-1">
           {/* Service Time */}
           <div className="flex items-start gap-3">
-            <Clock className="w-5 h-5 text-white/70 mt-0.5" />
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center mt-0.5">
+              <Clock className="w-5 h-5 text-secondary" />
+            </div>
             <div>
               <p className="text-lg font-bold text-white">
                 {formatServiceTime(startDate)}
@@ -163,7 +165,9 @@ export default function ConfirmationView({
             rel="noopener noreferrer"
             className="flex items-start gap-3 group cursor-pointer hover:opacity-80 transition-opacity"
           >
-            <MapPin className="w-5 h-5 text-white/70 mt-0.5 flex-shrink-0" />
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center mt-0.5">
+              <MapPin className="w-5 h-5 text-secondary" />
+            </div>
             <div className="min-w-0 flex-1">
               <p className="text-lg font-bold text-white">
                 {confirmation.Campus_Name} Campus
