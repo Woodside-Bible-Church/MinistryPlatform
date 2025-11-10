@@ -36,10 +36,11 @@ export function MapCard({ config, rsvpData }: CardProps<MapCardConfig>) {
     ? `https://maps.googleapis.com/maps/api/staticmap?center=${center}&zoom=15&size=600x300&markers=color:red%7C${center}&key=${apiKey}&scale=2`
     : null;
 
-  // Debug: Log the full URL in development
-  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development' && staticMapUrl) {
+  // Debug: Log the full URL (works in both dev and production)
+  if (typeof window !== 'undefined' && staticMapUrl) {
     console.log('[MapCard Debug] Static Map URL:', staticMapUrl);
     console.log('[MapCard Debug] Current Origin:', window.location.origin);
+    console.log('[MapCard Debug] Environment:', process.env.NODE_ENV);
   }
 
   const handleMapClick = () => {
@@ -111,9 +112,11 @@ export function MapCard({ config, rsvpData }: CardProps<MapCardConfig>) {
         )}
 
         {/* Error fallback */}
-        {imageError && (
+        {(imageError || !staticMapUrl) && (
           <div className="relative w-full h-64 rounded-lg overflow-hidden mt-4 bg-white/10 flex items-center justify-center">
-            <p className="text-white/70 text-sm">Map temporarily unavailable</p>
+            <p className="text-white/70 text-sm">
+              {!staticMapUrl ? 'Map configuration missing' : 'Map temporarily unavailable'}
+            </p>
           </div>
         )}
 
