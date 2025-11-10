@@ -107,13 +107,13 @@ export default function Dashboard() {
             </p>
           </div>
         ) : (
-          <div className="flex flex-wrap gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {apps.map((app) => {
               const Icon = getIcon(app.Icon);
               const route = app.Route || '#';
               return (
-                <Link key={app.Application_ID} href={route} className="flex-1 min-w-[350px]">
-                  <div className="group relative overflow-hidden border border-border bg-card hover:border-primary/50 dark:hover:border-[#61bc47]/50 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col">
+                <Link key={app.Application_ID} href={route}>
+                  <div className="group relative overflow-hidden border border-border bg-card hover:border-primary/50 dark:hover:border-[#61bc47]/50 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col min-h-[180px]">
                     <div className="p-6 space-y-3 flex-1 flex flex-col">
                       {/* Icon and Title */}
                       <div className="flex items-center gap-3">

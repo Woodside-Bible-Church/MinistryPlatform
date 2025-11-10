@@ -1,22 +1,131 @@
 "use client";
 
-import { useState } from "react";
-import { Copy, Check } from "lucide-react";
-import { getAllWidgets, type WidgetConfig } from "@/config/widgets";
+import { useState, useEffect } from "react";
+import { Copy, Check, Loader2 } from "lucide-react";
 import { WidgetPreview } from "@/components/widgets/WidgetPreview";
 
-const allWidgets = getAllWidgets();
+interface WidgetField {
+  id: string;
+  label: string;
+  type: "text" | "number" | "select" | "color" | "checkbox" | "mp-select";
+  placeholder?: string;
+  helpText?: string;
+  options?: { value: string; label: string }[];
+  defaultValue?: string | number;
+  required?: boolean;
+  dataSourceType?: string;
+  dataSourceConfig?: any;
+  dataParamMapping?: string;
+}
+
+interface Widget {
+  id: string;
+  name: string;
+  description: string | null;
+  scriptUrl: string;
+  containerElementId: string;
+  globalName: string | null;
+  widgetUrl: string;
+  fields: WidgetField[];
+}
 
 export default function WidgetConfiguratorPage() {
-  const [selectedWidgetId, setSelectedWidgetId] = useState<string>(allWidgets[0]?.id || "");
+  const [widgets, setWidgets] = useState<Widget[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedWidgetId, setSelectedWidgetId] = useState<string>("");
   const [formValues, setFormValues] = useState<Record<string, any>>({});
-  const [appliedValues, setAppliedValues] = useState<Record<string, any>>({});
   const [copiedEmbed, setCopiedEmbed] = useState(false);
+  const [mpFieldOptions, setMpFieldOptions] = useState<Record<string, { value: string; label: string }[]>>({});
+  const [loadingFields, setLoadingFields] = useState<Set<string>>(new Set());
 
-  const currentConfig = allWidgets.find((w) => w.id === selectedWidgetId);
+  // Fetch widgets from API
+  useEffect(() => {
+    async function fetchWidgets() {
+      try {
+        const response = await fetch('/api/widgets');
+        if (!response.ok) throw new Error('Failed to fetch widgets');
+        const data = await response.json();
+        setWidgets(data);
+        if (data.length > 0) {
+          setSelectedWidgetId(data[0].id);
+        }
+      } catch (error) {
+        console.error('Error fetching widgets:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchWidgets();
+  }, []);
+
+  // Fetch MP field options when widget changes
+  useEffect(() => {
+    const currentWidget = widgets.find((w) => w.id === selectedWidgetId);
+    if (!currentWidget) return;
+
+    // Find all mp-select fields
+    const mpFields = currentWidget.fields.filter((f) => f.type === 'mp-select');
+
+    console.log('MP Select Fields found:', mpFields);
+
+    mpFields.forEach(async (field) => {
+      if (mpFieldOptions[field.id]) {
+        console.log(`Field ${field.id} already fetched, skipping`);
+        return; // Already fetched
+      }
+
+      console.log(`Fetching options for field: ${field.id}`);
+      setLoadingFields((prev) => new Set(prev).add(field.id));
+
+      try {
+        const response = await fetch(`/api/widgets/field-data/${field.id}`);
+        console.log(`Response for ${field.id}:`, response.status, response.ok);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`Failed to fetch ${field.id}:`, errorText);
+          throw new Error('Failed to fetch field options');
+        }
+
+        const options = await response.json();
+        console.log(`Options for ${field.id}:`, options);
+
+        setMpFieldOptions((prev) => ({ ...prev, [field.id]: options }));
+      } catch (error) {
+        console.error(`Error fetching options for field ${field.id}:`, error);
+      } finally {
+        setLoadingFields((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(field.id);
+          return newSet;
+        });
+      }
+    });
+  }, [selectedWidgetId, widgets, mpFieldOptions]);
+
+  const currentConfig = widgets.find((w) => w.id === selectedWidgetId);
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center space-y-3">
+            <Loader2 className="w-8 h-8 text-[#61BC47] animate-spin mx-auto" />
+            <p className="text-sm text-muted-foreground">Loading widgets...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!currentConfig) {
-    return <div>No widgets configured</div>;
+    return (
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">No widgets configured</p>
+        </div>
+      </div>
+    );
   }
 
   // Get form value with fallback to default
@@ -26,28 +135,46 @@ export default function WidgetConfiguratorPage() {
     return field?.defaultValue ?? "";
   };
 
-  // Get applied value with fallback to default
-  const getAppliedValue = (fieldId: string) => {
-    if (appliedValues[fieldId] !== undefined) return appliedValues[fieldId];
-    const field = currentConfig.fields.find((f) => f.id === fieldId);
-    return field?.defaultValue ?? "";
-  };
-
   const handleFieldChange = (fieldId: string, value: any) => {
     setFormValues((prev) => ({ ...prev, [fieldId]: value }));
   };
 
-  const handleApply = () => {
-    setAppliedValues({ ...formValues });
+  // Generate embed code with applied values
+  const generateEmbedCode = () => {
+    if (!currentConfig) return '';
+
+    // Build data-params string from MP select fields
+    const dataParams: string[] = [];
+    const otherAttributes: string[] = [];
+
+    currentConfig.fields.forEach((field) => {
+      const value = getFormValue(field.id);
+      if (value !== undefined && value !== null && value !== '') {
+        // MP select fields go into data-params
+        if (field.type === 'mp-select' && field.dataParamMapping) {
+          dataParams.push(`@${field.dataParamMapping}=${value}`);
+        } else {
+          // Other fields become data attributes
+          const attrName = field.id.replace(/([A-Z])/g, '-$1').toLowerCase();
+          otherAttributes.push(`data-${attrName}="${value}"`);
+        }
+      }
+    });
+
+    // Add data-params if any
+    const allAttributes: string[] = [];
+    if (dataParams.length > 0) {
+      allAttributes.push(`data-params="${dataParams.join(',')}"`);
+    }
+    allAttributes.push(...otherAttributes);
+
+    const dataAttrsString = allAttributes.length > 0 ? ` ${allAttributes.join(' ')}` : '';
+
+    return `<div id="${currentConfig.containerElementId}"${dataAttrsString}></div>
+<script src="${currentConfig.scriptUrl}"></script>`;
   };
 
-  // Generate embed code with applied values
-  const embedCode = currentConfig.generateEmbedCode(
-    currentConfig.fields.reduce((acc, field) => {
-      acc[field.id] = getAppliedValue(field.id);
-      return acc;
-    }, {} as Record<string, any>)
-  );
+  const embedCode = generateEmbedCode();
 
   const copyEmbedCode = () => {
     navigator.clipboard.writeText(embedCode);
@@ -80,11 +207,10 @@ export default function WidgetConfiguratorPage() {
               onChange={(e) => {
                 setSelectedWidgetId(e.target.value);
                 setFormValues({});
-                setAppliedValues({});
               }}
               className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
             >
-              {allWidgets.map((widget) => (
+              {widgets.map((widget) => (
                 <option key={widget.id} value={widget.id}>
                   {widget.name}
                 </option>
@@ -97,17 +223,7 @@ export default function WidgetConfiguratorPage() {
 
           {/* Configuration Fields */}
           <div className="bg-card border border-border rounded-lg p-6 space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-foreground">Configuration</h2>
-              {currentConfig.fields.length > 0 && (
-                <button
-                  onClick={handleApply}
-                  className="px-4 py-2 bg-[#61BC47] hover:bg-[#4fa037] text-white rounded-lg transition-colors text-sm font-medium"
-                >
-                  Apply
-                </button>
-              )}
-            </div>
+            <h2 className="text-lg font-semibold text-foreground">Configuration</h2>
 
             {currentConfig.fields.length === 0 && (
               <p className="text-sm text-muted-foreground">
@@ -127,7 +243,27 @@ export default function WidgetConfiguratorPage() {
                   )}
                 </label>
 
-                {field.type === "select" ? (
+                {field.type === "mp-select" ? (
+                  loadingFields.has(field.id) ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Loading options...
+                    </div>
+                  ) : (
+                    <select
+                      value={String(getFormValue(field.id))}
+                      onChange={(e) => handleFieldChange(field.id, e.target.value)}
+                      className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                    >
+                      <option value="">Select {field.label}</option>
+                      {mpFieldOptions[field.id]?.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  )
+                ) : field.type === "select" ? (
                   <select
                     value={String(getFormValue(field.id))}
                     onChange={(e) => handleFieldChange(field.id, e.target.value)}

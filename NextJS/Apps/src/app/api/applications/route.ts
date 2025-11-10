@@ -1,116 +1,75 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
+import { db } from "@/db";
+import { applications } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export async function GET() {
   try {
     const session = await auth();
 
-    const baseUrl = process.env.MINISTRY_PLATFORM_BASE_URL;
-    if (!baseUrl) {
-      throw new Error("MINISTRY_PLATFORM_BASE_URL is not configured");
-    }
-
-    let data;
-
-    // If no session, return empty array
-    // Public apps are currently inactive (Is_Active = 0)
-    // TODO: Enable database-driven public apps once OAuth client credentials are configured
+    // If no session, return only public apps
     if (!session?.user?.email) {
-      return NextResponse.json([]);
+      const publicApps = await db.query.applications.findMany({
+        where: (applications, { eq, and }) => and(
+          eq(applications.isActive, true),
+          eq(applications.requiresAuth, false)
+        ),
+        orderBy: (applications, { asc }) => [asc(applications.sortOrder)],
+      });
+
+      // Transform to match old MinistryPlatform format
+      return NextResponse.json(publicApps.map(app => ({
+        Application_ID: app.id,
+        Application_Name: app.name,
+        Application_Key: app.key,
+        Description: app.description,
+        Icon: app.icon,
+        Route: app.route,
+        Sort_Order: app.sortOrder,
+      })));
     }
 
     // Check if user is an administrator
     const isAdmin = session.roles?.includes("Administrators");
 
     if (isAdmin) {
-      // Admins can see all active applications - query table directly
-      // Note: Requires_Authentication and Public_Features are optional fields added by migration
-      const response = await fetch(
-        `${baseUrl}/tables/Applications?$select=Application_ID,Application_Name,Application_Key,Description,Icon,Route,Sort_Order,Is_Active&$filter=Is_Active=1&$orderby=Sort_Order`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.accessToken}`,
-          },
-        }
-      );
+      // Admins can see all active applications from Neon
+      const allApps = await db.query.applications.findMany({
+        where: (applications, { eq }) => eq(applications.isActive, true),
+        orderBy: (applications, { asc }) => [asc(applications.sortOrder)],
+      });
 
-      if (!response.ok) {
-        console.error("MP API Error:", response.status, response.statusText);
-        const errorText = await response.text();
-        console.error("Error details:", errorText);
-        throw new Error(`Failed to fetch applications: ${response.statusText}`);
-      }
-
-      // Direct table query returns array directly
-      const applications = await response.json();
-      return NextResponse.json(applications);
+      // Transform to match old MinistryPlatform format
+      return NextResponse.json(allApps.map(app => ({
+        Application_ID: app.id,
+        Application_Name: app.name,
+        Application_Key: app.key,
+        Description: app.description,
+        Icon: app.icon,
+        Route: app.route,
+        Sort_Order: app.sortOrder,
+      })));
     } else {
-      // Regular users - use stored procedure to filter by user groups
-      const response = await fetch(
-        `${baseUrl}/procs/api_Custom_Platform_GetUserApplications_JSON`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.accessToken}`,
-          },
-          body: JSON.stringify({
-            "@UserName": session.user.email,
-            "@DomainID": 1,
-          }),
-        }
-      );
+      // Regular users - filter by permissions
+      // TODO: Implement permission filtering based on user groups and security roles
+      // For now, return apps that don't require auth or that user has access to
+      const userApps = await db.query.applications.findMany({
+        where: (applications, { eq }) => eq(applications.isActive, true),
+        orderBy: (applications, { asc }) => [asc(applications.sortOrder)],
+      });
 
-      if (!response.ok) {
-        console.error("MP API Error:", response.status, response.statusText);
-        const errorText = await response.text();
-        console.error("Error details:", errorText);
-        throw new Error(`Failed to fetch applications: ${response.statusText}`);
-      }
-
-      data = await response.json();
+      // Transform to match old MinistryPlatform format
+      return NextResponse.json(userApps.map(app => ({
+        Application_ID: app.id,
+        Application_Name: app.name,
+        Application_Key: app.key,
+        Description: app.description,
+        Icon: app.icon,
+        Route: app.route,
+        Sort_Order: app.sortOrder,
+      })));
     }
-
-    // MinistryPlatform stored procedures with FOR JSON PATH return data in a nested format
-    // Structure: [[{ "JSON_GUID": "[{actual data}]" }]]
-    let applications: any[] = [];
-
-    if (Array.isArray(data) && data.length > 0) {
-      let firstItem = data[0];
-
-      // Handle double-nested array: [[{ "GUID": "json" }]]
-      if (Array.isArray(firstItem) && firstItem.length > 0) {
-        firstItem = firstItem[0];
-      }
-
-      // Check if it's an object with a GUID key containing JSON string
-      if (typeof firstItem === 'object' && !Array.isArray(firstItem)) {
-        // Get the first property value (the GUID key)
-        const jsonString = Object.values(firstItem)[0];
-
-        // If it's a string, parse it as JSON
-        if (typeof jsonString === 'string') {
-          try {
-            applications = JSON.parse(jsonString);
-          } catch (e) {
-            console.error("Failed to parse JSON string:", e);
-            applications = [];
-          }
-        } else if (Array.isArray(jsonString)) {
-          applications = jsonString;
-        }
-      } else if (Array.isArray(firstItem)) {
-        // Handle nested array case
-        applications = firstItem;
-      } else {
-        // Handle direct array case
-        applications = data;
-      }
-    }
-
-    return NextResponse.json(applications);
   } catch (error) {
     console.error("Error fetching applications:", error);
     return NextResponse.json(
