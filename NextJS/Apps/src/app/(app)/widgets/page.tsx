@@ -187,7 +187,7 @@ export default function WidgetConfiguratorPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-primary dark:text-foreground mb-2">
-          Widget Configurator
+          Widgets
         </h1>
         <p className="text-muted-foreground">
           Configure and generate embed codes for Woodside widgets

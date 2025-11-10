@@ -1,6 +1,8 @@
 import NextAuth from "next-auth"
 import { JWT } from "next-auth/jwt"
 import MinistryPlatform from "@/providers/MinistryPlatform/ministryPlatformAuthProvider"
+import { cookies } from "next/headers"
+import { MPHelper } from "@/providers/MinistryPlatform/mpHelper"
 
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -119,6 +121,149 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.sub = token.sub as string
       session.roles = (token.roles as string[]) || []
       session.contactId = token.userId as string
+
+      // Fetch ALL user groups for this user (not just security roles from OAuth)
+      try {
+        const mp = new MPHelper()
+
+        // Get User_ID from User_GUID (sub)
+        const users = await mp.getTableRecords({
+          table: 'dp_Users',
+          select: 'User_ID, Contact_ID',
+          filter: `User_GUID='${session.sub}'`,
+          top: 1,
+        })
+
+        if (users.length > 0) {
+          const userId = users[0].User_ID
+
+          // Update contactId if it wasn't set from token
+          if (!session.contactId) {
+            session.contactId = users[0].Contact_ID
+          }
+
+          // Fetch ALL user group IDs
+          const allUserGroupLinks = await mp.getTableRecords({
+            table: 'dp_User_User_Groups',
+            select: 'User_Group_ID',
+            filter: `User_ID=${userId}`,
+          })
+
+          const groupIds = allUserGroupLinks.map((g: any) => g.User_Group_ID).filter(Boolean)
+
+          if (groupIds.length > 0) {
+            // Fetch user group names
+            const groupIdFilter = groupIds.map(id => `User_Group_ID=${id}`).join(' OR ')
+            const userGroups = await mp.getTableRecords({
+              table: 'dp_User_Groups',
+              select: 'User_Group_ID, User_Group_Name',
+              filter: groupIdFilter,
+            })
+
+            const allGroupNames = userGroups.map((g: any) => g.User_Group_Name).filter(Boolean)
+
+            // Combine OAuth security roles with ALL user groups (removing duplicates)
+            session.roles = [...new Set([...session.roles, ...allGroupNames])]
+            console.log('User groups added to session. Total roles:', session.roles.length)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching all user groups:', error)
+      }
+
+      // Check for admin simulation
+      const isAdmin = session.roles?.includes('Administrators')
+      if (isAdmin) {
+        try {
+          const cookieStore = await cookies()
+          const simulationCookie = cookieStore.get('admin-simulation')
+
+          if (simulationCookie) {
+            const simulation = JSON.parse(simulationCookie.value)
+
+            // Apply simulation overrides
+            if (simulation.type === 'impersonate' && simulation.contactId) {
+              // Fetch the impersonated user's actual roles and groups from MinistryPlatform
+              try {
+                const mp = new MPHelper()
+
+                // Get the user's User_ID from their Contact_ID
+                const users = await mp.getTableRecords({
+                  table: 'dp_Users',
+                  select: 'User_ID, Display_Name',
+                  filter: `Contact_ID=${simulation.contactId}`,
+                  top: 1,
+                })
+
+                if (users.length > 0) {
+                  const userId = users[0].User_ID
+
+                  // Fetch their user group IDs
+                  const userGroupLinks = await mp.getTableRecords({
+                    table: 'dp_User_User_Groups',
+                    select: 'User_Group_ID',
+                    filter: `User_ID=${userId}`,
+                  })
+
+                  const groupIds = userGroupLinks.map((g: any) => g.User_Group_ID).filter(Boolean)
+                  let roleNames: string[] = []
+
+                  if (groupIds.length > 0) {
+                    // Fetch user group names
+                    const groupIdFilter = groupIds.map(id => `User_Group_ID=${id}`).join(' OR ')
+                    const userGroups = await mp.getTableRecords({
+                      table: 'dp_User_Groups',
+                      select: 'User_Group_ID, User_Group_Name',
+                      filter: groupIdFilter,
+                    })
+
+                    roleNames = userGroups.map((g: any) => g.User_Group_Name).filter(Boolean)
+                  }
+
+                  session.simulation = {
+                    type: 'impersonate',
+                    contactId: simulation.contactId,
+                    originalUserId: session.user.id,
+                    originalRoles: session.roles,
+                  }
+                  session.roles = roleNames
+                  console.log(`Impersonation applied - User: ${users[0].Display_Name}, Roles:`, roleNames)
+                } else {
+                  console.log('No user found for contact ID:', simulation.contactId)
+                  // User has no MP account, so no roles
+                  session.simulation = {
+                    type: 'impersonate',
+                    contactId: simulation.contactId,
+                    originalUserId: session.user.id,
+                    originalRoles: session.roles,
+                  }
+                  session.roles = []
+                }
+              } catch (error) {
+                console.error('Error fetching impersonated user roles:', error)
+                // On error, clear roles for safety
+                session.simulation = {
+                  type: 'impersonate',
+                  contactId: simulation.contactId,
+                  originalUserId: session.user.id,
+                  originalRoles: session.roles,
+                }
+                session.roles = []
+              }
+            } else if (simulation.type === 'roles' && Array.isArray(simulation.roles)) {
+              // Override roles with simulated roles
+              session.simulation = {
+                type: 'roles',
+                originalRoles: session.roles,
+                originalUserId: session.user.id,
+              }
+              session.roles = simulation.roles
+            }
+          }
+        } catch (error) {
+          console.error('Error applying simulation:', error)
+        }
+      }
     }
 
     console.log('Final session user ID:', session.user?.id)

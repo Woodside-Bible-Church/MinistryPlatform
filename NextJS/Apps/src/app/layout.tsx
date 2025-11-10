@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import DynamicManifest from "@/components/DynamicManifest";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import SimulationBanner from "@/components/SimulationBanner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -70,6 +71,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <SimulationBanner />
           <DynamicManifest />
           {children}
           <PWAInstallPrompt />

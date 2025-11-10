@@ -3,7 +3,7 @@ import { db } from '@/db';
 import { widgetFields } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { ministryPlatformProvider } from '@/providers/MinistryPlatform/ministryPlatformProvider';
+import { MPHelper } from '@/providers/MinistryPlatform/mpHelper';
 
 export async function GET(
   request: Request,
@@ -40,18 +40,16 @@ export async function GET(
       filter?: string;
     };
 
-    // Get MP provider singleton instance
-    const mpProvider = ministryPlatformProvider.getInstance();
+    // Get MP helper instance
+    const mp = new MPHelper();
 
     // Fetch data from MinistryPlatform
-    const records = await mpProvider.getTableRecords<Record<string, any>>(
-      config.table,
-      {
-        $select: `${config.valueField}, ${config.labelField}`,
-        $filter: config.filter,
-        $orderby: config.labelField,
-      }
-    );
+    const records = await mp.getTableRecords({
+      table: config.table,
+      select: `${config.valueField}, ${config.labelField}`,
+      filter: config.filter,
+      orderBy: config.labelField,
+    });
 
     // Transform to options format
     const options = records.map((record) => ({

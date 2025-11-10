@@ -108,6 +108,57 @@ export class UserService {
   }
 
   /**
+   * Retrieves a user profile directly by Contact_ID
+   * This is useful for impersonation where we only have the Contact_ID
+   *
+   * @param contactId - The Contact ID to fetch
+   * @returns Promise<mpUserProfile> - The user profile data from Ministry Platform
+   * @throws Will throw an error if the Ministry Platform query fails
+   */
+  public async getUserProfileByContactId(contactId: number): Promise<mpUserProfile> {
+    // Query Contacts table directly to get ALL contact-related fields
+    const contactRecords = await this.mp!.getTableRecords<any>({
+      table: "Contacts",
+      filter: `Contact_ID = ${contactId}`,
+      select: "Contact_ID, First_Name, Nickname, Last_Name, Email_Address, Mobile_Phone, dp_fileUniqueId, Web_Congregation_ID",
+      top: 1
+    });
+
+    if (!contactRecords || contactRecords.length === 0) {
+      throw new Error(`Contact not found: ${contactId}`);
+    }
+
+    const contact = contactRecords[0];
+
+    // Try to get User_GUID if they have a user account
+    let userGuid = null;
+    const userRecords = await this.mp!.getTableRecords<any>({
+      table: "dp_Users",
+      filter: `Contact_ID = ${contactId}`,
+      select: "User_GUID",
+      top: 1
+    });
+
+    if (userRecords && userRecords.length > 0) {
+      userGuid = userRecords[0].User_GUID;
+    }
+
+    const profile: mpUserProfile = {
+      User_GUID: userGuid,
+      Contact_ID: contact.Contact_ID,
+      First_Name: contact.First_Name,
+      Nickname: contact.Nickname,
+      Last_Name: contact.Last_Name,
+      Email_Address: contact.Email_Address,
+      Mobile_Phone: contact.Mobile_Phone,
+      Image_GUID: contact.dp_fileUniqueId || contact.Column_6 || null,
+      Web_Congregation_ID: contact.Web_Congregation_ID
+    };
+
+    return profile;
+  }
+
+  /**
    * Updates the user's selected congregation in Ministry Platform
    *
    * @param contactId - The Contact ID to update

@@ -12,6 +12,12 @@ declare module "next-auth" {
     sub?: string
     roles?: string[]
     contactId?: string
+    simulation?: {
+      type: 'impersonate' | 'roles'
+      contactId?: number
+      originalUserId?: string
+      originalRoles?: string[]
+    }
   }
 
   interface JWT {

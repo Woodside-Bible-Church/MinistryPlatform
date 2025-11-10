@@ -52,8 +52,14 @@ export async function GET() {
       })));
     } else {
       // Regular users - filter by permissions
-      // TODO: Implement permission filtering based on user groups and security roles
-      // For now, return apps that don't require auth or that user has access to
+      // If user has no roles, show no apps
+      if (!session.roles || session.roles.length === 0) {
+        return NextResponse.json([]);
+      }
+
+      // TODO: Implement full permission filtering based on appPermissions table
+      // For now, show all active apps if user has at least one role
+      // This is a temporary solution until we populate the appPermissions table
       const userApps = await db.query.applications.findMany({
         where: (applications, { eq }) => eq(applications.isActive, true),
         orderBy: (applications, { asc }) => [asc(applications.sortOrder)],

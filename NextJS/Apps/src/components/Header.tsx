@@ -10,7 +10,7 @@ import UserMenu from '@/components/UserMenu/UserMenu';
 import GlobalSearch from '@/components/GlobalSearch/GlobalSearch';
 import { useSession } from '@/components/SessionProvider';
 import { signIn } from 'next-auth/react';
-import { getCurrentUserProfile, updateUserCongregation } from '@/components/UserMenu/actions';
+import { getCurrentUserProfile, getUserProfileByContactId, updateUserCongregation } from '@/components/UserMenu/actions';
 import { mpUserProfile } from '@/providers/MinistryPlatform/Interfaces/mpUserProfile';
 import { useCampus } from '@/contexts/CampusContext';
 import { useStandaloneMode, useAppContext } from '@/hooks/useStandaloneMode';
@@ -58,7 +58,7 @@ export default function Header() {
     setSvgError(false);
   }, [selectedCampus?.Congregation_ID]);
 
-  // Fetch user profile
+  // Fetch user profile (or impersonated user's profile)
   useEffect(() => {
     async function fetchProfile() {
       if (!session?.user?.id) {
@@ -67,7 +67,16 @@ export default function Header() {
       }
 
       try {
-        const profile = await getCurrentUserProfile(session.user.id);
+        let profile: mpUserProfile;
+
+        // If impersonating, fetch the impersonated user's profile by Contact_ID
+        if (session.simulation?.type === 'impersonate' && session.simulation.contactId) {
+          profile = await getUserProfileByContactId(session.simulation.contactId);
+        } else {
+          // Use logged-in user's User_GUID
+          profile = await getCurrentUserProfile(session.user.id);
+        }
+
         setUserProfile(profile);
 
         // Set campus based on user's Web_Congregation_ID if available
@@ -85,7 +94,7 @@ export default function Header() {
     }
 
     fetchProfile();
-  }, [session?.user?.id, congregations, setSelectedCampus]);
+  }, [session?.user?.id, session?.simulation, congregations, setSelectedCampus]);
 
   // Fetch applications
   useEffect(() => {
@@ -320,13 +329,22 @@ export default function Header() {
                     : session?.user?.name || session?.user?.email || 'User menu'}
                 >
                   {userProfile?.Image_GUID ? (
-                    <img
-                      src={`${process.env.NEXT_PUBLIC_MINISTRY_PLATFORM_FILE_URL}/${userProfile.Image_GUID}?$thumbnail=true`}
-                      alt={userProfile.First_Name && userProfile.Last_Name
-                        ? `${userProfile.First_Name} ${userProfile.Last_Name}`
-                        : 'User avatar'}
-                      className="h-8 w-8 md:h-10 md:w-10 rounded-full object-cover border-2 border-transparent group-hover:border-primary dark:group-hover:border-[#61bc47] transition-colors"
-                    />
+                    <div className={session?.simulation?.type === 'impersonate'
+                      ? "relative p-[2px] rounded-full bg-gradient-to-r from-amber-500 to-orange-500"
+                      : ""
+                    }>
+                      <img
+                        src={`${process.env.NEXT_PUBLIC_MINISTRY_PLATFORM_FILE_URL}/${userProfile.Image_GUID}?$thumbnail=true`}
+                        alt={userProfile.First_Name && userProfile.Last_Name
+                          ? `${userProfile.First_Name} ${userProfile.Last_Name}`
+                          : 'User avatar'}
+                        className={`h-8 w-8 md:h-10 md:w-10 rounded-full object-cover transition-colors ${
+                          session?.simulation?.type === 'impersonate'
+                            ? 'border-2 border-white dark:border-[oklch(0.12_0.005_0)]'
+                            : 'border-2 border-transparent group-hover:border-primary dark:group-hover:border-[#61bc47]'
+                        }`}
+                      />
+                    </div>
                   ) : (
                     <UserCircleIcon className="h-8 w-8 md:h-10 md:w-10 text-secondary group-hover:text-primary dark:group-hover:text-[#61bc47] transition-colors" />
                   )}
