@@ -35,7 +35,7 @@ export default function AccessDeniedPage() {
             Access Denied
           </h2>
           <p className="text-muted-foreground">
-            You don't have permission to access {attemptedPath}.
+            You don&apos;t have permission to access {attemptedPath}.
           </p>
         </div>
 
