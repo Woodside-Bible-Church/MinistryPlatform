@@ -31,9 +31,16 @@ export function MapCard({ config, rsvpData }: CardProps<MapCardConfig>) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 
   // Google Maps Static API URL
+  // Note: If you see errors, the API key may need "Maps Static API" enabled in Google Cloud Console
   const staticMapUrl = apiKey
     ? `https://maps.googleapis.com/maps/api/staticmap?center=${center}&zoom=15&size=600x300&markers=color:red%7C${center}&key=${apiKey}&scale=2`
     : null;
+
+  // Debug: Log the full URL in development
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development' && staticMapUrl) {
+    console.log('[MapCard Debug] Static Map URL:', staticMapUrl);
+    console.log('[MapCard Debug] Current Origin:', window.location.origin);
+  }
 
   const handleMapClick = () => {
     setShowMapSelector(true);
@@ -77,8 +84,13 @@ export function MapCard({ config, rsvpData }: CardProps<MapCardConfig>) {
               alt="Map location"
               className="w-full h-full object-cover"
               onError={(e) => {
-                console.error("Map image failed to load:", e);
+                console.error("Map image failed to load");
                 console.error("URL:", staticMapUrl);
+                console.error("This is likely a Google Maps API restriction issue.");
+                console.error("Check Google Cloud Console for this API key and ensure:");
+                console.error("1. Maps Static API is enabled");
+                console.error("2. HTTP referrer restrictions include your domain");
+                console.error("3. Current referrer:", window.location.origin);
                 setImageError(true);
               }}
             />
