@@ -78,8 +78,8 @@ export function WidgetPreview({ embedCode, widgetName }: WidgetPreviewProps) {
   }, [embedCode]);
 
   return (
-    <div className="relative min-h-[500px] bg-card border border-border rounded-lg p-6">
-      <h2 className="text-lg font-semibold text-foreground mb-4">Live Preview</h2>
+    <div className="relative min-h-[500px] bg-card border border-border md:rounded-lg p-0 md:p-6 -mx-4 md:mx-0">
+      <h2 className="text-lg font-semibold text-foreground mb-4 px-4 md:px-0 pt-4 md:pt-0">Live Preview</h2>
 
       {error && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">

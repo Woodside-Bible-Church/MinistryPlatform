@@ -81,7 +81,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen">
       {/* Hero Header */}
-      <div className="py-12 text-center">
+      <div className="pt-8 pb-6 text-center">
         <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">Ministry Applications</h1>
         <p className="text-muted-foreground max-w-2xl mx-auto px-4">
           Internal tools for Woodside Bible Church staff and volunteers
