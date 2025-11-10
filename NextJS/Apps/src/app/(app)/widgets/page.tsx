@@ -199,16 +199,14 @@ export default function WidgetConfiguratorPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Widget Selector */}
           <div className="bg-card border border-border rounded-lg p-6">
-            <label className="block text-sm font-semibold text-foreground mb-3">
-              Widget:
-            </label>
+            <h2 className="text-lg font-semibold text-foreground mb-3">Widget</h2>
             <select
               value={selectedWidgetId}
               onChange={(e) => {
                 setSelectedWidgetId(e.target.value);
                 setFormValues({});
               }}
-              className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+              className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] focus:scroll-auto"
             >
               {widgets.map((widget) => (
                 <option key={widget.id} value={widget.id}>

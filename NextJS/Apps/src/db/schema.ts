@@ -71,7 +71,7 @@ export const appPermissions = pgTable('app_permissions', {
   id: serial('id').primaryKey(),
   applicationId: integer('application_id').notNull().references(() => applications.id, { onDelete: 'cascade' }),
   userEmail: varchar('user_email', { length: 255 }), // Optional: specific user email
-  roleId: integer('role_id'), // Optional: MinistryPlatform Role ID
+  roleName: varchar('role_name', { length: 255 }), // Optional: MinistryPlatform User Group Name (e.g., 'Project Budgets - Admin')
   canView: boolean('can_view').default(true),
   canEdit: boolean('can_edit').default(false),
   canDelete: boolean('can_delete').default(false),

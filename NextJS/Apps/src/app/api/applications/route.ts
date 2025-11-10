@@ -1,8 +1,8 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { applications } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { applications, appPermissions } from "@/db/schema";
+import { eq, inArray, or, and } from "drizzle-orm";
 
 export async function GET() {
   try {
@@ -57,11 +57,27 @@ export async function GET() {
         return NextResponse.json([]);
       }
 
-      // TODO: Implement full permission filtering based on appPermissions table
-      // For now, show all active apps if user has at least one role
-      // This is a temporary solution until we populate the appPermissions table
+      // Find all permissions that match the user's roles or email
+      const userPermissions = await db.query.appPermissions.findMany({
+        where: or(
+          inArray(appPermissions.roleName, session.roles),
+          eq(appPermissions.userEmail, session.user.email!)
+        ),
+      });
+
+      // Get unique application IDs the user has access to
+      const allowedAppIds = [...new Set(userPermissions.map(p => p.applicationId))];
+
+      if (allowedAppIds.length === 0) {
+        return NextResponse.json([]);
+      }
+
+      // Fetch all allowed applications
       const userApps = await db.query.applications.findMany({
-        where: (applications, { eq }) => eq(applications.isActive, true),
+        where: and(
+          eq(applications.isActive, true),
+          inArray(applications.id, allowedAppIds)
+        ),
         orderBy: (applications, { asc }) => [asc(applications.sortOrder)],
       });
 
