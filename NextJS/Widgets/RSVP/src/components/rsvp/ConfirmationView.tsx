@@ -61,7 +61,17 @@ export default function ConfirmationView({
 
   const handleMapChoice = (provider: "google" | "apple") => {
     const url = provider === "google" ? mapsUrl : appleMapsUrl;
-    window.open(url, "_blank");
+
+    // On mobile, use location.href to avoid blank tabs when app opens
+    // On desktop, open in new tab
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      window.location.href = url;
+    } else {
+      window.open(url, "_blank");
+    }
+
     setShowMapSelector(false);
   };
 
