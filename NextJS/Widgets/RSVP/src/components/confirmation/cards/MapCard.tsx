@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Map, Navigation } from "lucide-react";
+import { MapPinned, Navigation } from "lucide-react";
 import { CardProps, MapCardConfig } from "@/types/confirmationCards";
 import { useState } from "react";
 
@@ -56,7 +56,9 @@ export function MapCard({ config, rsvpData }: CardProps<MapCardConfig>) {
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-secondary/5 rounded-full blur-2xl"></div>
 
       <div className="flex items-center gap-3 mb-6 relative z-10">
-        <Map className="w-6 h-6 text-secondary" />
+        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
+          <MapPinned className="w-5 h-5 text-secondary" />
+        </div>
         <h3 className="text-2xl font-bold text-white">{config.title}</h3>
       </div>
 
