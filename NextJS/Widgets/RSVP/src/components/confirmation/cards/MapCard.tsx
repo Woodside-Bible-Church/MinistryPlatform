@@ -83,7 +83,7 @@ export function MapCard({ config, rsvpData }: CardProps<MapCardConfig>) {
               src={staticMapUrl}
               alt="Map location"
               className="w-full h-full object-cover"
-              onError={(e) => {
+              onError={() => {
                 console.error("Map image failed to load");
                 console.error("URL:", staticMapUrl);
                 console.error("This is likely a Google Maps API restriction issue.");
