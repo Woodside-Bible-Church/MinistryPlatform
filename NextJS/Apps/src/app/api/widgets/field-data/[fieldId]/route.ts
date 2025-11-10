@@ -44,7 +44,7 @@ export async function GET(
     const mp = new MPHelper();
 
     // Fetch data from MinistryPlatform
-    const records = await mp.getTableRecords({
+    const records = await mp.getTableRecords<Record<string, any>>({
       table: config.table,
       select: `${config.valueField}, ${config.labelField}`,
       filter: config.filter,
