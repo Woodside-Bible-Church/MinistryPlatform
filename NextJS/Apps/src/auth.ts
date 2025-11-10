@@ -152,12 +152,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const groupIds = allUserGroupLinks.map(g => g.User_Group_ID).filter(Boolean)
 
           if (groupIds.length > 0) {
-            // Fetch user group names
-            const groupIdFilter = groupIds.map(id => `User_Group_ID=${id}`).join(' OR ')
+            // Fetch user group names using IN() clause
+            const groupIdList = groupIds.join(',')
             const userGroups = await mp.getTableRecords<{ User_Group_ID: number; User_Group_Name: string }>({
               table: 'dp_User_Groups',
               select: 'User_Group_ID, User_Group_Name',
-              filter: groupIdFilter,
+              filter: `User_Group_ID IN (${groupIdList})`,
             })
 
             const allGroupNames = userGroups.map(g => g.User_Group_Name).filter(Boolean)
@@ -197,8 +197,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 if (users.length > 0) {
                   const userId = users[0].User_ID
+                  let roleNames: string[] = []
 
-                  // Fetch their user group IDs
+                  // Fetch User Groups
                   const userGroupLinks = await mp.getTableRecords<{ User_Group_ID: number }>({
                     table: 'dp_User_User_Groups',
                     select: 'User_Group_ID',
@@ -206,18 +207,38 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                   })
 
                   const groupIds = userGroupLinks.map(g => g.User_Group_ID).filter(Boolean)
-                  let roleNames: string[] = []
 
                   if (groupIds.length > 0) {
-                    // Fetch user group names
-                    const groupIdFilter = groupIds.map(id => `User_Group_ID=${id}`).join(' OR ')
+                    // Use IN() clause for cleaner query
+                    const groupIdList = groupIds.join(',')
                     const userGroups = await mp.getTableRecords<{ User_Group_ID: number; User_Group_Name: string }>({
                       table: 'dp_User_Groups',
                       select: 'User_Group_ID, User_Group_Name',
-                      filter: groupIdFilter,
+                      filter: `User_Group_ID IN (${groupIdList})`,
                     })
 
-                    roleNames = userGroups.map(g => g.User_Group_Name).filter(Boolean)
+                    roleNames.push(...userGroups.map(g => g.User_Group_Name).filter(Boolean))
+                  }
+
+                  // Fetch Security Roles
+                  const securityRoleLinks = await mp.getTableRecords<{ Role_ID: number }>({
+                    table: 'dp_User_Security_Roles',
+                    select: 'Role_ID',
+                    filter: `User_ID=${userId}`,
+                  })
+
+                  const roleIds = securityRoleLinks.map(r => r.Role_ID).filter(Boolean)
+
+                  if (roleIds.length > 0) {
+                    // Use IN() clause for cleaner query
+                    const roleIdList = roleIds.join(',')
+                    const securityRoles = await mp.getTableRecords<{ Role_Name: string }>({
+                      table: 'dp_Security_Roles',
+                      select: 'Role_Name',
+                      filter: `Role_ID IN (${roleIdList})`,
+                    })
+
+                    roleNames.push(...securityRoles.map(r => r.Role_Name).filter(Boolean))
                   }
 
                   session.simulation = {
@@ -227,7 +248,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     originalRoles: session.roles,
                   }
                   session.roles = roleNames
-                  console.log(`Impersonation applied - User: ${users[0].Display_Name}, Roles:`, roleNames)
+                  console.log(`Impersonation applied - User: ${users[0].Display_Name}, Roles (User Groups + Security Roles):`, roleNames)
                 } else {
                   console.log('No user found for contact ID:', simulation.contactId)
                   // User has no MP account, so no roles
