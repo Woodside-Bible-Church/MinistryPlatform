@@ -127,7 +127,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const mp = new MPHelper()
 
         // Get User_ID from User_GUID (sub)
-        const users = await mp.getTableRecords({
+        const users = await mp.getTableRecords<{ User_ID: number; Contact_ID: number }>({
           table: 'dp_Users',
           select: 'User_ID, Contact_ID',
           filter: `User_GUID='${session.sub}'`,
@@ -143,24 +143,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
 
           // Fetch ALL user group IDs
-          const allUserGroupLinks = await mp.getTableRecords({
+          const allUserGroupLinks = await mp.getTableRecords<{ User_Group_ID: number }>({
             table: 'dp_User_User_Groups',
             select: 'User_Group_ID',
             filter: `User_ID=${userId}`,
           })
 
-          const groupIds = allUserGroupLinks.map((g: any) => g.User_Group_ID).filter(Boolean)
+          const groupIds = allUserGroupLinks.map(g => g.User_Group_ID).filter(Boolean)
 
           if (groupIds.length > 0) {
             // Fetch user group names
             const groupIdFilter = groupIds.map(id => `User_Group_ID=${id}`).join(' OR ')
-            const userGroups = await mp.getTableRecords({
+            const userGroups = await mp.getTableRecords<{ User_Group_ID: number; User_Group_Name: string }>({
               table: 'dp_User_Groups',
               select: 'User_Group_ID, User_Group_Name',
               filter: groupIdFilter,
             })
 
-            const allGroupNames = userGroups.map((g: any) => g.User_Group_Name).filter(Boolean)
+            const allGroupNames = userGroups.map(g => g.User_Group_Name).filter(Boolean)
 
             // Combine OAuth security roles with ALL user groups (removing duplicates)
             session.roles = [...new Set([...session.roles, ...allGroupNames])]
@@ -188,7 +188,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 const mp = new MPHelper()
 
                 // Get the user's User_ID from their Contact_ID
-                const users = await mp.getTableRecords({
+                const users = await mp.getTableRecords<{ User_ID: number; Display_Name: string }>({
                   table: 'dp_Users',
                   select: 'User_ID, Display_Name',
                   filter: `Contact_ID=${simulation.contactId}`,
@@ -199,25 +199,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                   const userId = users[0].User_ID
 
                   // Fetch their user group IDs
-                  const userGroupLinks = await mp.getTableRecords({
+                  const userGroupLinks = await mp.getTableRecords<{ User_Group_ID: number }>({
                     table: 'dp_User_User_Groups',
                     select: 'User_Group_ID',
                     filter: `User_ID=${userId}`,
                   })
 
-                  const groupIds = userGroupLinks.map((g: any) => g.User_Group_ID).filter(Boolean)
+                  const groupIds = userGroupLinks.map(g => g.User_Group_ID).filter(Boolean)
                   let roleNames: string[] = []
 
                   if (groupIds.length > 0) {
                     // Fetch user group names
                     const groupIdFilter = groupIds.map(id => `User_Group_ID=${id}`).join(' OR ')
-                    const userGroups = await mp.getTableRecords({
+                    const userGroups = await mp.getTableRecords<{ User_Group_ID: number; User_Group_Name: string }>({
                       table: 'dp_User_Groups',
                       select: 'User_Group_ID, User_Group_Name',
                       filter: groupIdFilter,
                     })
 
-                    roleNames = userGroups.map((g: any) => g.User_Group_Name).filter(Boolean)
+                    roleNames = userGroups.map(g => g.User_Group_Name).filter(Boolean)
                   }
 
                   session.simulation = {
