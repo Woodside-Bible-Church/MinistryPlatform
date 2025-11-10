@@ -7,6 +7,7 @@ import {
   RotateCcw,
   Navigation,
 } from "lucide-react";
+import { FaGoogle, FaApple } from "react-icons/fa";
 import {
   RSVPConfirmationResponse,
   formatServiceTime,
@@ -212,36 +213,36 @@ export default function ConfirmationView({
         {/* Map Selector Modal */}
         {showMapSelector && (
           <div
-            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={() => setShowMapSelector(false)}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-lg p-6 max-w-sm w-full"
+              className="bg-primary/70 backdrop-blur-xl rounded-2xl p-8 max-w-sm w-full shadow-2xl border border-white/20"
             >
-              <h4 className="text-xl font-bold text-primary mb-4">
-                Choose Your Map App
+              <h4 className="text-2xl font-bold text-white mb-6 text-center">
+                Let&apos;s go!
               </h4>
               <div className="space-y-3">
                 <button
                   onClick={() => handleMapChoice("google")}
-                  className="w-full btn-primary h-12 flex items-center justify-center gap-2"
+                  className="w-full h-14 flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white border-2 border-white/20 font-semibold rounded-lg transition-all"
                 >
-                  <Navigation className="w-5 h-5" />
-                  Google Maps
+                  <FaGoogle className="w-5 h-5" />
+                  <span>Google Maps</span>
                 </button>
                 <button
                   onClick={() => handleMapChoice("apple")}
-                  className="w-full btn-secondary h-12 flex items-center justify-center gap-2"
+                  className="w-full h-14 flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white border-2 border-white/20 font-semibold rounded-lg transition-all"
                 >
-                  <Navigation className="w-5 h-5" />
-                  Apple Maps
+                  <FaApple className="w-6 h-6" />
+                  <span>Apple Maps</span>
                 </button>
                 <button
                   onClick={() => setShowMapSelector(false)}
-                  className="w-full text-gray-600 hover:text-gray-800 py-2"
+                  className="w-full text-white/70 hover:text-white py-3 font-medium transition-colors"
                 >
                   Cancel
                 </button>
