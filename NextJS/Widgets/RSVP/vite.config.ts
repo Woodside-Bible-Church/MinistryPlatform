@@ -48,6 +48,7 @@ export default defineConfig({
     // Define all environment variables used in the widget
     'process.env.NODE_ENV': JSON.stringify('production'),
     'process.env.NEXTAUTH_URL': JSON.stringify(process.env.NEXTAUTH_URL || 'https://rsvp-wine.vercel.app'),
+    'process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY': JSON.stringify(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''),
     // Replace any other process.env references
     'process.env': JSON.stringify({}),
   },
