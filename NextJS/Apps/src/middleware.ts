@@ -305,34 +305,11 @@ export async function middleware(request: NextRequest) {
                   userRoles.push(...userGroups.map(g => g.User_Group_Name).filter(Boolean));
                 }
 
-                // Fetch Security Roles
-                // Note: Security Roles come from OAuth, but we fetch them here for impersonation
-                // If the API user doesn't have access to these tables, we skip this step
-                try {
-                  const securityRoleLinks = await mp.getTableRecords<{ Role_ID: number }>({
-                    table: 'dp_User_Security_Roles',
-                    select: 'Role_ID',
-                    filter: `User_ID=${userId}`,
-                  });
+                // Note: Security Roles are not fetched during impersonation
+                // They come from OAuth token during login and are sufficient
+                // We only fetch User Groups for impersonation permissions
 
-                  const roleIds = securityRoleLinks.map(r => r.Role_ID).filter(Boolean);
-
-                  if (roleIds.length > 0) {
-                    // Use IN() clause for cleaner query
-                    const roleIdList = roleIds.join(',');
-                    const securityRoles = await mp.getTableRecords<{ Role_Name: string }>({
-                      table: 'dp_Security_Roles',
-                      select: 'Role_Name',
-                      filter: `Role_ID IN (${roleIdList})`,
-                    });
-
-                    userRoles.push(...securityRoles.map(r => r.Role_Name).filter(Boolean));
-                  }
-                } catch (securityRoleError) {
-                  console.log('Middleware: Could not fetch Security Roles (API user may not have access). Security Roles are included from OAuth token.');
-                }
-
-                console.log(`Middleware: Impersonation active - using roles (User Groups + Security Roles):`, userRoles);
+                console.log(`Middleware: Impersonation active - using roles (User Groups):`, userRoles);
               } else {
                 // User has no MP account, so no roles
                 userRoles = [];

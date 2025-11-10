@@ -220,32 +220,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     roleNames.push(...userGroups.map(g => g.User_Group_Name).filter(Boolean))
                   }
 
-                  // Fetch Security Roles
-                  // Note: Security Roles come from OAuth, but we fetch them here for impersonation
-                  // If the API user doesn't have access to these tables, we skip this step
-                  try {
-                    const securityRoleLinks = await mp.getTableRecords<{ Role_ID: number }>({
-                      table: 'dp_User_Security_Roles',
-                      select: 'Role_ID',
-                      filter: `User_ID=${userId}`,
-                    })
-
-                    const roleIds = securityRoleLinks.map(r => r.Role_ID).filter(Boolean)
-
-                    if (roleIds.length > 0) {
-                      // Use IN() clause for cleaner query
-                      const roleIdList = roleIds.join(',')
-                      const securityRoles = await mp.getTableRecords<{ Role_Name: string }>({
-                        table: 'dp_Security_Roles',
-                        select: 'Role_Name',
-                        filter: `Role_ID IN (${roleIdList})`,
-                      })
-
-                      roleNames.push(...securityRoles.map(r => r.Role_Name).filter(Boolean))
-                    }
-                  } catch (securityRoleError) {
-                    console.log('Note: Could not fetch Security Roles (API user may not have access). Security Roles are included from OAuth token.')
-                  }
+                  // Note: Security Roles are not fetched during impersonation
+                  // They come from OAuth token during login and are sufficient
+                  // We only fetch User Groups for impersonation permissions
 
                   session.simulation = {
                     type: 'impersonate',
@@ -254,7 +231,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     originalRoles: session.roles,
                   }
                   session.roles = roleNames
-                  console.log(`Impersonation applied - User: ${users[0].Display_Name}, Roles (User Groups + Security Roles):`, roleNames)
+                  console.log(`Impersonation applied - User: ${users[0].Display_Name}, Roles (User Groups):`, roleNames)
                 } else {
                   console.log('No user found for contact ID:', simulation.contactId)
                   // User has no MP account, so no roles
