@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { db } from '@/db';
-import { applications, appPermissions } from '@/db/schema';
+import { applications, appPermissions, appSimulations } from '@/db/schema';
 import { eq, inArray, or, and } from 'drizzle-orm';
 
 // Cache for public app routes to avoid repeated API calls
@@ -258,75 +258,29 @@ export async function middleware(request: NextRequest) {
     const userEmail = token.email as string;
     let userRoles = (token.roles as string[]) || [];
 
-    // Check for admin simulation/impersonation
+    // Check for app-specific permission simulation
     const isAdmin = userRoles.includes('Administrators');
     if (isAdmin) {
-      const simulationCookie = request.cookies.get('admin-simulation');
-      if (simulationCookie) {
-        try {
-          const simulation = JSON.parse(simulationCookie.value);
+      // Find the application with this route
+      const app = await db.query.applications.findFirst({
+        where: eq(applications.route, pathname),
+      });
 
-          if (simulation.type === 'impersonate' && simulation.contactId) {
-            // For impersonation, fetch the actual user's roles (both User Groups and Security Roles)
-            try {
-              const { MPHelper } = await import('@/providers/MinistryPlatform/mpHelper');
-              const mp = new MPHelper();
+      // Check if admin has an active simulation for this app
+      if (app) {
+        const activeSimulation = await db.query.appSimulations.findFirst({
+          where: and(
+            eq(appSimulations.userEmail, userEmail),
+            eq(appSimulations.applicationId, app.id),
+            eq(appSimulations.isActive, true)
+          ),
+        });
 
-              // Get the user's User_ID from their Contact_ID
-              const users = await mp.getTableRecords<{ User_ID: number }>({
-                table: 'dp_Users',
-                select: 'User_ID',
-                filter: `Contact_ID=${simulation.contactId}`,
-                top: 1,
-              });
-
-              if (users.length > 0) {
-                const userId = users[0].User_ID;
-                userRoles = [];
-
-                // Fetch User Groups
-                const userGroupLinks = await mp.getTableRecords<{ User_Group_ID: number }>({
-                  table: 'dp_User_User_Groups',
-                  select: 'User_Group_ID',
-                  filter: `User_ID=${userId}`,
-                });
-
-                const groupIds = userGroupLinks.map(g => g.User_Group_ID).filter(Boolean);
-
-                if (groupIds.length > 0) {
-                  // Use IN() clause for cleaner query
-                  const groupIdList = groupIds.join(',');
-                  const userGroups = await mp.getTableRecords<{ User_Group_Name: string }>({
-                    table: 'dp_User_Groups',
-                    select: 'User_Group_Name',
-                    filter: `User_Group_ID IN (${groupIdList})`,
-                  });
-
-                  userRoles.push(...userGroups.map(g => g.User_Group_Name).filter(Boolean));
-                }
-
-                // Note: Security Roles are not fetched during impersonation
-                // They come from OAuth token during login and are sufficient
-                // We only fetch User Groups for impersonation permissions
-
-                console.log(`Middleware: Impersonation active - using roles (User Groups):`, userRoles);
-              } else {
-                // User has no MP account, so no roles
-                userRoles = [];
-                console.log(`Middleware: Impersonation active - user has no MP account, no roles`);
-              }
-            } catch (error) {
-              console.error('Middleware: Error fetching impersonated user roles:', error);
-              // On error, clear roles for safety
-              userRoles = [];
-            }
-          } else if (simulation.type === 'roles' && Array.isArray(simulation.roles)) {
-            // Override with simulated roles
-            userRoles = simulation.roles;
-            console.log(`Middleware: Role simulation active - using roles:`, userRoles);
-          }
-        } catch (error) {
-          console.error('Middleware: Error parsing simulation cookie:', error);
+        if (activeSimulation) {
+          // Remove "Administrators" role to force permission checks
+          userRoles = userRoles.filter(role => role !== 'Administrators');
+          console.log(`Middleware: App simulation active for ${app.name} - removed admin privileges`);
+          console.log(`Middleware: Current roles for simulation:`, userRoles);
         }
       }
     }
