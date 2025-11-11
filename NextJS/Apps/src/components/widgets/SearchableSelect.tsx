@@ -20,6 +20,7 @@ interface SearchableSelectProps {
   groupedOptions?: OptionGroup[];
   placeholder?: string;
   className?: string;
+  clearable?: boolean;
 }
 
 export function SearchableSelect({
@@ -29,6 +30,7 @@ export function SearchableSelect({
   groupedOptions = [],
   placeholder = "Select an option",
   className = "",
+  clearable = true,
 }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -112,7 +114,7 @@ export function SearchableSelect({
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <div className="flex items-center gap-1">
-          {selectedOption && (
+          {clearable && selectedOption && (
             <button
               type="button"
               onClick={handleClear}

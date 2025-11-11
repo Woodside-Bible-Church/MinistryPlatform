@@ -254,6 +254,7 @@ export default function WidgetConfiguratorPage() {
               groupedOptions={groupedWidgets}
               placeholder="Select a widget"
               className="py-3"
+              clearable={false}
             />
             <p className="text-sm text-muted-foreground mt-3">
               {currentConfig.description}
