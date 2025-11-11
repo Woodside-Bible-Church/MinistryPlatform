@@ -45,6 +45,30 @@ BEGIN
         FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
     );
 
+    -- Get all available Relationships grouped by Type for editing
+    DECLARE @RelationshipsJSON NVARCHAR(MAX) = (
+        SELECT
+            RT.Relationship_Type_ID,
+            RT.Relationship_Type_Name,
+            RT.Sort_Order,
+            -- Nest relationships array within each type
+            (
+                SELECT
+                    R.Relationship_ID,
+                    R.Relationship_Name,
+                    R.Male_Label,
+                    R.Female_Label
+                FROM dbo.Relationships R
+                WHERE R.Relationship_Type_ID = RT.Relationship_Type_ID
+                ORDER BY R.Relationship_Name
+                FOR JSON PATH
+            ) AS Relationships
+        FROM dbo.Relationship_Types RT
+        WHERE RT.Domain_ID = @DomainID
+        ORDER BY RT.Sort_Order
+        FOR JSON PATH
+    );
+
     -- Get Members grouped by Relationship Type
     DECLARE @MembersJSON NVARCHAR(MAX) = (
         SELECT
@@ -133,6 +157,8 @@ BEGIN
         ISNULL(@HouseholdJSON, 'null'),
         ',"MembersByType":',
         ISNULL(@MembersJSON, '[]'),
+        ',"Relationships":',
+        ISNULL(@RelationshipsJSON, '[]'),
         '}'
     );
 

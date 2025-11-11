@@ -250,9 +250,20 @@ export default function PeopleSearchPage() {
           }
           const householdData = await householdResponse.json();
           console.log("Household data:", householdData);
-          // API now returns { Household: {...}, MembersByType: [...] }
+          // API now returns { Household: {...}, MembersByType: [...], Relationships: [...] }
           setHousehold(householdData.Household);
           setMembersByType(householdData.MembersByType || []);
+          // Set relationships from the stored procedure response
+          if (householdData.Relationships) {
+            setGroupedRelationships(householdData.Relationships.map((rt: any) => ({
+              type: {
+                Relationship_Type_ID: rt.Relationship_Type_ID,
+                Relationship_Type_Name: rt.Relationship_Type_Name,
+                Sort_Order: rt.Sort_Order,
+              },
+              relationships: rt.Relationships || []
+            })));
+          }
         } catch (error) {
           console.error("Error loading household:", error);
           setHousehold(null);
@@ -409,6 +420,17 @@ export default function PeopleSearchPage() {
           const householdData = await householdResponse.json();
           setHousehold(householdData.Household);
           setMembersByType(householdData.MembersByType || []);
+          // Update relationships from stored procedure response
+          if (householdData.Relationships) {
+            setGroupedRelationships(householdData.Relationships.map((rt: any) => ({
+              type: {
+                Relationship_Type_ID: rt.Relationship_Type_ID,
+                Relationship_Type_Name: rt.Relationship_Type_Name,
+                Sort_Order: rt.Sort_Order,
+              },
+              relationships: rt.Relationships || []
+            })));
+          }
         }
       }
 
