@@ -1,7 +1,6 @@
 import Header from "@/components/Header";
 import AuthWrapper from "@/components/AuthWrapper";
 import { CampusProvider } from "@/contexts/CampusContext";
-import { MPWidgetsLoader } from "@/components/MPWidgetsLoader";
 
 export default async function AppLayout({
   children,
@@ -19,9 +18,6 @@ export default async function AppLayout({
         </main>
         </CampusProvider>
       </AuthWrapper>
-
-      {/* Load Ministry Platform widgets script globally */}
-      <MPWidgetsLoader />
     </div>
   );
 }

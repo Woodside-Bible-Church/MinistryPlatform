@@ -24,23 +24,46 @@ export function WidgetPreview({ embedCode, widgetName, widgetSource = 'custom' }
     containerRef.current.innerHTML = "";
 
     try {
-      // For MP widgets, the script is already loaded globally
-      // Just insert the web component element
+      // For MP widgets, include the script tag to trigger re-initialization
       if (widgetSource === 'ministry_platform') {
         const wrapper = document.createElement("div");
         wrapper.innerHTML = embedCode;
 
-        // Remove the script tag since it's already loaded globally
-        const scripts = wrapper.querySelectorAll("script");
-        scripts.forEach((script) => script.remove());
-
-        // Append to container
+        // Append to container (including script tag)
         containerRef.current.appendChild(wrapper);
 
-        // Wait for the widget to render
-        setTimeout(() => {
+        // Execute script tags to re-initialize widgets
+        const scripts = wrapper.querySelectorAll("script");
+        scripts.forEach((oldScript) => {
+          const newScript = document.createElement("script");
+
+          // Copy attributes
+          Array.from(oldScript.attributes).forEach((attr) => {
+            newScript.setAttribute(attr.name, attr.value);
+          });
+
+          if (oldScript.src) {
+            newScript.src = oldScript.src;
+            newScript.onload = () => {
+              // Wait a bit for widget to initialize after script loads
+              setTimeout(() => {
+                setIsLoading(false);
+              }, 1000);
+            };
+            newScript.onerror = () => {
+              setError("Failed to load Ministry Platform widgets script");
+              setIsLoading(false);
+            };
+          }
+
+          // Replace old script with new one to execute it
+          oldScript.parentNode?.replaceChild(newScript, oldScript);
+        });
+
+        // If no scripts, remove loading state
+        if (scripts.length === 0) {
           setIsLoading(false);
-        }, 2000);
+        }
       } else {
         // Custom widgets - original behavior
         const wrapper = document.createElement("div");
