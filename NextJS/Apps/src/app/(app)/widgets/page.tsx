@@ -56,8 +56,27 @@ export default function WidgetConfiguratorPage() {
         if (!response.ok) throw new Error('Failed to fetch widgets');
         const data = await response.json();
         setWidgets(data);
+
         if (data.length > 0) {
-          setSelectedWidgetId(data[0].id);
+          // Group and sort widgets the same way as the dropdown
+          const grouped = Object.entries(
+            data.reduce((acc: Record<string, Widget[]>, widget: Widget) => {
+              const source = widget.source;
+              if (!acc[source]) acc[source] = [];
+              acc[source].push(widget);
+              return acc;
+            }, {})
+          )
+            .map(([source, sourceWidgets]) => ({
+              label: SOURCE_LABELS[source] || source,
+              widgets: sourceWidgets.sort((a: Widget, b: Widget) => a.name.localeCompare(b.name)),
+            }))
+            .sort((a, b) => a.label.localeCompare(b.label));
+
+          // Default to first widget in the first group
+          if (grouped.length > 0 && grouped[0].widgets.length > 0) {
+            setSelectedWidgetId(grouped[0].widgets[0].id);
+          }
         }
       } catch (error) {
         console.error('Error fetching widgets:', error);
@@ -126,10 +145,12 @@ export default function WidgetConfiguratorPage() {
   )
     .map(([source, sourceWidgets]) => ({
       label: SOURCE_LABELS[source] || source,
-      options: sourceWidgets.map((widget) => ({
-        value: widget.id,
-        label: widget.name,
-      })),
+      options: sourceWidgets
+        .sort((a, b) => a.name.localeCompare(b.name)) // Sort widgets alphabetically within each group
+        .map((widget) => ({
+          value: widget.id,
+          label: widget.name,
+        })),
     }))
     .sort((a, b) => a.label.localeCompare(b.label));
 
