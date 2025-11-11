@@ -355,9 +355,17 @@ export default function PeopleSearchPage() {
       typeGroup.Members
         .filter(m => m.Contact_ID !== selectedContact?.Contact_ID)
         .forEach(member => {
+          console.log('Initializing relationship for member:', {
+            name: getDisplayName(member),
+            Contact_ID: member.Contact_ID,
+            Relationship_ID: member.Relationship_ID,
+            Relationship_Name: member.Relationship_Name
+          });
           relationshipsMap.set(member.Contact_ID, member.Relationship_ID || null);
         });
     });
+    console.log('Edit relationships map:', relationshipsMap);
+    console.log('Grouped relationships available:', groupedRelationships);
     setEditedRelationships(relationshipsMap);
   };
 
