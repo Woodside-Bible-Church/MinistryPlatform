@@ -9,50 +9,13 @@ interface WidgetPreviewProps {
   widgetSource?: 'custom' | 'ministry_platform' | 'third_party';
 }
 
-const MP_WIDGETS_SCRIPT_URL = 'https://my.woodsidebible.org/widgets/dist/MPWidgets.js';
-
 export function WidgetPreview({ embedCode, widgetName, widgetSource = 'custom' }: WidgetPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [mpScriptLoaded, setMpScriptLoaded] = useState(false);
-
-  // Load Ministry Platform widgets script if needed
-  useEffect(() => {
-    if (widgetSource !== 'ministry_platform') {
-      setMpScriptLoaded(true);
-      return;
-    }
-
-    // Check if MP script is already loaded
-    if (document.querySelector(`script[src="${MP_WIDGETS_SCRIPT_URL}"]`)) {
-      setMpScriptLoaded(true);
-      return;
-    }
-
-    // Load MP widgets script
-    const script = document.createElement('script');
-    script.src = MP_WIDGETS_SCRIPT_URL;
-    script.async = true;
-    script.onload = () => {
-      console.log('Ministry Platform widgets script loaded');
-      setMpScriptLoaded(true);
-    };
-    script.onerror = () => {
-      console.error('Failed to load Ministry Platform widgets script');
-      setError('Failed to load Ministry Platform widgets');
-      setMpScriptLoaded(true); // Allow proceeding anyway
-    };
-
-    document.head.appendChild(script);
-
-    return () => {
-      // Keep the script loaded for other MP widgets
-    };
-  }, [widgetSource]);
 
   useEffect(() => {
-    if (!containerRef.current || !mpScriptLoaded) return;
+    if (!containerRef.current) return;
 
     setIsLoading(true);
     setError(null);
@@ -61,45 +24,72 @@ export function WidgetPreview({ embedCode, widgetName, widgetSource = 'custom' }
     containerRef.current.innerHTML = "";
 
     try {
-      // Create a wrapper div for the widget
-      const wrapper = document.createElement("div");
-      wrapper.innerHTML = embedCode;
+      // For MP widgets, the script is already loaded globally
+      // Just insert the web component element
+      if (widgetSource === 'ministry_platform') {
+        const wrapper = document.createElement("div");
+        wrapper.innerHTML = embedCode;
 
-      // Append to container
-      containerRef.current.appendChild(wrapper);
+        // Remove the script tag since it's already loaded globally
+        const scripts = wrapper.querySelectorAll("script");
+        scripts.forEach((script) => script.remove());
 
-      // Find and execute any script tags
-      const scripts = wrapper.querySelectorAll("script");
-      scripts.forEach((oldScript) => {
-        const newScript = document.createElement("script");
+        // Append to container
+        containerRef.current.appendChild(wrapper);
 
-        // Copy attributes
-        Array.from(oldScript.attributes).forEach((attr) => {
-          newScript.setAttribute(attr.name, attr.value);
+        // Check if element rendered
+        setTimeout(() => {
+          const element = containerRef.current?.querySelector('mpp-custom-form, mpp-group-finder, mpp-event-details');
+
+          // Check if custom element is registered
+          const tagName = element?.tagName.toLowerCase();
+          if (tagName && !customElements.get(tagName)) {
+            setError('Ministry Platform widgets cannot preview in local development. The embed code is correct and will work when deployed to production.');
+          }
+
+          setIsLoading(false);
+        }, 1000);
+      } else {
+        // Custom widgets - original behavior
+        const wrapper = document.createElement("div");
+        wrapper.innerHTML = embedCode;
+
+        // Append to container
+        containerRef.current.appendChild(wrapper);
+
+        // Find and execute any script tags
+        const scripts = wrapper.querySelectorAll("script");
+        scripts.forEach((oldScript) => {
+          const newScript = document.createElement("script");
+
+          // Copy attributes
+          Array.from(oldScript.attributes).forEach((attr) => {
+            newScript.setAttribute(attr.name, attr.value);
+          });
+
+          // Copy script content
+          if (oldScript.src) {
+            newScript.src = oldScript.src;
+            newScript.onload = () => {
+              setIsLoading(false);
+            };
+            newScript.onerror = () => {
+              setError("Failed to load widget script");
+              setIsLoading(false);
+            };
+          } else {
+            newScript.textContent = oldScript.textContent;
+            setIsLoading(false);
+          }
+
+          // Replace old script with new one to execute it
+          oldScript.parentNode?.replaceChild(newScript, oldScript);
         });
 
-        // Copy script content
-        if (oldScript.src) {
-          newScript.src = oldScript.src;
-          newScript.onload = () => {
-            setIsLoading(false);
-          };
-          newScript.onerror = () => {
-            setError("Failed to load widget script");
-            setIsLoading(false);
-          };
-        } else {
-          newScript.textContent = oldScript.textContent;
+        // If no scripts, remove loading state
+        if (scripts.length === 0) {
           setIsLoading(false);
         }
-
-        // Replace old script with new one to execute it
-        oldScript.parentNode?.replaceChild(newScript, oldScript);
-      });
-
-      // If no scripts, remove loading state
-      if (scripts.length === 0) {
-        setIsLoading(false);
       }
     } catch (err) {
       console.error("Error rendering widget:", err);
@@ -113,7 +103,7 @@ export function WidgetPreview({ embedCode, widgetName, widgetSource = 'custom' }
         containerRef.current.innerHTML = "";
       }
     };
-  }, [embedCode, mpScriptLoaded]);
+  }, [embedCode, widgetSource]);
 
   return (
     <div className="relative min-h-[500px] bg-card border border-border md:rounded-lg p-0 md:p-6 -mx-4 md:mx-0">

@@ -24,6 +24,7 @@ export async function GET() {
       id: widget.key,
       name: widget.name,
       description: widget.description,
+      source: widget.source,
       widgetUrl: widget.previewUrl || '',
       globalName: widget.globalName || '',
       scriptUrl: widget.scriptUrl,
@@ -32,6 +33,7 @@ export async function GET() {
         .filter((field) => field.widgetId === widget.id)
         .map((field) => ({
           id: field.fieldKey,
+          fieldKey: field.fieldKey,
           label: field.label,
           type: field.fieldType as 'text' | 'number' | 'select' | 'color' | 'checkbox' | 'mp-select',
           placeholder: field.placeholder || undefined,

@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { Copy, Check, Loader2 } from "lucide-react";
 import { WidgetPreview } from "@/components/widgets/WidgetPreview";
+import { SearchableSelect } from "@/components/widgets/SearchableSelect";
 
 interface WidgetField {
   id: string;
+  fieldKey: string;
   label: string;
   type: "text" | "number" | "select" | "color" | "checkbox" | "mp-select";
   placeholder?: string;
@@ -144,7 +146,24 @@ export default function WidgetConfiguratorPage() {
   const generateEmbedCode = () => {
     if (!currentConfig) return '';
 
-    // Build data-params string from MP select fields
+    // Ministry Platform widgets use web component tags
+    if (currentConfig.source === 'ministry_platform') {
+      const attributes: string[] = [];
+
+      currentConfig.fields.forEach((field) => {
+        const value = getFormValue(field.id);
+        if (value !== undefined && value !== null && value !== '') {
+          // Field key becomes the attribute name (e.g., formguid, customcss)
+          attributes.push(`${field.fieldKey}="${value}"`);
+        }
+      });
+
+      const attrsString = attributes.length > 0 ? ` ${attributes.join(' ')}` : '';
+      return `<script src="${currentConfig.scriptUrl}"></script>
+<${currentConfig.containerElementId}${attrsString}></${currentConfig.containerElementId}>`;
+    }
+
+    // Custom widgets use div + data attributes + script
     const dataParams: string[] = [];
     const otherAttributes: string[] = [];
 
@@ -249,31 +268,20 @@ export default function WidgetConfiguratorPage() {
                       Loading options...
                     </div>
                   ) : (
-                    <select
+                    <SearchableSelect
                       value={String(getFormValue(field.id))}
-                      onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                      className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
-                    >
-                      <option value="">Select {field.label}</option>
-                      {mpFieldOptions[field.id]?.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(value) => handleFieldChange(field.id, value)}
+                      options={mpFieldOptions[field.id] || []}
+                      placeholder={`Select ${field.label}`}
+                    />
                   )
                 ) : field.type === "select" ? (
-                  <select
+                  <SearchableSelect
                     value={String(getFormValue(field.id))}
-                    onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                    className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
-                  >
-                    {field.options?.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) => handleFieldChange(field.id, value)}
+                    options={field.options || []}
+                    placeholder={field.placeholder}
+                  />
                 ) : field.type === "color" ? (
                   <div className="flex gap-3">
                     <input
