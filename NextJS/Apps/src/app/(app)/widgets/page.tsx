@@ -123,13 +123,15 @@ export default function WidgetConfiguratorPage() {
       acc[source].push(widget);
       return acc;
     }, {} as Record<string, Widget[]>)
-  ).map(([source, sourceWidgets]) => ({
-    label: SOURCE_LABELS[source] || source,
-    options: sourceWidgets.map((widget) => ({
-      value: widget.id,
-      label: widget.name,
-    })),
-  }));
+  )
+    .map(([source, sourceWidgets]) => ({
+      label: SOURCE_LABELS[source] || source,
+      options: sourceWidgets.map((widget) => ({
+        value: widget.id,
+        label: widget.name,
+      })),
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
 
   if (isLoading) {
     return (
