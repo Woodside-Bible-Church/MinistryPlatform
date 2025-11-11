@@ -24,46 +24,23 @@ export function WidgetPreview({ embedCode, widgetName, widgetSource = 'custom' }
     containerRef.current.innerHTML = "";
 
     try {
-      // For MP widgets, include the script tag to trigger re-initialization
+      // For MP widgets, just insert the widget element (not the script tag)
+      // The modified MPWidgets.js loaded in layout handles initialization
       if (widgetSource === 'ministry_platform') {
         const wrapper = document.createElement("div");
         wrapper.innerHTML = embedCode;
 
-        // Append to container (including script tag)
+        // Remove script tags - MPWidgets.js is already loaded globally
+        const scripts = wrapper.querySelectorAll("script");
+        scripts.forEach((script) => script.remove());
+
+        // Append widget element to container
         containerRef.current.appendChild(wrapper);
 
-        // Execute script tags to re-initialize widgets
-        const scripts = wrapper.querySelectorAll("script");
-        scripts.forEach((oldScript) => {
-          const newScript = document.createElement("script");
-
-          // Copy attributes
-          Array.from(oldScript.attributes).forEach((attr) => {
-            newScript.setAttribute(attr.name, attr.value);
-          });
-
-          if (oldScript.src) {
-            newScript.src = oldScript.src;
-            newScript.onload = () => {
-              // Wait a bit for widget to initialize after script loads
-              setTimeout(() => {
-                setIsLoading(false);
-              }, 1000);
-            };
-            newScript.onerror = () => {
-              setError("Failed to load Ministry Platform widgets script");
-              setIsLoading(false);
-            };
-          }
-
-          // Replace old script with new one to execute it
-          oldScript.parentNode?.replaceChild(newScript, oldScript);
-        });
-
-        // If no scripts, remove loading state
-        if (scripts.length === 0) {
+        // Give time for the MutationObserver to detect and initialize the widget
+        setTimeout(() => {
           setIsLoading(false);
-        }
+        }, 2000);
       } else {
         // Custom widgets - original behavior
         const wrapper = document.createElement("div");
