@@ -122,29 +122,6 @@ export default function PeopleSearchPage() {
     document.title = "People Search - Ministry Apps";
   }, []);
 
-  // Fetch grouped relationships on mount
-  useEffect(() => {
-    const fetchRelationships = async () => {
-      try {
-        console.log('Fetching grouped relationships from API...');
-        const response = await fetch('/api/people-search/relationships');
-        console.log('Relationships API response status:', response.status);
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Relationships API data:', data);
-          setGroupedRelationships(data);
-        } else {
-          console.error('Relationships API error:', response.status, response.statusText);
-          const errorText = await response.text();
-          console.error('Error response body:', errorText);
-        }
-      } catch (error) {
-        console.error('Error fetching relationships:', error);
-      }
-    };
-    fetchRelationships();
-  }, []);
-
   // Debounced search function
   const performSearch = useCallback(async (query: string, skip: number = 0) => {
     if (!query || query.trim().length < 2) {
@@ -366,17 +343,9 @@ export default function PeopleSearchPage() {
       typeGroup.Members
         .filter(m => m.Contact_ID !== selectedContact?.Contact_ID)
         .forEach(member => {
-          console.log('Initializing relationship for member:', {
-            name: getDisplayName(member),
-            Contact_ID: member.Contact_ID,
-            Relationship_ID: member.Relationship_ID,
-            Relationship_Name: member.Relationship_Name
-          });
           relationshipsMap.set(member.Contact_ID, member.Relationship_ID || null);
         });
     });
-    console.log('Edit relationships map:', relationshipsMap);
-    console.log('Grouped relationships available:', groupedRelationships);
     setEditedRelationships(relationshipsMap);
   };
 
