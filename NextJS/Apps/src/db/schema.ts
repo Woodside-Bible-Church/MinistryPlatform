@@ -27,6 +27,7 @@ export const widgets = pgTable('widgets', {
   name: varchar('name', { length: 100 }).notNull(),
   key: varchar('key', { length: 50 }).notNull().unique(), // e.g., 'rsvp', 'prayer'
   description: text('description'),
+  source: varchar('source', { length: 20 }).notNull().default('custom'), // 'custom', 'ministry_platform', 'third_party'
   scriptUrl: varchar('script_url', { length: 500 }).notNull(), // Widget JS file URL
   containerElementId: varchar('container_element_id', { length: 100 }).notNull(), // e.g., 'rsvp-widget-root'
   globalName: varchar('global_name', { length: 100 }), // Global JS variable (e.g., 'RSVPWidget')

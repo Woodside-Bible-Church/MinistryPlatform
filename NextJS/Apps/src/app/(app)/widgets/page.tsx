@@ -22,6 +22,7 @@ interface Widget {
   id: string;
   name: string;
   description: string | null;
+  source: 'custom' | 'ministry_platform' | 'third_party';
   scriptUrl: string;
   containerElementId: string;
   globalName: string | null;
@@ -352,7 +353,11 @@ export default function WidgetConfiguratorPage() {
         </div>
 
         {/* Preview Panel - Full Width Below */}
-        <WidgetPreview embedCode={embedCode} widgetName={currentConfig.name} />
+        <WidgetPreview
+          embedCode={embedCode}
+          widgetName={currentConfig.name}
+          widgetSource={currentConfig.source}
+        />
 
         {/* Implementation Notes */}
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">

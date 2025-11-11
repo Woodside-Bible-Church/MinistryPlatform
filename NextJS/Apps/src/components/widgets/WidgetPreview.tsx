@@ -6,15 +6,53 @@ import { Loader2 } from "lucide-react";
 interface WidgetPreviewProps {
   embedCode: string;
   widgetName: string;
+  widgetSource?: 'custom' | 'ministry_platform' | 'third_party';
 }
 
-export function WidgetPreview({ embedCode, widgetName }: WidgetPreviewProps) {
+const MP_WIDGETS_SCRIPT_URL = 'https://my.woodsidebible.org/widgets/dist/MPWidgets.js';
+
+export function WidgetPreview({ embedCode, widgetName, widgetSource = 'custom' }: WidgetPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mpScriptLoaded, setMpScriptLoaded] = useState(false);
+
+  // Load Ministry Platform widgets script if needed
+  useEffect(() => {
+    if (widgetSource !== 'ministry_platform') {
+      setMpScriptLoaded(true);
+      return;
+    }
+
+    // Check if MP script is already loaded
+    if (document.querySelector(`script[src="${MP_WIDGETS_SCRIPT_URL}"]`)) {
+      setMpScriptLoaded(true);
+      return;
+    }
+
+    // Load MP widgets script
+    const script = document.createElement('script');
+    script.src = MP_WIDGETS_SCRIPT_URL;
+    script.async = true;
+    script.onload = () => {
+      console.log('Ministry Platform widgets script loaded');
+      setMpScriptLoaded(true);
+    };
+    script.onerror = () => {
+      console.error('Failed to load Ministry Platform widgets script');
+      setError('Failed to load Ministry Platform widgets');
+      setMpScriptLoaded(true); // Allow proceeding anyway
+    };
+
+    document.head.appendChild(script);
+
+    return () => {
+      // Keep the script loaded for other MP widgets
+    };
+  }, [widgetSource]);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !mpScriptLoaded) return;
 
     setIsLoading(true);
     setError(null);
@@ -75,7 +113,7 @@ export function WidgetPreview({ embedCode, widgetName }: WidgetPreviewProps) {
         containerRef.current.innerHTML = "";
       }
     };
-  }, [embedCode]);
+  }, [embedCode, mpScriptLoaded]);
 
   return (
     <div className="relative min-h-[500px] bg-card border border-border md:rounded-lg p-0 md:p-6 -mx-4 md:mx-0">
