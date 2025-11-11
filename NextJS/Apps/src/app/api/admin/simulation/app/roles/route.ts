@@ -38,23 +38,25 @@ export async function GET(request: Request) {
       .from(appPermissions)
       .where(eq(appPermissions.applicationId, parseInt(applicationId)));
 
-    // Remove duplicate role names and combine permissions
-    const uniqueRoles = roles.reduce((acc, role) => {
-      const existing = acc.find((r) => r.roleName === role.roleName);
-      if (existing) {
-        // Combine permissions (if any permission is true, keep it true)
-        // Use nullish coalescing to handle null values from database
-        existing.canView = (existing.canView ?? false) || (role.canView ?? false);
-        existing.canEdit = (existing.canEdit ?? false) || (role.canEdit ?? false);
-      } else {
-        acc.push({
-          roleName: role.roleName,
-          canView: role.canView ?? false,
-          canEdit: role.canEdit ?? false
-        });
-      }
-      return acc;
-    }, [] as Array<{ roleName: string; canView: boolean; canEdit: boolean }>);
+    // Filter out null role names and remove duplicate role names, combining permissions
+    const uniqueRoles = roles
+      .filter((role) => role.roleName !== null)
+      .reduce((acc, role) => {
+        const existing = acc.find((r) => r.roleName === role.roleName);
+        if (existing) {
+          // Combine permissions (if any permission is true, keep it true)
+          // Use nullish coalescing to handle null values from database
+          existing.canView = (existing.canView ?? false) || (role.canView ?? false);
+          existing.canEdit = (existing.canEdit ?? false) || (role.canEdit ?? false);
+        } else {
+          acc.push({
+            roleName: role.roleName!,
+            canView: role.canView ?? false,
+            canEdit: role.canEdit ?? false
+          });
+        }
+        return acc;
+      }, [] as Array<{ roleName: string; canView: boolean; canEdit: boolean }>);
 
     return NextResponse.json({ roles: uniqueRoles });
   } catch (error) {
