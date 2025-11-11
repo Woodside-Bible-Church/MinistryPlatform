@@ -43,10 +43,15 @@ export async function GET(request: Request) {
       const existing = acc.find((r) => r.roleName === role.roleName);
       if (existing) {
         // Combine permissions (if any permission is true, keep it true)
-        existing.canView = existing.canView || role.canView;
-        existing.canEdit = existing.canEdit || role.canEdit;
+        // Use nullish coalescing to handle null values from database
+        existing.canView = (existing.canView ?? false) || (role.canView ?? false);
+        existing.canEdit = (existing.canEdit ?? false) || (role.canEdit ?? false);
       } else {
-        acc.push({ ...role });
+        acc.push({
+          roleName: role.roleName,
+          canView: role.canView ?? false,
+          canEdit: role.canEdit ?? false
+        });
       }
       return acc;
     }, [] as Array<{ roleName: string; canView: boolean; canEdit: boolean }>);
