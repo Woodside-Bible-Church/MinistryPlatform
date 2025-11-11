@@ -2,6 +2,15 @@
 
 import { useEffect } from "react";
 
+// Extend Window interface to include MPWidgets
+declare global {
+  interface Window {
+    MPWidgets?: {
+      manualInit?: () => void;
+    };
+  }
+}
+
 export function MPWidgetsLoader() {
   useEffect(() => {
     console.log('[MPWidgetsLoader] Component mounted');
