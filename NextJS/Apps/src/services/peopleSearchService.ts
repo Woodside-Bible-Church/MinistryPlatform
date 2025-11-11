@@ -11,7 +11,7 @@ export interface HouseholdMember extends Omit<Contact, 'Image_GUID'> {
   Middle_Name?: string;
   Suffix?: string;
   Selected?: boolean;
-  Gender_ID?: number;
+  Gender_ID?: number | null;
   Gender?: string;
   Contact_Status?: string;
   Household_Position?: string;
