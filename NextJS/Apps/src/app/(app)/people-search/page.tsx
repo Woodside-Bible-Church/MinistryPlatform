@@ -3,10 +3,12 @@
 // People Search app - look up contacts and view their information
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, User, Mail, Phone, Home, Users, Loader2, X, ChevronRight } from "lucide-react";
+import { Search, User, Mail, Phone, Home, Users, Loader2, X, ChevronRight, Info, Edit, Save, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCampus } from "@/contexts/CampusContext";
+import AppSimulationModal from "@/components/AppSimulationModal";
+import { useAppPermissions } from "@/hooks/useAppPermissions";
 
 type Contact = {
   Contact_ID: number;
@@ -35,7 +37,35 @@ type HouseholdMember = Contact & {
   Image_URL?: string | null;
   Selected?: boolean;
   Household_Position?: string | null;
+  Relationship_ID?: number | null;
   Relationship_Name?: string | null;
+};
+
+type MembersByType = {
+  Relationship_Type_ID: number;
+  Relationship_Type_Name: string;
+  Sort_Order: number;
+  Members: HouseholdMember[];
+};
+
+type Relationship = {
+  Relationship_ID: number;
+  Relationship_Name: string;
+  Male_Label?: string | null;
+  Female_Label?: string | null;
+  Description?: string | null;
+};
+
+type RelationshipType = {
+  Relationship_Type_ID: number;
+  Relationship_Type_Name: string;
+  Description?: string | null;
+  Sort_Order: number;
+};
+
+type GroupedRelationships = {
+  type: RelationshipType;
+  relationships: Relationship[];
 };
 
 type Household = {
@@ -57,18 +87,13 @@ type Household = {
 };
 
 export default function PeopleSearchPage() {
-  // Set page title
-  useEffect(() => {
-    document.title = "People Search - Ministry Apps";
-  }, []);
-
   const { selectedCampus } = useCampus();
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Contact[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [household, setHousehold] = useState<Household | null>(null);
-  const [householdMembers, setHouseholdMembers] = useState<HouseholdMember[]>([]);
+  const [membersByType, setMembersByType] = useState<MembersByType[]>([]);
 
   const [isSearching, setIsSearching] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -76,9 +101,49 @@ export default function PeopleSearchPage() {
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [isLoadingHousehold, setIsLoadingHousehold] = useState(false);
   const [showDetailsPanel, setShowDetailsPanel] = useState(false);
+  const [simulationModalOpen, setSimulationModalOpen] = useState(false);
+  const [isEditingContact, setIsEditingContact] = useState(false);
+  const [editedContact, setEditedContact] = useState<Contact | null>(null);
+  const [isSavingContact, setIsSavingContact] = useState(false);
+  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+  const [isEditingRelationships, setIsEditingRelationships] = useState(false);
+  const [editedRelationships, setEditedRelationships] = useState<Map<number, number | null>>(new Map());
+  const [isSavingRelationships, setIsSavingRelationships] = useState(false);
+  const [groupedRelationships, setGroupedRelationships] = useState<GroupedRelationships[]>([]);
+
+  // Check permissions
+  const { canEdit } = useAppPermissions(4); // People Search app ID
 
   // Ref for scrolling to the details panel
   const detailsPanelRef = useRef<HTMLDivElement>(null);
+
+  // Set page title
+  useEffect(() => {
+    document.title = "People Search - Ministry Apps";
+  }, []);
+
+  // Fetch grouped relationships on mount
+  useEffect(() => {
+    const fetchRelationships = async () => {
+      try {
+        console.log('Fetching grouped relationships from API...');
+        const response = await fetch('/api/people-search/relationships');
+        console.log('Relationships API response status:', response.status);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Relationships API data:', data);
+          setGroupedRelationships(data);
+        } else {
+          console.error('Relationships API error:', response.status, response.statusText);
+          const errorText = await response.text();
+          console.error('Error response body:', errorText);
+        }
+      } catch (error) {
+        console.error('Error fetching relationships:', error);
+      }
+    };
+    fetchRelationships();
+  }, []);
 
   // Debounced search function
   const performSearch = useCallback(async (query: string, skip: number = 0) => {
@@ -161,7 +226,7 @@ export default function PeopleSearchPage() {
     setIsLoadingDetails(true);
     setIsLoadingHousehold(true);
     setHousehold(null);
-    setHouseholdMembers([]);
+    setMembersByType([]);
 
     try {
       // Load contact details
@@ -185,13 +250,13 @@ export default function PeopleSearchPage() {
           }
           const householdData = await householdResponse.json();
           console.log("Household data:", householdData);
-          // API now returns capitalized Household and Members
+          // API now returns { Household: {...}, MembersByType: [...] }
           setHousehold(householdData.Household);
-          setHouseholdMembers(householdData.Members || []);
+          setMembersByType(householdData.MembersByType || []);
         } catch (error) {
           console.error("Error loading household:", error);
           setHousehold(null);
-          setHouseholdMembers([]);
+          setMembersByType([]);
         } finally {
           setIsLoadingHousehold(false);
         }
@@ -215,7 +280,140 @@ export default function PeopleSearchPage() {
     setShowDetailsPanel(false);
     setSelectedContact(null);
     setHousehold(null);
-    setHouseholdMembers([]);
+    setMembersByType([]);
+    setIsEditingContact(false);
+    setEditedContact(null);
+    setIsEditingRelationships(false);
+    setEditedRelationships(new Map());
+  };
+
+  const handleStartEdit = () => {
+    setIsEditingContact(true);
+    setEditedContact(selectedContact);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingContact(false);
+    setEditedContact(null);
+  };
+
+  const handleSaveContact = async () => {
+    if (!editedContact) return;
+
+    // Store the previous contact state for rollback if needed
+    const previousContact = selectedContact;
+
+    // Optimistic UI update - immediately show the changes
+    setSelectedContact(editedContact);
+    setIsEditingContact(false);
+    setEditedContact(null);
+    setIsSavingContact(true);
+
+    try {
+      const response = await fetch(`/api/people-search/${editedContact.Contact_ID}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          First_Name: editedContact.First_Name,
+          Nickname: editedContact.Nickname,
+          Last_Name: editedContact.Last_Name,
+          Email_Address: editedContact.Email_Address,
+          Mobile_Phone: editedContact.Mobile_Phone,
+          Company_Phone: editedContact.Company_Phone,
+        }),
+      });
+
+      if (response.ok) {
+        const updated = await response.json();
+        // Update with server response (in case server modified data)
+        setSelectedContact(updated);
+
+        // Show success animation
+        setShowSaveSuccess(true);
+        setTimeout(() => setShowSaveSuccess(false), 2000);
+      } else {
+        // Rollback on error
+        setSelectedContact(previousContact);
+        alert('Failed to update contact');
+      }
+    } catch (error) {
+      // Rollback on error
+      console.error('Error updating contact:', error);
+      setSelectedContact(previousContact);
+      alert('Failed to update contact');
+    } finally {
+      setIsSavingContact(false);
+    }
+  };
+
+  const handleStartEditRelationships = () => {
+    setIsEditingRelationships(true);
+    // Initialize edited relationships map with current values
+    // Flatten all members from membersByType
+    const relationshipsMap = new Map<number, number | null>();
+    membersByType.forEach(typeGroup => {
+      typeGroup.Members
+        .filter(m => m.Contact_ID !== selectedContact?.Contact_ID)
+        .forEach(member => {
+          relationshipsMap.set(member.Contact_ID, member.Relationship_ID || null);
+        });
+    });
+    setEditedRelationships(relationshipsMap);
+  };
+
+  const handleCancelEditRelationships = () => {
+    setIsEditingRelationships(false);
+    setEditedRelationships(new Map());
+  };
+
+  const handleSaveRelationships = async () => {
+    if (!selectedContact) return;
+
+    setIsSavingRelationships(true);
+
+    try {
+      // Save each relationship that was edited
+      const savePromises = Array.from(editedRelationships.entries()).map(
+        async ([relatedContactId, relationshipId]) => {
+          const response = await fetch(`/api/people-search/${selectedContact.Contact_ID}/relationships`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              relatedContactId,
+              relationshipId,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to update relationship for contact ${relatedContactId}`);
+          }
+
+          return response.json();
+        }
+      );
+
+      await Promise.all(savePromises);
+
+      // Reload household data to show updated relationships
+      if (selectedContact.Household_ID) {
+        const householdResponse = await fetch(`/api/people-search/${selectedContact.Contact_ID}/household`);
+        if (householdResponse.ok) {
+          const householdData = await householdResponse.json();
+          setHousehold(householdData.Household);
+          setMembersByType(householdData.MembersByType || []);
+        }
+      }
+
+      setIsEditingRelationships(false);
+      setEditedRelationships(new Map());
+      setShowSaveSuccess(true);
+      setTimeout(() => setShowSaveSuccess(false), 2000);
+    } catch (error) {
+      console.error('Error saving relationships:', error);
+      alert('Failed to save relationships');
+    } finally {
+      setIsSavingRelationships(false);
+    }
   };
 
   // Handle URL params on page load (from global search)
@@ -301,10 +499,19 @@ export default function PeopleSearchPage() {
 
   return (
     <div className="min-h-screen bg-background py-8">
-      <div className="container mx-auto px-4 max-w-6xl">
+      <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">PEOPLE SEARCH</h1>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <h1 className="text-4xl font-bold text-primary dark:text-foreground">PEOPLE SEARCH</h1>
+            <button
+              onClick={() => setSimulationModalOpen(true)}
+              className="text-muted-foreground hover:text-primary transition-colors"
+              aria-label="App information and permission testing"
+            >
+              <Info className="w-5 h-5" />
+            </button>
+          </div>
           <p className="text-muted-foreground">
             Look up contacts and view their information
           </p>
@@ -535,26 +742,91 @@ export default function PeopleSearchPage() {
                 className="space-y-6"
               >
                 {/* Contact Information */}
-                <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
+                <div className={`bg-card border rounded-lg p-6 shadow-sm transition-all duration-300 ${
+                  showSaveSuccess
+                    ? 'border-green-500 ring-2 ring-green-500/20'
+                    : 'border-border'
+                }`}>
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-[#61bc47]/10 flex items-center justify-center">
                         <User className="w-5 h-5 text-[#61bc47]" />
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground">CONTACT INFO</h3>
-                        <p className="text-sm text-muted-foreground">Personal details</p>
+                      <div className="flex items-center gap-2">
+                        <div>
+                          <h3 className="font-semibold text-foreground">CONTACT INFO</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {isSavingContact ? (
+                              <span className="flex items-center gap-1.5">
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                                Saving changes...
+                              </span>
+                            ) : (
+                              "Personal details"
+                            )}
+                          </p>
+                        </div>
+                        {showSaveSuccess && (
+                          <motion.div
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                          >
+                            <CheckCircle2 className="w-5 h-5 text-green-500" />
+                          </motion.div>
+                        )}
                       </div>
                     </div>
-                    <Button
-                      onClick={handleClearSelection}
-                      size="sm"
-                      variant="ghost"
-                      className="gap-2"
-                    >
-                      <X className="w-4 h-4" />
-                      Close
-                    </Button>
+                    <div className="flex gap-2">
+                      {canEdit && !isEditingContact && (
+                        <Button
+                          onClick={handleStartEdit}
+                          size="sm"
+                          variant="ghost"
+                          className="gap-2"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Edit
+                        </Button>
+                      )}
+                      {isEditingContact && (
+                        <>
+                          <Button
+                            onClick={handleSaveContact}
+                            size="sm"
+                            variant="default"
+                            className="gap-2"
+                            disabled={isSavingContact}
+                          >
+                            {isSavingContact ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Save className="w-4 h-4" />
+                            )}
+                            Save
+                          </Button>
+                          <Button
+                            onClick={handleCancelEdit}
+                            size="sm"
+                            variant="ghost"
+                            className="gap-2"
+                            disabled={isSavingContact}
+                          >
+                            Cancel
+                          </Button>
+                        </>
+                      )}
+                      <Button
+                        onClick={handleClearSelection}
+                        size="sm"
+                        variant="ghost"
+                        className="gap-2"
+                      >
+                        <X className="w-4 h-4" />
+                        Close
+                      </Button>
+                    </div>
                   </div>
 
                   {isLoadingDetails ? (
@@ -583,6 +855,7 @@ export default function PeopleSearchPage() {
                     </div>
                   ) : selectedContact ? (
                     <div className="space-y-4">
+                      {/* Profile Picture and Name - Always Visible */}
                       <div className="flex items-center gap-4">
                         <div className="w-16 h-16 rounded-full overflow-hidden bg-[#61bc47]/10 flex items-center justify-center flex-shrink-0">
                           {getImageUrl(selectedContact.Image_GUID) ? (
@@ -602,61 +875,130 @@ export default function PeopleSearchPage() {
                             <span className="text-lg font-semibold text-[#61bc47]">{getInitials(selectedContact)}</span>
                           )}
                         </div>
-                        <div>
-                          <h4 className="text-2xl font-bold text-foreground mb-1">
-                            {getDisplayName(selectedContact)}
-                            {isInactive(selectedContact) && <span className="ml-2 text-sm text-muted-foreground">(Inactive)</span>}
-                          </h4>
-                          {selectedContact.__Age && (
-                            <p className="text-sm text-muted-foreground">Age: {selectedContact.__Age}</p>
+                        <div className="flex-1">
+                          {isEditingContact && editedContact ? (
+                            <div className="space-y-2">
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="text-xs text-muted-foreground">First Name</label>
+                                  <input
+                                    type="text"
+                                    value={editedContact.First_Name || ''}
+                                    onChange={(e) => setEditedContact({ ...editedContact, First_Name: e.target.value })}
+                                    className="w-full px-2 py-1 text-sm border border-border rounded bg-background focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-xs text-muted-foreground">Nickname</label>
+                                  <input
+                                    type="text"
+                                    value={editedContact.Nickname || ''}
+                                    onChange={(e) => setEditedContact({ ...editedContact, Nickname: e.target.value })}
+                                    className="w-full px-2 py-1 text-sm border border-border rounded bg-background focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                  />
+                                </div>
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground">Last Name</label>
+                                <input
+                                  type="text"
+                                  value={editedContact.Last_Name || ''}
+                                  onChange={(e) => setEditedContact({ ...editedContact, Last_Name: e.target.value })}
+                                  className="w-full px-2 py-1 text-sm border border-border rounded bg-background focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <h4 className="text-2xl font-bold text-foreground mb-1">
+                                {getDisplayName(selectedContact)}
+                                {isInactive(selectedContact) && <span className="ml-2 text-sm text-muted-foreground">(Inactive)</span>}
+                              </h4>
+                              {selectedContact.__Age && (
+                                <p className="text-sm text-muted-foreground">Age: {selectedContact.__Age}</p>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>
 
-                      {selectedContact.Email_Address && (
+                      {/* Email - Editable or Display */}
+                      {(isEditingContact && editedContact) || selectedContact.Email_Address ? (
                         <div className="flex items-start gap-3">
                           <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-[#61bc47] mt-0.5 flex-shrink-0" />
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1">
                             <p className="text-sm text-muted-foreground">Email</p>
-                            <a
-                              href={`mailto:${selectedContact.Email_Address}`}
-                              className="text-sm sm:text-base text-foreground hover:text-primary transition-colors break-all"
-                            >
-                              {selectedContact.Email_Address}
-                            </a>
+                            {isEditingContact && editedContact ? (
+                              <input
+                                type="email"
+                                value={editedContact.Email_Address || ''}
+                                onChange={(e) => setEditedContact({ ...editedContact, Email_Address: e.target.value })}
+                                className="w-full px-2 py-1 text-sm border border-border rounded bg-background focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                placeholder="email@example.com"
+                              />
+                            ) : (
+                              <a
+                                href={`mailto:${selectedContact.Email_Address}`}
+                                className="text-sm sm:text-base text-foreground hover:text-primary transition-colors break-all"
+                              >
+                                {selectedContact.Email_Address}
+                              </a>
+                            )}
                           </div>
                         </div>
-                      )}
+                      ) : null}
 
-                      {selectedContact.Mobile_Phone && (
+                      {/* Mobile Phone - Editable or Display */}
+                      {(isEditingContact && editedContact) || selectedContact.Mobile_Phone ? (
                         <div className="flex items-start gap-3">
                           <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-[#61bc47] mt-0.5 flex-shrink-0" />
-                          <div>
+                          <div className="flex-1">
                             <p className="text-sm text-muted-foreground">Mobile</p>
-                            <a
-                              href={`tel:${selectedContact.Mobile_Phone}`}
-                              className="text-sm sm:text-base text-foreground hover:text-primary transition-colors"
-                            >
-                              {formatPhone(selectedContact.Mobile_Phone)}
-                            </a>
+                            {isEditingContact && editedContact ? (
+                              <input
+                                type="tel"
+                                value={editedContact.Mobile_Phone || ''}
+                                onChange={(e) => setEditedContact({ ...editedContact, Mobile_Phone: e.target.value })}
+                                className="w-full px-2 py-1 text-sm border border-border rounded bg-background focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                placeholder="(555) 555-5555"
+                              />
+                            ) : (
+                              <a
+                                href={`tel:${selectedContact.Mobile_Phone}`}
+                                className="text-sm sm:text-base text-foreground hover:text-primary transition-colors"
+                              >
+                                {formatPhone(selectedContact.Mobile_Phone)}
+                              </a>
+                            )}
                           </div>
                         </div>
-                      )}
+                      ) : null}
 
-                      {selectedContact.Company_Phone && (
+                      {/* Company Phone - Editable or Display */}
+                      {(isEditingContact && editedContact) || selectedContact.Company_Phone ? (
                         <div className="flex items-start gap-3">
                           <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-[#61bc47] mt-0.5 flex-shrink-0" />
-                          <div>
+                          <div className="flex-1">
                             <p className="text-sm text-muted-foreground">Work</p>
-                            <a
-                              href={`tel:${selectedContact.Company_Phone}`}
-                              className="text-sm sm:text-base text-foreground hover:text-primary transition-colors"
-                            >
-                              {formatPhone(selectedContact.Company_Phone)}
-                            </a>
+                            {isEditingContact && editedContact ? (
+                              <input
+                                type="tel"
+                                value={editedContact.Company_Phone || ''}
+                                onChange={(e) => setEditedContact({ ...editedContact, Company_Phone: e.target.value })}
+                                className="w-full px-2 py-1 text-sm border border-border rounded bg-background focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                placeholder="(555) 555-5555"
+                              />
+                            ) : (
+                              <a
+                                href={`tel:${selectedContact.Company_Phone}`}
+                                className="text-sm sm:text-base text-foreground hover:text-primary transition-colors"
+                              >
+                                {formatPhone(selectedContact.Company_Phone)}
+                              </a>
+                            )}
                           </div>
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   ) : null}
                 </div>
@@ -664,14 +1006,66 @@ export default function PeopleSearchPage() {
                 {/* Household Information */}
                 {(selectedContact?.Household_ID || isLoadingHousehold) && (
                   <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-[#61bc47]/10 flex items-center justify-center">
-                        <Home className="w-5 h-5 text-[#61bc47]" />
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#61bc47]/10 flex items-center justify-center">
+                          <Home className="w-5 h-5 text-[#61bc47]" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-foreground">HOUSEHOLD</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {isSavingRelationships ? (
+                              <span className="flex items-center gap-1.5">
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                                Saving relationships...
+                              </span>
+                            ) : (
+                              "Family members and address"
+                            )}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground">HOUSEHOLD</h3>
-                        <p className="text-sm text-muted-foreground">Family members and address</p>
-                      </div>
+                      {canEdit && (
+                        <div className="flex gap-2">
+                          {!isEditingRelationships ? (
+                            <Button
+                              onClick={handleStartEditRelationships}
+                              size="sm"
+                              variant="ghost"
+                              className="gap-2"
+                            >
+                              <Edit className="w-4 h-4" />
+                              Edit
+                            </Button>
+                          ) : (
+                            <>
+                              <Button
+                                onClick={handleSaveRelationships}
+                                size="sm"
+                                variant="default"
+                                className="gap-2"
+                                disabled={isSavingRelationships}
+                              >
+                                {isSavingRelationships ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Save className="w-4 h-4" />
+                                )}
+                                Save
+                              </Button>
+                              <Button
+                                onClick={handleCancelEditRelationships}
+                                size="sm"
+                                variant="ghost"
+                                className="gap-2"
+                                disabled={isSavingRelationships}
+                              >
+                                Cancel
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {isLoadingHousehold ? (
@@ -723,57 +1117,149 @@ export default function PeopleSearchPage() {
                           )}
                         </div>
 
-                        {householdMembers.length > 1 && (
-                          <div>
-                            <p className="text-sm font-semibold text-foreground mb-2">
-                              Family Members ({householdMembers.filter(m => m.Contact_ID !== selectedContact?.Contact_ID).length})
-                            </p>
-                            <div className="space-y-2">
-                              {householdMembers.filter(m => m.Contact_ID !== selectedContact?.Contact_ID).map((member) => (
-                                <button
-                                  key={member.Contact_ID}
-                                  onClick={() => handleSelectContact(member)}
-                                  className={`w-full p-3 rounded-lg border flex items-center gap-3 transition-all text-left ${
-                                    member.Contact_ID === selectedContact?.Contact_ID || member.Selected
-                                      ? "border-primary bg-primary/5"
-                                      : "border-border hover:border-primary/50 hover:bg-primary/5"
-                                  }`}
-                                >
-                                  <div className="w-10 h-10 rounded-full overflow-hidden bg-[#61bc47]/10 flex items-center justify-center flex-shrink-0">
-                                    {member.Image_URL ? (
-                                      <img
-                                        src={member.Image_URL}
-                                        alt={getDisplayName(member)}
-                                        className="w-full h-full object-cover"
-                                        onError={(e) => {
-                                          (e.target as HTMLImageElement).style.display = 'none';
-                                          const parent = (e.target as HTMLImageElement).parentElement;
-                                          if (parent) {
-                                            parent.innerHTML = `<span class="text-sm font-medium text-[#61bc47]">${getInitials(member)}</span>`;
-                                          }
+                        {membersByType.length > 0 && (() => {
+                          // Calculate total member count across all types (excluding selected contact)
+                          const totalMembers = membersByType.reduce((sum, typeGroup) =>
+                            sum + typeGroup.Members.filter(m => m.Contact_ID !== selectedContact?.Contact_ID).length, 0
+                          );
+                          return totalMembers > 0 ? (
+                            <div>
+                              <p className="text-sm font-semibold text-foreground mb-2">
+                                Family Members ({totalMembers})
+                              </p>
+                              <div className="space-y-2">
+                              {isEditingRelationships ? (
+                                // EDIT MODE: Flatten all members from all types and show with dropdowns
+                                membersByType.flatMap(typeGroup => typeGroup.Members)
+                                  .filter(m => m.Contact_ID !== selectedContact?.Contact_ID)
+                                  .map((member) => (
+                                  <div
+                                    key={member.Contact_ID}
+                                    className="p-3 rounded-lg border border-border bg-card"
+                                  >
+                                    <div className="flex items-center gap-3 mb-2">
+                                      <div className="w-10 h-10 rounded-full overflow-hidden bg-[#61bc47]/10 flex items-center justify-center flex-shrink-0">
+                                        {member.Image_URL ? (
+                                          <img
+                                            src={member.Image_URL}
+                                            alt={getDisplayName(member)}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                              (e.target as HTMLImageElement).style.display = 'none';
+                                              const parent = (e.target as HTMLImageElement).parentElement;
+                                              if (parent) {
+                                                parent.innerHTML = `<span class="text-sm font-medium text-[#61bc47]">${getInitials(member)}</span>`;
+                                              }
+                                            }}
+                                          />
+                                        ) : (
+                                          <span className="text-sm font-medium text-[#61bc47]">{getInitials(member)}</span>
+                                        )}
+                                      </div>
+                                      <div className="flex-1">
+                                        <p className="font-medium text-foreground">
+                                          {getDisplayName(member)}
+                                        </p>
+                                        {member.__Age && (
+                                          <p className="text-xs text-muted-foreground">Age: {member.__Age}</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-muted-foreground block mb-1">
+                                        Relationship to {getDisplayName(selectedContact)}
+                                      </label>
+                                      <select
+                                        value={editedRelationships.get(member.Contact_ID) ?? ''}
+                                        onChange={(e) => {
+                                          const newMap = new Map(editedRelationships);
+                                          const value = e.target.value;
+                                          newMap.set(member.Contact_ID, value === '' ? null : parseInt(value));
+                                          setEditedRelationships(newMap);
                                         }}
-                                      />
-                                    ) : (
-                                      <span className="text-sm font-medium text-[#61bc47]">{getInitials(member)}</span>
-                                    )}
+                                        className="w-full px-2 py-1.5 text-sm border border-border rounded bg-background focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                      >
+                                        <option value="">No relationship</option>
+                                        {groupedRelationships.map((group) => (
+                                          <optgroup key={group.type.Relationship_Type_ID} label={group.type.Relationship_Type_Name}>
+                                            {group.relationships.map((rel) => (
+                                              <option key={rel.Relationship_ID} value={rel.Relationship_ID}>
+                                                {member.Gender_ID === 1 && rel.Male_Label ? rel.Male_Label :
+                                                 member.Gender_ID === 2 && rel.Female_Label ? rel.Female_Label :
+                                                 rel.Relationship_Name}
+                                              </option>
+                                            ))}
+                                          </optgroup>
+                                        ))}
+                                      </select>
+                                    </div>
                                   </div>
-                                  <div>
-                                    <p className="font-medium text-foreground">
-                                      {getDisplayName(member)}
-                                    </p>
-                                    {(member.__Age || member.Relationship_Name) && (
-                                      <p className="text-xs text-muted-foreground">
-                                        {member.__Age && `Age: ${member.__Age}`}
-                                        {member.__Age && member.Relationship_Name && " • "}
-                                        {member.Relationship_Name}
-                                      </p>
-                                    )}
-                                  </div>
-                                </button>
-                              ))}
+                                ))
+                              ) : (
+                                // VIEW MODE: Display pre-grouped members from API
+                                <>
+                                  {membersByType.map((typeGroup) => {
+                                    const membersToShow = typeGroup.Members.filter(m => m.Contact_ID !== selectedContact?.Contact_ID);
+                                    if (membersToShow.length === 0) return null;
+
+                                    return (
+                                      <div key={typeGroup.Relationship_Type_ID}>
+                                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 mt-3 first:mt-0">
+                                          {typeGroup.Relationship_Type_Name}
+                                        </h4>
+                                        <div className="space-y-2">
+                                          {membersToShow.map((member) => (
+                                            <button
+                                              key={member.Contact_ID}
+                                              onClick={() => handleSelectContact(member)}
+                                              className={`w-full p-3 rounded-lg border flex items-center gap-3 transition-all text-left ${
+                                                member.Contact_ID === selectedContact?.Contact_ID || member.Selected
+                                                  ? "border-primary bg-primary/5"
+                                                  : "border-border hover:border-primary/50 hover:bg-primary/5"
+                                              }`}
+                                            >
+                                              <div className="w-10 h-10 rounded-full overflow-hidden bg-[#61bc47]/10 flex items-center justify-center flex-shrink-0">
+                                                {member.Image_URL ? (
+                                                  <img
+                                                    src={member.Image_URL}
+                                                    alt={getDisplayName(member)}
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => {
+                                                      (e.target as HTMLImageElement).style.display = 'none';
+                                                      const parent = (e.target as HTMLImageElement).parentElement;
+                                                      if (parent) {
+                                                        parent.innerHTML = `<span class="text-sm font-medium text-[#61bc47]">${getInitials(member)}</span>`;
+                                                      }
+                                                    }}
+                                                  />
+                                                ) : (
+                                                  <span className="text-sm font-medium text-[#61bc47]">{getInitials(member)}</span>
+                                                )}
+                                              </div>
+                                              <div>
+                                                <p className="font-medium text-foreground">
+                                                  {getDisplayName(member)}
+                                                </p>
+                                                {(member.__Age || member.Relationship_Name) && (
+                                                  <p className="text-xs text-muted-foreground">
+                                                    {member.__Age && `Age: ${member.__Age}`}
+                                                    {member.__Age && member.Relationship_Name && " • "}
+                                                    {member.Relationship_Name}
+                                                  </p>
+                                                )}
+                                              </div>
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </>
+                              )}
                             </div>
                           </div>
-                        )}
+                          ) : null;
+                        })()}
                       </div>
                     ) : null}
                   </div>
@@ -783,6 +1269,14 @@ export default function PeopleSearchPage() {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Permission Testing Modal */}
+      <AppSimulationModal
+        open={simulationModalOpen}
+        onOpenChange={setSimulationModalOpen}
+        applicationId={4}
+        applicationName="People Search"
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 -- =============================================
 -- Author:      Ministry Platform Integration
 -- Create date: 2025-10-29
--- Description: Get household information with all members for People Search app
+-- Description: Get household information with all members grouped by relationship type
 -- Usage:       EXEC api_Custom_GetHouseholdWithMembers @HouseholdID = 129650, @ContactID = 228155, @UserName = 'API', @DomainID = 1
 -- =============================================
 CREATE OR ALTER PROCEDURE [dbo].[api_Custom_GetHouseholdWithMembers]
@@ -45,67 +45,85 @@ BEGIN
         FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
     );
 
-    -- Get Members JSON array
+    -- Get Members grouped by Relationship Type
     DECLARE @MembersJSON NVARCHAR(MAX) = (
         SELECT
-            C.Contact_ID,
-            P.Prefix,
-            C.First_Name,
-            C.Nickname,
-            C.Middle_Name,
-            C.Last_Name,
-            S.Suffix,
-            CAST((CASE WHEN @ContactID = C.Contact_ID THEN 1 ELSE 0 END) AS BIT) AS Selected,
-            C.Display_Name,
-            G.Gender,
-            CS_Status.Contact_Status,
-            HP.Household_Position,
-            -- Get relationship where @ContactID is Person 2 (Related_Contact_ID)
-            -- Use member's gender to pick Male_Label or Female_Label
-            Relationship_Name = CASE
-                WHEN C.Gender_ID = 1 THEN R.Male_Label
-                WHEN C.Gender_ID = 2 THEN R.Female_Label
-                ELSE R.Relationship_Name
-            END,
-            C.Date_of_Birth,
-            C.Anniversary_Date,
-            C.Date_of_Death,
-            C.Maiden_Name,
-            C.Email_Address,
-            C.Mobile_Phone,
-            C.Company_Phone,
-            C.Contact_Methods,
-            C.Do_Not_Text,
-            C.Contact_GUID,
-            C.Occupation_Name,
-            C.__Age,
-            -- Build image URL
-            Image_URL = CASE
-                WHEN F.File_ID IS NOT NULL AND CS.Value IS NOT NULL AND D.Domain_GUID IS NOT NULL
-                THEN CONCAT(CS.Value, '?dn=', CONVERT(varchar(40), D.Domain_GUID), '&fn=', F.Unique_Name, '.', F.Extension)
-                ELSE NULL
-            END
-        FROM Contacts C
-            LEFT OUTER JOIN Suffixes S ON S.Suffix_ID = C.Suffix_ID
-            LEFT OUTER JOIN Prefixes P ON P.Prefix_ID = C.Prefix_ID
-            LEFT OUTER JOIN Genders G ON G.Gender_ID = C.Gender_ID
-            LEFT OUTER JOIN Contact_Statuses CS_Status ON CS_Status.Contact_Status_ID = C.Contact_Status_ID
-            LEFT OUTER JOIN Household_Positions HP ON HP.Household_Position_ID = C.Household_Position_ID
-            -- Get relationship where household member is Person 1 and @ContactID is Person 2 (Related_Contact_ID)
-            LEFT OUTER JOIN dbo.Contact_Relationships CR ON CR.Contact_ID = C.Contact_ID AND CR.Related_Contact_ID = @ContactID
-            LEFT OUTER JOIN dbo.Relationships R ON R.Relationship_ID = CR.Relationship_ID
-            -- Image file joins
-            LEFT OUTER JOIN dp_files F ON F.Record_ID = C.Contact_ID AND F.Table_Name = 'Contacts' AND F.Default_Image = 1
-            LEFT OUTER JOIN dp_Configuration_Settings CS ON CS.Domain_ID = COALESCE(C.Domain_ID, @DomainID) AND CS.Key_Name = 'ImageURL' AND CS.Application_Code = 'Common'
-            LEFT OUTER JOIN dp_Domains D ON D.Domain_ID = COALESCE(C.Domain_ID, @DomainID)
-        WHERE C.Household_ID = @HouseholdID
-        ORDER BY
-            CASE
-                WHEN HP.Household_Position = 'Head of Household' THEN 1
-                WHEN HP.Household_Position = 'Spouse' THEN 2
-                ELSE 3
-            END,
-            C.Date_of_Birth ASC
+            RT.Relationship_Type_ID,
+            RT.Relationship_Type_Name,
+            RT.Sort_Order,
+            -- Nest members array within each relationship type
+            (
+                SELECT
+                    C.Contact_ID,
+                    P.Prefix,
+                    C.First_Name,
+                    C.Nickname,
+                    C.Middle_Name,
+                    C.Last_Name,
+                    S.Suffix,
+                    CAST((CASE WHEN @ContactID = C.Contact_ID THEN 1 ELSE 0 END) AS BIT) AS Selected,
+                    C.Display_Name,
+                    C.Gender_ID,
+                    G.Gender,
+                    CS_Status.Contact_Status,
+                    HP.Household_Position,
+                    CR.Relationship_ID,
+                    -- Use member's gender to pick Male_Label or Female_Label
+                    Relationship_Name = CASE
+                        WHEN C.Gender_ID = 1 THEN R.Male_Label
+                        WHEN C.Gender_ID = 2 THEN R.Female_Label
+                        ELSE R.Relationship_Name
+                    END,
+                    C.Date_of_Birth,
+                    C.Anniversary_Date,
+                    C.Date_of_Death,
+                    C.Maiden_Name,
+                    C.Email_Address,
+                    C.Mobile_Phone,
+                    C.Company_Phone,
+                    C.Contact_Methods,
+                    C.Do_Not_Text,
+                    C.Contact_GUID,
+                    C.Occupation_Name,
+                    C.__Age,
+                    -- Build image URL
+                    Image_URL = CASE
+                        WHEN F.File_ID IS NOT NULL AND CS.Value IS NOT NULL AND D.Domain_GUID IS NOT NULL
+                        THEN CONCAT(CS.Value, '?dn=', CONVERT(varchar(40), D.Domain_GUID), '&fn=', F.Unique_Name, '.', F.Extension)
+                        ELSE NULL
+                    END
+                FROM Contacts C
+                    LEFT OUTER JOIN Suffixes S ON S.Suffix_ID = C.Suffix_ID
+                    LEFT OUTER JOIN Prefixes P ON P.Prefix_ID = C.Prefix_ID
+                    LEFT OUTER JOIN Genders G ON G.Gender_ID = C.Gender_ID
+                    LEFT OUTER JOIN Contact_Statuses CS_Status ON CS_Status.Contact_Status_ID = C.Contact_Status_ID
+                    LEFT OUTER JOIN Household_Positions HP ON HP.Household_Position_ID = C.Household_Position_ID
+                    INNER JOIN dbo.Contact_Relationships CR ON CR.Contact_ID = C.Contact_ID AND CR.Related_Contact_ID = @ContactID
+                    INNER JOIN dbo.Relationships R ON R.Relationship_ID = CR.Relationship_ID AND R.Relationship_Type_ID = RT.Relationship_Type_ID
+                    -- Image file joins
+                    LEFT OUTER JOIN dp_files F ON F.Record_ID = C.Contact_ID AND F.Table_Name = 'Contacts' AND F.Default_Image = 1
+                    LEFT OUTER JOIN dp_Configuration_Settings CS ON CS.Domain_ID = COALESCE(C.Domain_ID, @DomainID) AND CS.Key_Name = 'ImageURL' AND CS.Application_Code = 'Common'
+                    LEFT OUTER JOIN dp_Domains D ON D.Domain_ID = COALESCE(C.Domain_ID, @DomainID)
+                WHERE C.Household_ID = @HouseholdID
+                ORDER BY
+                    CASE
+                        WHEN HP.Household_Position = 'Head of Household' THEN 1
+                        WHEN HP.Household_Position = 'Spouse' THEN 2
+                        ELSE 3
+                    END,
+                    C.Date_of_Birth ASC
+                FOR JSON PATH
+            ) AS Members
+        FROM Relationship_Types RT
+        WHERE EXISTS (
+            SELECT 1
+            FROM Contacts C
+                INNER JOIN dbo.Contact_Relationships CR ON CR.Contact_ID = C.Contact_ID AND CR.Related_Contact_ID = @ContactID
+                INNER JOIN dbo.Relationships R ON R.Relationship_ID = CR.Relationship_ID
+            WHERE C.Household_ID = @HouseholdID
+              AND R.Relationship_Type_ID = RT.Relationship_Type_ID
+        )
+        ORDER BY RT.Sort_Order
         FOR JSON PATH
     );
 
@@ -113,7 +131,7 @@ BEGIN
     SET @Result = CONCAT(
         '{"Household":',
         ISNULL(@HouseholdJSON, 'null'),
-        ',"Members":',
+        ',"MembersByType":',
         ISNULL(@MembersJSON, '[]'),
         '}'
     );
