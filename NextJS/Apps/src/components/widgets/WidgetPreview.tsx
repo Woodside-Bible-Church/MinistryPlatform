@@ -37,18 +37,10 @@ export function WidgetPreview({ embedCode, widgetName, widgetSource = 'custom' }
         // Append to container
         containerRef.current.appendChild(wrapper);
 
-        // Check if element rendered
+        // Wait for the widget to render
         setTimeout(() => {
-          const element = containerRef.current?.querySelector('mpp-custom-form, mpp-group-finder, mpp-event-details');
-
-          // Check if custom element is registered
-          const tagName = element?.tagName.toLowerCase();
-          if (tagName && !customElements.get(tagName)) {
-            setError('Ministry Platform widgets cannot preview in local development. The embed code is correct and will work when deployed to production.');
-          }
-
           setIsLoading(false);
-        }, 1000);
+        }, 2000);
       } else {
         // Custom widgets - original behavior
         const wrapper = document.createElement("div");
