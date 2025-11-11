@@ -65,11 +65,11 @@ export default function WidgetConfiguratorPage() {
               if (!acc[source]) acc[source] = [];
               acc[source].push(widget);
               return acc;
-            }, {})
+            }, {} as Record<string, Widget[]>)
           )
-            .map(([source, sourceWidgets]: [string, Widget[]]) => ({
+            .map(([source, sourceWidgets]) => ({
               label: SOURCE_LABELS[source] || source,
-              widgets: sourceWidgets.sort((a: Widget, b: Widget) => a.name.localeCompare(b.name)),
+              widgets: (sourceWidgets as Widget[]).sort((a, b) => a.name.localeCompare(b.name)),
             }))
             .sort((a, b) => a.label.localeCompare(b.label));
 
