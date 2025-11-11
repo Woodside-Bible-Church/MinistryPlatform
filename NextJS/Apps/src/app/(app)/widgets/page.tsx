@@ -32,6 +32,13 @@ interface Widget {
   fields: WidgetField[];
 }
 
+// Friendly names for widget sources
+const SOURCE_LABELS: Record<string, string> = {
+  custom: 'Custom Dev',
+  ministry_platform: 'Ministry Platform',
+  third_party: 'Third Party',
+};
+
 export default function WidgetConfiguratorPage() {
   const [widgets, setWidgets] = useState<Widget[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -107,6 +114,22 @@ export default function WidgetConfiguratorPage() {
   }, [selectedWidgetId, widgets, mpFieldOptions]);
 
   const currentConfig = widgets.find((w) => w.id === selectedWidgetId);
+
+  // Group widgets by source for the dropdown
+  const groupedWidgets = Object.entries(
+    widgets.reduce((acc, widget) => {
+      const source = widget.source;
+      if (!acc[source]) acc[source] = [];
+      acc[source].push(widget);
+      return acc;
+    }, {} as Record<string, Widget[]>)
+  ).map(([source, sourceWidgets]) => ({
+    label: SOURCE_LABELS[source] || source,
+    options: sourceWidgets.map((widget) => ({
+      value: widget.id,
+      label: widget.name,
+    })),
+  }));
 
   if (isLoading) {
     return (
@@ -220,20 +243,16 @@ export default function WidgetConfiguratorPage() {
           {/* Widget Selector */}
           <div className="bg-card border border-border rounded-lg p-6">
             <h2 className="text-lg font-semibold text-foreground mb-3">Widget</h2>
-            <select
+            <SearchableSelect
               value={selectedWidgetId}
-              onChange={(e) => {
-                setSelectedWidgetId(e.target.value);
+              onChange={(value) => {
+                setSelectedWidgetId(value);
                 setFormValues({});
               }}
-              className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] focus:scroll-auto"
-            >
-              {widgets.map((widget) => (
-                <option key={widget.id} value={widget.id}>
-                  {widget.name}
-                </option>
-              ))}
-            </select>
+              groupedOptions={groupedWidgets}
+              placeholder="Select a widget"
+              className="py-3"
+            />
             <p className="text-sm text-muted-foreground mt-3">
               {currentConfig.description}
             </p>

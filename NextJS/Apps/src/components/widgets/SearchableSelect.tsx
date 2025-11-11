@@ -8,10 +8,16 @@ interface Option {
   label: string;
 }
 
+interface OptionGroup {
+  label: string;
+  options: Option[];
+}
+
 interface SearchableSelectProps {
   value: string;
   onChange: (value: string) => void;
-  options: Option[];
+  options?: Option[];
+  groupedOptions?: OptionGroup[];
   placeholder?: string;
   className?: string;
 }
@@ -19,7 +25,8 @@ interface SearchableSelectProps {
 export function SearchableSelect({
   value,
   onChange,
-  options,
+  options = [],
+  groupedOptions = [],
   placeholder = "Select an option",
   className = "",
 }: SearchableSelectProps) {
@@ -28,13 +35,30 @@ export function SearchableSelect({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Flatten grouped options into a single array for searching
+  const allOptions = groupedOptions.length > 0
+    ? groupedOptions.flatMap(group => group.options)
+    : options;
+
   // Filter options based on search term
-  const filteredOptions = options.filter((option) =>
+  const filteredOptions = allOptions.filter((option) =>
     option.label.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Filter grouped options based on search term
+  const filteredGroupedOptions = groupedOptions.length > 0
+    ? groupedOptions
+        .map(group => ({
+          ...group,
+          options: group.options.filter((option) =>
+            option.label.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+        }))
+        .filter(group => group.options.length > 0)
+    : [];
+
   // Get selected option label
-  const selectedOption = options.find((opt) => opt.value === value);
+  const selectedOption = allOptions.find((opt) => opt.value === value);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -123,7 +147,32 @@ export function SearchableSelect({
               <div className="px-4 py-3 text-sm text-muted-foreground text-center">
                 No results found
               </div>
+            ) : groupedOptions.length > 0 ? (
+              // Render grouped options
+              filteredGroupedOptions.map((group) => (
+                <div key={group.label}>
+                  <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase bg-muted/50 sticky top-0">
+                    {group.label}
+                  </div>
+                  {group.options.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => handleSelect(option.value)}
+                      className={`w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center justify-between ${
+                        option.value === value ? "bg-accent" : ""
+                      }`}
+                    >
+                      <span>{option.label}</span>
+                      {option.value === value && (
+                        <Check className="w-4 h-4 text-[#61BC47]" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              ))
             ) : (
+              // Render flat options
               filteredOptions.map((option) => (
                 <button
                   key={option.value}
