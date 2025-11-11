@@ -67,7 +67,7 @@ export default function WidgetConfiguratorPage() {
               return acc;
             }, {})
           )
-            .map(([source, sourceWidgets]) => ({
+            .map(([source, sourceWidgets]: [string, Widget[]]) => ({
               label: SOURCE_LABELS[source] || source,
               widgets: sourceWidgets.sort((a: Widget, b: Widget) => a.name.localeCompare(b.name)),
             }))
