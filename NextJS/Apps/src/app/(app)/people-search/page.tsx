@@ -1166,7 +1166,7 @@ export default function PeopleSearchPage() {
                                     </div>
                                     <div>
                                       <label className="text-xs text-muted-foreground block mb-1">
-                                        Relationship to {getDisplayName(selectedContact)}
+                                        Relationship to {selectedContact ? getDisplayName(selectedContact) : 'Selected Contact'}
                                       </label>
                                       <select
                                         value={editedRelationships.get(member.Contact_ID) ?? ''}
