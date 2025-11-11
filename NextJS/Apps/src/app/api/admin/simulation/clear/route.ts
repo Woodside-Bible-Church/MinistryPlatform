@@ -15,9 +15,10 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    // Clear the simulation cookie
+    // Clear all simulation cookies
     const cookieStore = await cookies();
     cookieStore.delete('admin-simulation');
+    cookieStore.delete('admin-app-simulation');
 
     return NextResponse.json({ success: true });
   } catch (error) {

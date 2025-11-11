@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 import { mpUserProfile } from '@/providers/MinistryPlatform/Interfaces/mpUserProfile';
-import { Sun, Moon, UserSearch, Shield } from 'lucide-react';
+import { Sun, Moon, UserSearch } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { signOut } from 'next-auth/react';
 import { useSession } from '@/components/SessionProvider';
@@ -16,7 +16,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import ImpersonateModal from './ImpersonateModal';
-import RoleSimulationModal from './RoleSimulationModal';
 
 interface UserMenuProps {
   onClose?: () => void;
@@ -28,7 +27,6 @@ export default function UserMenu({ onClose, userProfile, children }: UserMenuPro
   const { theme, setTheme, resolvedTheme } = useTheme();
   const session = useSession();
   const [impersonateModalOpen, setImpersonateModalOpen] = useState(false);
-  const [roleSimulationModalOpen, setRoleSimulationModalOpen] = useState(false);
 
   // Check if user is an administrator
   const isAdmin = session?.roles?.includes('Administrators');
@@ -103,14 +101,6 @@ export default function UserMenu({ onClose, userProfile, children }: UserMenuPro
               <UserSearch className="mr-2 h-4 w-4 flex-shrink-0" />
               <span>Impersonate User</span>
             </DropdownMenuItem>
-
-            <DropdownMenuItem
-              onClick={() => setRoleSimulationModalOpen(true)}
-              className="cursor-pointer text-foreground hover:bg-primary/20 hover:text-foreground focus:bg-primary/20 focus:text-foreground"
-            >
-              <Shield className="mr-2 h-4 w-4 flex-shrink-0" />
-              <span>Simulate Roles</span>
-            </DropdownMenuItem>
           </>
         )}
 
@@ -126,7 +116,6 @@ export default function UserMenu({ onClose, userProfile, children }: UserMenuPro
 
       {/* Modals */}
       <ImpersonateModal open={impersonateModalOpen} onOpenChange={setImpersonateModalOpen} />
-      <RoleSimulationModal open={roleSimulationModalOpen} onOpenChange={setRoleSimulationModalOpen} />
     </DropdownMenu>
   );
 }

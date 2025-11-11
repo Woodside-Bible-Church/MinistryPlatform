@@ -11,9 +11,12 @@ export interface HouseholdMember extends Omit<Contact, 'Image_GUID'> {
   Middle_Name?: string;
   Suffix?: string;
   Selected?: boolean;
+  Gender_ID?: number;
   Gender?: string;
   Contact_Status?: string;
   Household_Position?: string;
+  Relationship_Name?: string;
+  Relationship_ID?: number;
   Anniversary_Date?: string;
   Date_of_Death?: string;
   Maiden_Name?: string;
@@ -194,6 +197,19 @@ export class PeopleSearchService {
     }
 
     return null;
+  }
+
+  /**
+   * Update contact information
+   * @param contactId Contact ID
+   * @param updates Partial contact data to update
+   * @returns Updated contact
+   */
+  async updateContact(contactId: number, updates: Partial<Contact>) {
+    // MinistryPlatform updateTableRecords expects an array with Contact_ID included
+    const record = { ...updates, Contact_ID: contactId };
+    await this.tableService.updateTableRecords("Contacts", [record]);
+    return this.getContactById(contactId);
   }
 }
 

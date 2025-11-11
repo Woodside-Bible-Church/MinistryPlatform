@@ -17,6 +17,26 @@ export async function GET() {
     }
 
     const cookieStore = await cookies();
+
+    // Check for app-specific simulation first (takes precedence)
+    const appSimulationCookie = cookieStore.get('admin-app-simulation');
+    if (appSimulationCookie) {
+      try {
+        const appSimulation = JSON.parse(appSimulationCookie.value);
+        if (appSimulation.applicationId && appSimulation.roles && Array.isArray(appSimulation.roles)) {
+          return NextResponse.json({
+            active: true,
+            type: 'app',
+            applicationId: appSimulation.applicationId,
+            roles: appSimulation.roles,
+          });
+        }
+      } catch (error) {
+        console.error('Error parsing app simulation cookie:', error);
+      }
+    }
+
+    // Check for global simulation (impersonate or global roles)
     const simulationCookie = cookieStore.get('admin-simulation');
 
     if (!simulationCookie) {

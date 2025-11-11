@@ -61,6 +61,20 @@ export async function GET(
 
     console.log(`Household API: Success - household: ${result.Household?.Household_Name}, members: ${result.Members?.length || 0}`);
 
+    // Debug: Log member data to see Gender_ID and Relationship_ID
+    if (result.Members) {
+      result.Members.forEach((member, index) => {
+        console.log(`Member ${index + 1}:`, {
+          Contact_ID: member.Contact_ID,
+          Display_Name: member.Display_Name,
+          Gender_ID: member.Gender_ID,
+          Gender: member.Gender,
+          Relationship_ID: member.Relationship_ID,
+          Relationship_Name: member.Relationship_Name,
+        });
+      });
+    }
+
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error fetching household:", error);

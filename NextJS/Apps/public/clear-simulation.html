@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Simulation</title>
+</head>
+<body>
+    <h1>Clearing simulation cookie...</h1>
+    <script>
+        // Clear the simulation cookie
+        document.cookie = 'admin-app-simulation=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        setTimeout(() => {
+            document.body.innerHTML = '<h1>Simulation cleared!</h1><p>You can close this tab and refresh your app.</p>';
+        }, 100);
+    </script>
+</body>
+</html>

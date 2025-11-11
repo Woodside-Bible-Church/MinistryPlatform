@@ -271,11 +271,11 @@ export async function middleware(request: NextRequest) {
             where: eq(applications.route, pathname),
           });
 
-          // If cookie's applicationId matches current app, remove admin role
-          if (app && simulation.applicationId === app.id) {
-            userRoles = userRoles.filter(role => role !== 'Administrators');
-            console.log(`Middleware: App simulation active for ${app.name} - removed admin privileges`);
-            console.log(`Middleware: Current roles for simulation:`, userRoles);
+          // If cookie's applicationId matches current app, replace admin role with simulated roles
+          if (app && simulation.applicationId === app.id && simulation.roles && Array.isArray(simulation.roles)) {
+            userRoles = simulation.roles;
+            console.log(`Middleware: App simulation active for ${app.name}`);
+            console.log(`Middleware: Simulating roles:`, userRoles);
           }
         } catch (error) {
           console.error('Middleware: Error parsing app simulation cookie:', error);

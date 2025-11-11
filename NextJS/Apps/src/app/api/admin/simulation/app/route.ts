@@ -5,11 +5,11 @@ import { cookies } from 'next/headers';
 /**
  * Enable/disable permission simulation for a specific application
  * POST /api/admin/simulation/app
- * Body: { applicationId: number } - enable simulation for app
+ * Body: { applicationId: number, roles: string[] } - enable simulation for app with selected roles
  * Body: { applicationId: null } - disable simulation
  *
  * GET /api/admin/simulation/app
- * Returns: { active: boolean, applicationId: number | null }
+ * Returns: { active: boolean, applicationId: number | null, roles: string[] | null }
  */
 
 export async function GET() {
@@ -31,11 +31,13 @@ export async function GET() {
         return NextResponse.json({
           active: true,
           applicationId: data.applicationId,
+          roles: data.roles || [],
         });
       } catch {
         return NextResponse.json({
           active: false,
           applicationId: null,
+          roles: null,
         });
       }
     }
@@ -43,6 +45,7 @@ export async function GET() {
     return NextResponse.json({
       active: false,
       applicationId: null,
+      roles: null,
     });
   } catch (error) {
     console.error('Error getting app simulation status:', error);
@@ -63,7 +66,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { applicationId } = await request.json();
+    const { applicationId, roles } = await request.json();
     const cookieStore = await cookies();
 
     if (applicationId === null || applicationId === undefined) {
@@ -75,8 +78,16 @@ export async function POST(request: Request) {
       });
     }
 
-    // Enable simulation for this app
-    cookieStore.set('admin-app-simulation', JSON.stringify({ applicationId }), {
+    // Validate that roles array is provided
+    if (!roles || !Array.isArray(roles) || roles.length === 0) {
+      return NextResponse.json(
+        { error: 'At least one role must be selected' },
+        { status: 400 }
+      );
+    }
+
+    // Enable simulation for this app with selected roles
+    cookieStore.set('admin-app-simulation', JSON.stringify({ applicationId, roles }), {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
