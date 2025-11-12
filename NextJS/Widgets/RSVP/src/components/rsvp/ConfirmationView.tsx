@@ -290,7 +290,7 @@ export default function ConfirmationView({
       {cards.sort((a, b) => a.Display_Order - b.Display_Order).map((card) => (
         <CardRenderer
           key={`${card.Card_Type_ID}-${card.Display_Order}`}
-          card={card as any}
+          card={card}
           rsvpData={confirmation}
         />
       ))}

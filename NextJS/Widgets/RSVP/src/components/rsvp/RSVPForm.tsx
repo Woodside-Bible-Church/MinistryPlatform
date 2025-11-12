@@ -35,6 +35,7 @@ import { DynamicQuestion } from "@/components/rsvp/questions/DynamicQuestion";
 interface HouseholdMember {
   Contact_ID: number;
   Display_Name: string;
+  Nickname: string | null;
   First_Name: string;
   Last_Name: string;
   Email_Address: string | null;
@@ -117,6 +118,13 @@ export default function RSVPForm({
       isNewVisitor: initialData.isNewVisitor ?? false,
     },
   });
+
+  // Helper function to format name as "(Nickname || First_Name) Last_Name"
+  const formatPersonName = (person: HouseholdMember, isCurrentUser: boolean = false) => {
+    const firstName = person.Nickname || person.First_Name;
+    const name = `${firstName} ${person.Last_Name}`;
+    return isCurrentUser ? `${name} (Me)` : name;
+  };
 
   // Fetch household members when user is authenticated
   useEffect(() => {
@@ -323,13 +331,13 @@ export default function RSVPForm({
                       {currentUser.Image_GUID ? (
                         <img
                           src={`${process.env.NEXT_PUBLIC_MINISTRY_PLATFORM_FILE_URL}/${currentUser.Image_GUID}?$thumbnail=true`}
-                          alt={currentUser.Display_Name}
+                          alt={formatPersonName(currentUser, true)}
                           className="w-8 h-8 rounded-full object-cover"
                         />
                       ) : (
                         <UserCircle className="size-8 text-muted-foreground" />
                       )}
-                      <span>{currentUser.Display_Name} (Me)</span>
+                      <span>{formatPersonName(currentUser, true)}</span>
                     </div>
                   </SelectItem>
 
@@ -340,13 +348,13 @@ export default function RSVPForm({
                         {member.Image_GUID ? (
                           <img
                             src={`${process.env.NEXT_PUBLIC_MINISTRY_PLATFORM_FILE_URL}/${member.Image_GUID}?$thumbnail=true`}
-                            alt={member.Display_Name}
+                            alt={formatPersonName(member)}
                             className="w-8 h-8 rounded-full object-cover"
                           />
                         ) : (
                           <UserCircle className="size-8 text-muted-foreground" />
                         )}
-                        <span>{member.Display_Name}</span>
+                        <span>{formatPersonName(member)}</span>
                       </div>
                     </SelectItem>
                   ))}

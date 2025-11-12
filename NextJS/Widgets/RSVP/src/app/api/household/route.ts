@@ -12,6 +12,7 @@ import { ministryPlatformProvider } from '@/providers/MinistryPlatform/ministryP
 interface HouseholdMember {
   Contact_ID: number;
   Display_Name: string;
+  Nickname: string | null;
   First_Name: string;
   Last_Name: string;
   Email_Address: string | null;
@@ -56,7 +57,7 @@ export async function GET() {
     // First, get the current user's household ID
     const currentUser = await mp.getTableRecords<HouseholdMember>('Contacts', {
       $filter: `Contact_ID = ${contactId}`,
-      $select: 'Contact_ID,Display_Name,First_Name,Last_Name,Email_Address,Mobile_Phone,Household_ID,Household_Position_ID,dp_fileUniqueId AS Image_GUID,Web_Congregation_ID',
+      $select: 'Contact_ID,Display_Name,Nickname,First_Name,Last_Name,Email_Address,Mobile_Phone,Household_ID,Household_Position_ID,dp_fileUniqueId AS Image_GUID,Web_Congregation_ID',
     });
 
     if (!currentUser || currentUser.length === 0) {
@@ -80,7 +81,7 @@ export async function GET() {
     // Get all household members (excluding the current user)
     const householdMembers = await mp.getTableRecords<HouseholdMember>('Contacts', {
       $filter: `Household_ID = ${householdId} AND Contact_ID != ${contactId}`,
-      $select: 'Contact_ID,Display_Name,First_Name,Last_Name,Email_Address,Mobile_Phone,Household_ID,Household_Position_ID,dp_fileUniqueId AS Image_GUID',
+      $select: 'Contact_ID,Display_Name,Nickname,First_Name,Last_Name,Email_Address,Mobile_Phone,Household_ID,Household_Position_ID,dp_fileUniqueId AS Image_GUID',
       $orderby: 'Household_Position_ID,First_Name',
     });
 
