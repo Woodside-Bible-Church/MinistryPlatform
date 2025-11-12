@@ -465,11 +465,16 @@ export function getCapacityStatus(percentage: number): 'available' | 'limited' |
 
 /**
  * Get capacity color class
+ * 50% and under: Green (plenty of space)
+ * 51-75%: Yellow (good availability)
+ * 76-90%: Orange (filling up)
+ * 90-100%: Red (near capacity)
+ * 100+%: Red (overflow)
  */
 export function getCapacityColorClass(percentage: number): string {
-  if (percentage < 50) return "bg-green-500";
-  if (percentage < 75) return "bg-yellow-500";
-  if (percentage < 90) return "bg-orange-500";
+  if (percentage <= 50) return "bg-green-500";
+  if (percentage <= 75) return "bg-yellow-500";
+  if (percentage <= 90) return "bg-orange-500";
   return "bg-red-500";
 }
 
@@ -477,11 +482,11 @@ export function getCapacityColorClass(percentage: number): string {
  * Get capacity status text
  */
 export function getCapacityStatusText(percentage: number): string {
-  if (percentage < 50) return "Plenty of space";
-  if (percentage < 75) return "Good availability";
-  if (percentage < 90) return "Filling up";
-  if (percentage < 100) return "Almost full";
-  return "Full";
+  if (percentage <= 50) return "Plenty of space";
+  if (percentage <= 75) return "Good availability";
+  if (percentage <= 90) return "Filling up";
+  if (percentage < 100) return "Near capacity";
+  return "Overflow";
 }
 
 /**

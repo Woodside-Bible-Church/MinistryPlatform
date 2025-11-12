@@ -33,7 +33,7 @@ export function CheckboxQuestion({
       <motion.div
         onClick={() => onChange(!booleanValue)}
         className={cn(
-          'flex items-start gap-3 rounded-lg border-2 p-4 transition-all cursor-pointer',
+          'rounded-lg border-2 p-4 transition-all cursor-pointer space-y-2',
           error
             ? 'border-red-500 bg-red-500/10'
             : booleanValue
@@ -43,54 +43,58 @@ export function CheckboxQuestion({
         animate={booleanValue ? { scale: [1, 1.02, 1] } : {}}
         transition={{ duration: 0.3, ease: 'easeOut' }}
       >
-        {/* Icon - shows Icon_Name or HelpCircle fallback */}
-        <motion.div
-          className="flex-shrink-0 w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center mt-0.5"
-          animate={booleanValue ? {
-            scale: [1, 1.2, 1],
-            rotate: [0, 10, -10, 0]
-          } : {}}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
-        >
-          <IconComponent className="w-5 h-5 text-secondary" />
-        </motion.div>
+        {/* Icon and Question Text (first row) */}
+        <div className="flex items-start gap-3">
+          {/* Icon - shows Icon_Name or HelpCircle fallback */}
+          <motion.div
+            className="flex-shrink-0 w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center"
+            animate={booleanValue ? {
+              scale: [1, 1.2, 1],
+              rotate: [0, 10, -10, 0]
+            } : {}}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+          >
+            <IconComponent className="w-5 h-5 text-secondary" />
+          </motion.div>
 
-        {/* Question text and helper */}
-        <div className="flex-1 space-y-1">
           <Label className="text-lg font-semibold leading-tight text-white cursor-pointer">
             {question.Question_Text}
             {question.Is_Required && <span className="ml-1 text-red-200">*</span>}
           </Label>
-          {question.Helper_Text && (
-            <p className="text-sm text-white/70">{question.Helper_Text}</p>
-          )}
-          <motion.p
-            className="text-sm italic pt-1"
-            animate={booleanValue ? {
-              color: ['rgba(255,255,255,0.6)', 'rgba(255,255,255,1)', 'rgba(255,255,255,0.6)']
-            } : {
-              // Subtle pulsing glow when unchecked
-              textShadow: [
-                '0 0 8px rgba(255,255,255,0.3)',
-                '0 0 12px rgba(255,255,255,0.5)',
-                '0 0 8px rgba(255,255,255,0.3)'
-              ],
-              color: [
-                'rgba(255,255,255,0.6)',
-                'rgba(255,255,255,0.8)',
-                'rgba(255,255,255,0.6)'
-              ]
-            }}
-            transition={{
-              duration: booleanValue ? 0.6 : 1.5,
-              ease: 'easeInOut',
-              repeat: booleanValue ? 0 : Infinity,
-              repeatDelay: 0.5
-            }}
-          >
-            {booleanValue ? '✓ Confirmed' : 'Click to confirm'}
-          </motion.p>
         </div>
+
+        {/* Helper Text (full width below) */}
+        {question.Helper_Text && (
+          <p className="text-sm text-white/70 w-full">{question.Helper_Text}</p>
+        )}
+
+        {/* Click to confirm text (full width below) */}
+        <motion.p
+          className="text-sm italic w-full"
+          animate={booleanValue ? {
+            color: ['rgba(255,255,255,0.6)', 'rgba(255,255,255,1)', 'rgba(255,255,255,0.6)']
+          } : {
+            // Subtle pulsing glow when unchecked
+            textShadow: [
+              '0 0 8px rgba(255,255,255,0.3)',
+              '0 0 12px rgba(255,255,255,0.5)',
+              '0 0 8px rgba(255,255,255,0.3)'
+            ],
+            color: [
+              'rgba(255,255,255,0.6)',
+              'rgba(255,255,255,0.8)',
+              'rgba(255,255,255,0.6)'
+            ]
+          }}
+          transition={{
+            duration: booleanValue ? 0.6 : 1.5,
+            ease: 'easeInOut',
+            repeat: booleanValue ? 0 : Infinity,
+            repeatDelay: 0.5
+          }}
+        >
+          {booleanValue ? '✓ Confirmed' : 'Click to confirm'}
+        </motion.p>
       </motion.div>
 
       {error && <p className="text-sm text-red-500">{error}</p>}

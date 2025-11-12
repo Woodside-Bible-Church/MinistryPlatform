@@ -93,7 +93,7 @@ export default function ServiceTimeCard({
           <div className="h-2 bg-white/20 overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: `${capacityPercentage}%` }}
+              animate={{ width: `${Math.min(capacityPercentage, 100)}%` }}
               transition={{ duration: 0.5, ease: "easeOut" }}
               className={`h-full ${getCapacityColorClass(capacityPercentage)}`}
             />

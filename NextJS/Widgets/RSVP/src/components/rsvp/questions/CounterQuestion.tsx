@@ -62,7 +62,7 @@ export function CounterQuestion({
     <div className="space-y-4 max-w-md">
       <QuestionLabel question={question} htmlFor={`question-${question.Question_ID}`} />
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-center md:justify-start gap-4">
         <Button
           type="button"
           variant="outline"

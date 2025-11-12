@@ -449,7 +449,7 @@ export default function RSVPPage() {
       formattedDate: new Date(event.Event_Start_Date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
       formattedTime: new Date(event.Event_Start_Date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
       capacityStatus: event.Capacity_Percentage >= 100 ? 'full' : event.Capacity_Percentage >= 75 ? 'limited' : 'available',
-      capacityColor: event.Capacity_Percentage < 50 ? 'bg-green-500' : event.Capacity_Percentage < 75 ? 'bg-yellow-500' : event.Capacity_Percentage < 90 ? 'bg-orange-500' : 'bg-red-500',
+      capacityColor: event.Capacity_Percentage <= 50 ? 'bg-green-500' : event.Capacity_Percentage <= 75 ? 'bg-yellow-500' : event.Capacity_Percentage <= 90 ? 'bg-orange-500' : 'bg-red-500',
     };
   };
 
@@ -596,7 +596,7 @@ export default function RSVPPage() {
 
   const handleReset = () => {
     setCurrentView("services");
-    setSelectedCampusId(availableCampuses.length > 0 ? availableCampuses[0].id : null);
+    // Keep the currently selected campus instead of resetting to first in list
     setSelectedServiceTime(null);
     setConfirmation(null);
     setSubmittedAnswers(null); // Clear submitted answers
