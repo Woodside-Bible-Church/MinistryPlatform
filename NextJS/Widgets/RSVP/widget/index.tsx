@@ -8,6 +8,7 @@
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { SessionProvider } from 'next-auth/react';
 import RSVPPage from '../src/app/(app)/page';
 import styleText from '../src/app/globals.css?inline';
 
@@ -74,7 +75,9 @@ class RSVPWidget {
     this.root = createRoot(mountPoint);
     this.root.render(
       <React.StrictMode>
-        <RSVPPage />
+        <SessionProvider>
+          <RSVPPage />
+        </SessionProvider>
       </React.StrictMode>
     );
 
