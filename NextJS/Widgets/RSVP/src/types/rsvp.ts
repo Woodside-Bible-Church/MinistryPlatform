@@ -467,7 +467,7 @@ export function parseCardConfiguration(configJson: string): CardConfiguration {
   try {
     return JSON.parse(configJson);
   } catch {
-    return { title: 'Configuration Error' } as any;
+    return { title: 'Configuration Error' } as InstructionsCardConfig;
   }
 }
 

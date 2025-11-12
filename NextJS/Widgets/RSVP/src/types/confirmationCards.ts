@@ -195,7 +195,7 @@ export function replaceTokens(
 ): string {
   try {
     // Helper to safely convert to string
-    const safeString = (value: any): string => {
+    const safeString = (value: unknown): string => {
       if (value === null || value === undefined) return "";
       return String(value);
     };
