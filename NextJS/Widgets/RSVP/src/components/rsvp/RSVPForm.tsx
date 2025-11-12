@@ -130,8 +130,13 @@ export default function RSVPForm({
   useEffect(() => {
     const fetchHouseholdData = async () => {
       // Detect if running in widget mode
-      const isWidget = typeof window !== 'undefined' && !!(window as any).RSVP_WIDGET_CONFIG;
-      const baseUrl = typeof window !== 'undefined' && (window as any).RSVP_WIDGET_CONFIG?.apiBaseUrl;
+      interface WidgetWindow extends Window {
+        RSVP_WIDGET_CONFIG?: {
+          apiBaseUrl?: string;
+        };
+      }
+      const isWidget = typeof window !== 'undefined' && !!(window as WidgetWindow).RSVP_WIDGET_CONFIG;
+      const baseUrl = typeof window !== 'undefined' && (window as WidgetWindow).RSVP_WIDGET_CONFIG?.apiBaseUrl;
 
       console.log('[RSVPForm v2] useEffect triggered, session:', !!session, 'isWidget:', isWidget);
 
