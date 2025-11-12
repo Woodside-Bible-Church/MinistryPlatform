@@ -50,6 +50,7 @@ export default defineConfig({
     'process.env.NODE_ENV': JSON.stringify('production'),
     'process.env.NEXTAUTH_URL': JSON.stringify(process.env.NEXTAUTH_URL || 'https://rsvp-wine.vercel.app'),
     'process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY': JSON.stringify(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''),
+    'process.env.NEXT_PUBLIC_MINISTRY_PLATFORM_FILE_URL': JSON.stringify(process.env.NEXT_PUBLIC_MINISTRY_PLATFORM_FILE_URL || 'https://my.woodsidebible.org/ministryplatformapi/files'),
     // Replace any other process.env references
     'process.env': JSON.stringify({}),
   },
