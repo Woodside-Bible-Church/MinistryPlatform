@@ -13,7 +13,7 @@ export default function Header() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<mpUserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const session = useSession();
+  const { data: session } = useSession();
 
   console.log('Header rendered session: ', session);
 
