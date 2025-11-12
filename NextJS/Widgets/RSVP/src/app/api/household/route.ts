@@ -8,6 +8,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { ministryPlatformProvider } from '@/providers/MinistryPlatform/ministryPlatformProvider';
+import { getTokenFromRequest, validateMPWidgetToken } from '@/lib/mpWidgetAuth';
 
 interface HouseholdMember {
   Contact_ID: number;
@@ -25,31 +26,52 @@ interface HouseholdMember {
 
 export async function GET() {
   try {
-    // Get the authenticated session
-    const session = await auth();
+    let contactId: number;
 
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    // Try MP widget authentication first (for embedded widget mode)
+    const mpToken = await getTokenFromRequest();
+
+    if (mpToken) {
+      console.log('[Household API] MP widget token found, validating...');
+      try {
+        const mpUser = await validateMPWidgetToken(mpToken);
+        contactId = mpUser.contactId;
+        console.log('[Household API] MP auth successful, contactId:', contactId);
+      } catch (error) {
+        console.error('[Household API] MP token validation failed:', error);
+        return NextResponse.json(
+          { error: 'Invalid or expired authentication token' },
+          { status: 401 }
+        );
+      }
+    } else {
+      // Fall back to NextAuth session (for Next.js dev mode)
+      console.log('[Household API] No MP token, checking NextAuth session...');
+      const session = await auth();
+
+      if (!session?.user?.id) {
+        return NextResponse.json(
+          { error: 'Unauthorized' },
+          { status: 401 }
+        );
+      }
+
+      // Get Contact_ID from session (stored as user.id as string)
+      console.log('[Household API] session.user.id:', session.user.id);
+      console.log('[Household API] Full session.user:', JSON.stringify(session.user, null, 2));
+
+      contactId = parseInt(session.user.id, 10);
+
+      if (isNaN(contactId)) {
+        console.error('[Household API] Failed to parse Contact ID:', session.user.id);
+        return NextResponse.json(
+          { error: 'Invalid Contact ID in session', sessionUserId: session.user.id },
+          { status: 400 }
+        );
+      }
+
+      console.log('[Household API] NextAuth contactId:', contactId);
     }
-
-    // Get Contact_ID from session (stored as user.id as string)
-    console.log('[Household API] session.user.id:', session.user.id);
-    console.log('[Household API] Full session.user:', JSON.stringify(session.user, null, 2));
-
-    const contactId = parseInt(session.user.id, 10);
-
-    if (isNaN(contactId)) {
-      console.error('[Household API] Failed to parse Contact ID:', session.user.id);
-      return NextResponse.json(
-        { error: 'Invalid Contact ID in session', sessionUserId: session.user.id },
-        { status: 400 }
-      );
-    }
-
-    console.log('[Household API] Parsed contactId:', contactId);
 
     // Get MP provider singleton instance
     const mp = ministryPlatformProvider.getInstance();
