@@ -257,6 +257,9 @@ export default function RSVPPage() {
   const [formData, setFormData] = useState<Partial<RSVPFormInput>>({}); // Store partial form data
   const instructionRef = useRef<HTMLDivElement>(null);
 
+  // Track if this is the first render (to prevent auto-scroll on initial load)
+  const isFirstRender = useRef(true);
+
   // Fetch user's Web_Congregation_ID when authenticated
   useEffect(() => {
     const fetchUserCongregationId = async () => {
@@ -397,8 +400,18 @@ export default function RSVPPage() {
   }, [widgetParams.ProjectRsvpID, baseUrl]);
 
   // Scroll to instructions when view or form step changes
+  // Only on mobile, and not on initial render
   useEffect(() => {
-    if (instructionRef.current) {
+    // Skip scroll on first render
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    // Only scroll on mobile devices (less than 768px = md breakpoint)
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+    if (instructionRef.current && isMobile) {
       const elementPosition = instructionRef.current.getBoundingClientRect().top + window.pageYOffset;
       const offsetPosition = elementPosition - (2.5 * 16); // 2.5em offset (assuming 16px base font size)
 

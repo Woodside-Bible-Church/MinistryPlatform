@@ -35,6 +35,29 @@ export function CounterQuestion({
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+
+    // Allow empty string for easier editing
+    if (newValue === '') {
+      onChange(min);
+      return;
+    }
+
+    const parsed = parseInt(newValue);
+
+    // Only update if it's a valid number within range
+    if (!isNaN(parsed)) {
+      if (parsed >= min && parsed <= max) {
+        onChange(parsed);
+      } else if (parsed > max) {
+        onChange(max);
+      } else if (parsed < min) {
+        onChange(min);
+      }
+    }
+  };
+
   return (
     <div className="space-y-4 max-w-md">
       <QuestionLabel question={question} htmlFor={`question-${question.Question_ID}`} />
@@ -52,14 +75,19 @@ export function CounterQuestion({
           <Minus className="h-5 w-5" />
         </Button>
 
-        <div
+        <input
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          id={`question-${question.Question_ID}`}
+          value={numericValue}
+          onChange={handleInputChange}
           className={cn(
-            'flex h-16 w-24 items-center justify-center rounded-lg border-2 bg-white/10',
+            'flex h-16 w-24 items-center justify-center rounded-lg border-2 bg-white/10 text-center text-3xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-secondary focus:border-secondary',
             error ? 'border-red-500' : 'border-white/20'
           )}
-        >
-          <span className="text-3xl font-bold text-white">{numericValue}</span>
-        </div>
+          aria-label={question.Question_Text}
+        />
 
         <Button
           type="button"

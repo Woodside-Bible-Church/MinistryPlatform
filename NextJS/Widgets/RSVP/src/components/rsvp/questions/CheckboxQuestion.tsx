@@ -65,11 +65,28 @@ export function CheckboxQuestion({
             <p className="text-sm text-white/70">{question.Helper_Text}</p>
           )}
           <motion.p
-            className="text-sm text-white/60 italic pt-1"
+            className="text-sm italic pt-1"
             animate={booleanValue ? {
               color: ['rgba(255,255,255,0.6)', 'rgba(255,255,255,1)', 'rgba(255,255,255,0.6)']
-            } : {}}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
+            } : {
+              // Subtle pulsing glow when unchecked
+              textShadow: [
+                '0 0 8px rgba(255,255,255,0.3)',
+                '0 0 12px rgba(255,255,255,0.5)',
+                '0 0 8px rgba(255,255,255,0.3)'
+              ],
+              color: [
+                'rgba(255,255,255,0.6)',
+                'rgba(255,255,255,0.8)',
+                'rgba(255,255,255,0.6)'
+              ]
+            }}
+            transition={{
+              duration: booleanValue ? 0.6 : 1.5,
+              ease: 'easeInOut',
+              repeat: booleanValue ? 0 : Infinity,
+              repeatDelay: 0.5
+            }}
           >
             {booleanValue ? '✓ Confirmed' : 'Click to confirm'}
           </motion.p>
