@@ -1,23 +1,27 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Clock, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { MapPin, Clock, ArrowLeft, CheckCircle2, User, LogOut } from "lucide-react";
 import ServiceTimeCard from "@/components/rsvp/ServiceTimeCard";
 import RSVPForm from "@/components/rsvp/RSVPForm";
 import ConfirmationView from "@/components/rsvp/ConfirmationView";
 import InformationalEventCard from "@/components/rsvp/InformationalEventCard";
 import {
-  mockCampuses,
-  mockServiceTimes,
-  simulateRSVPSubmission,
-  ServiceTime,
   mockInformationalEvents,
 } from "@/data/mockData";
 import {
   RSVPFormInput,
-  RSVPConfirmationResponse,
+  RSVPConfirmation,
   ServiceTimeResponse,
+  ProjectRSVPDataResponse,
+  RSVPEvent,
+  RSVPAnswerValue,
+  RSVPAnswer,
+  RSVPSubmissionRequest,
+  ParsedConfirmationCard,
+  parseCardConfiguration,
 } from "@/types/rsvp";
 import {
   Select,
@@ -132,46 +136,220 @@ export default function RSVPPage() {
   // Parse widget params from data-params attribute
   const widgetParams = parseWidgetParams();
 
-  // Get default campus with priority: data-params > WordPress cookie > default (Troy)
-  const getInitialCampusId = (): number => {
-    // Priority 1: data-params @CongregationID (overrides everything)
-    if (widgetParams.CongregationID) {
-      const campus = mockCampuses.find(c => c.congregationId === widgetParams.CongregationID);
-      if (campus) {
-        console.log(`Widget param detected: Congregation_ID ${widgetParams.CongregationID} -> Campus ${campus.name} (id: ${campus.id})`);
-        return campus.id;
-      }
-      console.warn(`Widget param Congregation_ID ${widgetParams.CongregationID} not found in campus list`);
-    }
+  // Get authentication session
+  const { data: session, status: sessionStatus } = useSession();
+  console.log('[DEBUG] Session:', session);
+  console.log('[DEBUG] Session Status:', sessionStatus);
 
-    // Priority 2: WordPress location cookie
-    const wpLocationId = getWordPressLocationId();
-    if (wpLocationId) {
-      const campus = mockCampuses.find(c => c.congregationId === wpLocationId);
-      if (campus) {
-        console.log(`WordPress location detected: Congregation_ID ${wpLocationId} -> Campus ${campus.name} (id: ${campus.id})`);
-        return campus.id;
-      }
-      console.warn(`WordPress location_id ${wpLocationId} not found in campus list`);
-    }
+  // State for RSVP data from API
+  const [rsvpData, setRsvpData] = useState<ProjectRSVPDataResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-    // Priority 3: Default to Troy (12)
-    return 12;
-  };
+  // State for user's Web_Congregation_ID from household API
+  const [userCongregationId, setUserCongregationId] = useState<number | null>(null);
+
+  // Track whether we've applied the user's congregation preference
+  const hasAppliedUserCongregation = useRef(false);
+
+  // Build campus list from events that have RSVPs
+  const availableCampuses = useMemo(() => {
+    if (!rsvpData?.Events) return [];
+
+    // Get unique campuses from events
+    const campusMap = new Map<number, { id: number; name: string; congregationId: number }>();
+
+    rsvpData.Events.forEach(event => {
+      if (event.Congregation_ID && event.Campus_Name && !campusMap.has(event.Congregation_ID)) {
+        campusMap.set(event.Congregation_ID, {
+          id: event.Congregation_ID, // Use Congregation_ID as the ID
+          name: event.Campus_Name,
+          congregationId: event.Congregation_ID,
+        });
+      }
+    });
+
+    // Convert to array and sort by name
+    return Array.from(campusMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [rsvpData]);
+
+  // Get default campus with priority: data-params > URL param > user's Web_Congregation_ID > WordPress cookie > first available
+  const getInitialCampusId = useMemo(() => {
+    return (): number | null => {
+      if (availableCampuses.length === 0) return null;
+
+      // Priority 1: data-params @CongregationID (overrides everything - also hides dropdown)
+      if (widgetParams.CongregationID) {
+        const campus = availableCampuses.find(c => c.congregationId === widgetParams.CongregationID);
+        if (campus) {
+          console.log(`Widget param detected: Congregation_ID ${widgetParams.CongregationID} -> Campus ${campus.name}`);
+          return campus.id;
+        }
+        console.warn(`Widget param Congregation_ID ${widgetParams.CongregationID} not found in available campuses`);
+      }
+
+      // Priority 2: URL query parameter ?campus=slug (pre-selects dropdown only)
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const campusSlug = urlParams.get('campus');
+        if (campusSlug) {
+          // Map slug to Congregation_ID
+          const slugToCongregationMap: Record<string, number> = {
+            'troy': 15,
+            'lake-orion': 9,
+            'online': 3,
+          };
+          const congregationId = slugToCongregationMap[campusSlug];
+          if (congregationId) {
+            const campus = availableCampuses.find(c => c.congregationId === congregationId);
+            if (campus) {
+              console.log(`URL campus slug detected: ${campusSlug} -> Congregation_ID ${congregationId} -> Campus ${campus.name}`);
+              return campus.id;
+            }
+          }
+          console.warn(`URL campus slug "${campusSlug}" not found or not mapped`);
+        }
+      }
+
+      // Priority 3: User's Web_Congregation_ID from Contact record
+      if (userCongregationId) {
+        const campus = availableCampuses.find(c => c.congregationId === userCongregationId);
+        if (campus) {
+          console.log(`User's Web_Congregation_ID detected: ${userCongregationId} -> Campus ${campus.name}`);
+          return campus.id;
+        }
+        console.warn(`User's Web_Congregation_ID ${userCongregationId} not found in available campuses`);
+      }
+
+      // Priority 4: WordPress location cookie
+      const wpLocationId = getWordPressLocationId();
+      if (wpLocationId) {
+        const campus = availableCampuses.find(c => c.congregationId === wpLocationId);
+        if (campus) {
+          console.log(`WordPress location detected: Congregation_ID ${wpLocationId} -> Campus ${campus.name}`);
+          return campus.id;
+        }
+        console.warn(`WordPress location_id ${wpLocationId} not found in available campuses`);
+      }
+
+      // Priority 5: Default to first available campus
+      return availableCampuses[0].id;
+    };
+  }, [availableCampuses, userCongregationId, widgetParams.CongregationID]);
 
   // Determine if campus dropdown should be hidden
   const hideCampusDropdown = !!widgetParams.CongregationID;
 
   // State
   const [currentView, setCurrentView] = useState<ViewType>("services");
-  const [selectedCampusId, setSelectedCampusId] = useState<number>(getInitialCampusId());
+  const [selectedCampusId, setSelectedCampusId] = useState<number | null>(null);
   const [selectedServiceTime, setSelectedServiceTime] =
     useState<ServiceTimeResponse | null>(null);
   const [confirmation, setConfirmation] =
-    useState<RSVPConfirmationResponse | null>(null);
+    useState<RSVPConfirmation | null>(null);
+  const [submittedAnswers, setSubmittedAnswers] =
+    useState<Record<number, RSVPAnswerValue> | null>(null);
   const [formStep, setFormStep] = useState<1 | 2>(1); // Track form step
   const [formData, setFormData] = useState<Partial<RSVPFormInput>>({}); // Store partial form data
   const instructionRef = useRef<HTMLDivElement>(null);
+
+  // Fetch user's Web_Congregation_ID when authenticated
+  useEffect(() => {
+    const fetchUserCongregationId = async () => {
+      if (!session?.user?.id) {
+        setUserCongregationId(null);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/household');
+        if (response.ok) {
+          const data = await response.json();
+          const congregationId = data.user?.Web_Congregation_ID || null;
+          console.log('[DEBUG] User Web_Congregation_ID:', congregationId);
+          setUserCongregationId(congregationId);
+        }
+      } catch (error) {
+        console.warn('Failed to fetch user congregation ID:', error);
+        setUserCongregationId(null);
+      }
+    };
+
+    fetchUserCongregationId();
+  }, [session]);
+
+  // Set initial campus when available campuses are loaded
+  useEffect(() => {
+    console.log('[DEBUG] availableCampuses:', availableCampuses);
+    console.log('[DEBUG] selectedCampusId:', selectedCampusId);
+    console.log('[DEBUG] userCongregationId:', userCongregationId);
+    console.log('[DEBUG] hasAppliedUserCongregation:', hasAppliedUserCongregation.current);
+
+    if (availableCampuses.length === 0) return;
+
+    // Initial campus selection when page loads
+    if (selectedCampusId === null) {
+      const initialId = getInitialCampusId();
+      console.log('[DEBUG] Setting initial campus ID:', initialId);
+      setSelectedCampusId(initialId);
+      return;
+    }
+
+    // Re-apply campus selection when user's congregation becomes available
+    // This handles the case where the user logs in after the page has loaded
+    if (userCongregationId && !hasAppliedUserCongregation.current) {
+      // Check if there's a higher priority override (data-params or URL param)
+      const hasDataParamOverride = !!widgetParams.CongregationID;
+      const hasUrlParamOverride = typeof window !== 'undefined' && !!new URLSearchParams(window.location.search).get('campus');
+
+      // Only apply user congregation if there are no overrides
+      if (!hasDataParamOverride && !hasUrlParamOverride) {
+        const campus = availableCampuses.find(c => c.congregationId === userCongregationId);
+        if (campus) {
+          console.log(`[DEBUG] Applying user's Web_Congregation_ID: ${userCongregationId} -> Campus ${campus.name}`);
+          setSelectedCampusId(campus.id);
+        }
+      }
+      hasAppliedUserCongregation.current = true;
+    }
+  }, [availableCampuses, selectedCampusId, userCongregationId, getInitialCampusId, widgetParams.CongregationID]);
+
+  // Fetch RSVP data on mount
+  useEffect(() => {
+    const fetchRSVPData = async () => {
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+
+        // Use widgetParams.ProjectRsvpID if provided, otherwise default to 1
+        const projectRsvpId = widgetParams.ProjectRsvpID || 1;
+
+        // Build API URL with query parameters
+        const apiUrl = new URL('/api/rsvp/project', window.location.origin);
+        apiUrl.searchParams.set('projectRsvpId', projectRsvpId.toString());
+
+        console.log('[DEBUG] Fetching RSVP data for project:', projectRsvpId);
+        const response = await fetch(apiUrl.toString());
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch RSVP data: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('[DEBUG] Raw API response:', data);
+        console.log('[DEBUG] Events count:', data.Events?.length || 0);
+
+        setRsvpData(data);
+      } catch (error) {
+        console.error('Error fetching RSVP data:', error);
+        setLoadError(error instanceof Error ? error.message : 'Failed to load RSVP data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRSVPData();
+  }, [widgetParams.ProjectRsvpID]);
 
   // Scroll to instructions when view or form step changes
   useEffect(() => {
@@ -206,12 +384,34 @@ export default function RSVPPage() {
     return () => resizeObserver.disconnect();
   }, [currentView, formStep]);
 
-  // Filter service times by selected campus
+  // Convert RSVPEvent to ServiceTimeResponse format
+  const convertEventToServiceTime = (event: RSVPEvent): ServiceTimeResponse => {
+    return {
+      Event_ID: event.Event_ID,
+      Event_Title: event.Event_Title,
+      Event_Start_Date: event.Event_Start_Date,
+      Event_End_Date: event.Event_End_Date,
+      Campus_Name: event.Campus_Name || 'Unknown Campus',
+      Congregation_ID: event.Congregation_ID || 0,
+      Max_Capacity: event.Max_Capacity,
+      Total_RSVPs: event.Current_RSVPs,
+      Total_Attendees: event.Current_RSVPs, // Use Current_RSVPs as Total_Attendees
+      Capacity_Percentage: event.Capacity_Percentage,
+      Is_Available: event.Is_Available,
+    };
+  };
+
+  // Filter service times by selected campus (from real API data)
   const filteredServiceTimes = useMemo(() => {
-    return mockServiceTimes.filter(
-      (service) => service.campusId === selectedCampusId
-    );
-  }, [selectedCampusId]);
+    if (!rsvpData?.Events || selectedCampusId === null) {
+      return [];
+    }
+
+    // Filter events by Congregation_ID matching the selected campus
+    return rsvpData.Events
+      .filter(event => event.Congregation_ID === selectedCampusId)
+      .map(convertEventToServiceTime);
+  }, [rsvpData, selectedCampusId]);
 
   // Filter informational events by selected campus
   const filteredInformationalEvents = useMemo(() => {
@@ -222,45 +422,115 @@ export default function RSVPPage() {
 
   // Group service times by campus for display
   const groupedServiceTimes = useMemo(() => {
-    const groups: Record<string, ServiceTime[]> = {};
+    const groups: Record<string, ServiceTimeResponse[]> = {};
     filteredServiceTimes.forEach((service) => {
-      if (!groups[service.campusName]) {
-        groups[service.campusName] = [];
+      if (!groups[service.Campus_Name]) {
+        groups[service.Campus_Name] = [];
       }
-      groups[service.campusName].push(service);
+      groups[service.Campus_Name].push(service);
     });
     return groups;
   }, [filteredServiceTimes]);
 
-  // Handlers
-  const handleServiceSelect = (serviceTime: ServiceTime) => {
-    const serviceTimeResponse: ServiceTimeResponse = {
-      Event_ID: serviceTime.eventId,
-      Event_Title: serviceTime.title,
-      Event_Start_Date: serviceTime.startDate.toISOString(),
-      Event_End_Date: serviceTime.endDate.toISOString(),
-      Campus_Name: serviceTime.campusName,
-      Congregation_ID: serviceTime.campusId,
-      Max_Capacity: serviceTime.maxCapacity,
-      Total_RSVPs: serviceTime.totalRSVPs,
-      Total_Attendees: serviceTime.totalAttendees,
-      Capacity_Percentage: serviceTime.capacityPercentage,
-      Is_Available: serviceTime.isAvailable,
-    };
+  // Parse confirmation cards from RSVP data
+  const confirmationCards = useMemo<ParsedConfirmationCard[]>(() => {
+    if (!rsvpData?.Confirmation_Cards) return [];
 
-    setSelectedServiceTime(serviceTimeResponse);
+    return rsvpData.Confirmation_Cards.map(card => ({
+      Card_ID: card.Card_ID,
+      Card_Type_ID: card.Card_Type_ID,
+      Card_Type_Name: card.Card_Type_Name,
+      Component_Name: card.Component_Name,
+      Icon_Name: card.Icon_Name,
+      Display_Order: card.Display_Order,
+      Congregation_ID: card.Congregation_ID,
+      Configuration: parseCardConfiguration(card.Configuration),
+    }));
+  }, [rsvpData]);
+
+  // Handlers
+  const handleServiceSelect = (serviceTime: ServiceTimeResponse) => {
+    setSelectedServiceTime(serviceTime);
     setCurrentView("form");
   };
 
-  const handleFormSubmit = async (data: RSVPFormInput) => {
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  const handleFormSubmit = async (data: RSVPFormInput, answers: Record<number, RSVPAnswerValue>) => {
+    console.log('[DEBUG] Form submission - Contact Data:', data);
+    console.log('[DEBUG] Form submission - Dynamic Answers:', answers);
 
-    // Simulate RSVP submission and get confirmation
-    const mockConfirmation = simulateRSVPSubmission(data);
+    try {
+      // Convert answers object to array format for API
+      const answersArray: RSVPAnswer[] = Object.entries(answers).map(([questionId, value]) => {
+        const answer: RSVPAnswer = {
+          Question_ID: parseInt(questionId),
+        };
 
-    setConfirmation(mockConfirmation);
-    setCurrentView("confirmation");
+        // Determine which field to populate based on value type
+        if (typeof value === 'number') {
+          answer.Numeric_Value = value;
+        } else if (typeof value === 'boolean') {
+          answer.Boolean_Value = value;
+        } else if (typeof value === 'string') {
+          // Check if it's a date string
+          if (value.match(/^\d{4}-\d{2}-\d{2}/)) {
+            answer.Date_Value = value;
+          } else {
+            answer.Text_Value = value;
+          }
+        } else if (Array.isArray(value)) {
+          // Multi-select answers as JSON string
+          answer.Text_Value = JSON.stringify(value);
+        }
+
+        return answer;
+      });
+
+      // Build submission request
+      const submissionRequest: RSVPSubmissionRequest = {
+        Event_ID: data.eventId,
+        Project_RSVP_ID: rsvpData?.Project_RSVP.Project_RSVP_ID || widgetParams.ProjectRsvpID || 1,
+        Contact_ID: null, // TODO: Get from auth when implemented
+        First_Name: data.firstName,
+        Last_Name: data.lastName,
+        Email_Address: data.emailAddress,
+        Phone_Number: data.phoneNumber || null,
+        Answers: answersArray,
+      };
+
+      console.log('[DEBUG] Submitting RSVP:', submissionRequest);
+
+      // Call submission API
+      const response = await fetch('/api/rsvp/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submissionRequest),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.message || 'Failed to submit RSVP');
+      }
+
+      const result = await response.json();
+      console.log('[DEBUG] Submission successful:', result);
+
+      // Extract confirmation from result and add First_Name/Last_Name
+      const confirmationData = {
+        ...result.confirmation,
+        First_Name: data.firstName,
+        Last_Name: data.lastName,
+      };
+
+      setConfirmation(confirmationData);
+      setSubmittedAnswers(answers); // Store the submitted answers
+      setCurrentView("confirmation");
+
+    } catch (error) {
+      console.error('Error submitting RSVP:', error);
+      alert(error instanceof Error ? error.message : 'Failed to submit RSVP. Please try again.');
+    }
   };
 
   const handleBackToServices = () => {
@@ -272,17 +542,49 @@ export default function RSVPPage() {
 
   const handleReset = () => {
     setCurrentView("services");
-    setSelectedCampusId(12); // Reset to Troy default
+    setSelectedCampusId(availableCampuses.length > 0 ? availableCampuses[0].id : null);
     setSelectedServiceTime(null);
     setConfirmation(null);
+    setSubmittedAnswers(null); // Clear submitted answers
     setFormStep(1); // Reset to step 1
     setFormData({}); // Clear form data
   };
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header with Background Image and Content */}
-      <section className="relative text-white overflow-hidden pt-16 pb-16">
+      {/* Glassmorphic Top Navigation Bar - Fixed */}
+      <div className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/10 border-b border-white/20 py-3 px-8">
+        <div className="max-w-[1600px] mx-auto flex justify-end items-center">
+          {sessionStatus === "loading" ? (
+            <div className="text-white/90 text-sm">Loading...</div>
+          ) : session ? (
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-white drop-shadow-lg">
+                <User className="w-4 h-4" />
+                <span className="text-sm font-medium">{session.user?.name || session.user?.email}</span>
+              </div>
+              <button
+                onClick={() => signOut()}
+                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-md transition-all text-sm font-medium shadow-lg"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => signIn("ministryplatform")}
+              className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-md transition-all text-sm font-medium shadow-lg"
+            >
+              <User className="w-4 h-4" />
+              Sign In
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Header with Background Image and Content - Starts at top with padding for fixed nav */}
+      <section className="relative text-white overflow-hidden pt-24 pb-16">
         {/* Background Pattern */}
         <div
           className="absolute inset-0 bg-cover bg-center"
@@ -451,10 +753,10 @@ export default function RSVPPage() {
                 </div>
 
                 {/* Campus Filter - Only show on services view and when not hardcoded via data-params */}
-                {currentView === "services" && !hideCampusDropdown && (
+                {currentView === "services" && !hideCampusDropdown && availableCampuses.length > 1 && selectedCampusId !== null && (
                   <div className="w-full md:max-w-md">
                     <Select
-                      value={selectedCampusId.toString()}
+                      value={selectedCampusId?.toString() ?? ''}
                       onValueChange={(value) =>
                         setSelectedCampusId(parseInt(value))
                       }
@@ -466,7 +768,7 @@ export default function RSVPPage() {
                         </div>
                       </SelectTrigger>
                       <SelectContent>
-                        {mockCampuses.map((campus) => (
+                        {availableCampuses.map((campus) => (
                           <SelectItem key={campus.id} value={campus.id.toString()} className="text-base py-3">
                             {campus.name}
                           </SelectItem>
@@ -490,6 +792,32 @@ export default function RSVPPage() {
 
           {/* Main Content Section - Full Width */}
           <div>
+              {/* Loading State */}
+              {isLoading && (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center space-y-3">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+                    <p className="text-white/80 text-sm">Loading service times...</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error State */}
+              {loadError && (
+                <div className="bg-red-500/10 border-2 border-red-500/50 rounded-lg p-6 text-center">
+                  <p className="text-white font-semibold mb-2">Unable to load RSVP data</p>
+                  <p className="text-white/80 text-sm">{loadError}</p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="mt-4 px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-md transition-colors"
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
+
+              {/* Main Content - Only show when not loading and no error */}
+              {!isLoading && !loadError && (
               <AnimatePresence mode="wait">
                 {/* Service Times List */}
                 {currentView === "services" && (
@@ -509,20 +837,8 @@ export default function RSVPPage() {
                             <div className={`flex md:flex-wrap gap-4 pb-2 scroll-smooth md:overflow-x-visible scrollbar-hide ${services.length > 1 ? 'overflow-x-auto snap-x snap-mandatory -mx-8 px-8 md:mx-0 md:px-0' : 'overflow-x-visible'}`}>
                               {services.map((service) => (
                                 <ServiceTimeCard
-                                  key={service.eventId}
-                                  serviceTime={{
-                                    Event_ID: service.eventId,
-                                    Event_Title: service.title,
-                                    Event_Start_Date: service.startDate.toISOString(),
-                                    Event_End_Date: service.endDate.toISOString(),
-                                    Campus_Name: service.campusName,
-                                    Congregation_ID: service.campusId,
-                                    Max_Capacity: service.maxCapacity,
-                                    Total_RSVPs: service.totalRSVPs,
-                                    Total_Attendees: service.totalAttendees,
-                                    Capacity_Percentage: service.capacityPercentage,
-                                    Is_Available: service.isAvailable,
-                                  }}
+                                  key={service.Event_ID}
+                                  serviceTime={service}
                                   selected={false}
                                   onSelect={() => handleServiceSelect(service)}
                                   isCarousel={services.length > 1}
@@ -592,6 +908,7 @@ export default function RSVPPage() {
                       onStepChange={setFormStep}
                       initialData={formData}
                       onDataChange={setFormData}
+                      questions={rsvpData?.Questions || []}
                     />
                   </motion.div>
                 )}
@@ -606,11 +923,15 @@ export default function RSVPPage() {
                   >
                     <ConfirmationView
                       confirmation={confirmation}
+                      confirmationCards={confirmationCards}
+                      questions={rsvpData?.Questions || []}
+                      answers={submittedAnswers || {}}
                       onReset={handleReset}
                     />
                   </motion.div>
                 )}
               </AnimatePresence>
+              )}
           </div>
         </div>
       </section>
