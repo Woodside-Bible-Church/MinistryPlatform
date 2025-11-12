@@ -22,7 +22,8 @@ export function MapCard({ card, confirmation }: CardComponentProps) {
   const encodedAddress = encodeURIComponent(address);
 
   // Use static map for preview (Google Maps Static API or similar)
-  const mapImageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodedAddress}&zoom=15&size=600x300&markers=color:red%7C${encodedAddress}&key=YOUR_API_KEY`;
+  // Uncomment when you have a Google Maps API key:
+  // const mapImageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodedAddress}&zoom=15&size=600x300&markers=color:red%7C${encodedAddress}&key=YOUR_API_KEY`;
 
   const handleGetDirections = () => {
     // Use confirmation.Google_Maps_URL if available, otherwise construct one

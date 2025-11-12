@@ -9,9 +9,6 @@ import {
   Mail,
   Phone,
   Loader2,
-  Minus,
-  Plus,
-  Sparkles,
   UserPlus,
   UserCircle,
 } from "lucide-react";
@@ -195,9 +192,6 @@ export default function RSVPForm({
       }
     }
   };
-
-  const partySize = watch("partySize");
-  const isNewVisitor = watch("isNewVisitor");
 
   // Watch form values to detect autocomplete changes
   const firstName = watch("firstName");

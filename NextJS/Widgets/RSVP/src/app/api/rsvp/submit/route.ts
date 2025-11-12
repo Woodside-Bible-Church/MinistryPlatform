@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     // Parse the double-JSON-encoded confirmation field if present
     if (data.confirmation && typeof data.confirmation === 'string') {
       try {
-        data.confirmation = JSON.parse(data.confirmation as any);
+        data.confirmation = JSON.parse(data.confirmation as string);
       } catch (e) {
         console.error('Failed to parse confirmation JSON:', e);
         // Leave as-is if parsing fails
