@@ -262,7 +262,8 @@ export default function RSVPPage() {
       }
 
       try {
-        const response = await fetch('/api/household');
+        const apiOrigin = baseUrl || window.location.origin;
+        const response = await fetch(`${apiOrigin}/api/household`);
         if (response.ok) {
           const data = await response.json();
           const congregationId = data.user?.Web_Congregation_ID || null;
@@ -276,7 +277,7 @@ export default function RSVPPage() {
     };
 
     fetchUserCongregationId();
-  }, [session]);
+  }, [session, baseUrl]);
 
   // Set initial campus when available campuses are loaded
   useEffect(() => {
@@ -325,10 +326,13 @@ export default function RSVPPage() {
         const projectRsvpId = widgetParams.ProjectRsvpID || 1;
 
         // Build API URL with query parameters
-        const apiUrl = new URL('/api/rsvp/project', window.location.origin);
+        // Use baseUrl (widget config) if available, otherwise use window.location.origin
+        const apiOrigin = baseUrl || window.location.origin;
+        const apiUrl = new URL('/api/rsvp/project', apiOrigin);
         apiUrl.searchParams.set('projectRsvpId', projectRsvpId.toString());
 
         console.log('[DEBUG] Fetching RSVP data for project:', projectRsvpId);
+        console.log('[DEBUG] API URL:', apiUrl.toString());
         const response = await fetch(apiUrl.toString());
 
         if (!response.ok) {
@@ -349,7 +353,7 @@ export default function RSVPPage() {
     };
 
     fetchRSVPData();
-  }, [widgetParams.ProjectRsvpID]);
+  }, [widgetParams.ProjectRsvpID, baseUrl]);
 
   // Scroll to instructions when view or form step changes
   useEffect(() => {
@@ -495,7 +499,8 @@ export default function RSVPPage() {
       console.log('[DEBUG] Submitting RSVP:', submissionRequest);
 
       // Call submission API
-      const response = await fetch('/api/rsvp/submit', {
+      const apiOrigin = baseUrl || window.location.origin;
+      const response = await fetch(`${apiOrigin}/api/rsvp/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
