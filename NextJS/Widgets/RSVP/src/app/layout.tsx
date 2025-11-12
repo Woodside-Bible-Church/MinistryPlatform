@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { DevLoginWidget } from "@/components/DevLoginWidget";
-import { DevTokenInput } from "@/components/DevTokenInput";
+import SessionProvider from "@/components/SessionProvider";
 import Script from "next/script";
 import "./globals.css";
 
@@ -49,17 +48,17 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               window.MPWidgetsConfig = {
-                baseUrl: 'https://my.woodsidebible.org'
+                baseUrl: 'https://my.woodsidebible.org',
+                debug: true
               };
+              console.log('[MPWidgets] Config set:', window.MPWidgetsConfig);
             `
           }}
         />
 
-        {/* Development Authentication Tools */}
-        <DevTokenInput />
-        <DevLoginWidget />
-
-        {children}
+        <SessionProvider>
+          {children}
+        </SessionProvider>
       </body>
     </html>
   );

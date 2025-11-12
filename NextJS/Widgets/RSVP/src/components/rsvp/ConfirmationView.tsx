@@ -6,25 +6,35 @@ import {
   Clock,
   RotateCcw,
   Navigation,
+  HelpCircle,
 } from "lucide-react";
+import * as LucideIcons from "lucide-react";
 import { FaGoogle, FaApple } from "react-icons/fa";
 import {
-  RSVPConfirmationResponse,
+  RSVPConfirmation,
   formatServiceTime,
   formatServiceDate,
+  ParsedConfirmationCard,
+  RSVPQuestion,
+  RSVPAnswerValue,
 } from "@/types/rsvp";
 import { Button } from "@/components/ui/button";
 import { CardRenderer } from "@/components/confirmation/CardRenderer";
-import { ConfirmationCard } from "@/types/confirmationCards";
 import { useState } from "react";
 
 interface ConfirmationViewProps {
-  confirmation: RSVPConfirmationResponse;
+  confirmation: RSVPConfirmation;
+  confirmationCards?: ParsedConfirmationCard[];
+  questions?: RSVPQuestion[];
+  answers?: Record<number, RSVPAnswerValue>;
   onReset: () => void;
 }
 
 export default function ConfirmationView({
   confirmation,
+  confirmationCards = [],
+  questions = [],
+  answers = {},
   onReset,
 }: ConfirmationViewProps) {
   const startDate = new Date(confirmation.Event_Start_Date);
@@ -33,11 +43,10 @@ export default function ConfirmationView({
 
   // Format address for Google Maps
   const fullAddress = [
-    confirmation.Campus_Address_Line_1,
-    confirmation.Campus_Address_Line_2,
+    confirmation.Campus_Address,
     confirmation.Campus_City,
     confirmation.Campus_State,
-    confirmation.Campus_Postal_Code,
+    confirmation.Campus_Zip,
   ]
     .filter(Boolean)
     .join(", ");
@@ -75,76 +84,42 @@ export default function ConfirmationView({
     setShowMapSelector(false);
   };
 
-  // Mock card configuration - in production this would come from the database
-  const cards: ConfirmationCard[] = [
-    {
-      Card_Type_ID: 1,
-      Card_Type_Name: "Instructions",
-      Component_Name: "InstructionsCard",
-      Icon_Name: "Info",
-      Display_Order: 1,
-      Configuration: {
-        title: "What to Expect",
-        bullets: [
-          {
-            icon: "Clock",
-            text: "Arrive early to find parking and get seated comfortably",
+  // Use cards from database or provide defaults
+  const cards = confirmationCards.length > 0
+    ? confirmationCards
+    : [
+        // Default cards if none configured in database
+        {
+          Card_ID: 1,
+          Card_Type_ID: 1,
+          Card_Type_Name: "Instructions" as const,
+          Component_Name: "InstructionsCard",
+          Icon_Name: "Info",
+          Display_Order: 1,
+          Congregation_ID: null,
+          Configuration: {
+            title: "What to Expect",
+            bullets: [
+              {
+                icon: "Clock",
+                text: "Arrive early to find parking and get seated comfortably",
+              },
+              {
+                icon: "Baby",
+                text: "Kids programming available for all ages",
+              },
+              {
+                icon: "Timer",
+                text: "Services last approximately 60 minutes",
+              },
+              {
+                icon: "Shirt",
+                text: "Dress casually - come as you are!",
+              },
+            ],
           },
-          {
-            icon: "Baby",
-            text: "Kids programming available for all ages",
-          },
-          {
-            icon: "Timer",
-            text: "Services last approximately 60 minutes",
-          },
-          {
-            icon: "Shirt",
-            text: "Dress casually - come as you are!",
-          },
-        ],
-      },
-    },
-    {
-      Card_Type_ID: 4,
-      Card_Type_Name: "QRCode",
-      Component_Name: "QRCodeCard",
-      Icon_Name: "QrCode",
-      Display_Order: 2,
-      Configuration: {
-        title: "Check-In Code",
-        qrType: "checkin",
-        qrData: "{confirmation_number}",
-        description: "Show this code when you arrive for faster check-in",
-        includeConfirmationNumber: true,
-        size: 200,
-      },
-    },
-    {
-      Card_Type_ID: 5,
-      Card_Type_Name: "Share",
-      Component_Name: "ShareCard",
-      Icon_Name: "Share2",
-      Display_Order: 3,
-      Configuration: {
-        title: "Invite a Friend",
-        enabledMethods: ["sms", "email", "copy"],
-        customMessage: "Join me at {event_title} on {event_date}!",
-      },
-    },
-    {
-      Card_Type_ID: 6,
-      Card_Type_Name: "AddToCalendar",
-      Component_Name: "AddToCalendarCard",
-      Icon_Name: "Calendar",
-      Display_Order: 4,
-      Configuration: {
-        title: "Save the Date",
-        providers: ["google", "apple", "outlook", "ics"],
-        eventDescription: `Join us for ${confirmation.Event_Title}`,
-      },
-    },
-  ];
+        },
+      ];
 
   return (
     <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,450px),1fr))] gap-6">
@@ -178,6 +153,43 @@ export default function ConfirmationView({
               </p>
             </div>
           </div>
+
+          {/* Dynamic Answers */}
+          {questions.map((question) => {
+            const answer = answers[question.Question_ID];
+            if (answer === undefined || answer === null) return null;
+
+            // Get the icon component dynamically (same pattern as QuestionLabel)
+            const IconComponent = question.Icon_Name
+              ? (LucideIcons[question.Icon_Name as keyof typeof LucideIcons] as React.ComponentType<{ className?: string }>) || HelpCircle
+              : HelpCircle;
+
+            // Format the answer for display
+            let displayValue: string;
+            if (typeof answer === 'boolean') {
+              displayValue = answer ? 'Yes' : 'No';
+            } else if (Array.isArray(answer)) {
+              displayValue = answer.join(', ');
+            } else {
+              displayValue = String(answer);
+            }
+
+            return (
+              <div key={question.Question_ID} className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center mt-0.5">
+                  <IconComponent className="w-5 h-5 text-secondary" />
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-white">
+                    {displayValue}
+                  </p>
+                  <p className="text-sm text-white/70">
+                    {question.Question_Text}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
 
           {/* Campus Location */}
           <div className="flex items-start gap-3">

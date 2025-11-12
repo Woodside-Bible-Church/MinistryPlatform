@@ -10,6 +10,7 @@ export interface MinistryPlatformProfile {
   sub: string
   name?: string
   user_id?: string
+  ext_Contact_ID?: string
 }
 
 export default function MinistryPlatform<P extends MinistryPlatformProfile>(
@@ -50,7 +51,7 @@ export default function MinistryPlatform<P extends MinistryPlatformProfile>(
     profile(profile) {
       console.log('MinistryPlatform profile function called with:', profile);
       return {
-        id: profile.sub,
+        id: profile.ext_Contact_ID || profile.sub,
         name: `${profile.given_name} ${profile.family_name}`,
         firstName: profile.given_name,
         lastName: profile.family_name,
@@ -59,7 +60,8 @@ export default function MinistryPlatform<P extends MinistryPlatformProfile>(
         sub: profile.sub,
         userId: profile.sub,
         username: profile.name,
-        user_id: profile.user_id
+        user_id: profile.user_id,
+        contactId: profile.ext_Contact_ID
       }
     },
     options,

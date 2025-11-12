@@ -4,6 +4,8 @@
 
 declare namespace JSX {
   interface IntrinsicElements {
-    'mpp-user-login': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+    'mpp-user-login': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & {
+      customcss?: string;
+    }, HTMLElement>;
   }
 }

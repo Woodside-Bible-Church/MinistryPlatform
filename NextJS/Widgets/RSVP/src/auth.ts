@@ -37,6 +37,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       
       if (account && profile) {
         console.log('JWT Callback - Setting initial token from account')
+        console.log('JWT Callback - profile.ext_Contact_ID:', (profile as any).ext_Contact_ID)
 
         return {
           ...token,
@@ -49,6 +50,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: profile.name,
           firstName: profile.given_name,
           lastName: profile.family_name,
+          contactId: (profile as any).ext_Contact_ID,
         } as JWT
       }
     
@@ -106,16 +108,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   async session({ session, token }) {
     console.log('Session Callback - token exists:', !!token)
     console.log('Token sub:', token?.sub)
-    
+    console.log('Token contactId:', (token as any)?.contactId)
+
     if (token && session.user) {
-      session.user.id = token.sub as string // Use sub as the user ID
+      // Use Contact_ID if available, fallback to sub
+      session.user.id = (token as any).contactId || token.sub as string
       session.accessToken = token.accessToken as string
       session.firstName = token.firstName as string
       session.lastName = token.lastName as string
       session.email = token.email as string
       session.sub = token.sub as string
     }
-    
+
     console.log('Final session user ID:', session.user?.id)
     return session
   },

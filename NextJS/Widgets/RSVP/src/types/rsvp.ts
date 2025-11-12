@@ -1,115 +1,379 @@
-// TypeScript types and Zod schemas for RSVP Widget
+// ===================================================================
+// RSVP Widget TypeScript Types
+// ===================================================================
+// Matches database schema from RSVP_DATABASE_SCHEMA.md
+// Generated from stored procedure response structures
+// ===================================================================
+
 import { z } from "zod";
 
-// ============================================================================
-// Database Entity Types
-// ============================================================================
-
-export interface EventRSVP {
-  Event_RSVP_ID: number;
-  Event_ID: number;
-  Contact_ID: number | null;
-  First_Name: string;
-  Last_Name: string;
-  Email_Address: string;
-  Phone_Number: string | null;
-  Party_Size: number;
-  Is_New_Visitor: boolean;
-  RSVP_Date: Date;
-  Domain_ID: number;
-}
-
-export interface EventCapacity {
-  Event_Capacity_ID: number;
-  Event_ID: number;
-  Max_Capacity: number;
-  Domain_ID: number;
-}
-
-export interface EventSeries {
-  Event_Series_ID: number;
-  Series_Name: string;
-  Series_Description: string | null;
-  Start_Date: Date;
-  End_Date: Date;
-  Is_Active: boolean;
-  Domain_ID: number;
-}
-
-export interface EventSeriesEvent {
-  Event_Series_Event_ID: number;
-  Event_Series_ID: number;
-  Event_ID: number;
-  Display_Order: number | null;
-}
-
-// ============================================================================
+// ===================================================================
 // API Response Types (from stored procedures)
-// ============================================================================
-
-export interface ServiceTimeResponse {
-  Event_ID: number;
-  Event_Title: string;
-  Event_Start_Date: string; // ISO date string from MP
-  Event_End_Date: string;
-  Campus_Name: string;
-  Congregation_ID: number;
-  Max_Capacity: number;
-  Total_RSVPs: number;
-  Total_Attendees: number;
-  Capacity_Percentage: number;
-  Is_Available: boolean;
-}
-
-export interface RSVPConfirmationResponse {
-  Event_RSVP_ID: number;
-  Event_ID: number;
-  First_Name: string;
-  Last_Name: string;
-  Email_Address: string;
-  Party_Size: number;
-  Event_Title: string;
-  Event_Start_Date: string;
-  Event_End_Date: string;
-  Campus_Name: string;
-  Campus_Address_Line_1: string;
-  Campus_Address_Line_2: string | null;
-  Campus_City: string;
-  Campus_State: string;
-  Campus_Postal_Code: string;
-}
-
-export interface EventSeriesResponse {
-  Event_Series_ID: number;
-  Series_Name: string;
-  Series_Description: string | null;
-  Start_Date: string;
-  End_Date: string;
-  Event_Count: number;
-}
-
-export interface MyRSVPResponse {
-  Event_RSVP_ID: number;
-  Event_ID: number;
-  Party_Size: number;
-  Is_New_Visitor: boolean;
-  RSVP_Date: string;
-  Event_Title: string;
-  Event_Start_Date: string;
-  Event_End_Date: string;
-  Campus_Name: string;
-}
-
-// ============================================================================
-// Zod Schemas for Validation
-// ============================================================================
+// ===================================================================
 
 /**
- * Schema for RSVP form submission
+ * Complete response from api_Custom_RSVP_Project_Data_JSON
+ * This is what the widget receives from GET /api/rsvp/project/{id}
  */
-export const RSVPFormSchema = z.object({
-  eventId: z.number().int().positive(),
-  contactId: z.number().int().positive().nullable().optional(),
+export interface ProjectRSVPDataResponse {
+  Project_RSVP: ProjectRSVPConfig;
+  Events: RSVPEvent[];
+  Questions: RSVPQuestion[];
+  Confirmation_Cards: ConfirmationCard[];
+}
+
+/**
+ * Response from api_Custom_RSVP_Submit_JSON
+ * Returned after successful RSVP submission
+ */
+export interface RSVPSubmissionResponse {
+  status: 'success' | 'error';
+  confirmation?: RSVPConfirmation;
+  message?: string;
+  error_number?: number;
+  error_line?: number;
+}
+
+// ===================================================================
+// Project RSVP Configuration
+// ===================================================================
+
+export interface ProjectRSVPConfig {
+  Project_RSVP_ID: number;
+  Project_ID: number;
+  RSVP_Title: string;
+  RSVP_Description: string | null;
+  Header_Image_URL: string | null;
+  Start_Date: string | null; // ISO date string
+  End_Date: string | null; // ISO date string
+  Is_Active: boolean;
+  Require_Contact_Lookup: boolean;
+  Allow_Guest_Submission: boolean;
+}
+
+// ===================================================================
+// Events
+// ===================================================================
+
+export interface RSVPEvent {
+  Event_ID: number;
+  Event_Title: string;
+  Event_Start_Date: string; // ISO date string
+  Event_End_Date: string; // ISO date string
+  Event_Type_ID: number;
+  Congregation_ID: number | null;
+  Campus_Name: string | null;
+  Campus_Location: string | null;
+  Capacity: number;
+  Current_RSVPs: number;
+  RSVP_Capacity_Modifier: number;
+  Adjusted_RSVP_Count: number;
+  Capacity_Percentage: number;
+  Max_Capacity: number;
+  Is_Available: boolean;
+  Campus_Address: string | null;
+  Campus_City: string | null;
+  Campus_State: string | null;
+  Campus_Zip: string | null;
+}
+
+// ===================================================================
+// Questions
+// ===================================================================
+
+export interface RSVPQuestion {
+  Question_ID: number;
+  Question_Text: string;
+  Question_Type: QuestionTypeName;
+  Component_Name: string;
+  Field_Order: number;
+  Is_Required: boolean;
+  Helper_Text: string | null;
+  Min_Value: number | null;
+  Max_Value: number | null;
+  Default_Value: string | null;
+  Placeholder_Text: string | null;
+  Icon_Name: string | null;
+  Options: string; // JSON string from stored proc - needs parsing
+}
+
+export interface QuestionOption {
+  Option_ID: number;
+  Option_Text: string;
+  Option_Value: string;
+  Display_Order: number;
+}
+
+export type QuestionTypeName =
+  | 'Counter'
+  | 'Checkbox'
+  | 'Text'
+  | 'Textarea'
+  | 'Dropdown'
+  | 'Radio'
+  | 'Multi-Checkbox'
+  | 'Date'
+  | 'Time'
+  | 'Email'
+  | 'Phone'
+  | 'Searchable Dropdown'
+  | 'Multi-Select Dropdown'
+  | 'Tag Input'
+  | 'Button Group'
+  | 'Multi-Button Group'
+  | 'Slider'
+  | 'Rating'
+  | 'File Upload'
+  | 'Color Picker';
+
+// Parsed question with options array
+export interface ParsedRSVPQuestion extends Omit<RSVPQuestion, 'Options'> {
+  Options: QuestionOption[];
+}
+
+// ===================================================================
+// Confirmation Cards
+// ===================================================================
+
+export interface ConfirmationCard {
+  Card_ID: number;
+  Card_Type_ID: number;
+  Card_Type_Name: CardTypeName;
+  Component_Name: string;
+  Icon_Name: string | null;
+  Display_Order: number;
+  Congregation_ID: number | null;
+  Configuration: string; // JSON string from stored proc - needs parsing
+}
+
+export type CardTypeName =
+  | 'Instructions'
+  | 'Map'
+  | 'QR Code'
+  | 'Share'
+  | 'Add to Calendar'
+  | 'Parking'
+  | 'Childcare'
+  | 'Contact Info'
+  | 'Schedule'
+  | 'Weather'
+  | 'What to Bring'
+  | 'Group Assignment';
+
+// Parsed card with configuration object
+export interface ParsedConfirmationCard extends Omit<ConfirmationCard, 'Configuration'> {
+  Configuration: CardConfiguration;
+}
+
+// Card-specific configuration interfaces
+export type CardConfiguration =
+  | InstructionsCardConfig
+  | MapCardConfig
+  | QRCodeCardConfig
+  | ShareCardConfig
+  | AddToCalendarCardConfig
+  | ParkingCardConfig
+  | ChildcareCardConfig
+  | ContactInfoCardConfig
+  | ScheduleCardConfig
+  | WeatherCardConfig
+  | WhatToBringCardConfig
+  | GroupAssignmentCardConfig;
+
+export interface InstructionsCardConfig {
+  title: string;
+  bullets: {
+    icon: string;
+    text: string;
+  }[];
+}
+
+export interface MapCardConfig {
+  title: string;
+  showDirectionsLink: boolean;
+  latitude?: number;
+  longitude?: number;
+  customInstructions?: string;
+}
+
+export interface QRCodeCardConfig {
+  title: string;
+  description: string;
+  includeConfirmationNumber: boolean;
+  qrData?: string;
+}
+
+export interface ShareCardConfig {
+  title: string;
+  description?: string;
+  enabledMethods: ('sms' | 'email' | 'facebook' | 'twitter')[];
+  customMessage?: string;
+}
+
+export interface AddToCalendarCardConfig {
+  title: string;
+  description?: string;
+  providers: ('google' | 'apple' | 'outlook' | 'ics')[];
+}
+
+export interface ParkingCardConfig {
+  title: string;
+  description: string;
+  parkingLots?: string[];
+}
+
+export interface ChildcareCardConfig {
+  title: string;
+  description: string;
+  ageRange?: string;
+  registrationRequired?: boolean;
+  registrationUrl?: string;
+}
+
+export interface ContactInfoCardConfig {
+  title: string;
+  contactName?: string;
+  phone: string;
+  email: string;
+  officeHours?: string;
+}
+
+export interface ScheduleCardConfig {
+  title: string;
+  timelineItems: {
+    time: string;
+    activity: string;
+  }[];
+}
+
+export interface WeatherCardConfig {
+  title: string;
+  showExtendedForecast?: boolean;
+}
+
+export interface WhatToBringCardConfig {
+  title: string;
+  items: string[];
+}
+
+export interface GroupAssignmentCardConfig {
+  title: string;
+  showGroupMembers?: boolean;
+}
+
+// ===================================================================
+// RSVP Submission
+// ===================================================================
+
+export interface RSVPSubmissionRequest {
+  Event_ID: number;
+  Project_RSVP_ID: number;
+  Contact_ID?: number | null;
+  First_Name: string;
+  Last_Name: string;
+  Email_Address: string;
+  Phone_Number?: string | null;
+  Answers: RSVPAnswer[];
+}
+
+export interface RSVPAnswer {
+  Question_ID: number;
+  Text_Value?: string;
+  Numeric_Value?: number;
+  Boolean_Value?: boolean;
+  Date_Value?: string; // ISO date string
+}
+
+export interface RSVPConfirmation {
+  Event_RSVP_ID: number;
+  Confirmation_Code: string;
+  Event_Participant_ID: number | null;
+  Party_Size: number;
+  Event_ID: number;
+  Event_Title: string;
+  Event_Start_Date: string;
+  Event_End_Date: string;
+  Congregation_ID: number | null;
+  Campus_Name: string | null;
+  Campus_Location: string | null;
+  Campus_Address: string | null;
+  Campus_City: string | null;
+  Campus_State: string | null;
+  Campus_Zip: string | null;
+  Google_Maps_URL: string;
+  First_Name?: string; // Added for confirmation page display
+  Last_Name?: string; // Added for confirmation page display
+}
+
+// ===================================================================
+// Frontend State Types
+// ===================================================================
+
+export interface RSVPFormData {
+  eventId: number;
+  firstName: string;
+  lastName: string;
+  emailAddress: string;
+  phoneNumber: string;
+  answers: Record<number, RSVPAnswerValue>;
+}
+
+export type RSVPAnswerValue = string | number | boolean | string[] | null;
+
+export interface RSVPFormStep {
+  step: 'campus' | 'service' | 'contact' | 'details' | 'confirmation';
+  canGoBack: boolean;
+  canGoForward: boolean;
+}
+
+// ===================================================================
+// Helper Types for UI Components
+// ===================================================================
+
+export interface ServiceTimeDisplay extends RSVPEvent {
+  formattedDate: string;
+  formattedTime: string;
+  capacityStatus: 'available' | 'limited' | 'full';
+  capacityColor: string;
+}
+
+// Alias for backward compatibility
+export type ServiceTimeResponse = ServiceTimeDisplay;
+
+export interface CampusOption {
+  id: number;
+  name: string;
+  congregationId: number;
+}
+
+// ===================================================================
+// Question Component Props
+// ===================================================================
+
+export interface QuestionComponentProps {
+  question: ParsedRSVPQuestion;
+  value: RSVPAnswerValue;
+  onChange: (value: RSVPAnswerValue) => void;
+  error?: string;
+}
+
+// ===================================================================
+// Card Component Props
+// ===================================================================
+
+export interface CardComponentProps {
+  card: ParsedConfirmationCard;
+  confirmation: RSVPConfirmation;
+}
+
+// ===================================================================
+// Zod Schemas for Validation
+// ===================================================================
+
+/**
+ * Schema for RSVP form submission - base contact info
+ */
+export const RSVPContactInfoSchema = z.object({
   firstName: z
     .string()
     .min(1, "First name is required")
@@ -121,7 +385,36 @@ export const RSVPFormSchema = z.object({
   emailAddress: z
     .string()
     .email("Invalid email address")
-    .max(255, "Email must be 255 characters or less"),
+    .max(100, "Email must be 100 characters or less"),
+  phoneNumber: z
+    .string()
+    .regex(
+      /^(\+?1[-.\s]?)?(\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}$/,
+      "Invalid phone number format"
+    )
+    .optional()
+    .or(z.literal("")),
+});
+
+export type RSVPContactInfo = z.infer<typeof RSVPContactInfoSchema>;
+
+/**
+ * Schema for complete RSVP form submission (both steps)
+ */
+export const RSVPFormSchema = z.object({
+  eventId: z.number().int().positive(),
+  firstName: z
+    .string()
+    .min(1, "First name is required")
+    .max(50, "First name must be 50 characters or less"),
+  lastName: z
+    .string()
+    .min(1, "Last name is required")
+    .max(50, "Last name must be 50 characters or less"),
+  emailAddress: z
+    .string()
+    .email("Invalid email address")
+    .max(100, "Email must be 100 characters or less"),
   phoneNumber: z
     .string()
     .regex(
@@ -134,21 +427,11 @@ export const RSVPFormSchema = z.object({
     .number()
     .int()
     .min(1, "Party size must be at least 1")
-    .max(20, "Party size cannot exceed 20"),
-  isNewVisitor: z.boolean().default(false),
+    .max(99, "Party size cannot exceed 99"),
+  isNewVisitor: z.boolean(),
 });
 
 export type RSVPFormInput = z.infer<typeof RSVPFormSchema>;
-
-/**
- * Schema for service time query parameters
- */
-export const ServiceTimeQuerySchema = z.object({
-  seriesId: z.number().int().positive().optional(),
-  congregationId: z.number().int().positive().optional(),
-});
-
-export type ServiceTimeQuery = z.infer<typeof ServiceTimeQuerySchema>;
 
 /**
  * Schema for campus selection
@@ -161,55 +444,54 @@ export const CampusSchema = z.object({
 
 export type Campus = z.infer<typeof CampusSchema>;
 
-// ============================================================================
-// Widget State Types
-// ============================================================================
-
-export type StepType = "campus" | "service" | "form" | "confirmation";
-
-export interface WidgetState {
-  currentStep: StepType;
-  selectedCampus: Campus | null;
-  selectedServiceTime: ServiceTimeResponse | null;
-  rsvpConfirmation: RSVPConfirmationResponse | null;
-}
-
-// ============================================================================
-// Component Props Types
-// ============================================================================
-
-export interface CampusSelectorProps {
-  campuses: Campus[];
-  selectedCampus: Campus | null;
-  onSelectCampus: (campus: Campus) => void;
-}
-
-export interface ServiceTimeCardProps {
-  serviceTime: ServiceTimeResponse;
-  selected: boolean;
-  onSelect: () => void;
-}
-
-export interface RSVPFormProps {
-  selectedServiceTime: ServiceTimeResponse;
-  onSubmit: (data: RSVPFormInput) => Promise<void>;
-  onBack: () => void;
-}
-
-export interface ConfirmationViewProps {
-  confirmation: RSVPConfirmationResponse;
-  onReset: () => void;
-}
-
-// ============================================================================
-// Utility Types
-// ============================================================================
+// ===================================================================
+// Utility Functions
+// ===================================================================
 
 /**
- * Converts MP date string to Date object
+ * Parse question options from JSON string
  */
-export function parseServiceDate(dateString: string): Date {
-  return new Date(dateString);
+export function parseQuestionOptions(optionsJson: string): QuestionOption[] {
+  try {
+    const parsed = JSON.parse(optionsJson);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Parse card configuration from JSON string
+ */
+export function parseCardConfiguration(configJson: string): CardConfiguration {
+  try {
+    return JSON.parse(configJson);
+  } catch {
+    return { title: 'Configuration Error' } as any;
+  }
+}
+
+/**
+ * Parse complete project RSVP data response
+ */
+export function parseProjectRSVPData(data: ProjectRSVPDataResponse): {
+  config: ProjectRSVPConfig;
+  events: RSVPEvent[];
+  questions: ParsedRSVPQuestion[];
+  cards: ParsedConfirmationCard[];
+} {
+  return {
+    config: data.Project_RSVP,
+    events: data.Events,
+    questions: data.Questions.map(q => ({
+      ...q,
+      Options: parseQuestionOptions(q.Options),
+    })),
+    cards: data.Confirmation_Cards.map(c => ({
+      ...c,
+      Configuration: parseCardConfiguration(c.Configuration),
+    })),
+  };
 }
 
 /**
@@ -237,7 +519,16 @@ export function formatServiceDate(date: Date | string): string {
 }
 
 /**
- * Get capacity status color class
+ * Get capacity status from percentage
+ */
+export function getCapacityStatus(percentage: number): 'available' | 'limited' | 'full' {
+  if (percentage >= 100) return 'full';
+  if (percentage >= 75) return 'limited';
+  return 'available';
+}
+
+/**
+ * Get capacity color class
  */
 export function getCapacityColorClass(percentage: number): string {
   if (percentage < 50) return "bg-green-500";
@@ -263,4 +554,50 @@ export function getCapacityStatusText(percentage: number): string {
 export function formatPartySize(size: number): string {
   if (size === 1) return "1 person";
   return `${size} people`;
+}
+
+/**
+ * Convert RSVPFormData to RSVPSubmissionRequest
+ */
+export function formatRSVPSubmission(
+  formData: RSVPFormData,
+  projectRsvpId: number,
+  contactId?: number | null
+): RSVPSubmissionRequest {
+  // Convert answers object to array format for stored procedure
+  const answers: RSVPAnswer[] = Object.entries(formData.answers).map(([questionId, value]) => {
+    const answer: RSVPAnswer = {
+      Question_ID: parseInt(questionId),
+    };
+
+    // Determine which field to populate based on value type
+    if (typeof value === 'number') {
+      answer.Numeric_Value = value;
+    } else if (typeof value === 'boolean') {
+      answer.Boolean_Value = value;
+    } else if (typeof value === 'string') {
+      // Check if it's a date string
+      if (value.match(/^\d{4}-\d{2}-\d{2}/)) {
+        answer.Date_Value = value;
+      } else {
+        answer.Text_Value = value;
+      }
+    } else if (Array.isArray(value)) {
+      // Multi-select answers as JSON string
+      answer.Text_Value = JSON.stringify(value);
+    }
+
+    return answer;
+  });
+
+  return {
+    Event_ID: formData.eventId,
+    Project_RSVP_ID: projectRsvpId,
+    Contact_ID: contactId,
+    First_Name: formData.firstName,
+    Last_Name: formData.lastName,
+    Email_Address: formData.emailAddress,
+    Phone_Number: formData.phoneNumber || null,
+    Answers: answers,
+  };
 }

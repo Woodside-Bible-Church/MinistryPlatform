@@ -1,5 +1,5 @@
 // TypeScript types for confirmation card system
-import { RSVPConfirmationResponse } from "./rsvp";
+import { RSVPConfirmation } from "./rsvp";
 
 // ============================================================================
 // Card Type Definitions
@@ -148,7 +148,7 @@ export interface GroupAssignmentCardConfig extends BaseCardConfiguration {
 
 export interface CardProps<T extends BaseCardConfiguration = BaseCardConfiguration> {
   config: T;
-  rsvpData: RSVPConfirmationResponse;
+  rsvpData: RSVPConfirmation;
 }
 
 // ============================================================================
@@ -191,31 +191,44 @@ export interface TokenMap {
  */
 export function replaceTokens(
   template: string,
-  rsvpData: RSVPConfirmationResponse
+  rsvpData: RSVPConfirmation
 ): string {
-  const tokens: TokenMap = {
-    "{rsvp_id}": rsvpData.Event_RSVP_ID,
-    "{event_id}": rsvpData.Event_ID,
-    "{first_name}": rsvpData.First_Name,
-    "{last_name}": rsvpData.Last_Name,
-    "{email}": rsvpData.Email_Address,
-    "{party_size}": rsvpData.Party_Size,
-    "{event_title}": rsvpData.Event_Title,
-    "{event_date}": new Date(rsvpData.Event_Start_Date).toLocaleDateString(),
-    "{event_time}": new Date(rsvpData.Event_Start_Date).toLocaleTimeString(
-      "en-US",
-      { hour: "numeric", minute: "2-digit" }
-    ),
-    "{campus_name}": rsvpData.Campus_Name,
-    "{confirmation_number}": `${rsvpData.Event_RSVP_ID}${rsvpData.Event_ID}`,
-  };
+  try {
+    // Helper to safely convert to string
+    const safeString = (value: any): string => {
+      if (value === null || value === undefined) return "";
+      return String(value);
+    };
 
-  let result = template;
-  for (const [token, value] of Object.entries(tokens)) {
-    result = result.replace(new RegExp(token, "g"), String(value));
+    const tokens: Record<string, string> = {
+      "{rsvp_id}": safeString(rsvpData.Event_RSVP_ID),
+      "{event_id}": safeString(rsvpData.Event_ID),
+      "{first_name}": safeString(rsvpData.First_Name),
+      "{last_name}": safeString(rsvpData.Last_Name),
+      "{email}": "", // Email not returned from stored procedure
+      "{party_size}": safeString(rsvpData.Party_Size),
+      "{event_title}": safeString(rsvpData.Event_Title),
+      "{event_date}": new Date(rsvpData.Event_Start_Date).toLocaleDateString(),
+      "{event_time}": new Date(rsvpData.Event_Start_Date).toLocaleTimeString(
+        "en-US",
+        { hour: "numeric", minute: "2-digit" }
+      ),
+      "{campus_name}": safeString(rsvpData.Campus_Name),
+      "{confirmation_number}": safeString(rsvpData.Confirmation_Code),
+    };
+
+    let result = template;
+    for (const [token, value] of Object.entries(tokens)) {
+      // Escape special regex characters in token
+      const escapedToken = token.replace(/[{}]/g, "\\$&");
+      result = result.replace(new RegExp(escapedToken, "g"), value);
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error in replaceTokens:", error, "rsvpData:", rsvpData);
+    return template; // Return original template on error
   }
-
-  return result;
 }
 
 /**
@@ -232,7 +245,7 @@ export function buildEventShareUrl(
  * Generate ICS calendar file content
  */
 export function generateICSContent(
-  rsvpData: RSVPConfirmationResponse,
+  rsvpData: RSVPConfirmation,
   config: AddToCalendarCardConfig
 ): string {
   const startDate = new Date(rsvpData.Event_Start_Date);
@@ -255,7 +268,7 @@ DTSTART:${formatDate(startDate)}
 DTEND:${formatDate(endDate)}
 SUMMARY:${rsvpData.Event_Title}
 DESCRIPTION:${config.eventDescription || ""}
-LOCATION:${config.location || `${rsvpData.Campus_Name}, ${rsvpData.Campus_Address_Line_1}, ${rsvpData.Campus_City}, ${rsvpData.Campus_State} ${rsvpData.Campus_Postal_Code}`}
+LOCATION:${config.location || `${rsvpData.Campus_Name}, ${rsvpData.Campus_Address}, ${rsvpData.Campus_City}, ${rsvpData.Campus_State} ${rsvpData.Campus_Zip}`}
 STATUS:CONFIRMED
 END:VEVENT
 END:VCALENDAR`;

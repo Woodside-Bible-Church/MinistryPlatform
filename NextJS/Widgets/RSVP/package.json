@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3003",
+    "dev": "next dev -p 3000",
     "dev:widget": "vite build --watch",
     "build": "next build && npm run build:widget",
     "build:widget": "vite build",
     "build:next": "next build",
-    "start": "next start -p 3003",
+    "start": "next start -p 3000",
     "lint": "next lint"
   },
   "dependencies": {

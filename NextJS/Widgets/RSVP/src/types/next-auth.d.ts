@@ -1,4 +1,5 @@
 import { DefaultSession } from "next-auth"
+import { JWT } from "next-auth/jwt"
 
 declare module "next-auth" {
   interface Session {
@@ -6,5 +7,21 @@ declare module "next-auth" {
       id: string
     } & DefaultSession["user"]
     accessToken?: string
+    firstName?: string
+    lastName?: string
+    email?: string
+    sub?: string
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    accessToken?: string
+    refreshToken?: string
+    expiresAt?: number
+    userId?: string
+    firstName?: string
+    lastName?: string
+    contactId?: string
   }
 }
