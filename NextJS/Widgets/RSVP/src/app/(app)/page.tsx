@@ -128,6 +128,9 @@ function getWordPressLocationId(): number | null {
 }
 
 export default function RSVPPage() {
+  // Detect if running as embedded widget
+  const isWidget = typeof window !== 'undefined' && !!(window as WidgetWindow).RSVP_WIDGET_CONFIG;
+
   // Get base URL for assets (works in both Next.js and widget contexts)
   const baseUrl = typeof window !== 'undefined' && (window as WidgetWindow).RSVP_WIDGET_CONFIG?.apiBaseUrl
     ? (window as WidgetWindow).RSVP_WIDGET_CONFIG?.apiBaseUrl
@@ -136,10 +139,11 @@ export default function RSVPPage() {
   // Parse widget params from data-params attribute
   const widgetParams = parseWidgetParams();
 
-  // Get authentication session
+  // Get authentication session (only for Next.js dev mode, not widget)
   const { data: session, status: sessionStatus } = useSession();
   console.log('[DEBUG] Session:', session);
   console.log('[DEBUG] Session Status:', sessionStatus);
+  console.log('[DEBUG] Is Widget Mode:', isWidget);
 
   // State for RSVP data from API
   const [rsvpData, setRsvpData] = useState<ProjectRSVPDataResponse | null>(null);
@@ -552,39 +556,41 @@ export default function RSVPPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Glassmorphic Top Navigation Bar - Fixed */}
-      <div className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/10 border-b border-white/20 py-3 px-8">
-        <div className="max-w-[1600px] mx-auto flex justify-end items-center">
-          {sessionStatus === "loading" ? (
-            <div className="text-white/90 text-sm">Loading...</div>
-          ) : session ? (
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-white drop-shadow-lg">
-                <User className="w-4 h-4" />
-                <span className="text-sm font-medium">{session.user?.name || session.user?.email}</span>
+      {/* Glassmorphic Top Navigation Bar - Fixed (Only show in Next.js dev mode, not widget) */}
+      {!isWidget && (
+        <div className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/10 border-b border-white/20 py-3 px-8">
+          <div className="max-w-[1600px] mx-auto flex justify-end items-center">
+            {sessionStatus === "loading" ? (
+              <div className="text-white/90 text-sm">Loading...</div>
+            ) : session ? (
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-white drop-shadow-lg">
+                  <User className="w-4 h-4" />
+                  <span className="text-sm font-medium">{session.user?.name || session.user?.email}</span>
+                </div>
+                <button
+                  onClick={() => signOut()}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-md transition-all text-sm font-medium shadow-lg"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </button>
               </div>
+            ) : (
               <button
-                onClick={() => signOut()}
+                onClick={() => signIn("ministryplatform")}
                 className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-md transition-all text-sm font-medium shadow-lg"
               >
-                <LogOut className="w-4 h-4" />
-                Sign Out
+                <User className="w-4 h-4" />
+                Sign In
               </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => signIn("ministryplatform")}
-              className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-md transition-all text-sm font-medium shadow-lg"
-            >
-              <User className="w-4 h-4" />
-              Sign In
-            </button>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Header with Background Image and Content - Starts at top with padding for fixed nav */}
-      <section className="relative text-white overflow-hidden pt-24 pb-16">
+      {/* Header with Background Image and Content - Adjust padding based on mode */}
+      <section className={`relative text-white overflow-hidden ${isWidget ? 'pt-8' : 'pt-24'} pb-16`}>
         {/* Background Pattern */}
         <div
           className="absolute inset-0 bg-cover bg-center"
