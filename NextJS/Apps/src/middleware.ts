@@ -4,6 +4,9 @@ import { db } from '@/db';
 import { applications, appPermissions } from '@/db/schema';
 import { eq, inArray, or, and } from 'drizzle-orm';
 
+// Force Node.js runtime for middleware (required for database access)
+export const runtime = 'nodejs';
+
 // Cache for public app routes to avoid repeated API calls
 const publicAppRoutesCache: { routes: Set<string>; timestamp: number } = {
   routes: new Set(),
