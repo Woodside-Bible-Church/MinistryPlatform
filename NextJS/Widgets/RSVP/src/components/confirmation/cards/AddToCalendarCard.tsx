@@ -17,7 +17,7 @@ export function AddToCalendarCard({ config, rsvpData }: CardProps<AddToCalendarC
     return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
   };
 
-  const location = config.location || `${rsvpData.Campus_Name}, ${rsvpData.Campus_Address_Line_1}, ${rsvpData.Campus_City}, ${rsvpData.Campus_State} ${rsvpData.Campus_Postal_Code}`;
+  const location = config.location || `${rsvpData.Campus_Name}, ${rsvpData.Campus_Address}, ${rsvpData.Campus_City}, ${rsvpData.Campus_State} ${rsvpData.Campus_Zip}`;
   const description = config.eventDescription || "";
 
   const handleCalendarClick = () => {
