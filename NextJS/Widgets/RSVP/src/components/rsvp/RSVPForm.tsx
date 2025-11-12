@@ -128,20 +128,44 @@ export default function RSVPForm({
 
   // Fetch household members when user is authenticated
   useEffect(() => {
-    console.log('[RSVPForm v2] useEffect triggered, session:', !!session);
-    if (session) {
-      console.log('[RSVPForm v2] Fetching household data...');
-      setIsLoadingHousehold(true);
-      fetch('/api/household')
-        .then(res => {
-          console.log('[RSVPForm] Household API response status:', res.status);
-          if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
+    const fetchHouseholdData = async () => {
+      // Detect if running in widget mode
+      const isWidget = typeof window !== 'undefined' && !!(window as any).RSVP_WIDGET_CONFIG;
+      const baseUrl = typeof window !== 'undefined' && (window as any).RSVP_WIDGET_CONFIG?.apiBaseUrl;
+
+      console.log('[RSVPForm v2] useEffect triggered, session:', !!session, 'isWidget:', isWidget);
+
+      // In widget mode, check for MP token instead of NextAuth session
+      if (isWidget) {
+        try {
+          // Dynamically import MP auth client (only in widget mode)
+          const { getAuthToken } = await import('@/lib/mpWidgetAuthClient');
+          const token = getAuthToken();
+
+          if (!token) {
+            console.log('[RSVPForm] No MP widget token found');
+            return;
           }
-          return res.json();
-        })
-        .then(data => {
+
+          console.log('[RSVPForm] Found MP widget token, fetching household data...');
+          setIsLoadingHousehold(true);
+
+          const apiOrigin = baseUrl || window.location.origin;
+          const response = await fetch(`${apiOrigin}/api/household`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          console.log('[RSVPForm] Household API response status:', response.status);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
           console.log('[RSVPForm] Household API data:', data);
+
           if (data.error) {
             console.error('[RSVPForm] Household API error:', data.error);
             return;
@@ -150,6 +174,7 @@ export default function RSVPForm({
             console.error('[RSVPForm] Household API returned no user data');
             return;
           }
+
           console.log('[RSVPForm] Setting household data - user:', data.user.Display_Name, 'members:', data.householdMembers?.length);
           setCurrentUser(data.user);
           setHouseholdMembers(data.householdMembers || []);
@@ -160,15 +185,55 @@ export default function RSVPForm({
           setValue("lastName", data.user.Last_Name);
           setValue("emailAddress", data.user.Email_Address || "");
           setValue("phoneNumber", data.user.Mobile_Phone || "");
-        })
-        .catch(err => {
-          console.error('[RSVPForm] Error fetching household:', err);
-        })
-        .finally(() => {
-          console.log('[RSVPForm] Household fetch complete');
+        } catch (err) {
+          console.error('[RSVPForm] Error fetching household with MP token:', err);
+        } finally {
           setIsLoadingHousehold(false);
-        });
-    }
+        }
+      } else if (session) {
+        // In Next.js dev mode, use NextAuth session
+        console.log('[RSVPForm v2] Fetching household data with NextAuth session...');
+        setIsLoadingHousehold(true);
+        fetch('/api/household')
+          .then(res => {
+            console.log('[RSVPForm] Household API response status:', res.status);
+            if (!res.ok) {
+              throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+          })
+          .then(data => {
+            console.log('[RSVPForm] Household API data:', data);
+            if (data.error) {
+              console.error('[RSVPForm] Household API error:', data.error);
+              return;
+            }
+            if (!data.user) {
+              console.error('[RSVPForm] Household API returned no user data');
+              return;
+            }
+            console.log('[RSVPForm] Setting household data - user:', data.user.Display_Name, 'members:', data.householdMembers?.length);
+            setCurrentUser(data.user);
+            setHouseholdMembers(data.householdMembers || []);
+            // Default to current user
+            setSelectedPerson(data.user.Contact_ID.toString());
+            // Pre-fill form with user data
+            setValue("firstName", data.user.First_Name);
+            setValue("lastName", data.user.Last_Name);
+            setValue("emailAddress", data.user.Email_Address || "");
+            setValue("phoneNumber", data.user.Mobile_Phone || "");
+          })
+          .catch(err => {
+            console.error('[RSVPForm] Error fetching household:', err);
+          })
+          .finally(() => {
+            console.log('[RSVPForm] Household fetch complete');
+            setIsLoadingHousehold(false);
+          });
+      }
+    };
+
+    fetchHouseholdData();
   }, [session, setValue]);
 
   // Handle person selection change
@@ -311,7 +376,7 @@ export default function RSVPForm({
       {formStep === 1 && (
         <div className="bg-primary p-6 space-y-6">
           {/* Fill Out As Dropdown - Only show for authenticated users */}
-          {session && currentUser && (
+          {currentUser && (
             <div className="space-y-2">
               <Label htmlFor="fillOutAs" className="text-white">
                 Fill Out As
@@ -373,8 +438,8 @@ export default function RSVPForm({
             </div>
           )}
 
-          {/* Only show form fields when "Add New Person" is selected */}
-          {(!session || selectedPerson === "new") && (
+          {/* Only show form fields when "Add New Person" is selected or no user is authenticated */}
+          {(!currentUser || selectedPerson === "new") && (
           <>
           {/* Name Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -390,7 +455,7 @@ export default function RSVPForm({
                   {...register("firstName")}
                   name="firstName"
                   autoComplete="given-name"
-                  disabled={!!(session && selectedPerson !== "new")}
+                  disabled={!!(currentUser && selectedPerson !== "new")}
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 disabled:opacity-60 disabled:cursor-not-allowed"
                   placeholder="First Name"
                 />
@@ -414,7 +479,7 @@ export default function RSVPForm({
                   {...register("lastName")}
                   name="lastName"
                   autoComplete="family-name"
-                  disabled={!!(session && selectedPerson !== "new")}
+                  disabled={!!(currentUser && selectedPerson !== "new")}
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 disabled:opacity-60 disabled:cursor-not-allowed"
                   placeholder="Last Name"
                 />
@@ -440,7 +505,7 @@ export default function RSVPForm({
                 {...register("emailAddress")}
                 name="emailAddress"
                 autoComplete="email"
-                disabled={!!(session && selectedPerson !== "new")}
+                disabled={!!(currentUser && selectedPerson !== "new")}
                 className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 disabled:opacity-60 disabled:cursor-not-allowed"
                 placeholder="email@example.com"
               />
@@ -466,7 +531,7 @@ export default function RSVPForm({
                 autoComplete="tel"
                 onChange={handlePhoneChange}
                 maxLength={17}
-                disabled={!!(session && selectedPerson !== "new")}
+                disabled={!!(currentUser && selectedPerson !== "new")}
                 className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 disabled:opacity-60 disabled:cursor-not-allowed"
                 placeholder="(123) 456-7890"
               />
