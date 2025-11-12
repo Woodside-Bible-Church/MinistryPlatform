@@ -11,11 +11,10 @@ export function MapCard({ config, rsvpData }: CardProps<MapCardConfig>) {
 
   // Use configured address or fallback to campus address
   const address = config.address || [
-    rsvpData.Campus_Address_Line_1,
-    rsvpData.Campus_Address_Line_2,
+    rsvpData.Campus_Address,
     rsvpData.Campus_City,
     rsvpData.Campus_State,
-    rsvpData.Campus_Postal_Code,
+    rsvpData.Campus_Zip,
   ]
     .filter(Boolean)
     .join(", ");

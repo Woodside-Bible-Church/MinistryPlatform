@@ -94,7 +94,7 @@ export default function ConfirmationView({
           Card_Type_ID: 1,
           Card_Type_Name: "Instructions" as const,
           Component_Name: "InstructionsCard",
-          Icon_Name: "Info",
+          Icon_Name: "Info" as string | null,
           Display_Order: 1,
           Congregation_ID: null,
           Configuration: {
@@ -290,7 +290,7 @@ export default function ConfirmationView({
       {cards.sort((a, b) => a.Display_Order - b.Display_Order).map((card) => (
         <CardRenderer
           key={`${card.Card_Type_ID}-${card.Display_Order}`}
-          card={card}
+          card={card as any}
           rsvpData={confirmation}
         />
       ))}

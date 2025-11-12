@@ -26,7 +26,7 @@ export function MultiCheckboxQuestion({
 
   const handleToggle = (optionValue: string) => {
     const newValues = selectedValues.includes(optionValue)
-      ? selectedValues.filter((v) => v !== optionValue)
+      ? selectedValues.filter((v: string) => v !== optionValue)
       : [...selectedValues, optionValue];
     onChange(newValues);
   };

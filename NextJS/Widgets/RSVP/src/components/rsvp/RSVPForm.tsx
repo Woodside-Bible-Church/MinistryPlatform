@@ -382,7 +382,7 @@ export default function RSVPForm({
                   {...register("firstName")}
                   name="firstName"
                   autoComplete="given-name"
-                  disabled={session && selectedPerson !== "new"}
+                  disabled={!!(session && selectedPerson !== "new")}
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 disabled:opacity-60 disabled:cursor-not-allowed"
                   placeholder="First Name"
                 />
@@ -406,7 +406,7 @@ export default function RSVPForm({
                   {...register("lastName")}
                   name="lastName"
                   autoComplete="family-name"
-                  disabled={session && selectedPerson !== "new"}
+                  disabled={!!(session && selectedPerson !== "new")}
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 disabled:opacity-60 disabled:cursor-not-allowed"
                   placeholder="Last Name"
                 />
@@ -432,7 +432,7 @@ export default function RSVPForm({
                 {...register("emailAddress")}
                 name="emailAddress"
                 autoComplete="email"
-                disabled={session && selectedPerson !== "new"}
+                disabled={!!(session && selectedPerson !== "new")}
                 className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 disabled:opacity-60 disabled:cursor-not-allowed"
                 placeholder="email@example.com"
               />
@@ -458,7 +458,7 @@ export default function RSVPForm({
                 autoComplete="tel"
                 onChange={handlePhoneChange}
                 maxLength={17}
-                disabled={session && selectedPerson !== "new"}
+                disabled={!!(session && selectedPerson !== "new")}
                 className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 disabled:opacity-60 disabled:cursor-not-allowed"
                 placeholder="(123) 456-7890"
               />
