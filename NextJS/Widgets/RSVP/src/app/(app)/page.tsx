@@ -418,10 +418,11 @@ export default function RSVPPage() {
   const groupedServiceTimes = useMemo(() => {
     const groups: Record<string, ServiceTimeResponse[]> = {};
     filteredServiceTimes.forEach((service) => {
-      if (!groups[service.Campus_Name]) {
-        groups[service.Campus_Name] = [];
+      const campusName = service.Campus_Name || 'Unknown Campus';
+      if (!groups[campusName]) {
+        groups[campusName] = [];
       }
-      groups[service.Campus_Name].push(service);
+      groups[campusName].push(service);
     });
     return groups;
   }, [filteredServiceTimes]);
