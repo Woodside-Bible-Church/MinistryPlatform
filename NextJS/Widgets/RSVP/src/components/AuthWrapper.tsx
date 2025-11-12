@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import { SessionProvider } from '@/components/SessionProvider';
+import SessionProvider from '@/components/SessionProvider';
 
 export default async function AuthWrapper({
   children,
