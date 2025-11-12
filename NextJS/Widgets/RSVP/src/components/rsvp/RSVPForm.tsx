@@ -324,10 +324,10 @@ export default function RSVPForm({
                         <img
                           src={`${process.env.NEXT_PUBLIC_MINISTRY_PLATFORM_FILE_URL}/${currentUser.Image_GUID}?$thumbnail=true`}
                           alt={currentUser.Display_Name}
-                          className="w-8 h-8 rounded-full object-cover"
+                          className="w-10 h-10 rounded-full object-cover"
                         />
                       ) : (
-                        <UserCircle className="w-8 h-8 text-muted-foreground" />
+                        <UserCircle className="w-10 h-10 text-muted-foreground" />
                       )}
                       <span>{currentUser.Display_Name} (Me)</span>
                     </div>
@@ -341,10 +341,10 @@ export default function RSVPForm({
                           <img
                             src={`${process.env.NEXT_PUBLIC_MINISTRY_PLATFORM_FILE_URL}/${member.Image_GUID}?$thumbnail=true`}
                             alt={member.Display_Name}
-                            className="w-8 h-8 rounded-full object-cover"
+                            className="w-10 h-10 rounded-full object-cover"
                           />
                         ) : (
-                          <UserCircle className="w-8 h-8 text-muted-foreground" />
+                          <UserCircle className="w-10 h-10 text-muted-foreground" />
                         )}
                         <span>{member.Display_Name}</span>
                       </div>
@@ -354,7 +354,7 @@ export default function RSVPForm({
                   {/* Add New Person - Make it stand out */}
                   <SelectItem value="new" className="bg-primary/10 border-t-2 border-primary/20 mt-2 focus:!bg-primary focus:!text-white group">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center transition-colors">
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center transition-colors">
                         <UserPlus className="w-5 h-5 text-primary group-focus:!text-white transition-colors" />
                       </div>
                       <span className="font-semibold text-primary group-focus:!text-white transition-colors">Add New Person</span>
