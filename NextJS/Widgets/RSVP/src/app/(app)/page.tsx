@@ -627,7 +627,7 @@ export default function RSVPPage() {
       )}
 
       {/* Header with Background Image and Content - Adjust padding based on mode */}
-      <section className={`relative text-white overflow-hidden ${isWidget ? 'pt-8' : 'pt-24'} pb-16`}>
+      <section className={`relative text-white overflow-hidden ${isWidget ? 'pt-32' : 'pt-24'} pb-16`}>
         {/* Background Pattern */}
         <div
           className="absolute inset-0 bg-cover bg-center"

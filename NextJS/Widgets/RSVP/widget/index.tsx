@@ -75,7 +75,11 @@ class RSVPWidget {
     this.root = createRoot(mountPoint);
     this.root.render(
       <React.StrictMode>
-        <SessionProvider>
+        <SessionProvider
+          session={null}
+          refetchInterval={0}
+          refetchOnWindowFocus={false}
+        >
           <RSVPPage />
         </SessionProvider>
       </React.StrictMode>
