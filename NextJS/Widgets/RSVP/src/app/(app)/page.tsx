@@ -260,28 +260,65 @@ export default function RSVPPage() {
   // Fetch user's Web_Congregation_ID when authenticated
   useEffect(() => {
     const fetchUserCongregationId = async () => {
-      if (!session?.user?.id) {
-        setUserCongregationId(null);
-        return;
-      }
+      // In widget mode, check for MP widget token instead of NextAuth session
+      if (isWidget) {
+        try {
+          const { getAuthToken } = await import('@/lib/mpWidgetAuthClient');
+          const token = getAuthToken();
 
-      try {
-        const apiOrigin = baseUrl || window.location.origin;
-        const response = await fetch(`${apiOrigin}/api/household`);
-        if (response.ok) {
-          const data = await response.json();
-          const congregationId = data.user?.Web_Congregation_ID || null;
-          console.log('[DEBUG] User Web_Congregation_ID:', congregationId);
-          setUserCongregationId(congregationId);
+          if (!token) {
+            console.log('[DEBUG] No MP widget token found in localStorage');
+            setUserCongregationId(null);
+            return;
+          }
+
+          console.log('[DEBUG] Found MP widget token, fetching user data...');
+          const apiOrigin = baseUrl || window.location.origin;
+          const response = await fetch(`${apiOrigin}/api/household`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const congregationId = data.user?.Web_Congregation_ID || null;
+            console.log('[DEBUG] User Web_Congregation_ID from MP token:', congregationId);
+            setUserCongregationId(congregationId);
+          } else {
+            console.warn('[DEBUG] Failed to fetch user data with MP token:', response.status);
+            setUserCongregationId(null);
+          }
+        } catch (error) {
+          console.warn('Failed to fetch user congregation ID with MP token:', error);
+          setUserCongregationId(null);
         }
-      } catch (error) {
-        console.warn('Failed to fetch user congregation ID:', error);
-        setUserCongregationId(null);
+      } else {
+        // In Next.js dev mode, use NextAuth session
+        if (!session?.user?.id) {
+          setUserCongregationId(null);
+          return;
+        }
+
+        try {
+          const apiOrigin = baseUrl || window.location.origin;
+          const response = await fetch(`${apiOrigin}/api/household`);
+          if (response.ok) {
+            const data = await response.json();
+            const congregationId = data.user?.Web_Congregation_ID || null;
+            console.log('[DEBUG] User Web_Congregation_ID from NextAuth:', congregationId);
+            setUserCongregationId(congregationId);
+          }
+        } catch (error) {
+          console.warn('Failed to fetch user congregation ID:', error);
+          setUserCongregationId(null);
+        }
       }
     };
 
     fetchUserCongregationId();
-  }, [session, baseUrl]);
+  }, [session, baseUrl, isWidget]);
 
   // Set initial campus when available campuses are loaded
   useEffect(() => {
