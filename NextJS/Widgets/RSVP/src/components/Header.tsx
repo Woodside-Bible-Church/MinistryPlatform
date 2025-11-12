@@ -5,7 +5,7 @@ import { Bars3Icon } from '@heroicons/react/24/outline';
 import { UserCircleIcon } from '@heroicons/react/24/solid';
 import Sidebar from '@/components/Sidebar';
 import UserMenu from '@/components/UserMenu/UserMenu';
-import { useSession } from '@/components/SessionProvider';
+import { useSession } from 'next-auth/react';
 import { getCurrentUserProfile } from '@/components/UserMenu/actions';
 import { mpUserProfile } from '@/providers/MinistryPlatform/Interfaces/mpUserProfile';
 
