@@ -9,7 +9,7 @@ export interface ConfirmationCard {
   Card_Type_ID: number;
   Card_Type_Name: string;
   Component_Name: string;
-  Icon_Name: string;
+  Icon_Name: string | null;
   Display_Order: number;
   Configuration: CardConfiguration;
 }
@@ -17,6 +17,7 @@ export interface ConfirmationCard {
 // Base configuration that all cards support
 export interface BaseCardConfiguration {
   title: string;
+  description?: string;
   [key: string]: unknown; // Allow additional properties
 }
 

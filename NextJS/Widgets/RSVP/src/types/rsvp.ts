@@ -6,6 +6,21 @@
 // ===================================================================
 
 import { z } from "zod";
+import type {
+  CardConfiguration as ImportedCardConfiguration,
+  InstructionsCardConfig,
+  MapCardConfig,
+  QRCodeCardConfig,
+  ShareCardConfig,
+  AddToCalendarCardConfig,
+  ParkingCardConfig,
+  ChildcareCardConfig,
+  ContactInfoCardConfig,
+  ScheduleCardConfig,
+  WeatherCardConfig,
+  WhatToBringCardConfig,
+  GroupAssignmentCardConfig,
+} from './confirmationCards';
 
 // ===================================================================
 // API Response Types (from stored procedures)
@@ -160,105 +175,26 @@ export type CardTypeName =
   | 'What to Bring'
   | 'Group Assignment';
 
+// Re-export card configuration types for backward compatibility
+export type CardConfiguration = ImportedCardConfiguration;
+export type {
+  InstructionsCardConfig,
+  MapCardConfig,
+  QRCodeCardConfig,
+  ShareCardConfig,
+  AddToCalendarCardConfig,
+  ParkingCardConfig,
+  ChildcareCardConfig,
+  ContactInfoCardConfig,
+  ScheduleCardConfig,
+  WeatherCardConfig,
+  WhatToBringCardConfig,
+  GroupAssignmentCardConfig,
+};
+
 // Parsed card with configuration object
 export interface ParsedConfirmationCard extends Omit<ConfirmationCard, 'Configuration'> {
   Configuration: CardConfiguration;
-}
-
-// Card-specific configuration interfaces
-export type CardConfiguration =
-  | InstructionsCardConfig
-  | MapCardConfig
-  | QRCodeCardConfig
-  | ShareCardConfig
-  | AddToCalendarCardConfig
-  | ParkingCardConfig
-  | ChildcareCardConfig
-  | ContactInfoCardConfig
-  | ScheduleCardConfig
-  | WeatherCardConfig
-  | WhatToBringCardConfig
-  | GroupAssignmentCardConfig;
-
-export interface InstructionsCardConfig {
-  title: string;
-  bullets: {
-    icon: string;
-    text: string;
-  }[];
-}
-
-export interface MapCardConfig {
-  title: string;
-  showDirectionsLink: boolean;
-  latitude?: number;
-  longitude?: number;
-  customInstructions?: string;
-}
-
-export interface QRCodeCardConfig {
-  title: string;
-  description: string;
-  includeConfirmationNumber: boolean;
-  qrData?: string;
-}
-
-export interface ShareCardConfig {
-  title: string;
-  description?: string;
-  enabledMethods: ('sms' | 'email' | 'facebook' | 'twitter')[];
-  customMessage?: string;
-}
-
-export interface AddToCalendarCardConfig {
-  title: string;
-  description?: string;
-  providers: ('google' | 'apple' | 'outlook' | 'ics')[];
-}
-
-export interface ParkingCardConfig {
-  title: string;
-  description: string;
-  parkingLots?: string[];
-}
-
-export interface ChildcareCardConfig {
-  title: string;
-  description: string;
-  ageRange?: string;
-  registrationRequired?: boolean;
-  registrationUrl?: string;
-}
-
-export interface ContactInfoCardConfig {
-  title: string;
-  contactName?: string;
-  phone: string;
-  email: string;
-  officeHours?: string;
-}
-
-export interface ScheduleCardConfig {
-  title: string;
-  timelineItems: {
-    time: string;
-    activity: string;
-  }[];
-}
-
-export interface WeatherCardConfig {
-  title: string;
-  showExtendedForecast?: boolean;
-}
-
-export interface WhatToBringCardConfig {
-  title: string;
-  items: string[];
-}
-
-export interface GroupAssignmentCardConfig {
-  title: string;
-  showGroupMembers?: boolean;
 }
 
 // ===================================================================
