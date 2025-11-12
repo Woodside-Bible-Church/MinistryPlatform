@@ -387,17 +387,11 @@ export default function RSVPPage() {
   // Convert RSVPEvent to ServiceTimeResponse format
   const convertEventToServiceTime = (event: RSVPEvent): ServiceTimeResponse => {
     return {
-      Event_ID: event.Event_ID,
-      Event_Title: event.Event_Title,
-      Event_Start_Date: event.Event_Start_Date,
-      Event_End_Date: event.Event_End_Date,
-      Campus_Name: event.Campus_Name || 'Unknown Campus',
-      Congregation_ID: event.Congregation_ID || 0,
-      Max_Capacity: event.Max_Capacity,
-      Total_RSVPs: event.Current_RSVPs,
-      Total_Attendees: event.Current_RSVPs, // Use Current_RSVPs as Total_Attendees
-      Capacity_Percentage: event.Capacity_Percentage,
-      Is_Available: event.Is_Available,
+      ...event, // Spread all RSVPEvent properties
+      formattedDate: new Date(event.Event_Start_Date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
+      formattedTime: new Date(event.Event_Start_Date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+      capacityStatus: event.Capacity_Percentage >= 100 ? 'full' : event.Capacity_Percentage >= 75 ? 'limited' : 'available',
+      capacityColor: event.Capacity_Percentage < 50 ? 'bg-green-500' : event.Capacity_Percentage < 75 ? 'bg-yellow-500' : event.Capacity_Percentage < 90 ? 'bg-orange-500' : 'bg-red-500',
     };
   };
 
