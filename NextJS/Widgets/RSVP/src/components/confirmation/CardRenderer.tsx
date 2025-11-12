@@ -1,5 +1,5 @@
 import { ConfirmationCard } from "@/types/confirmationCards";
-import { RSVPConfirmationResponse } from "@/types/rsvp";
+import { RSVPConfirmation } from "@/types/rsvp";
 import { InstructionsCard } from "./cards/InstructionsCard";
 import { MapCard } from "./cards/MapCard";
 import { QRCodeCard } from "./cards/QRCodeCard";
@@ -18,7 +18,7 @@ const cardComponents = {
 
 interface CardRendererProps {
   card: ConfirmationCard;
-  rsvpData: RSVPConfirmationResponse;
+  rsvpData: RSVPConfirmation;
 }
 
 /**
@@ -41,7 +41,7 @@ export function CardRenderer({ card, rsvpData }: CardRendererProps) {
 
 interface CardListRendererProps {
   cards: ConfirmationCard[];
-  rsvpData: RSVPConfirmationResponse;
+  rsvpData: RSVPConfirmation;
 }
 
 /**
