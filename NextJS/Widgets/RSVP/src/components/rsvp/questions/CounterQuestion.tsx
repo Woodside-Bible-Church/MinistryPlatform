@@ -8,10 +8,10 @@
 'use client';
 
 import { QuestionComponentProps } from '@/types/rsvp';
-import { Button } from '@/components/ui/button';
 import { Minus, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { QuestionLabel } from './QuestionLabel';
+import { motion } from 'framer-motion';
 
 export function CounterQuestion({
   question,
@@ -64,17 +64,28 @@ export function CounterQuestion({
         <QuestionLabel question={question} htmlFor={`question-${question.Question_ID}`} />
 
         <div className="flex items-center justify-center gap-4 mt-4">
-        <Button
+        <motion.button
           type="button"
-          variant="outline"
-          size="icon"
-          onClick={decrement}
-          disabled={numericValue <= min}
-          className="h-12 w-12 rounded-full bg-white hover:bg-secondary text-primary border-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          onClick={numericValue > min ? decrement : undefined}
+          className={cn(
+            'h-12 w-12 rounded-full border-2 flex items-center justify-center',
+            numericValue <= min
+              ? 'border-white/10 bg-white/5 text-white/30 cursor-not-allowed pointer-events-none'
+              : 'border-white/20 bg-white/10 text-white shadow-[2px_3px_8px_rgba(0,0,0,0.3)] cursor-pointer'
+          )}
+          initial={{ scale: 1 }}
+          whileHover={{
+            scale: 1.05,
+            boxShadow: '2px 4px 9px rgba(0,0,0,0.32)',
+            transition: { duration: 0.15, ease: 'easeOut' }
+          }}
+          whileTap={{ scale: 0.95, transition: { duration: 0.1, ease: 'easeOut' } }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
           aria-label="Decrease"
+          aria-disabled={numericValue <= min}
         >
           <Minus className="h-5 w-5" />
-        </Button>
+        </motion.button>
 
         <input
           type="text"
@@ -90,17 +101,28 @@ export function CounterQuestion({
           aria-label={question.Question_Text}
         />
 
-        <Button
+        <motion.button
           type="button"
-          variant="outline"
-          size="icon"
-          onClick={increment}
-          disabled={numericValue >= max}
-          className="h-12 w-12 rounded-full bg-white hover:bg-secondary text-primary border-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          onClick={numericValue < max ? increment : undefined}
+          className={cn(
+            'h-12 w-12 rounded-full border-2 flex items-center justify-center',
+            numericValue >= max
+              ? 'border-white/10 bg-white/5 text-white/30 cursor-not-allowed pointer-events-none'
+              : 'border-white/20 bg-white/10 text-white shadow-[2px_3px_8px_rgba(0,0,0,0.3)] cursor-pointer'
+          )}
+          initial={{ scale: 1 }}
+          whileHover={{
+            scale: 1.05,
+            boxShadow: '2px 4px 9px rgba(0,0,0,0.32)',
+            transition: { duration: 0.15, ease: 'easeOut' }
+          }}
+          whileTap={{ scale: 0.95, transition: { duration: 0.1, ease: 'easeOut' } }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
           aria-label="Increase"
+          aria-disabled={numericValue >= max}
         >
           <Plus className="h-5 w-5" />
-        </Button>
+        </motion.button>
         </div>
       </div>
 
