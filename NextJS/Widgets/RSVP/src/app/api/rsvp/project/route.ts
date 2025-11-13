@@ -13,14 +13,18 @@ export async function GET(request: NextRequest) {
   try {
     // Get query parameters
     const searchParams = request.nextUrl.searchParams;
-    const projectRsvpId = searchParams.get('projectRsvpId');
+    const projectRsvpId = searchParams.get('projectRsvpId');  // Deprecated: use 'project' instead
+    const project = searchParams.get('project');  // Can be numeric ID or slug
     const congregationId = searchParams.get('congregationId');
     const campusSlug = searchParams.get('campusSlug');
 
+    // Determine project identifier (support both old and new param names)
+    const projectIdentifier = project || projectRsvpId;
+
     // Validate required parameters
-    if (!projectRsvpId) {
+    if (!projectIdentifier) {
       return NextResponse.json(
-        { error: 'projectRsvpId is required' },
+        { error: 'project parameter is required (can be numeric ID or slug)' },
         { status: 400 }
       );
     }
@@ -29,9 +33,16 @@ export async function GET(request: NextRequest) {
     const mp = ministryPlatformProvider.getInstance();
 
     // Build stored procedure parameters
-    const params: Record<string, string> = {
-      '@Project_RSVP_ID': projectRsvpId,
-    };
+    // If projectIdentifier is numeric, use @Project_RSVP_ID, otherwise use @RSVP_Slug
+    const params: Record<string, string> = {};
+
+    if (/^\d+$/.test(projectIdentifier)) {
+      // Numeric ID
+      params['@Project_RSVP_ID'] = projectIdentifier;
+    } else {
+      // Slug (contains non-numeric characters)
+      params['@RSVP_Slug'] = projectIdentifier;
+    }
 
     // Priority: campus slug over congregation ID
     if (campusSlug) {

@@ -44,7 +44,8 @@ interface WidgetWindow extends Window {
 // Widget params from data-params attribute
 interface WidgetParams {
   CongregationID?: number;
-  ProjectRsvpID?: number;
+  ProjectRsvpID?: number;  // Deprecated: use Project instead
+  Project?: string | number;  // Can be numeric ID or slug (e.g., "christmas-2024")
 }
 
 // WordPress location cookie structure
@@ -59,7 +60,10 @@ interface WPLocationCookie {
 /**
  * Parse data-params attribute from widget container
  * Format: "@ParamName=value, @ParamName2=value2"
- * Example: "@CongregationID=9, @ProjectRsvpID=1"
+ * Examples:
+ *   "@CongregationID=9, @ProjectRsvpID=1"  (old format, still supported)
+ *   "@CongregationID=9, @Project=1"  (new format with numeric ID)
+ *   "@Project=christmas-2024"  (new format with slug)
  */
 function parseWidgetParams(): WidgetParams {
   if (typeof document === 'undefined') return {};
@@ -76,14 +80,23 @@ function parseWidgetParams(): WidgetParams {
     // Split by comma and parse each parameter
     dataParams.split(',').forEach(param => {
       const trimmed = param.trim();
-      // Match @ParamName=value pattern
-      const match = trimmed.match(/@(\w+)=(\d+)/);
+      // Match @ParamName=value pattern (value can be alphanumeric + dashes)
+      const match = trimmed.match(/@(\w+)=([\w-]+)/);
       if (match) {
         const [, key, value] = match;
         if (key === 'CongregationID') {
           params.CongregationID = parseInt(value);
         } else if (key === 'ProjectRsvpID') {
+          // Deprecated but still supported for backward compatibility
           params.ProjectRsvpID = parseInt(value);
+        } else if (key === 'Project') {
+          // New parameter: can be numeric ID or slug
+          // Check if value is numeric
+          if (/^\d+$/.test(value)) {
+            params.Project = parseInt(value);
+          } else {
+            params.Project = value;  // It's a slug
+          }
         }
       }
     });
@@ -366,16 +379,16 @@ export default function RSVPPage() {
         setIsLoading(true);
         setLoadError(null);
 
-        // Use widgetParams.ProjectRsvpID if provided, otherwise default to 1
-        const projectRsvpId = widgetParams.ProjectRsvpID || 1;
+        // Priority: Project > ProjectRsvpID > default to 1
+        const projectIdentifier = widgetParams.Project || widgetParams.ProjectRsvpID || 1;
 
         // Build API URL with query parameters
         // Use baseUrl (widget config) if available, otherwise use window.location.origin
         const apiOrigin = baseUrl || window.location.origin;
         const apiUrl = new URL('/api/rsvp/project', apiOrigin);
-        apiUrl.searchParams.set('projectRsvpId', projectRsvpId.toString());
+        apiUrl.searchParams.set('project', projectIdentifier.toString());
 
-        console.log('[DEBUG] Fetching RSVP data for project:', projectRsvpId);
+        console.log('[DEBUG] Fetching RSVP data for project:', projectIdentifier);
         console.log('[DEBUG] API URL:', apiUrl.toString());
         const response = await fetch(apiUrl.toString());
 
@@ -397,7 +410,7 @@ export default function RSVPPage() {
     };
 
     fetchRSVPData();
-  }, [widgetParams.ProjectRsvpID, baseUrl]);
+  }, [widgetParams.Project, widgetParams.ProjectRsvpID, baseUrl]);
 
   // Scroll to instructions when view or form step changes
   // Only on mobile, and not on initial render
@@ -539,9 +552,10 @@ export default function RSVPPage() {
       });
 
       // Build submission request
+      // Use Project_RSVP_ID from fetched data (which was resolved from slug if needed)
       const submissionRequest: RSVPSubmissionRequest = {
         Event_ID: data.eventId,
-        Project_RSVP_ID: rsvpData?.Project_RSVP.Project_RSVP_ID || widgetParams.ProjectRsvpID || 1,
+        Project_RSVP_ID: rsvpData?.Project_RSVP.Project_RSVP_ID || 1,
         Contact_ID: null, // TODO: Get from auth when implemented
         First_Name: data.firstName,
         Last_Name: data.lastName,
