@@ -277,7 +277,7 @@ export default function RSVPPage() {
   const isFirstRender = useRef(true);
 
   // Dev mode: allow selecting project via dropdown
-  const [devProject, setDevProject] = useState<string>('1'); // Default to project 1 in dev
+  const [devProject, setDevProject] = useState<string>(''); // Empty by default - user must select
   const [availableProjects, setAvailableProjects] = useState<Array<{value: string; label: string}>>([]);
 
   // Fetch user's Web_Congregation_ID when authenticated
@@ -406,14 +406,18 @@ export default function RSVPPage() {
         setIsLoading(true);
         setLoadError(null);
 
-        // Priority: Project > ProjectRsvpID > devProject (dev mode) > no default in widget mode
-        // In Next.js dev mode, use devProject state if no widget params specified
-        const projectIdentifier = widgetParams.Project || widgetParams.ProjectRsvpID || (isWidget ? null : devProject);
+        // Priority: Project > ProjectRsvpID > devProject (dev mode) > no default
+        // In Next.js dev mode, use devProject state only if it's not empty
+        const projectIdentifier = widgetParams.Project || widgetParams.ProjectRsvpID || (!isWidget && devProject ? devProject : null);
 
-        // Safety check: should never happen due to early return, but just in case
+        // Safety check: if no project is selected, show appropriate message
         if (!projectIdentifier) {
-          console.error('[RSVP Widget] No project identifier available');
-          setLoadError('No project parameter provided');
+          console.warn('[RSVP Widget] No project identifier available');
+          if (isWidget) {
+            setLoadError('No project parameter provided');
+          } else {
+            setLoadError('Please select a project from the dropdown above');
+          }
           setIsLoading(false);
           return;
         }
