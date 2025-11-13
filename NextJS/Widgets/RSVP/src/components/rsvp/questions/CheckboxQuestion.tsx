@@ -51,10 +51,10 @@ export function CheckboxQuestion({
         transition={{ duration: 0.2, ease: 'easeOut' }}
       >
         {/* Icon and Question Text (first row) */}
-        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 mb-3">
+        <div className="flex md:grid md:grid-cols-[auto_1fr_auto] items-center justify-between md:justify-start gap-3 mb-3">
           {/* Icon - shows Icon_Name or HelpCircle fallback */}
           <motion.div
-            className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center"
+            className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0"
             animate={booleanValue ? {
               scale: [1, 1.2, 1],
               rotate: [0, 10, -10, 0]
@@ -64,12 +64,12 @@ export function CheckboxQuestion({
             <IconComponent className="w-5 h-5 text-secondary" />
           </motion.div>
 
-          <Label className="text-lg font-semibold leading-tight text-white cursor-pointer text-center block">
+          <Label className="text-lg font-semibold leading-tight text-white cursor-pointer text-right md:text-center block flex-1">
             {question.Question_Text}
             {question.Is_Required && <span className="ml-1 text-red-200">*</span>}
           </Label>
 
-          <div className="w-10"></div>
+          <div className="w-10 hidden md:block"></div>
         </div>
 
         {/* Helper Text (full width below) */}
