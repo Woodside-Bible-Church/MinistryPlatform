@@ -1,30 +1,28 @@
 -- ===================================================================
--- Stored Procedure: api_Custom_RSVP_Project_Data_JSON (Updated with Slug Support)
+-- QUICK UPDATE: Add Campus_Slug to api_Custom_RSVP_Project_Data_JSON
 -- ===================================================================
--- Fetches all data needed to render the RSVP widget
--- Returns nested JSON with project, events, questions, and cards
--- NOW SUPPORTS: Lookup by Project_RSVP_ID (int) OR RSVP_Slug (string)
+-- This adds Campus_Slug to the Events JSON returned by the stored procedure
+-- Run this in MinistryPlatform SQL Query Analyzer
 -- ===================================================================
 
 USE [MinistryPlatform]
 GO
 
+-- Drop and recreate the stored procedure with Campus_Slug included
 IF OBJECT_ID('[dbo].[api_Custom_RSVP_Project_Data_JSON]', 'P') IS NOT NULL
     DROP PROCEDURE [dbo].[api_Custom_RSVP_Project_Data_JSON];
 GO
 
 CREATE PROCEDURE [dbo].[api_Custom_RSVP_Project_Data_JSON]
-    @Project_RSVP_ID INT = NULL,  -- Can be NULL if @RSVP_Slug is provided
-    @RSVP_Slug NVARCHAR(100) = NULL,  -- Optional: lookup by slug instead of ID
-    @Congregation_ID INT = NULL,  -- Optional: filter events by campus ID
-    @Campus_Slug NVARCHAR(50) = NULL  -- Optional: filter events by campus slug
+    @Project_RSVP_ID INT = NULL,
+    @RSVP_Slug NVARCHAR(100) = NULL,
+    @Congregation_ID INT = NULL,
+    @Campus_Slug NVARCHAR(50) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- ===================================================================
     -- Resolve RSVP_Slug to Project_RSVP_ID if slug is provided
-    -- ===================================================================
     IF @RSVP_Slug IS NOT NULL AND @Project_RSVP_ID IS NULL
     BEGIN
         SELECT @Project_RSVP_ID = Project_RSVP_ID
@@ -39,7 +37,6 @@ BEGIN
         END
     END
 
-    -- Validate that we have a Project_RSVP_ID at this point
     IF @Project_RSVP_ID IS NULL
     BEGIN
         SELECT 'error' AS status, 'Either Project_RSVP_ID or RSVP_Slug must be provided' AS message
@@ -47,9 +44,7 @@ BEGIN
         RETURN;
     END
 
-    -- ===================================================================
     -- Resolve Campus_Slug to Congregation_ID if provided
-    -- ===================================================================
     IF @Campus_Slug IS NOT NULL AND @Congregation_ID IS NULL
     BEGIN
         SELECT @Congregation_ID = Congregation_ID
@@ -57,9 +52,7 @@ BEGIN
         WHERE Campus_Slug = @Campus_Slug;
     END
 
-    -- ===================================================================
     -- Get Project_RSVP Configuration
-    -- ===================================================================
     DECLARE @ProjectRSVPJson NVARCHAR(MAX);
 
     SELECT @ProjectRSVPJson = (
@@ -81,7 +74,6 @@ BEGIN
         FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
     );
 
-    -- If no active RSVP found, return error
     IF @ProjectRSVPJson IS NULL
     BEGIN
         SELECT 'error' AS status, 'Project RSVP not found or inactive' AS message
@@ -89,9 +81,7 @@ BEGIN
         RETURN;
     END
 
-    -- ===================================================================
-    -- Get Events linked to this Project
-    -- ===================================================================
+    -- Get Events linked to this Project (INCLUDING Campus_Slug!)
     DECLARE @EventsJson NVARCHAR(MAX);
 
     SELECT @EventsJson = (
@@ -103,17 +93,12 @@ BEGIN
             e.Event_Type_ID,
             e.Congregation_ID,
             ISNULL(c.Congregation_Name, '') AS Campus_Name,
-            ISNULL(c.Campus_Slug, '') AS Campus_Slug,
+            ISNULL(c.Campus_Slug, '') AS Campus_Slug,  -- ← ADDED THIS LINE
             ISNULL(l.Location_Name, '') AS Campus_Location,
-            -- Get capacity from Event or use override
             ISNULL(e.Participants_Expected, 500) AS Capacity,
-            -- Count current RSVPs for this event
             (SELECT COUNT(*) FROM Event_RSVPs er WHERE er.Event_ID = e.Event_ID) AS Current_RSVPs,
-            -- Apply the capacity modifier
             ISNULL(pe.RSVP_Capacity_Modifier, 0) AS RSVP_Capacity_Modifier,
-            -- Calculate adjusted RSVP count
             (SELECT COUNT(*) FROM Event_RSVPs er WHERE er.Event_ID = e.Event_ID) + ISNULL(pe.RSVP_Capacity_Modifier, 0) AS Adjusted_RSVP_Count,
-            -- Calculate capacity percentage with modifier
             CASE
                 WHEN ISNULL(e.Participants_Expected, 500) = 0 THEN 0
                 ELSE CAST(
@@ -121,15 +106,12 @@ BEGIN
                     / ISNULL(e.Participants_Expected, 500) AS INT
                 )
             END AS Capacity_Percentage,
-            -- Max_Capacity for frontend
             ISNULL(e.Participants_Expected, 500) AS Max_Capacity,
-            -- Is_Available - true if capacity percentage < 100
             CASE
                 WHEN ISNULL(e.Participants_Expected, 500) = 0 THEN CAST(0 AS BIT)
                 WHEN ((SELECT COUNT(*) FROM Event_RSVPs er WHERE er.Event_ID = e.Event_ID) + ISNULL(pe.RSVP_Capacity_Modifier, 0)) >= ISNULL(e.Participants_Expected, 500) THEN CAST(0 AS BIT)
                 ELSE CAST(1 AS BIT)
             END AS Is_Available,
-            -- Campus address info for map from Locations table
             ISNULL(a.Address_Line_1, '') AS Campus_Address,
             ISNULL(a.City, '') AS Campus_City,
             ISNULL(a.[State/Region], '') AS Campus_State,
@@ -141,20 +123,15 @@ BEGIN
         LEFT JOIN Addresses a ON l.Address_ID = a.Address_ID
         WHERE pe.Project_ID = (SELECT Project_ID FROM Project_RSVPs WHERE Project_RSVP_ID = @Project_RSVP_ID)
           AND pe.Include_In_RSVP = 1
-          -- Date filter removed for testing - can be added back later
-          -- AND e.Event_Start_Date >= GETDATE() - 1
           AND (@Congregation_ID IS NULL OR e.Congregation_ID = @Congregation_ID)
         ORDER BY e.Event_Start_Date ASC, c.Congregation_Name ASC
         FOR JSON PATH
     );
 
-    -- Default to empty array if no events
     IF @EventsJson IS NULL
         SET @EventsJson = '[]';
 
-    -- ===================================================================
     -- Get Questions for this RSVP
-    -- ===================================================================
     DECLARE @QuestionsJson NVARCHAR(MAX);
 
     SELECT @QuestionsJson = (
@@ -171,7 +148,6 @@ BEGIN
             q.Default_Value,
             q.Placeholder_Text,
             q.Icon_Name,
-            -- Get options for this question (empty array if none)
             ISNULL((
                 SELECT
                     qo.Question_Option_ID AS Option_ID,
@@ -191,13 +167,10 @@ BEGIN
         FOR JSON PATH
     );
 
-    -- Default to empty array if no questions
     IF @QuestionsJson IS NULL
         SET @QuestionsJson = '[]';
 
-    -- ===================================================================
     -- Get Confirmation Cards
-    -- ===================================================================
     DECLARE @CardsJson NVARCHAR(MAX);
 
     SELECT @CardsJson = (
@@ -209,7 +182,6 @@ BEGIN
             ct.Icon_Name,
             pcc.Display_Order,
             pcc.Congregation_ID,
-            -- Parse JSON configuration or use default
             ISNULL(
                 TRY_CAST(pcc.Card_Configuration AS NVARCHAR(MAX)),
                 ct.Default_Configuration
@@ -218,19 +190,15 @@ BEGIN
         INNER JOIN Card_Types ct ON pcc.Card_Type_ID = ct.Card_Type_ID
         WHERE pcc.Project_RSVP_ID = @Project_RSVP_ID
           AND pcc.Is_Active = 1
-          -- Show cards that are either global (NULL congregation) or match the filter
           AND (pcc.Congregation_ID IS NULL OR @Congregation_ID IS NULL OR pcc.Congregation_ID = @Congregation_ID)
         ORDER BY pcc.Display_Order ASC
         FOR JSON PATH
     );
 
-    -- Default to empty array if no cards
     IF @CardsJson IS NULL
         SET @CardsJson = '[]';
 
-    -- ===================================================================
     -- Return Combined JSON Response
-    -- ===================================================================
     DECLARE @Result NVARCHAR(MAX);
 
     SET @Result = N'{' +
@@ -244,29 +212,9 @@ BEGIN
 END
 GO
 
--- ===================================================================
--- Grant API Access
--- ===================================================================
--- Uncomment and adjust based on your MP API user configuration
--- Example: GRANT EXECUTE ON [dbo].[api_Custom_RSVP_Project_Data_JSON] TO [YourAPIUser];
-
-PRINT 'Created stored procedure: api_Custom_RSVP_Project_Data_JSON (with slug support)';
-PRINT 'NOTE: Remember to grant EXECUTE permission to your API user!';
+PRINT '✓ Updated stored procedure: api_Custom_RSVP_Project_Data_JSON';
+PRINT '✓ Campus_Slug is now included in Events JSON';
+PRINT '';
+PRINT 'Test it with:';
+PRINT 'EXEC api_Custom_RSVP_Project_Data_JSON @RSVP_Slug = ''christmas-2024'';';
 GO
-
--- ===================================================================
--- Test Queries (Uncomment to test)
--- ===================================================================
-/*
--- Test with Project_RSVP_ID (original method)
-EXEC api_Custom_RSVP_Project_Data_JSON @Project_RSVP_ID = 1;
-
--- Test with RSVP_Slug (new method)
-EXEC api_Custom_RSVP_Project_Data_JSON @RSVP_Slug = 'christmas-2024';
-
--- Test with slug + campus filter
-EXEC api_Custom_RSVP_Project_Data_JSON @RSVP_Slug = 'christmas-2024', @Campus_Slug = 'lake-orion';
-
--- Test with slug + congregation ID
-EXEC api_Custom_RSVP_Project_Data_JSON @RSVP_Slug = 'christmas-2024', @Congregation_ID = 15;
-*/

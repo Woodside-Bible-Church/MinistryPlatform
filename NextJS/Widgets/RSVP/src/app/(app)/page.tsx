@@ -193,6 +193,20 @@ export default function RSVPPage() {
     return Array.from(campusMap.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [rsvpData]);
 
+  // Build dynamic slug-to-Congregation_ID mapping from events data
+  const slugToIdMap = useMemo(() => {
+    if (!rsvpData?.Events) return {};
+
+    const map: Record<string, number> = {};
+    rsvpData.Events.forEach(event => {
+      if (event.Campus_Slug && event.Congregation_ID) {
+        map[event.Campus_Slug] = event.Congregation_ID;
+      }
+    });
+    console.log('[DEBUG] Built slug-to-ID map:', map);
+    return map;
+  }, [rsvpData]);
+
   // Get default campus with priority: data-params > URL param > user's Web_Congregation_ID > WordPress cookie > first available
   const getInitialCampusId = useMemo(() => {
     return (): number | null => {
@@ -213,21 +227,20 @@ export default function RSVPPage() {
         const urlParams = new URLSearchParams(window.location.search);
         const campusSlug = urlParams.get('campus');
         if (campusSlug) {
-          // Map slug to Congregation_ID
-          const slugToCongregationMap: Record<string, number> = {
-            'troy': 15,
-            'lake-orion': 9,
-            'online': 3,
-          };
-          const congregationId = slugToCongregationMap[campusSlug];
+          console.log(`[DEBUG] URL campus parameter detected: "${campusSlug}"`);
+          console.log(`[DEBUG] Available slug map:`, slugToIdMap);
+          // Use dynamic mapping from events data
+          const congregationId = slugToIdMap[campusSlug];
           if (congregationId) {
             const campus = availableCampuses.find(c => c.congregationId === congregationId);
             if (campus) {
-              console.log(`URL campus slug detected: ${campusSlug} -> Congregation_ID ${congregationId} -> Campus ${campus.name}`);
+              console.log(`[DEBUG] ✓ URL campus slug matched: ${campusSlug} -> Congregation_ID ${congregationId} -> Campus ${campus.name}`);
               return campus.id;
             }
+            console.warn(`[DEBUG] ✗ Congregation_ID ${congregationId} not found in availableCampuses`);
+          } else {
+            console.warn(`[DEBUG] ✗ URL campus slug "${campusSlug}" not found in slug map`);
           }
-          console.warn(`URL campus slug "${campusSlug}" not found or not mapped`);
         }
       }
 
@@ -255,7 +268,7 @@ export default function RSVPPage() {
       // Priority 5: Default to first available campus
       return availableCampuses[0].id;
     };
-  }, [availableCampuses, userCongregationId, widgetParams.CongregationID]);
+  }, [availableCampuses, userCongregationId, widgetParams.CongregationID, slugToIdMap]);
 
   // Determine if campus dropdown should be hidden
   const hideCampusDropdown = !!widgetParams.CongregationID;
@@ -277,7 +290,12 @@ export default function RSVPPage() {
   const isFirstRender = useRef(true);
 
   // Dev mode: allow selecting project via dropdown
-  const [devProject, setDevProject] = useState<string>(''); // Empty by default - user must select
+  // In dev mode, read project from URL or default to empty
+  const [devProject, setDevProject] = useState<string>(() => {
+    if (typeof window === 'undefined' || isWidget) return '';
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('project') || '';
+  });
   const [availableProjects, setAvailableProjects] = useState<Array<{value: string; label: string}>>([]);
 
   // Fetch user's Web_Congregation_ID when authenticated
@@ -654,7 +672,7 @@ export default function RSVPPage() {
     setFormData({}); // Clear form data
   };
 
-  // Don't render if no project is provided (widget mode OR dev mode)
+  // Widget mode: don't render anything if no project parameter
   // IMPORTANT: This must come AFTER all hooks are called
   if (isWidget && !widgetParams.Project && !widgetParams.ProjectRsvpID) {
     console.warn('[RSVP Widget] No project parameter provided. Widget will not render.');
@@ -662,24 +680,24 @@ export default function RSVPPage() {
     return null;  // Don't render anything
   }
 
-  // Dev mode: don't render if no project is selected from dropdown
-  if (!isWidget && !devProject) {
-    console.log('[RSVP Dev Mode] No project selected. Please select a project from the dropdown.');
-    return null;  // Don't render anything
-  }
-
   return (
     <div className="min-h-screen bg-white">
       {/* Glassmorphic Top Navigation Bar - Fixed (Only show in Next.js dev mode, not widget) */}
       {!isWidget && (
-        <div className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/10 border-b border-white/20 py-3 px-8">
+        <div className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-primary/95 border-b border-white/20 py-3 px-8 shadow-lg">
           <div className="max-w-[1600px] mx-auto flex justify-between items-center">
             {/* Left: Project Selector */}
             <div className="flex items-center gap-3">
               <span className="text-white/90 text-sm font-medium">Project:</span>
               <Select
                 value={devProject}
-                onValueChange={setDevProject}
+                onValueChange={(value) => {
+                  setDevProject(value);
+                  // Update URL to persist selection across refreshes
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('project', value);
+                  window.history.replaceState({}, '', url.toString());
+                }}
               >
                 <SelectTrigger className="w-[300px] h-9 bg-white/20 hover:bg-white/30 backdrop-blur-sm border-white/30 text-white text-sm">
                   <SelectValue placeholder="Select project" />
@@ -726,6 +744,9 @@ export default function RSVPPage() {
         </div>
       )}
 
+      {/* Dev mode: Only render widget content if project is selected */}
+      {!isWidget && !devProject ? null : (
+      <>
       {/* Header with Background Image and Content - Adjust padding based on mode */}
       <section className={`relative text-white overflow-hidden ${isWidget ? 'pt-32' : 'pt-24'} pb-16`}>
         {/* Background Pattern */}
@@ -1097,6 +1118,8 @@ export default function RSVPPage() {
             </div>
           </div>
         </section>
+      )}
+      </>
       )}
 
     </div>
