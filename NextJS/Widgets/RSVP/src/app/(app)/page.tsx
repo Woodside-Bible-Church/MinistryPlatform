@@ -152,15 +152,8 @@ export default function RSVPPage() {
   // Parse widget params from data-params attribute
   const widgetParams = parseWidgetParams();
 
-  // In widget mode, don't render if no project parameter is provided
-  if (isWidget && !widgetParams.Project && !widgetParams.ProjectRsvpID) {
-    console.warn('[RSVP Widget] No project parameter provided. Widget will not render.');
-    console.warn('[RSVP Widget] Add data-params="@Project=christmas-2024" or data-params="@Project=1" to the widget container.');
-    return null;  // Don't render anything
-  }
-
   // Get authentication session (only for Next.js dev mode, not widget)
-  const { data: session, status: sessionStatus } = useSession();
+  const { data: session, status: sessionStatus} = useSession();
   console.log('[DEBUG] Session:', session);
   console.log('[DEBUG] Session Status:', sessionStatus);
   console.log('[DEBUG] Is Widget Mode:', isWidget);
@@ -633,6 +626,14 @@ export default function RSVPPage() {
     setFormStep(1); // Reset to step 1
     setFormData({}); // Clear form data
   };
+
+  // In widget mode, don't render if no project parameter is provided
+  // IMPORTANT: This must come AFTER all hooks are called
+  if (isWidget && !widgetParams.Project && !widgetParams.ProjectRsvpID) {
+    console.warn('[RSVP Widget] No project parameter provided. Widget will not render.');
+    console.warn('[RSVP Widget] Add data-params="@Project=christmas-2024" or data-params="@Project=1" to the widget container.');
+    return null;  // Don't render anything
+  }
 
   return (
     <div className="min-h-screen bg-white">
