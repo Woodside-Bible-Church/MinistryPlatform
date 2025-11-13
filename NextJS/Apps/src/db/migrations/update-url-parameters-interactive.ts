@@ -43,7 +43,7 @@ async function main() {
           dataSourceType: 'mp_table',
           dataSourceConfig: {
             table: 'Congregations',
-            valueField: 'Congregation_Short_Name',
+            valueField: 'Campus_Slug',
             labelField: 'Congregation_Name',
             filter: 'Available_Online = 1',
             orderBy: 'Congregation_Name',
