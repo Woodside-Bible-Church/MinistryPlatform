@@ -28,27 +28,33 @@ export function CheckboxQuestion({
     : HelpCircle;
 
   return (
-    <div className="space-y-4 md:max-w-lg">
+    <div className="space-y-4">
       {/* Entire question in a clickable box */}
       <motion.div
         onClick={() => onChange(!booleanValue)}
         className={cn(
-          'rounded-lg border-2 p-4 transition-all cursor-pointer space-y-2',
+          'rounded-lg border-2 p-4 transition-shadow cursor-pointer space-y-2',
           error
             ? 'border-red-500 bg-red-500/10 shadow-[3px_6px_12px_rgba(239,68,68,0.2)]'
             : booleanValue
             ? 'border-white bg-white/15 shadow-[3px_6px_15px_rgba(255,255,255,0.18)]'
-            : 'border-white/20 hover:bg-white/10 hover:border-white/30 shadow-[2px_3px_8px_rgba(0,0,0,0.3)] hover:shadow-[3px_6px_12px_rgba(255,255,255,0.12)]'
+            : 'border-white/20 shadow-[2px_3px_8px_rgba(0,0,0,0.3)]'
         )}
-        animate={booleanValue ? { scale: [1, 1.02, 1] } : {}}
-        whileTap={{ scale: 0.97 }}
-        transition={{ duration: 0.2, ease: 'easeInOut' }}
+        animate={booleanValue ? { scale: 1 } : { scale: 1 }}
+        initial={{ scale: 1 }}
+        whileHover={{
+          scale: 1.005,
+          boxShadow: '2px 4px 9px rgba(0,0,0,0.32)',
+          transition: { duration: 0.15, ease: 'easeOut' }
+        }}
+        whileTap={{ scale: 0.99, transition: { duration: 0.1 } }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
       >
         {/* Icon and Question Text (first row) */}
-        <div className="flex items-start gap-3">
+        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 mb-3">
           {/* Icon - shows Icon_Name or HelpCircle fallback */}
           <motion.div
-            className="flex-shrink-0 w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center"
+            className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center"
             animate={booleanValue ? {
               scale: [1, 1.2, 1],
               rotate: [0, 10, -10, 0]
@@ -58,20 +64,22 @@ export function CheckboxQuestion({
             <IconComponent className="w-5 h-5 text-secondary" />
           </motion.div>
 
-          <Label className="text-lg font-semibold leading-tight text-white cursor-pointer">
+          <Label className="text-lg font-semibold leading-tight text-white cursor-pointer text-center block">
             {question.Question_Text}
             {question.Is_Required && <span className="ml-1 text-red-200">*</span>}
           </Label>
+
+          <div className="w-10"></div>
         </div>
 
         {/* Helper Text (full width below) */}
         {question.Helper_Text && (
-          <p className="text-sm text-white/70 w-full">{question.Helper_Text}</p>
+          <p className="text-sm text-white/70 w-full text-center">{question.Helper_Text}</p>
         )}
 
         {/* Click to confirm text (full width below) */}
         <motion.p
-          className="text-sm italic w-full"
+          className="text-sm italic w-full text-right"
           animate={booleanValue ? {
             color: ['rgba(255,255,255,0.6)', 'rgba(255,255,255,1)', 'rgba(255,255,255,0.6)']
           } : {

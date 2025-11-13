@@ -379,10 +379,10 @@ export default function RSVPForm({
     <div className="space-y-6">
       {/* Step 1: Tell Us About Yourself */}
       {formStep === 1 && (
-        <div className="bg-primary p-6 space-y-6">
+        <div className="bg-primary p-6 space-y-12 max-w-xl">
           {/* Fill Out As Dropdown - Only show for authenticated users */}
           {currentUser && (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="fillOutAs" className="text-white">
                 Fill Out As
               </Label>
@@ -391,7 +391,7 @@ export default function RSVPForm({
                 onValueChange={handlePersonChange}
                 disabled={isLoadingHousehold}
               >
-                <SelectTrigger className="w-full bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="w-full bg-white/10 border-white/20 text-white min-h-[3.5rem]">
                   <SelectValue placeholder="Select person" />
                 </SelectTrigger>
                 <SelectContent>
@@ -407,7 +407,7 @@ export default function RSVPForm({
                       ) : (
                         <UserCircle className="size-8 text-muted-foreground" />
                       )}
-                      <span>{formatPersonName(currentUser, true)}</span>
+                      <span>{formatPersonName(currentUser, false)}</span>
                     </div>
                   </SelectItem>
 
@@ -575,7 +575,7 @@ export default function RSVPForm({
       {/* Step 2: Complete Your RSVP */}
       {formStep === 2 && (
         <form onSubmit={handleSubmit(handleStep2Submit)}>
-          <div className="bg-primary p-6 space-y-10">
+          <div className="bg-primary p-6 space-y-12 max-w-xl">
             {/* Dynamic Questions */}
             {parsedQuestions.map((question) => (
               <DynamicQuestion

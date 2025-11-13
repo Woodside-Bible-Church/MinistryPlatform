@@ -694,7 +694,7 @@ export default function RSVPPage() {
                       </h2>
 
                       {/* Cards Container */}
-                      <div className="flex flex-col md:flex-row gap-4">
+                      <div className="flex flex-col md:flex-row gap-4 max-w-xl">
                         {/* Service Selection Card - Clickable */}
                         <button
                           onClick={handleBackToServices}
