@@ -410,14 +410,10 @@ export default function RSVPPage() {
         // In Next.js dev mode, use devProject state only if it's not empty
         const projectIdentifier = widgetParams.Project || widgetParams.ProjectRsvpID || (!isWidget && devProject ? devProject : null);
 
-        // Safety check: if no project is selected, show appropriate message
+        // Safety check: if no project is available, don't fetch
+        // (This should be caught by early return, but just in case)
         if (!projectIdentifier) {
-          console.warn('[RSVP Widget] No project identifier available');
-          if (isWidget) {
-            setLoadError('No project parameter provided');
-          } else {
-            setLoadError('Please select a project from the dropdown above');
-          }
+          console.warn('[RSVP Widget] No project identifier available, skipping fetch');
           setIsLoading(false);
           return;
         }
@@ -658,11 +654,17 @@ export default function RSVPPage() {
     setFormData({}); // Clear form data
   };
 
-  // In widget mode, don't render if no project parameter is provided
+  // Don't render if no project is provided (widget mode OR dev mode)
   // IMPORTANT: This must come AFTER all hooks are called
   if (isWidget && !widgetParams.Project && !widgetParams.ProjectRsvpID) {
     console.warn('[RSVP Widget] No project parameter provided. Widget will not render.');
     console.warn('[RSVP Widget] Add data-params="@Project=christmas-2024" or data-params="@Project=1" to the widget container.');
+    return null;  // Don't render anything
+  }
+
+  // Dev mode: don't render if no project is selected from dropdown
+  if (!isWidget && !devProject) {
+    console.log('[RSVP Dev Mode] No project selected. Please select a project from the dropdown.');
     return null;  // Don't render anything
   }
 
