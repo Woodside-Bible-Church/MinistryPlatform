@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { widgetFields } from '@/db/schema';
+import { widgetFields, widgetUrlParameters } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { auth } from '@/auth';
 import { MPHelper } from '@/providers/MinistryPlatform/mpHelper';
@@ -13,27 +13,51 @@ export async function GET(
     // Await params (required in Next.js 15)
     const { fieldId } = await params;
 
+    // Get query params to determine type
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get('type') || 'field'; // 'field' or 'url-parameter'
+
     // Get authenticated session
     const session = await auth();
     if (!session?.accessToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Find the widget field configuration
-    const field = await db.query.widgetFields.findFirst({
-      where: eq(widgetFields.fieldKey, fieldId),
-    });
+    let dataSourceConfig: any;
+    let dataSourceType: string | null;
 
-    if (!field) {
-      return NextResponse.json({ error: 'Field not found' }, { status: 404 });
+    if (type === 'url-parameter') {
+      // Find the URL parameter configuration by ID
+      const urlParam = await db.query.widgetUrlParameters.findFirst({
+        where: eq(widgetUrlParameters.id, parseInt(fieldId)),
+      });
+
+      if (!urlParam) {
+        return NextResponse.json({ error: 'URL parameter not found' }, { status: 404 });
+      }
+
+      dataSourceConfig = urlParam.dataSourceConfig;
+      dataSourceType = urlParam.dataSourceType;
+    } else {
+      // Find the widget field configuration
+      const field = await db.query.widgetFields.findFirst({
+        where: eq(widgetFields.fieldKey, fieldId),
+      });
+
+      if (!field) {
+        return NextResponse.json({ error: 'Field not found' }, { status: 404 });
+      }
+
+      dataSourceConfig = field.dataSourceConfig;
+      dataSourceType = field.dataSourceType;
     }
 
     // If field doesn't have MP data source, return empty
-    if (field.dataSourceType !== 'mp_table' || !field.dataSourceConfig) {
+    if (dataSourceType !== 'mp_table' || !dataSourceConfig) {
       return NextResponse.json([]);
     }
 
-    const config = field.dataSourceConfig as {
+    const config = dataSourceConfig as {
       table: string;
       valueField: string;
       labelField: string;

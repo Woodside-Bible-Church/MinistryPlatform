@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 interface WidgetPreviewProps {
@@ -13,6 +14,7 @@ export function WidgetPreview({ embedCode, widgetName, widgetSource = 'custom' }
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -95,7 +97,7 @@ export function WidgetPreview({ embedCode, widgetName, widgetSource = 'custom' }
         containerRef.current.innerHTML = "";
       }
     };
-  }, [embedCode, widgetSource]);
+  }, [embedCode, widgetSource, searchParams]);
 
   return (
     <div className="relative min-h-[500px] bg-card border border-border md:rounded-lg p-0 md:p-6 -mx-4 md:mx-0">

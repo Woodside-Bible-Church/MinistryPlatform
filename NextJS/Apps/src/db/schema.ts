@@ -65,6 +65,32 @@ export const widgetFields = pgTable('widget_fields', {
 });
 
 /**
+ * Widget URL Parameters Table
+ * Documents URL parameters that can be passed to widgets
+ * These are separate from data-params and are appended to the widget URL
+ *
+ * Example: ?campus=troy or ?id=[FormGUID]
+ */
+export const widgetUrlParameters = pgTable('widget_url_parameters', {
+  id: serial('id').primaryKey(),
+  widgetId: integer('widget_id').notNull().references(() => widgets.id, { onDelete: 'cascade' }),
+  parameterKey: varchar('parameter_key', { length: 50 }).notNull(), // e.g., 'campus', 'id'
+  description: text('description').notNull(), // What this parameter does
+  exampleValue: varchar('example_value', { length: 255 }), // e.g., 'troy', '[FormGUIDGoesHere]'
+  isRequired: boolean('is_required').default(false),
+  sortOrder: integer('sort_order').default(0),
+
+  // Interactive configuration (allows users to select values in widget configurator)
+  isInteractive: boolean('is_interactive').default(false), // If true, shows dropdown in configurator
+  options: jsonb('options'), // For static dropdowns: [{ value: 'troy', label: 'Troy' }]
+  dataSourceType: varchar('data_source_type', { length: 20 }), // 'static', 'mp_table', 'mp_proc'
+  dataSourceConfig: jsonb('data_source_config'), // { table: 'Congregations', valueField: 'Congregation_Short_Name', labelField: 'Congregation_Name', filter: 'Available_Online = 1' }
+
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+/**
  * App Permissions Table
  * Controls which users/roles have access to which apps
  */
@@ -87,5 +113,7 @@ export type Widget = typeof widgets.$inferSelect;
 export type NewWidget = typeof widgets.$inferInsert;
 export type WidgetField = typeof widgetFields.$inferSelect;
 export type NewWidgetField = typeof widgetFields.$inferInsert;
+export type WidgetUrlParameter = typeof widgetUrlParameters.$inferSelect;
+export type NewWidgetUrlParameter = typeof widgetUrlParameters.$inferInsert;
 export type AppPermission = typeof appPermissions.$inferSelect;
 export type NewAppPermission = typeof appPermissions.$inferInsert;

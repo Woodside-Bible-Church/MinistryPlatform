@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Copy, Check, Loader2 } from "lucide-react";
 import { WidgetPreview } from "@/components/widgets/WidgetPreview";
 import { SearchableSelect } from "@/components/widgets/SearchableSelect";
+import { UrlParametersSection } from "@/components/widgets/UrlParametersSection";
 
 interface WidgetField {
   id: string;
@@ -374,6 +375,9 @@ export default function WidgetConfiguratorPage() {
                 )}
               </div>
             ))}
+
+            {/* URL Parameters Section - now integrated inside Configuration panel */}
+            <UrlParametersSection widgetId={currentConfig.id} />
           </div>
 
           {/* Embed Code */}
