@@ -60,9 +60,10 @@ export function CounterQuestion({
 
   return (
     <div className="space-y-4 max-w-md">
-      <QuestionLabel question={question} htmlFor={`question-${question.Question_ID}`} />
+      <div className="p-4">
+        <QuestionLabel question={question} htmlFor={`question-${question.Question_ID}`} />
 
-      <div className="flex items-center justify-center md:justify-start gap-4">
+        <div className="flex items-center justify-center md:justify-start gap-4 mt-4">
         <Button
           type="button"
           variant="outline"
@@ -100,6 +101,7 @@ export function CounterQuestion({
         >
           <Plus className="h-5 w-5" />
         </Button>
+        </div>
       </div>
 
       {error && <p className="text-sm text-red-500">{error}</p>}

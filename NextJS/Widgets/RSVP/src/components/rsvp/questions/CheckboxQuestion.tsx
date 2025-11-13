@@ -28,20 +28,21 @@ export function CheckboxQuestion({
     : HelpCircle;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 md:max-w-lg">
       {/* Entire question in a clickable box */}
       <motion.div
         onClick={() => onChange(!booleanValue)}
         className={cn(
           'rounded-lg border-2 p-4 transition-all cursor-pointer space-y-2',
           error
-            ? 'border-red-500 bg-red-500/10'
+            ? 'border-red-500 bg-red-500/10 shadow-[3px_6px_12px_rgba(239,68,68,0.2)]'
             : booleanValue
-            ? 'border-white bg-white/15'
-            : 'border-white/20 hover:bg-white/10 hover:border-white/30'
+            ? 'border-white bg-white/15 shadow-[3px_6px_15px_rgba(255,255,255,0.18)]'
+            : 'border-white/20 hover:bg-white/10 hover:border-white/30 shadow-[2px_3px_8px_rgba(0,0,0,0.3)] hover:shadow-[3px_6px_12px_rgba(255,255,255,0.12)]'
         )}
         animate={booleanValue ? { scale: [1, 1.02, 1] } : {}}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
+        whileTap={{ scale: 0.97 }}
+        transition={{ duration: 0.2, ease: 'easeInOut' }}
       >
         {/* Icon and Question Text (first row) */}
         <div className="flex items-start gap-3">
