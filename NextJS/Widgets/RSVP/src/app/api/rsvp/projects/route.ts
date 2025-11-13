@@ -21,11 +21,10 @@ export async function GET() {
     const mp = ministryPlatformProvider.getInstance();
 
     // Fetch all active Project_RSVPs
-    const projects = await mp.getTableRecords<ProjectRSVP>({
-      table: 'Project_RSVPs',
-      select: 'Project_RSVP_ID, RSVP_Title, RSVP_Slug, Is_Active',
-      filter: 'Is_Active = 1',
-      orderBy: 'RSVP_Title ASC',
+    const projects = await mp.getTableRecords<ProjectRSVP>('Project_RSVPs', {
+      $select: 'Project_RSVP_ID, RSVP_Title, RSVP_Slug, Is_Active',
+      $filter: 'Is_Active = 1',
+      $orderby: 'RSVP_Title',
     });
 
     // Transform to dropdown options format
