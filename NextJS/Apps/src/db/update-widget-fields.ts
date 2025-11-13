@@ -22,17 +22,36 @@ async function updateWidgetFields() {
   await db.delete(widgetFields).where(eq(widgetFields.widgetId, rsvpWidget.id));
   console.log('Deleted existing fields');
 
-  // Insert new widget field with MP data source
+  // Insert new widget fields with MP data source
   await db.insert(widgetFields).values([
     {
       widgetId: rsvpWidget.id,
-      fieldKey: 'campus',
-      label: 'Campus',
+      fieldKey: 'project',
+      label: 'Project',
       fieldType: 'mp-select',
-      helpText: 'Select which campus this widget is for',
+      helpText: 'Select which RSVP project this widget is for (required)',
+      defaultValue: '',
+      isRequired: true,
+      sortOrder: 1,
+      dataSourceType: 'mp_table',
+      dataSourceConfig: {
+        table: 'Project_RSVPs',
+        valueField: 'RSVP_Slug',
+        labelField: 'RSVP_Title',
+        filter: 'Is_Active = 1 AND RSVP_Slug IS NOT NULL',
+        orderBy: 'RSVP_Title',
+      },
+      dataParamMapping: 'Project',
+    },
+    {
+      widgetId: rsvpWidget.id,
+      fieldKey: 'campus',
+      label: 'Campus (Optional)',
+      fieldType: 'mp-select',
+      helpText: 'Optionally filter events by campus',
       defaultValue: '',
       isRequired: false,
-      sortOrder: 1,
+      sortOrder: 2,
       dataSourceType: 'mp_table',
       dataSourceConfig: {
         table: 'Congregations',

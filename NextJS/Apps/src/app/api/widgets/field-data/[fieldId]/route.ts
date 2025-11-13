@@ -38,6 +38,7 @@ export async function GET(
       valueField: string;
       labelField: string;
       filter?: string;
+      orderBy?: string;
     };
 
     // Get MP helper instance
@@ -48,7 +49,7 @@ export async function GET(
       table: config.table,
       select: `${config.valueField}, ${config.labelField}`,
       filter: config.filter,
-      orderBy: config.labelField,
+      orderBy: config.orderBy || config.labelField,
     });
 
     // Transform to options format
