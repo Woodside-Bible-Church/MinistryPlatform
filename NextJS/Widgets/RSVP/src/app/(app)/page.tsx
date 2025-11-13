@@ -152,6 +152,13 @@ export default function RSVPPage() {
   // Parse widget params from data-params attribute
   const widgetParams = parseWidgetParams();
 
+  // In widget mode, don't render if no project parameter is provided
+  if (isWidget && !widgetParams.Project && !widgetParams.ProjectRsvpID) {
+    console.warn('[RSVP Widget] No project parameter provided. Widget will not render.');
+    console.warn('[RSVP Widget] Add data-params="@Project=christmas-2024" or data-params="@Project=1" to the widget container.');
+    return null;  // Don't render anything
+  }
+
   // Get authentication session (only for Next.js dev mode, not widget)
   const { data: session, status: sessionStatus } = useSession();
   console.log('[DEBUG] Session:', session);
@@ -379,8 +386,17 @@ export default function RSVPPage() {
         setIsLoading(true);
         setLoadError(null);
 
-        // Priority: Project > ProjectRsvpID > default to 1
-        const projectIdentifier = widgetParams.Project || widgetParams.ProjectRsvpID || 1;
+        // Priority: Project > ProjectRsvpID (no default in widget mode)
+        // In Next.js dev mode, default to 1 if no project specified
+        const projectIdentifier = widgetParams.Project || widgetParams.ProjectRsvpID || (isWidget ? null : 1);
+
+        // Safety check: should never happen due to early return, but just in case
+        if (!projectIdentifier) {
+          console.error('[RSVP Widget] No project identifier available');
+          setLoadError('No project parameter provided');
+          setIsLoading(false);
+          return;
+        }
 
         // Build API URL with query parameters
         // Use baseUrl (widget config) if available, otherwise use window.location.origin
