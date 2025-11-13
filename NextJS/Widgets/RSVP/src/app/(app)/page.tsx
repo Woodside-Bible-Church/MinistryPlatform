@@ -84,12 +84,15 @@ function parseWidgetParams(): WidgetParams {
       const match = trimmed.match(/@(\w+)=([\w-]+)/);
       if (match) {
         const [, key, value] = match;
-        if (key === 'CongregationID') {
+        // Normalize key to lowercase for case-insensitive matching
+        const normalizedKey = key.toLowerCase();
+
+        if (normalizedKey === 'congregationid') {
           params.CongregationID = parseInt(value);
-        } else if (key === 'ProjectRsvpID') {
+        } else if (normalizedKey === 'projectrsvpid') {
           // Deprecated but still supported for backward compatibility
           params.ProjectRsvpID = parseInt(value);
-        } else if (key === 'Project') {
+        } else if (normalizedKey === 'project') {
           // New parameter: can be numeric ID or slug
           // Check if value is numeric
           if (/^\d+$/.test(value)) {
@@ -273,6 +276,10 @@ export default function RSVPPage() {
   // Track if this is the first render (to prevent auto-scroll on initial load)
   const isFirstRender = useRef(true);
 
+  // Dev mode: allow selecting project via dropdown
+  const [devProject, setDevProject] = useState<string>('1'); // Default to project 1 in dev
+  const [availableProjects, setAvailableProjects] = useState<Array<{value: string; label: string}>>([]);
+
   // Fetch user's Web_Congregation_ID when authenticated
   useEffect(() => {
     const fetchUserCongregationId = async () => {
@@ -372,6 +379,26 @@ export default function RSVPPage() {
     }
   }, [availableCampuses, selectedCampusId, userCongregationId, getInitialCampusId, widgetParams.CongregationID]);
 
+  // Fetch available projects in dev mode
+  useEffect(() => {
+    if (isWidget) return; // Only in dev mode
+
+    const fetchProjects = async () => {
+      try {
+        const apiOrigin = baseUrl || window.location.origin;
+        const response = await fetch(`${apiOrigin}/api/rsvp/projects`);
+        if (response.ok) {
+          const data = await response.json();
+          setAvailableProjects(data);
+        }
+      } catch (error) {
+        console.warn('Failed to fetch available projects:', error);
+      }
+    };
+
+    fetchProjects();
+  }, [isWidget, baseUrl]);
+
   // Fetch RSVP data on mount
   useEffect(() => {
     const fetchRSVPData = async () => {
@@ -379,9 +406,9 @@ export default function RSVPPage() {
         setIsLoading(true);
         setLoadError(null);
 
-        // Priority: Project > ProjectRsvpID (no default in widget mode)
-        // In Next.js dev mode, default to 1 if no project specified
-        const projectIdentifier = widgetParams.Project || widgetParams.ProjectRsvpID || (isWidget ? null : 1);
+        // Priority: Project > ProjectRsvpID > devProject (dev mode) > no default in widget mode
+        // In Next.js dev mode, use devProject state if no widget params specified
+        const projectIdentifier = widgetParams.Project || widgetParams.ProjectRsvpID || (isWidget ? null : devProject);
 
         // Safety check: should never happen due to early return, but just in case
         if (!projectIdentifier) {
@@ -419,7 +446,7 @@ export default function RSVPPage() {
     };
 
     fetchRSVPData();
-  }, [widgetParams.Project, widgetParams.ProjectRsvpID, baseUrl]);
+  }, [widgetParams.Project, widgetParams.ProjectRsvpID, baseUrl, devProject, isWidget]);
 
   // Scroll to instructions when view or form step changes
   // Only on mobile, and not on initial render
@@ -640,32 +667,55 @@ export default function RSVPPage() {
       {/* Glassmorphic Top Navigation Bar - Fixed (Only show in Next.js dev mode, not widget) */}
       {!isWidget && (
         <div className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/10 border-b border-white/20 py-3 px-8">
-          <div className="max-w-[1600px] mx-auto flex justify-end items-center">
-            {sessionStatus === "loading" ? (
-              <div className="text-white/90 text-sm">Loading...</div>
-            ) : session ? (
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-white drop-shadow-lg">
-                  <User className="w-4 h-4" />
-                  <span className="text-sm font-medium">{session.user?.name || session.user?.email}</span>
+          <div className="max-w-[1600px] mx-auto flex justify-between items-center">
+            {/* Left: Project Selector */}
+            <div className="flex items-center gap-3">
+              <span className="text-white/90 text-sm font-medium">Project:</span>
+              <Select
+                value={devProject}
+                onValueChange={setDevProject}
+              >
+                <SelectTrigger className="w-[300px] h-9 bg-white/20 hover:bg-white/30 backdrop-blur-sm border-white/30 text-white text-sm">
+                  <SelectValue placeholder="Select project" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableProjects.map((project) => (
+                    <SelectItem key={project.value} value={project.value} className="text-sm">
+                      {project.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Right: User Menu */}
+            <div>
+              {sessionStatus === "loading" ? (
+                <div className="text-white/90 text-sm">Loading...</div>
+              ) : session ? (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-white drop-shadow-lg">
+                    <User className="w-4 h-4" />
+                    <span className="text-sm font-medium">{session.user?.name || session.user?.email}</span>
+                  </div>
+                  <button
+                    onClick={() => signOut()}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-md transition-all text-sm font-medium shadow-lg"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
                 </div>
+              ) : (
                 <button
-                  onClick={() => signOut()}
+                  onClick={() => signIn("ministryplatform")}
                   className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-md transition-all text-sm font-medium shadow-lg"
                 >
-                  <LogOut className="w-4 h-4" />
-                  Sign Out
+                  <User className="w-4 h-4" />
+                  Sign In
                 </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => signIn("ministryplatform")}
-                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-md transition-all text-sm font-medium shadow-lg"
-              >
-                <User className="w-4 h-4" />
-                Sign In
-              </button>
-            )}
+              )}
+            </div>
           </div>
         </div>
       )}
