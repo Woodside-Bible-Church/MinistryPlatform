@@ -544,3 +544,78 @@ export function formatRSVPSubmission(
     Answers: answers,
   };
 }
+
+// ===================================================================
+// Email Confirmation Types
+// ===================================================================
+
+/**
+ * Email template from dp_Communication_Templates
+ */
+export interface RSVPEmailTemplate {
+  Communication_Template_ID: number;
+  Template_Name: string;
+  Subject_Text: string;
+  Body_Html: string;
+  From_Contact: number;
+  Reply_to_Contact: number;
+}
+
+/**
+ * Email configuration for RSVP project
+ * Returned as part of ProjectRSVPDataResponse
+ */
+export interface RSVPEmailConfig {
+  // Template IDs for immediate confirmation email
+  Confirmation_Template_ID: number | null; // Campus-specific template
+  Default_Confirmation_Template_ID: number | null; // Project-wide default
+
+  // Template IDs for scheduled reminder email
+  Reminder_Template_ID: number | null; // Campus-specific template
+  Default_Reminder_Template_ID: number | null; // Project-wide default
+
+  // Days before event to send reminder (null = no reminder)
+  Reminder_Days_Before: number | null;
+}
+
+/**
+ * Data used to replace shortcodes in email templates
+ */
+export interface RSVPEmailData {
+  // Contact info
+  First_Name: string;
+  Last_Name: string;
+  Email_Address: string;
+  Phone_Number: string | null;
+
+  // Event info
+  Event_Title: string;
+  Event_Date: string; // Formatted: "Tuesday, December 24"
+  Event_Time: string; // Formatted: "5:00 PM"
+  Event_Day: string; // "Tuesday"
+  Event_Month_Day: string; // "December 24"
+  Event_Start_Date_ISO: string; // ISO format for calendar links
+  Event_End_Date_ISO: string; // ISO format for calendar links
+
+  // Campus info
+  Campus_Name: string;
+  Campus_Location: string | null;
+  Campus_Address: string | null;
+  Campus_City: string | null;
+  Campus_State: string | null;
+  Campus_Zip: string | null;
+  Campus_Full_Address: string; // Formatted full address
+  Google_Maps_URL: string;
+
+  // RSVP info
+  Confirmation_Code: string;
+  Party_Size: number;
+  Event_RSVP_ID: number;
+
+  // Project info
+  RSVP_Title: string;
+  RSVP_Description: string | null;
+
+  // Dynamic answers - HTML formatted Q&A list
+  Answers_List: string;
+}
