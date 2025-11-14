@@ -546,7 +546,7 @@ export function formatRSVPSubmission(
 }
 
 // ===================================================================
-// Email Confirmation Types
+// Email Campaigns Types
 // ===================================================================
 
 /**
@@ -562,20 +562,60 @@ export interface RSVPEmailTemplate {
 }
 
 /**
- * Email configuration for RSVP project
- * Returned as part of ProjectRSVPDataResponse
+ * Email campaign configuration
  */
-export interface RSVPEmailConfig {
-  // Template IDs for immediate confirmation email
-  Confirmation_Template_ID: number | null; // Campus-specific template
-  Default_Confirmation_Template_ID: number | null; // Project-wide default
+export interface RSVPEmailCampaign {
+  Campaign_ID: number;
+  Campaign_Name: string;
+  Campaign_Description: string | null;
+  Project_RSVP_ID: number;
+  Congregation_ID: number | null;
+  Communication_Template_ID: number;
+  Send_Timing_Type: 'Days_Before_Event' | 'Days_After_Event' | 'Specific_DateTime';
+  Send_Days_Offset: number | null;
+  Send_Specific_DateTime: string | null; // ISO date string
+  Is_Active: boolean;
+  Display_Order: number;
+  Conditions: RSVPEmailCampaignCondition[];
+}
 
-  // Template IDs for scheduled reminder email
-  Reminder_Template_ID: number | null; // Campus-specific template
-  Default_Reminder_Template_ID: number | null; // Project-wide default
+/**
+ * Campaign condition (AND logic - all must be true)
+ */
+export interface RSVPEmailCampaignCondition {
+  Condition_ID: number;
+  Campaign_ID: number;
+  Question_ID: number;
+  Condition_Type:
+    | 'Equals'
+    | 'Not_Equals'
+    | 'Contains'
+    | 'Not_Contains'
+    | 'Greater_Than'
+    | 'Less_Than'
+    | 'Greater_Or_Equal'
+    | 'Less_Or_Equal'
+    | 'Is_True'
+    | 'Is_False'
+    | 'Is_Null'
+    | 'Is_Not_Null';
+  Condition_Value: string | null;
+}
 
-  // Days before event to send reminder (null = no reminder)
-  Reminder_Days_Before: number | null;
+/**
+ * Campaign log entry (audit trail)
+ */
+export interface RSVPEmailCampaignLog {
+  Log_ID: number;
+  Event_RSVP_ID: number;
+  Campaign_ID: number | null; // NULL for confirmation emails
+  Communication_ID: number | null;
+  Campaign_Type: 'Confirmation' | 'Campaign';
+  Scheduled_Send_Date: string; // ISO date string
+  Was_Sent: boolean;
+  Send_Date: string | null; // ISO date string
+  Error_Message: string | null;
+  Created_Date: string; // ISO date string
 }
 
 /**
