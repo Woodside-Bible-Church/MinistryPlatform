@@ -543,17 +543,26 @@ export default function RSVPPage() {
     );
   }, [selectedCampusId]);
 
-  // Group service times by campus for display
+  // Group service times by date for display
   const groupedServiceTimes = useMemo(() => {
     const groups: Record<string, ServiceTimeResponse[]> = {};
     filteredServiceTimes.forEach((service) => {
-      const campusName = service.Campus_Name || 'Unknown Campus';
-      if (!groups[campusName]) {
-        groups[campusName] = [];
+      // Use formattedDate as the key (e.g., "Saturday, December 7")
+      const dateKey = service.formattedDate;
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
       }
-      groups[campusName].push(service);
+      groups[dateKey].push(service);
     });
-    return groups;
+
+    // Sort groups by actual date (chronological order)
+    const sortedEntries = Object.entries(groups).sort((a, b) => {
+      const dateA = new Date(a[1][0].Event_Start_Date);
+      const dateB = new Date(b[1][0].Event_Start_Date);
+      return dateA.getTime() - dateB.getTime();
+    });
+
+    return Object.fromEntries(sortedEntries);
   }, [filteredServiceTimes]);
 
   // Parse confirmation cards from RSVP data
@@ -1016,10 +1025,15 @@ export default function RSVPPage() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    {/* Service Times Grouped by Campus */}
-                    <div className="space-y-4">
-                      {Object.entries(groupedServiceTimes).map(([campusName, services]) => (
-                        <div key={campusName} className="space-y-4">
+                    {/* Service Times Grouped by Date */}
+                    <div className="space-y-8">
+                      {Object.entries(groupedServiceTimes).map(([dateHeading, services]) => (
+                        <div key={dateHeading} className="space-y-4">
+                          {/* Date Heading */}
+                          <h3 className="text-2xl md:text-3xl font-bold text-white">
+                            {dateHeading}
+                          </h3>
+
                           {/* Service Time Cards - Flexible auto-flowing layout */}
                           <div className="relative md:static">
                             {/* Mobile: full-width scroll (if multiple) | Desktop: normal flexbox within container */}
@@ -1068,7 +1082,7 @@ export default function RSVPPage() {
                               </div>
                             )}
                           </div>
-                    </div>
+                        </div>
                   ))}
                 </div>
 
