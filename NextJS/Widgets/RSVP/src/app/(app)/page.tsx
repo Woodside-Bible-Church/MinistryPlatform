@@ -515,10 +515,16 @@ export default function RSVPPage() {
 
   // Convert RSVPEvent to ServiceTimeResponse format
   const convertEventToServiceTime = (event: RSVPEvent): ServiceTimeResponse => {
+    const date = new Date(event.Event_Start_Date);
+    // Format date with em dash: "Tue — Dec 24"
+    const weekday = date.toLocaleDateString('en-US', { weekday: 'short' });
+    const monthDay = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const formattedDate = `${weekday} — ${monthDay}`;
+
     return {
       ...event, // Spread all RSVPEvent properties
-      formattedDate: new Date(event.Event_Start_Date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
-      formattedTime: new Date(event.Event_Start_Date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+      formattedDate,
+      formattedTime: date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
       capacityStatus: event.Capacity_Percentage >= 100 ? 'full' : event.Capacity_Percentage >= 75 ? 'limited' : 'available',
       capacityColor: event.Capacity_Percentage <= 50 ? 'bg-green-500' : event.Capacity_Percentage <= 75 ? 'bg-yellow-500' : event.Capacity_Percentage <= 90 ? 'bg-orange-500' : 'bg-red-500',
     };
