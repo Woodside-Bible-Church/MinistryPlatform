@@ -11,6 +11,7 @@ import {
   Loader2,
   UserPlus,
   UserCircle,
+  AlertTriangle,
 } from "lucide-react";
 import {
   RSVPFormSchema,
@@ -72,6 +73,7 @@ export default function RSVPForm({
   const [currentUser, setCurrentUser] = useState<HouseholdMember | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<string>("new"); // "new" or Contact_ID
   const [isLoadingHousehold, setIsLoadingHousehold] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Parse questions with options
   const parsedQuestions = questions
@@ -144,16 +146,26 @@ export default function RSVPForm({
       if (isWidget) {
         try {
           // Dynamically import MP auth client (only in widget mode)
-          const { getAuthToken } = await import('@/lib/mpWidgetAuthClient');
+          const { getAuthToken, isTokenExpired } = await import('@/lib/mpWidgetAuthClient');
           const token = getAuthToken();
 
           if (!token) {
             console.log('[RSVPForm] No MP widget token found');
+            setAuthError(null); // Clear any previous error
             return;
           }
 
-          console.log('[RSVPForm] Found MP widget token, fetching household data...');
+          // Check if token is expired
+          if (isTokenExpired(token)) {
+            console.warn('[RSVPForm] MP widget token is expired');
+            setAuthError('expired');
+            setIsLoadingHousehold(false);
+            return;
+          }
+
+          console.log('[RSVPForm] Found valid MP widget token, fetching household data...');
           setIsLoadingHousehold(true);
+          setAuthError(null); // Clear any previous error
 
           const apiOrigin = baseUrl || window.location.origin;
           const response = await fetch(`${apiOrigin}/api/household`, {
@@ -165,6 +177,13 @@ export default function RSVPForm({
 
           console.log('[RSVPForm] Household API response status:', response.status);
           if (!response.ok) {
+            // Check if it's an auth error (401 Unauthorized)
+            if (response.status === 401) {
+              console.warn('[RSVPForm] API returned 401 - token likely expired');
+              setAuthError('expired');
+              setIsLoadingHousehold(false);
+              return;
+            }
             throw new Error(`HTTP error! status: ${response.status}`);
           }
 
@@ -390,6 +409,29 @@ export default function RSVPForm({
             </div>
           )}
 
+          {/* Auth Error State - Show when token is expired */}
+          {!isLoadingHousehold && authError === 'expired' && (
+            <div className="space-y-3">
+              <div className="bg-yellow-500/20 border-2 border-yellow-500/50 rounded-md p-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-6 h-6 text-yellow-500 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-white font-semibold mb-1">Session Expired</p>
+                    <p className="text-white/90 text-sm mb-3">
+                      Your login session has expired. Please refresh the page to continue.
+                    </p>
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md font-medium transition-colors text-sm"
+                    >
+                      Refresh Page
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Fill Out As Dropdown - Only show for authenticated users (after loading) */}
           {!isLoadingHousehold && currentUser && (
             <div className="space-y-3">
@@ -452,8 +494,8 @@ export default function RSVPForm({
             </div>
           )}
 
-          {/* Only show form fields when "Add New Person" is selected or no user is authenticated (and not loading) */}
-          {!isLoadingHousehold && (!currentUser || selectedPerson === "new") && (
+          {/* Only show form fields when "Add New Person" is selected or no user is authenticated (and not loading and no auth error) */}
+          {!isLoadingHousehold && !authError && (!currentUser || selectedPerson === "new") && (
           <>
           {/* Name Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
