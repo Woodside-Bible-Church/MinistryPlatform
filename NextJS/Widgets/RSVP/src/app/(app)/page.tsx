@@ -172,6 +172,9 @@ export default function RSVPPage() {
   // Track whether we've applied the user's congregation preference
   const hasAppliedUserCongregation = useRef(false);
 
+  // Track loaded campus images
+  const [loadedCampusImages, setLoadedCampusImages] = useState<Set<number>>(new Set());
+
   // Build campus list from events that have RSVPs
   const availableCampuses = useMemo(() => {
     if (!rsvpData?.Events) return [];
@@ -934,15 +937,24 @@ export default function RSVPPage() {
                           <SelectItem key={campus.id} value={campus.id.toString()} className="text-base py-3 cursor-pointer group">
                             <div className="flex items-center gap-3">
                               {campus.svgUrl ? (
-                                <img
-                                  src={campus.svgUrl}
-                                  alt={`${campus.name} Campus`}
-                                  className={`w-6 h-6 transition-all duration-200 ${
-                                    selectedCampusId === campus.id
-                                      ? ""
-                                      : "grayscale group-hover:grayscale-0"
-                                  }`}
-                                />
+                                <div className="relative w-6 h-6">
+                                  {/* Loading skeleton - show while image is loading */}
+                                  {!loadedCampusImages.has(campus.id) && (
+                                    <div className="absolute inset-0 bg-gray-300 animate-pulse rounded" />
+                                  )}
+                                  <img
+                                    src={campus.svgUrl}
+                                    alt={`${campus.name} Campus`}
+                                    className={`w-6 h-6 transition-all duration-200 ${
+                                      selectedCampusId === campus.id
+                                        ? ""
+                                        : "grayscale group-hover:grayscale-0"
+                                    } ${!loadedCampusImages.has(campus.id) ? 'opacity-0' : 'opacity-100'}`}
+                                    onLoad={() => {
+                                      setLoadedCampusImages(prev => new Set(prev).add(campus.id));
+                                    }}
+                                  />
+                                </div>
                               ) : (
                                 <MapPin className="w-5 h-5 text-primary" />
                               )}
