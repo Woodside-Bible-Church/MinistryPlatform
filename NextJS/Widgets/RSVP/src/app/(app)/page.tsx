@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Clock, ArrowLeft, CheckCircle2, User, LogOut } from "lucide-react";
+import { MapPin, Clock, ArrowLeft, CheckCircle2, User, LogOut, Calendar } from "lucide-react";
 import ServiceTimeCard from "@/components/rsvp/ServiceTimeCard";
 import RSVPForm from "@/components/rsvp/RSVPForm";
 import ConfirmationView from "@/components/rsvp/ConfirmationView";
@@ -1036,7 +1036,8 @@ export default function RSVPPage() {
                       {Object.entries(groupedServiceTimes).map(([dateHeading, services]) => (
                         <div key={dateHeading} className="space-y-4">
                           {/* Date Heading */}
-                          <h3 className="text-2xl md:text-3xl font-bold text-white">
+                          <h3 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                            <Calendar className="w-6 h-6 md:w-7 md:h-7 text-white" />
                             {dateHeading}
                           </h3>
 
