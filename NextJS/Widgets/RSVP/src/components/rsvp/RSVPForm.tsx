@@ -380,8 +380,18 @@ export default function RSVPForm({
       {/* Step 1: Tell Us About Yourself */}
       {formStep === 1 && (
         <div className="bg-primary p-6 space-y-12 max-w-xl">
-          {/* Fill Out As Dropdown - Only show for authenticated users */}
-          {currentUser && (
+          {/* Loading State - Show while fetching household data */}
+          {isLoadingHousehold && (
+            <div className="space-y-3">
+              <Label className="text-white">Loading your information...</Label>
+              <div className="w-full bg-white/10 border border-white/20 rounded-md p-4 flex items-center justify-center min-h-[3.5rem]">
+                <Loader2 className="w-5 h-5 text-white/60 animate-spin" />
+              </div>
+            </div>
+          )}
+
+          {/* Fill Out As Dropdown - Only show for authenticated users (after loading) */}
+          {!isLoadingHousehold && currentUser && (
             <div className="space-y-3">
               <Label htmlFor="fillOutAs" className="text-white">
                 Fill Out As
@@ -389,7 +399,6 @@ export default function RSVPForm({
               <Select
                 value={selectedPerson}
                 onValueChange={handlePersonChange}
-                disabled={isLoadingHousehold}
               >
                 <SelectTrigger className="w-full bg-white/10 border-white/20 text-white min-h-[3.5rem]">
                   <SelectValue placeholder="Select person" />
@@ -443,8 +452,8 @@ export default function RSVPForm({
             </div>
           )}
 
-          {/* Only show form fields when "Add New Person" is selected or no user is authenticated */}
-          {(!currentUser || selectedPerson === "new") && (
+          {/* Only show form fields when "Add New Person" is selected or no user is authenticated (and not loading) */}
+          {!isLoadingHousehold && (!currentUser || selectedPerson === "new") && (
           <>
           {/* Name Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
