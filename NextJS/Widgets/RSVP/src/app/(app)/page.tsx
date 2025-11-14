@@ -177,7 +177,7 @@ export default function RSVPPage() {
     if (!rsvpData?.Events) return [];
 
     // Get unique campuses from events
-    const campusMap = new Map<number, { id: number; name: string; congregationId: number }>();
+    const campusMap = new Map<number, { id: number; name: string; congregationId: number; svgUrl: string | null }>();
 
     rsvpData.Events.forEach(event => {
       if (event.Congregation_ID && event.Campus_Name && !campusMap.has(event.Congregation_ID)) {
@@ -185,6 +185,7 @@ export default function RSVPPage() {
           id: event.Congregation_ID, // Use Congregation_ID as the ID
           name: event.Campus_Name,
           congregationId: event.Congregation_ID,
+          svgUrl: event.Campus_SVG_URL,
         });
       }
     });
@@ -926,15 +927,27 @@ export default function RSVPPage() {
                       }
                     >
                       <SelectTrigger className="w-full h-12 bg-white border-2 border-white/50 hover:border-white transition-colors text-base font-semibold text-primary shadow-md">
-                        <div className="flex items-center gap-3">
-                          <MapPin className="w-5 h-5 text-primary" />
-                          <SelectValue placeholder="Select Campus" />
-                        </div>
+                        <SelectValue placeholder="Select Campus" />
                       </SelectTrigger>
                       <SelectContent>
                         {availableCampuses.map((campus) => (
-                          <SelectItem key={campus.id} value={campus.id.toString()} className="text-base py-3">
-                            {campus.name}
+                          <SelectItem key={campus.id} value={campus.id.toString()} className="text-base py-3 cursor-pointer group">
+                            <div className="flex items-center gap-3">
+                              {campus.svgUrl ? (
+                                <img
+                                  src={campus.svgUrl}
+                                  alt={`${campus.name} Campus`}
+                                  className={`w-6 h-6 transition-all duration-200 ${
+                                    selectedCampusId === campus.id
+                                      ? ""
+                                      : "grayscale group-hover:grayscale-0"
+                                  }`}
+                                />
+                              ) : (
+                                <MapPin className="w-5 h-5 text-primary" />
+                              )}
+                              <span>{campus.name}</span>
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>

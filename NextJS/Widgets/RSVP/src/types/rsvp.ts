@@ -79,6 +79,7 @@ export interface RSVPEvent {
   Congregation_ID: number | null;
   Campus_Name: string | null;
   Campus_Slug: string | null;
+  Campus_SVG_URL: string | null;
   Campus_Location: string | null;
   Capacity: number;
   Current_RSVPs: number;

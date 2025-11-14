@@ -104,6 +104,12 @@ BEGIN
             e.Congregation_ID,
             ISNULL(c.Congregation_Name, '') AS Campus_Name,
             ISNULL(c.Campus_Slug, '') AS Campus_Slug,
+            -- Build Campus SVG URL from dp_files
+            Campus_SVG_URL = CASE
+                WHEN F.File_ID IS NOT NULL AND CS.Value IS NOT NULL AND D.Domain_GUID IS NOT NULL
+                THEN CONCAT(CS.Value, '?dn=', CONVERT(varchar(40), D.Domain_GUID), '&fn=', F.Unique_Name, '.', F.Extension)
+                ELSE NULL
+            END,
             ISNULL(l.Location_Name, '') AS Campus_Location,
             -- Get capacity from Event or use override
             ISNULL(e.Participants_Expected, 500) AS Capacity,
@@ -139,6 +145,18 @@ BEGIN
         LEFT JOIN Congregations c ON e.Congregation_ID = c.Congregation_ID
         LEFT JOIN Locations l ON c.Location_ID = l.Location_ID
         LEFT JOIN Addresses a ON l.Address_ID = a.Address_ID
+        -- Join to dp_files to get Campus.svg file
+        LEFT OUTER JOIN dp_files F ON F.Record_ID = c.Congregation_ID
+            AND F.Table_Name = 'Congregations'
+            AND F.File_Name = 'Campus.svg'
+        -- Join to get ImageURL configuration setting
+        LEFT OUTER JOIN dp_Configuration_Settings CS
+            ON CS.Domain_ID = COALESCE(c.Domain_ID, 1)
+            AND CS.Key_Name = 'ImageURL'
+            AND CS.Application_Code = 'Common'
+        -- Join to get Domain GUID
+        LEFT OUTER JOIN dp_Domains D
+            ON D.Domain_ID = COALESCE(c.Domain_ID, 1)
         WHERE pe.Project_ID = (SELECT Project_ID FROM Project_RSVPs WHERE Project_RSVP_ID = @Project_RSVP_ID)
           AND pe.Include_In_RSVP = 1
           -- Date filter removed for testing - can be added back later
