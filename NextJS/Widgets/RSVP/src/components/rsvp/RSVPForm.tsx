@@ -414,7 +414,7 @@ export default function RSVPForm({
                           className="w-8 h-8 rounded-full object-cover"
                         />
                       ) : (
-                        <UserCircle className="size-8 text-muted-foreground" />
+                        <UserCircle className="size-8 text-muted-foreground" strokeWidth={1} />
                       )}
                       <span>{formatPersonName(currentUser, false)}</span>
                     </div>
@@ -431,7 +431,7 @@ export default function RSVPForm({
                             className="w-8 h-8 rounded-full object-cover"
                           />
                         ) : (
-                          <UserCircle className="size-8 text-muted-foreground" />
+                          <UserCircle className="size-8 text-muted-foreground" strokeWidth={1} />
                         )}
                         <span>{formatPersonName(member)}</span>
                       </div>
