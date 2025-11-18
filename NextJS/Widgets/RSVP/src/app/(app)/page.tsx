@@ -432,6 +432,29 @@ export default function RSVPPage() {
     }
   }, [rsvpData]);
 
+  // Restore saved state after page refresh (for token refresh flow)
+  useEffect(() => {
+    const restoreSavedState = async () => {
+      if (!isWidget) return; // Only in widget mode
+
+      const { getSavedFormState, clearSavedFormState, restoreScrollPosition } = await import('@/lib/mpWidgetAuthClient');
+      const saved = getSavedFormState();
+
+      if (saved && saved.formData) {
+        console.log('[Restore] Found saved state:', saved);
+
+        // Restore scroll position
+        restoreScrollPosition();
+
+        // Wait for RSVP data to load before restoring state
+        // This will be handled after rsvpData is fetched
+        // For now, just log that we have saved state
+      }
+    };
+
+    restoreSavedState();
+  }, [isWidget]);
+
   // Fetch RSVP data on mount
   useEffect(() => {
     const fetchRSVPData = async () => {
@@ -503,6 +526,38 @@ export default function RSVPPage() {
       });
     }
   }, [currentView, formStep]);
+
+  // Restore saved service selection after RSVP data loads (for token refresh flow)
+  useEffect(() => {
+    const restoreServiceSelection = async () => {
+      if (!isWidget || !rsvpData) return;
+
+      const { getSavedFormState, clearSavedFormState } = await import('@/lib/mpWidgetAuthClient');
+      const saved = getSavedFormState();
+
+      if (saved && saved.formData && saved.actionType === 'service-select') {
+        const { selectedServiceEventId } = saved.formData as { selectedServiceEventId?: number };
+
+        if (selectedServiceEventId) {
+          // Find the service time from the loaded data
+          const service = rsvpData.Events.find(e => e.Event_ID === selectedServiceEventId);
+
+          if (service) {
+            console.log('[Restore] Restoring service selection:', service.Event_Title);
+            const serviceTime = convertEventToServiceTime(service);
+            setSelectedServiceTime(serviceTime);
+            setCurrentView("form");
+            setFormStep(1);
+          }
+        }
+
+        // Clear saved state after restoring
+        clearSavedFormState();
+      }
+    };
+
+    restoreServiceSelection();
+  }, [isWidget, rsvpData]);
 
   // Send height updates to parent window (for iframe embedding)
   useEffect(() => {
@@ -599,7 +654,28 @@ export default function RSVPPage() {
   }, [rsvpData]);
 
   // Handlers
-  const handleServiceSelect = (serviceTime: ServiceTimeResponse) => {
+  const handleServiceSelect = async (serviceTime: ServiceTimeResponse) => {
+    // In widget mode, check if token is expired before proceeding
+    if (isWidget) {
+      const { getTokenStatus, saveFormState, refreshPageForTokenUpdate } = await import('@/lib/mpWidgetAuthClient');
+      const tokenStatus = getTokenStatus();
+
+      if (tokenStatus.isExpired) {
+        console.log('[handleServiceSelect] Token expired, saving state and refreshing...');
+        // Save the service selection state
+        saveFormState({
+          selectedServiceEventId: serviceTime.Event_ID,
+          view: 'form',
+          formStep: 1,
+        }, 'service-select');
+
+        // Refresh page to let MP widget update token
+        refreshPageForTokenUpdate();
+        return;
+      }
+    }
+
+    // Normal flow if token is valid or not in widget mode
     setSelectedServiceTime(serviceTime);
     setCurrentView("form");
   };
