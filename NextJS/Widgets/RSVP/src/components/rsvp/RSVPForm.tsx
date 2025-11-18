@@ -67,9 +67,9 @@ export default function RSVPForm({
   initialData,
   onDataChange,
   questions,
-  backgroundColor = '#0F1E1B',
-  textColor = '#F4EEDC',
-  accentColor = '#C88F7B',
+  backgroundColor = '#1C2B39',
+  textColor = '#E5E7EB',
+  accentColor = '#62BB46',
 }: RSVPFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 

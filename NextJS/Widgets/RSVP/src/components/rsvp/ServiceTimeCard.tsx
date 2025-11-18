@@ -24,9 +24,9 @@ export default function ServiceTimeCard({
   selected,
   onSelect,
   isCarousel = true,
-  backgroundColor = '#0F1E1B',
-  accentColor = '#C5AB94',
-  textColor = '#F4EEDC',
+  backgroundColor = '#1C2B39',
+  accentColor = '#FFFFFF',
+  textColor = '#E5E7EB',
 }: ServiceTimeCardProps) {
   const startDate = new Date(serviceTime.Event_Start_Date);
   const capacityPercentage = Math.round(serviceTime.Capacity_Percentage);

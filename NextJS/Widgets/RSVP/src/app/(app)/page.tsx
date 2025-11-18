@@ -425,10 +425,10 @@ export default function RSVPPage() {
   // This ensures portaled components (like Select dropdowns) can access the theme colors
   useEffect(() => {
     if (rsvpData?.Project) {
-      document.documentElement.style.setProperty('--theme-primary', rsvpData.Project.RSVP_Primary_Color || '#4F624C');
-      document.documentElement.style.setProperty('--theme-secondary', rsvpData.Project.RSVP_Secondary_Color || '#C5AB94');
-      document.documentElement.style.setProperty('--theme-accent', rsvpData.Project.RSVP_Accent_Color || '#E8DDD0');
-      document.documentElement.style.setProperty('--theme-background', rsvpData.Project.RSVP_Background_Color || '#0F1E1B');
+      document.documentElement.style.setProperty('--theme-primary', rsvpData.Project.RSVP_Primary_Color || '#E5E7EB');
+      document.documentElement.style.setProperty('--theme-secondary', rsvpData.Project.RSVP_Secondary_Color || '#FFFFFF');
+      document.documentElement.style.setProperty('--theme-accent', rsvpData.Project.RSVP_Accent_Color || '#62BB46');
+      document.documentElement.style.setProperty('--theme-background', rsvpData.Project.RSVP_Background_Color || '#1C2B39');
     }
   }, [rsvpData]);
 
@@ -715,14 +715,14 @@ export default function RSVPPage() {
       className="min-h-screen bg-white"
       style={{
         // Override theme CSS variables for dynamic branding from database
-        ['--theme-primary' as string]: rsvpData?.Project?.RSVP_Primary_Color || '#4F624C',
-        ['--theme-secondary' as string]: rsvpData?.Project?.RSVP_Secondary_Color || '#C5AB94',
-        ['--theme-accent' as string]: rsvpData?.Project?.RSVP_Accent_Color || '#E8DDD0',
-        ['--theme-background' as string]: rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B',
+        ['--theme-primary' as string]: rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB',
+        ['--theme-secondary' as string]: rsvpData?.Project?.RSVP_Secondary_Color || '#FFFFFF',
+        ['--theme-accent' as string]: rsvpData?.Project?.RSVP_Accent_Color || '#62BB46',
+        ['--theme-background' as string]: rsvpData?.Project?.RSVP_Background_Color || '#1C2B39',
         // Also update Tailwind CSS v4 color variables (used by bg-*, text-*, border-* utilities)
-        ['--color-primary' as string]: rsvpData?.Project?.RSVP_Primary_Color || '#4F624C',
-        ['--color-secondary' as string]: rsvpData?.Project?.RSVP_Secondary_Color || '#C5AB94',
-        ['--color-accent' as string]: rsvpData?.Project?.RSVP_Accent_Color || '#E8DDD0',
+        ['--color-primary' as string]: rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB',
+        ['--color-secondary' as string]: rsvpData?.Project?.RSVP_Secondary_Color || '#FFFFFF',
+        ['--color-accent' as string]: rsvpData?.Project?.RSVP_Accent_Color || '#62BB46',
       } as React.CSSProperties}
     >
       {/* Glassmorphic Top Navigation Bar - Fixed (Only show in Next.js dev mode, not widget) */}
@@ -742,7 +742,15 @@ export default function RSVPPage() {
                   window.history.replaceState({}, '', url.toString());
                 }}
               >
-                <SelectTrigger className="w-[300px] h-9 bg-white/20 hover:bg-white/30 backdrop-blur-sm border-white/30 text-white text-sm">
+                <SelectTrigger
+                  className="w-[300px] h-9 border-2 transition-colors text-sm font-semibold shadow-md"
+                  style={{
+                    backgroundColor: 'var(--theme-background)',
+                    borderColor: 'var(--theme-background)',
+                    color: 'var(--theme-secondary)',
+                    '--tw-ring-color': 'var(--theme-secondary)',
+                  } as React.CSSProperties}
+                >
                   <SelectValue placeholder="Select project" />
                 </SelectTrigger>
                 <SelectContent>
@@ -858,33 +866,33 @@ export default function RSVPPage() {
                           onClick={handleBackToServices}
                           className="px-4 py-3 w-full md:w-auto text-left transition-colors"
                           style={{
-                            backgroundColor: rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B',
-                            color: rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC',
+                            backgroundColor: rsvpData?.Project?.RSVP_Background_Color || '#1C2B39',
+                            color: rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB',
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = `${rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B'}E6`;
+                            e.currentTarget.style.backgroundColor = `${rsvpData?.Project?.RSVP_Background_Color || '#1C2B39'}E6`;
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B';
+                            e.currentTarget.style.backgroundColor = rsvpData?.Project?.RSVP_Background_Color || '#1C2B39';
                           }}
                         >
                           <div className="flex items-center gap-3">
                             {/* Back Arrow - Left Side */}
-                            <ArrowLeft className="w-5 h-5 flex-shrink-0" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC'}B3` }} />
+                            <ArrowLeft className="w-5 h-5 flex-shrink-0" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB'}B3` }} />
 
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <Clock className="w-4 h-4" style={{ color: rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC' }} />
-                                <span className="text-lg font-bold" style={{ color: rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC' }}>
+                                <Clock className="w-4 h-4" style={{ color: rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB' }} />
+                                <span className="text-lg font-bold" style={{ color: rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB' }}>
                                   {new Date(selectedServiceTime.Event_Start_Date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                                 </span>
                               </div>
-                              <p className="text-xs font-medium uppercase tracking-wide" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC'}B3` }}>
+                              <p className="text-xs font-medium uppercase tracking-wide" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB'}B3` }}>
                                 {new Date(selectedServiceTime.Event_Start_Date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                               </p>
                               <div className="flex items-center gap-1 mt-1">
-                                <MapPin className="w-3 h-3" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC'}99` }} />
-                                <span className="text-xs font-medium uppercase tracking-wide" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC'}CC` }}>
+                                <MapPin className="w-3 h-3" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB'}99` }} />
+                                <span className="text-xs font-medium uppercase tracking-wide" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB'}CC` }}>
                                   {selectedServiceTime.Campus_Name} Campus
                                 </span>
                               </div>
@@ -898,35 +906,35 @@ export default function RSVPPage() {
                             onClick={() => setFormStep(1)}
                             className="px-4 py-3 w-full md:w-auto text-left transition-colors"
                             style={{
-                              backgroundColor: rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B',
-                              color: rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC',
+                              backgroundColor: rsvpData?.Project?.RSVP_Background_Color || '#1C2B39',
+                              color: rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB',
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = `${rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B'}E6`;
+                              e.currentTarget.style.backgroundColor = `${rsvpData?.Project?.RSVP_Background_Color || '#1C2B39'}E6`;
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B';
+                              e.currentTarget.style.backgroundColor = rsvpData?.Project?.RSVP_Background_Color || '#1C2B39';
                             }}
                           >
                             <div className="flex items-center gap-3">
                               {/* Back Arrow - Left Side */}
-                              <ArrowLeft className="w-5 h-5 flex-shrink-0" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC'}B3` }} />
+                              <ArrowLeft className="w-5 h-5 flex-shrink-0" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB'}B3` }} />
 
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC' }}>
+                                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB' }}>
                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                                     <circle cx="12" cy="7" r="4"></circle>
                                   </svg>
-                                  <span className="text-lg font-bold" style={{ color: rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC' }}>
+                                  <span className="text-lg font-bold" style={{ color: rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB' }}>
                                     {formData.firstName} {formData.lastName}
                                   </span>
                                 </div>
-                                <p className="text-xs font-medium uppercase tracking-wide" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC'}B3` }}>
+                                <p className="text-xs font-medium uppercase tracking-wide" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB'}B3` }}>
                                   {formData.emailAddress}
                                 </p>
                                 {formData.phoneNumber && (
-                                  <p className="text-xs font-medium uppercase tracking-wide mt-1" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC'}CC` }}>
+                                  <p className="text-xs font-medium uppercase tracking-wide mt-1" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB'}CC` }}>
                                     {formData.phoneNumber}
                                   </p>
                                 )}
@@ -938,8 +946,8 @@ export default function RSVPPage() {
 
                       {/* Progress Indicator */}
                       <div className="flex items-center gap-2 max-w-md">
-                        <div className="flex-1 h-1" style={{ backgroundColor: rsvpData?.Project?.RSVP_Accent_Color || '#C88F7B' }}></div>
-                        <div className="flex-1 h-1" style={{ backgroundColor: formStep === 2 ? (rsvpData?.Project?.RSVP_Accent_Color || '#C88F7B') : 'rgba(255, 255, 255, 0.2)' }}></div>
+                        <div className="flex-1 h-1" style={{ backgroundColor: rsvpData?.Project?.RSVP_Accent_Color || '#62BB46' }}></div>
+                        <div className="flex-1 h-1" style={{ backgroundColor: formStep === 2 ? (rsvpData?.Project?.RSVP_Accent_Color || '#62BB46') : 'rgba(255, 255, 255, 0.2)' }}></div>
                       </div>
                       <p className="text-xs text-white/70 uppercase tracking-wide font-medium">Step {formStep} of 2</p>
                     </div>
@@ -1006,9 +1014,9 @@ export default function RSVPPage() {
                       <SelectTrigger
                         className="w-full h-12 border-2 transition-colors text-base font-semibold shadow-md focus-visible:ring-primary"
                         style={{
-                          backgroundColor: rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B',
-                          borderColor: rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B',
-                          outlineColor: rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B',
+                          backgroundColor: rsvpData?.Project?.RSVP_Background_Color || '#1C2B39',
+                          borderColor: rsvpData?.Project?.RSVP_Background_Color || '#1C2B39',
+                          outlineColor: rsvpData?.Project?.RSVP_Background_Color || '#1C2B39',
                           color: 'var(--theme-primary)',
                           '--tw-ring-color': 'var(--theme-primary)',
                         } as React.CSSProperties}
@@ -1126,9 +1134,9 @@ export default function RSVPPage() {
                                   selected={false}
                                   onSelect={() => handleServiceSelect(service)}
                                   isCarousel={services.length > 1}
-                                  backgroundColor={rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B'}
-                                  accentColor={rsvpData?.Project?.RSVP_Secondary_Color || '#C5AB94'}
-                                  textColor={rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC'}
+                                  backgroundColor={rsvpData?.Project?.RSVP_Background_Color || '#1C2B39'}
+                                  accentColor={rsvpData?.Project?.RSVP_Secondary_Color || '#FFFFFF'}
+                                  textColor={rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB'}
                                 />
                               ))}
                             </div>
@@ -1196,9 +1204,9 @@ export default function RSVPPage() {
                       initialData={formData}
                       onDataChange={setFormData}
                       questions={rsvpData?.Questions || []}
-                      backgroundColor={rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B'}
-                      textColor={rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC'}
-                      accentColor={rsvpData?.Project?.RSVP_Accent_Color || '#C88F7B'}
+                      backgroundColor={rsvpData?.Project?.RSVP_Background_Color || '#1C2B39'}
+                      textColor={rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB'}
+                      accentColor={rsvpData?.Project?.RSVP_Accent_Color || '#62BB46'}
                     />
                   </motion.div>
                 )}

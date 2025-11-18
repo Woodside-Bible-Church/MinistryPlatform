@@ -88,20 +88,21 @@ export function ShareCard({ card, confirmation }: CardComponentProps) {
       ref={containerRef}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-br from-primary to-primary/90 p-8 w-full flex flex-col relative overflow-hidden h-full"
+      className="p-8 w-full flex flex-col relative overflow-hidden h-full"
+      style={{ backgroundColor: 'var(--theme-background)' }}
     >
       {/* Decorative background */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-24 h-24 bg-secondary/5 rounded-full blur-2xl"></div>
+      <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}></div>
+      <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full blur-2xl" style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}></div>
 
       <div className="flex items-center gap-3 mb-6 relative">
-        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
-          <Share2 className="w-5 h-5 text-secondary" />
+        <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.2)' }}>
+          <Share2 className="w-5 h-5" style={{ color: 'var(--theme-primary)' }} />
         </div>
-        <h3 className="text-2xl font-bold text-white">{config.title}</h3>
+        <h3 className="text-2xl font-bold" style={{ color: 'var(--theme-secondary)' }}>{config.title}</h3>
       </div>
 
-      <p className="text-white/90 mb-6 relative flex-1">
+      <p className="mb-6 relative flex-1" style={{ color: 'var(--theme-primary)', opacity: 0.9 }}>
         Invite your friends and family to join you!
       </p>
 
@@ -110,7 +111,14 @@ export function ShareCard({ card, confirmation }: CardComponentProps) {
           <Popover.Trigger asChild>
             <button
               onClick={handleShareClick}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-white/10 text-white border-2 border-white/20 font-semibold rounded-lg hover:bg-white/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 border-2 font-semibold rounded-lg hover:bg-white/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                color: 'var(--theme-secondary)',
+                borderColor: 'rgba(255, 255, 255, 0.2)',
+                '--tw-ring-color': 'var(--theme-secondary)',
+                '--tw-ring-offset-color': 'var(--theme-background)'
+              } as React.CSSProperties}
             >
               <Share2 className="w-5 h-5" />
               <span>Share</span>
@@ -119,7 +127,8 @@ export function ShareCard({ card, confirmation }: CardComponentProps) {
 
           <Popover.Portal container={containerRef.current}>
             <Popover.Content
-              className="bg-primary border-2 border-white/20 rounded-lg p-3 shadow-xl backdrop-blur-md z-50"
+              className="border-2 rounded-lg p-3 shadow-xl backdrop-blur-md z-50"
+              style={{ backgroundColor: 'var(--theme-background)', borderColor: 'rgba(255, 255, 255, 0.2)' }}
               sideOffset={8}
               align="center"
             >
@@ -127,7 +136,8 @@ export function ShareCard({ card, confirmation }: CardComponentProps) {
                 {config.enabledMethods.includes("sms") && (
                   <button
                     onClick={() => handleShare("sms")}
-                    className="w-12 h-12 flex items-center justify-center bg-white/10 text-white border border-white/20 rounded-full hover:bg-white/20 transition-all"
+                    className="w-12 h-12 flex items-center justify-center border rounded-full hover:bg-white/20 transition-all"
+                    style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)', color: 'var(--theme-secondary)', borderColor: 'rgba(255, 255, 255, 0.2)' }}
                     title="Text Message"
                   >
                     <MessageSquare className="w-5 h-5" />
@@ -137,7 +147,8 @@ export function ShareCard({ card, confirmation }: CardComponentProps) {
                 {config.enabledMethods.includes("email") && (
                   <button
                     onClick={() => handleShare("email")}
-                    className="w-12 h-12 flex items-center justify-center bg-white/10 text-white border border-white/20 rounded-full hover:bg-white/20 transition-all"
+                    className="w-12 h-12 flex items-center justify-center border rounded-full hover:bg-white/20 transition-all"
+                    style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)', color: 'var(--theme-secondary)', borderColor: 'rgba(255, 255, 255, 0.2)' }}
                     title="Email"
                   >
                     <Mail className="w-5 h-5" />
@@ -149,9 +160,10 @@ export function ShareCard({ card, confirmation }: CardComponentProps) {
                     onClick={() => handleShare("copy")}
                     className={`w-12 h-12 flex items-center justify-center rounded-full transition-all ${
                       copied
-                        ? 'bg-green-600 text-white'
-                        : 'bg-white/10 text-white border border-white/20 hover:bg-white/20'
+                        ? ''
+                        : 'border hover:bg-white/20'
                     }`}
+                    style={copied ? { backgroundColor: '#10b981', color: 'white' } : { backgroundColor: 'rgba(255, 255, 255, 0.1)', color: 'var(--theme-secondary)', borderColor: 'rgba(255, 255, 255, 0.2)' }}
                     title={copied ? 'Copied!' : 'Copy Link'}
                   >
                     {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}

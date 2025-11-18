@@ -52,15 +52,15 @@
    * To customize theme colors from your API or widget configuration:
    *
    * JavaScript example:
-   * document.documentElement.style.setProperty('--theme-primary', '#4F624C');
-   * document.documentElement.style.setProperty('--theme-secondary', '#C5AB94');
-   * document.documentElement.style.setProperty('--theme-accent', '#E8DDD0');
+   * document.documentElement.style.setProperty('--theme-primary', '#E5E7EB');
+   * document.documentElement.style.setProperty('--theme-secondary', '#FFFFFF');
+   * document.documentElement.style.setProperty('--theme-accent', '#62BB46');
    *
    * This will update all buttons and theme elements that use these CSS variables.
    */
-  --theme-primary: #4F624C; /* Primary theme color (dark green) */
-  --theme-secondary: #C5AB94; /* Secondary theme color (warm tan) */
-  --theme-accent: #E8DDD0; /* Light accent color (cream) */
+  --theme-primary: #E5E7EB; /* Primary theme color (light gray) */
+  --theme-secondary: #FFFFFF; /* Secondary theme color (white) */
+  --theme-accent: #62BB46; /* Accent color (Woodside green) */
   --woodside-green: #61BC47; /* GIVE button green - kept for reference */
   --woodside-blue: #1C2B39;
 
