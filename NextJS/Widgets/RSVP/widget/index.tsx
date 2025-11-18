@@ -123,15 +123,24 @@ class RSVPWidget {
       mutations.forEach((mutation) => {
         if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
           const body = document.body;
+          const bodyStyle = body.style;
+
+          console.log('[RSVP Widget] Body style mutation detected:', {
+            overflow: bodyStyle.overflow,
+            overflowY: bodyStyle.overflowY,
+            paddingRight: bodyStyle.paddingRight
+          });
 
           // Force overflow-y to scroll (override Radix's inline overflow: hidden)
-          if (body.style.overflow === 'hidden' || body.style.overflowY === 'hidden') {
-            body.style.setProperty('overflow-y', 'scroll', 'important');
+          if (bodyStyle.overflow === 'hidden' || bodyStyle.overflowY === 'hidden') {
+            bodyStyle.setProperty('overflow-y', 'scroll', 'important');
+            console.log('[RSVP Widget] Forced overflow-y to scroll');
           }
 
           // Force padding-right to 0 (override Radix's padding compensation)
-          if (body.style.paddingRight) {
-            body.style.setProperty('padding-right', '0', 'important');
+          if (bodyStyle.paddingRight && bodyStyle.paddingRight !== '0px') {
+            bodyStyle.setProperty('padding-right', '0', 'important');
+            console.log('[RSVP Widget] Forced padding-right to 0');
           }
         }
       });
