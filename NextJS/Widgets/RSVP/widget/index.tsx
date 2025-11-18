@@ -106,13 +106,17 @@ class RSVPWidget {
     style.id = 'rsvp-widget-global-styles';
     style.textContent = `
       /* Prevent layout shift when Radix UI dropdowns hide scrollbar */
-      body {
+      html, body {
         overflow-y: scroll !important;
       }
       /* Override Radix UI's scroll lock padding compensation */
-      body[data-scroll-locked] {
+      html[data-scroll-locked], body[data-scroll-locked] {
         overflow-y: scroll !important;
         padding-right: 0 !important;
+      }
+      /* Prevent any element from hiding overflow */
+      html {
+        scrollbar-gutter: stable !important;
       }
     `;
     document.head.appendChild(style);
