@@ -9,7 +9,15 @@
     "build:widget": "vite build",
     "build:next": "next build",
     "start": "next start -p 3000",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:run": "node -r dotenv/config -e 'require(\"child_process\").execSync(`sqlcmd -S ${process.env.SQL_SERVER} -d ${process.env.SQL_DATABASE} -U ${process.env.SQL_USER} -P \"${process.env.SQL_PASSWORD}\" -i ${process.argv[1]}`, {stdio: \"inherit\"})'",
+    "db:run:test": "node -r dotenv/config -e 'require(\"child_process\").execSync(`sqlcmd -S ${process.env.SQL_SERVER_TEST} -d ${process.env.SQL_DATABASE_TEST} -U ${process.env.SQL_USER_TEST} -P \"${process.env.SQL_PASSWORD_TEST}\" -i ${process.argv[1]}`, {stdio: \"inherit\"})'",
+    "db:migration": "npm run db:run database/rsvp-email-campaigns-migration.sql",
+    "db:migration:test": "npm run db:run:test database/rsvp-email-campaigns-migration.sql",
+    "db:scheduler": "npm run db:run database/sp-schedule-rsvp-emails.sql",
+    "db:scheduler:test": "npm run db:run:test database/sp-schedule-rsvp-emails.sql",
+    "db:submit": "npm run db:run database/sp-submit-rsvp-with-audit.sql",
+    "db:submit:test": "npm run db:run:test database/sp-submit-rsvp-with-audit.sql"
   },
   "dependencies": {
     "@auth/core": "^0.34.2",

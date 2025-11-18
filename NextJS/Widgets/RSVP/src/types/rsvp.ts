@@ -31,7 +31,7 @@ import type {
  * This is what the widget receives from GET /api/rsvp/project/{id}
  */
 export interface ProjectRSVPDataResponse {
-  Project_RSVP: ProjectRSVPConfig;
+  Project: ProjectConfig;  // Changed from Project_RSVP
   Events: RSVPEvent[];
   Questions: RSVPQuestion[];
   Confirmation_Cards: ConfirmationCard[];
@@ -50,21 +50,30 @@ export interface RSVPSubmissionResponse {
 }
 
 // ===================================================================
-// Project RSVP Configuration
+// Project Configuration (with RSVP fields)
 // ===================================================================
 
-export interface ProjectRSVPConfig {
-  Project_RSVP_ID: number;
+export interface ProjectConfig {
   Project_ID: number;
   RSVP_Title: string;
   RSVP_Description: string | null;
-  Header_Image_URL: string | null;
-  Start_Date: string | null; // ISO date string
-  End_Date: string | null; // ISO date string
-  Is_Active: boolean;
-  Require_Contact_Lookup: boolean;
-  Allow_Guest_Submission: boolean;
+  RSVP_BG_Image_URL: string | null;  // From dp_Files: RSVP_BG_Image.jpg
+  RSVP_Image_URL: string | null;     // From dp_Files: RSVP_Image.jpg
+  RSVP_Start_Date: string | null;    // ISO date string
+  RSVP_End_Date: string | null;      // ISO date string
+  RSVP_Is_Active: boolean;
+  RSVP_Require_Contact_Lookup: boolean;
+  RSVP_Allow_Guest_Submission: boolean;
+  RSVP_Slug: string | null;
+  // Branding colors (dp_Color format - hex codes like #61BC47)
+  RSVP_Primary_Color: string | null;     // Primary brand color (buttons, headers)
+  RSVP_Secondary_Color: string | null;   // Secondary brand color
+  RSVP_Accent_Color: string | null;      // Accent color (highlights, links)
+  RSVP_Background_Color: string | null;  // Background color override
 }
+
+// Backward compatibility alias
+export type ProjectRSVPConfig = ProjectConfig;
 
 // ===================================================================
 // Events
@@ -205,7 +214,7 @@ export interface ParsedConfirmationCard extends Omit<ConfirmationCard, 'Configur
 
 export interface RSVPSubmissionRequest {
   Event_ID: number;
-  Project_RSVP_ID: number;
+  Project_ID: number;  // Changed from Project_RSVP_ID
   Contact_ID?: number | null;
   First_Name: string;
   Last_Name: string;
@@ -413,13 +422,13 @@ export function parseCardConfiguration(configJson: string): CardConfiguration {
  * Parse complete project RSVP data response
  */
 export function parseProjectRSVPData(data: ProjectRSVPDataResponse): {
-  config: ProjectRSVPConfig;
+  config: ProjectConfig;
   events: RSVPEvent[];
   questions: ParsedRSVPQuestion[];
   cards: ParsedConfirmationCard[];
 } {
   return {
-    config: data.Project_RSVP,
+    config: data.Project,  // Changed from data.Project_RSVP
     events: data.Events,
     questions: data.Questions.map(q => ({
       ...q,
@@ -504,7 +513,7 @@ export function formatPartySize(size: number): string {
  */
 export function formatRSVPSubmission(
   formData: RSVPFormData,
-  projectRsvpId: number,
+  projectId: number,  // Changed param name from projectRsvpId
   contactId?: number | null
 ): RSVPSubmissionRequest {
   // Convert answers object to array format for stored procedure
@@ -535,7 +544,7 @@ export function formatRSVPSubmission(
 
   return {
     Event_ID: formData.eventId,
-    Project_RSVP_ID: projectRsvpId,
+    Project_ID: projectId,  // Changed from Project_RSVP_ID
     Contact_ID: contactId,
     First_Name: formData.firstName,
     Last_Name: formData.lastName,
@@ -568,7 +577,7 @@ export interface RSVPEmailCampaign {
   Campaign_ID: number;
   Campaign_Name: string;
   Campaign_Description: string | null;
-  Project_RSVP_ID: number;
+  Project_ID: number;  // Changed from Project_RSVP_ID
   Congregation_ID: number | null;
   Communication_Template_ID: number;
   Send_Timing_Type: 'Days_Before_Event' | 'Days_After_Event' | 'Specific_DateTime';

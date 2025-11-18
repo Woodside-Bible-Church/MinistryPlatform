@@ -33,12 +33,12 @@ export async function GET(request: NextRequest) {
     const mp = ministryPlatformProvider.getInstance();
 
     // Build stored procedure parameters
-    // If projectIdentifier is numeric, use @Project_RSVP_ID, otherwise use @RSVP_Slug
+    // If projectIdentifier is numeric, use @Project_ID, otherwise use @RSVP_Slug
     const params: Record<string, string> = {};
 
     if (/^\d+$/.test(projectIdentifier)) {
       // Numeric ID
-      params['@Project_RSVP_ID'] = projectIdentifier;
+      params['@Project_ID'] = projectIdentifier;
     } else {
       // Slug (contains non-numeric characters)
       params['@RSVP_Slug'] = projectIdentifier;

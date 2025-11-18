@@ -15,9 +15,9 @@ export async function POST(request: NextRequest) {
     const body: RSVPSubmissionRequest = await request.json();
 
     // Validate required fields
-    if (!body.Event_ID || !body.Project_RSVP_ID) {
+    if (!body.Event_ID || !body.Project_ID) {
       return NextResponse.json(
-        { error: 'Event_ID and Project_RSVP_ID are required' },
+        { error: 'Event_ID and Project_ID are required' },
         { status: 400 }
       );
     }
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     // Build stored procedure parameters
     const params: Record<string, string | number | null> = {
       '@Event_ID': body.Event_ID,
-      '@Project_RSVP_ID': body.Project_RSVP_ID,
+      '@Project_ID': body.Project_ID,
       '@Contact_ID': body.Contact_ID ?? null,
       '@First_Name': body.First_Name,
       '@Last_Name': body.Last_Name,
