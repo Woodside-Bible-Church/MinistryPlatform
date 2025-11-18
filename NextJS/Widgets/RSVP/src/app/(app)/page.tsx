@@ -437,7 +437,7 @@ export default function RSVPPage() {
     const restoreSavedState = async () => {
       if (!isWidget) return; // Only in widget mode
 
-      const { getSavedFormState, clearSavedFormState, restoreScrollPosition } = await import('@/lib/mpWidgetAuthClient');
+      const { getSavedFormState, restoreScrollPosition } = await import('@/lib/mpWidgetAuthClient');
       const saved = getSavedFormState();
 
       if (saved && saved.formData) {
