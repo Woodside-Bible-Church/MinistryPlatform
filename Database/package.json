@@ -1,0 +1,27 @@
+{
+  "name": "@woodside/database",
+  "version": "1.0.0",
+  "description": "Ministry Platform Database Management for Woodside Bible Church",
+  "private": true,
+  "scripts": {
+    "test": "npm run db:run test-connection.sql",
+    "test:prod": "npm run db:run test-connection.sql",
+    "test:sandbox": "npm run db:run:test test-connection.sql",
+    "db:run": "node run-sql.js",
+    "db:run:test": "node run-sql.js --test",
+    "rsvp:schema": "npm run db:run Custom/create-rsvp-schema.sql",
+    "rsvp:schema:test": "npm run db:run:test Custom/create-rsvp-schema.sql",
+    "rsvp:submit": "npm run db:run StoredProcs/RSVP/sp-submit-rsvp-with-audit.sql",
+    "rsvp:submit:test": "npm run db:run:test StoredProcs/RSVP/sp-submit-rsvp-with-audit.sql",
+    "rsvp:scheduler": "npm run db:run StoredProcs/RSVP/sp-schedule-rsvp-emails.sql",
+    "rsvp:scheduler:test": "npm run db:run:test StoredProcs/RSVP/sp-schedule-rsvp-emails.sql",
+    "rsvp:emails": "npm run db:run Migrations/2025-11-14-rsvp-email-campaigns.sql",
+    "rsvp:emails:test": "npm run db:run:test Migrations/2025-11-14-rsvp-email-campaigns.sql",
+    "custom:campus-slug": "npm run db:run Customizations/add-campus-slug-to-congregations.sql",
+    "custom:campus-slug:test": "npm run db:run:test Customizations/add-campus-slug-to-congregations.sql"
+  },
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "mssql": "^12.1.0"
+  }
+}

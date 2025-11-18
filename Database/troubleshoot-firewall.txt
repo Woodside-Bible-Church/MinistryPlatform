@@ -1,0 +1,11 @@
+# Step 1: Check if there are any BLOCKING rules for port 1433
+Get-NetFirewallRule | Where-Object { $_.DisplayName -like "*SQL*" -or $_.DisplayName -like "*1433*" } | ForEach-Object { Get-NetFirewallPortFilter -AssociatedNetFirewallRule $_ | Where-Object { $_.LocalPort -eq 1433 } | Select-Object @{Name="RuleName";Expression={$_.InstanceID}}, @{Name="Action";Expression={(Get-NetFirewallRule -AssociatedNetFirewallPortFilter $_).Action}}, @{Name="Enabled";Expression={(Get-NetFirewallRule -AssociatedNetFirewallPortFilter $_).Enabled}}, @{Name="Direction";Expression={(Get-NetFirewallRule -AssociatedNetFirewallPortFilter $_).Direction}} }
+
+# Step 2: Check SQL Server network configuration
+netstat -an | findstr :1433
+
+# Step 3: Try a more permissive firewall rule (allows from any IP on Domain/Private networks)
+New-NetFirewallRule -DisplayName "SQL Server - Allow All Private" -Direction Inbound -LocalPort 1433 -Protocol TCP -Action Allow -Profile Domain,Private -Force
+
+# Step 4: Test locally from the server
+Test-NetConnection -ComputerName localhost -Port 1433

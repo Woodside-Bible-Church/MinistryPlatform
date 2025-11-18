@@ -1,0 +1,38 @@
+{
+  "mssql.connections": [
+    {
+      "server": "10.206.0.131",
+      "database": "MinistryPlatform",
+      "authenticationType": "SqlLogin",
+      "user": "Woodside_Development",
+      "password": "",
+      "emptyPasswordInput": false,
+      "savePassword": false,
+      "profileName": "MP Production",
+      "connectTimeout": 30,
+      "commandTimeout": 30,
+      "encrypt": false,
+      "trustServerCertificate": true
+    },
+    {
+      "server": "10.206.0.131",
+      "database": "MinistryPlatformTesting",
+      "authenticationType": "SqlLogin",
+      "user": "Woodside_Development",
+      "password": "",
+      "emptyPasswordInput": false,
+      "savePassword": false,
+      "profileName": "MP Sandbox",
+      "connectTimeout": 30,
+      "commandTimeout": 30,
+      "encrypt": false,
+      "trustServerCertificate": true
+    }
+  ],
+  "files.exclude": {
+    "node_modules": true
+  },
+  "[sql]": {
+    "editor.defaultFormatter": "ms-mssql.mssql"
+  }
+}
