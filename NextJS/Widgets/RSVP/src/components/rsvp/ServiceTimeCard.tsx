@@ -38,23 +38,14 @@ export default function ServiceTimeCard({
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.99 }}
       onClick={onSelect}
-      disabled={!serviceTime.Is_Available}
       className={`
         relative flex-1 min-w-[300px] md:flex-none md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.667rem)] transition-all duration-200 text-left overflow-hidden
         ${isCarousel ? 'snap-center flex-shrink-0' : ''}
         focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2
-        ${
-          selected
-            ? "shadow-2xl ring-2 ring-white"
-            : serviceTime.Is_Available
-            ? "hover:shadow-xl"
-            : "opacity-60 cursor-not-allowed"
-        }
+        ${selected ? "shadow-2xl ring-2 ring-white" : "hover:shadow-xl"}
       `}
       style={{
-        backgroundColor: serviceTime.Is_Available
-          ? backgroundColor
-          : `${backgroundColor}80`, // 50% opacity for unavailable
+        backgroundColor,
         color: textColor,
       }}
     >
@@ -107,7 +98,7 @@ export default function ServiceTimeCard({
         </div>
 
         {/* RSVP Call-to-Action */}
-        {serviceTime.Is_Available && !selected && (
+        {!selected && (
           <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${textColor}33` }}>
             <div className="flex items-center justify-between">
               <span
@@ -130,13 +121,6 @@ export default function ServiceTimeCard({
           </div>
         )}
       </div>
-
-      {/* Full Badge */}
-      {!serviceTime.Is_Available && (
-        <div className="absolute top-4 right-4 px-3 py-1 bg-destructive/10 text-destructive text-xs font-semibold rounded-full border border-destructive/20">
-          FULL
-        </div>
-      )}
     </motion.button>
   );
 }
