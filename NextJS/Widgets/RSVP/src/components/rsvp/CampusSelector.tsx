@@ -50,9 +50,9 @@ export default function CampusSelector({
           value={selectedCampus?.id.toString()}
           onValueChange={handleValueChange}
         >
-          <SelectTrigger id="campus-select" className="h-14 text-base">
+          <SelectTrigger id="campus-select" className="h-14 text-base text-white">
             <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5 text-gray-500" />
+              <MapPin className="w-5 h-5 text-white" />
               <SelectValue placeholder="Select a campus" />
             </div>
           </SelectTrigger>

@@ -421,6 +421,17 @@ export default function RSVPPage() {
     fetchProjects();
   }, [isWidget, baseUrl]);
 
+  // Update CSS variables on document root when RSVP data changes
+  // This ensures portaled components (like Select dropdowns) can access the theme colors
+  useEffect(() => {
+    if (rsvpData?.Project) {
+      document.documentElement.style.setProperty('--theme-primary', rsvpData.Project.RSVP_Primary_Color || '#4F624C');
+      document.documentElement.style.setProperty('--theme-secondary', rsvpData.Project.RSVP_Secondary_Color || '#C5AB94');
+      document.documentElement.style.setProperty('--theme-accent', rsvpData.Project.RSVP_Accent_Color || '#E8DDD0');
+      document.documentElement.style.setProperty('--theme-background', rsvpData.Project.RSVP_Background_Color || '#0F1E1B');
+    }
+  }, [rsvpData]);
+
   // Fetch RSVP data on mount
   useEffect(() => {
     const fetchRSVPData = async () => {
@@ -716,11 +727,11 @@ export default function RSVPPage() {
     >
       {/* Glassmorphic Top Navigation Bar - Fixed (Only show in Next.js dev mode, not widget) */}
       {!isWidget && (
-        <div className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b border-white/20 py-3 px-8 shadow-lg" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 95%, transparent)' }}>
+        <div className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b border-white/20 py-3 px-8 shadow-lg" style={{ backgroundColor: 'var(--theme-background)' }}>
           <div className="max-w-[1600px] mx-auto flex justify-between items-center">
             {/* Left: Project Selector */}
             <div className="flex items-center gap-3">
-              <span className="text-white/90 text-sm font-medium">Project:</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--theme-secondary)' }}>Project:</span>
               <Select
                 value={devProject}
                 onValueChange={(value) => {
@@ -993,13 +1004,14 @@ export default function RSVPPage() {
                       }
                     >
                       <SelectTrigger
-                        className="w-full h-12 border-2 transition-colors text-base font-semibold shadow-md"
+                        className="w-full h-12 border-2 transition-colors text-base font-semibold shadow-md focus-visible:ring-primary"
                         style={{
                           backgroundColor: rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B',
                           borderColor: rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B',
                           outlineColor: rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B',
                           color: 'var(--theme-primary)',
-                        }}
+                          '--tw-ring-color': 'var(--theme-primary)',
+                        } as React.CSSProperties}
                       >
                         <SelectValue placeholder="Select Campus" />
                       </SelectTrigger>

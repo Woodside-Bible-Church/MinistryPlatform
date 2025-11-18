@@ -236,6 +236,22 @@ input[type="submit"],
 /* Removed global button:hover styles - they override component-specific hovers */
 /* Button styles are now handled per-component for better control */
 
+/* Select Dropdown Theming - Force theme colors with !important */
+[data-slot="select-item"][data-state="checked"] {
+  background-color: var(--theme-background) !important;
+  color: var(--theme-secondary) !important;
+  font-weight: 600 !important;
+}
+
+[data-slot="select-item"][data-state="checked"] svg {
+  color: var(--theme-secondary) !important;
+}
+
+[data-slot="select-item"]:not([data-state="checked"]):hover {
+  background-color: var(--theme-primary) !important;
+  color: var(--theme-accent) !important;
+}
+
 /* Horizontal Scrollbar Styling for Carousels */
 /* Hide scrollbar but keep functionality for horizontal scroll containers */
 .horizontal-scroll,

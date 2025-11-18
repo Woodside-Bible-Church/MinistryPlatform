@@ -44,7 +44,7 @@ function SelectTrigger({
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDownIcon className="size-5 opacity-50 transition-transform group-data-[state=open]:rotate-180" strokeWidth={2.5} />
+        <ChevronDownIcon className="size-5 transition-transform group-data-[state=open]:rotate-180 text-current" strokeWidth={2.5} />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   )
@@ -113,51 +113,15 @@ function SelectItem({
   children,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Item>) {
-  const [isHovered, setIsHovered] = React.useState(false);
-  const itemRef = React.useRef<HTMLDivElement>(null);
-
-  // Check if this item is selected by looking at the data-state attribute
-  React.useEffect(() => {
-    const updateStyles = () => {
-      if (itemRef.current) {
-        const isChecked = itemRef.current.getAttribute('data-state') === 'checked';
-        if (isChecked) {
-          itemRef.current.style.backgroundColor = 'var(--theme-primary)';
-          itemRef.current.style.color = 'white';
-          itemRef.current.style.fontWeight = '600';
-        } else if (isHovered) {
-          itemRef.current.style.backgroundColor = 'var(--theme-accent)';
-          itemRef.current.style.color = 'inherit';
-          itemRef.current.style.fontWeight = 'inherit';
-        } else {
-          itemRef.current.style.backgroundColor = 'transparent';
-          itemRef.current.style.color = 'inherit';
-          itemRef.current.style.fontWeight = 'inherit';
-        }
-      }
-    };
-
-    updateStyles();
-
-    // Use MutationObserver to watch for data-state changes
-    const observer = new MutationObserver(updateStyles);
-    if (itemRef.current) {
-      observer.observe(itemRef.current, { attributes: true, attributeFilter: ['data-state'] });
-    }
-
-    return () => observer.disconnect();
-  }, [isHovered]);
-
   return (
     <SelectPrimitive.Item
-      ref={itemRef}
       data-slot="select-item"
       className={cn(
-        "[&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
+        "relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none",
+        "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       {...props}
     >
       <span className="absolute right-2 flex size-3.5 items-center justify-center">
