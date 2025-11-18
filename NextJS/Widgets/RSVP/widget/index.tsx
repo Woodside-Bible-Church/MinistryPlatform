@@ -95,6 +95,8 @@ class RSVPWidget {
   /**
    * Inject global body styles to prevent layout shift when dropdowns open
    * This must be injected into the main document, not shadow DOM
+   *
+   * Uses MutationObserver to actively fight Radix UI's inline styles
    */
   private injectGlobalBodyStyles() {
     // Check if we've already injected these styles
@@ -114,6 +116,34 @@ class RSVPWidget {
       }
     `;
     document.head.appendChild(style);
+
+    // MutationObserver to actively override Radix UI's inline styles
+    // Radix applies inline styles which have higher specificity than CSS !important
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+          const body = document.body;
+
+          // Force overflow-y to scroll (override Radix's inline overflow: hidden)
+          if (body.style.overflow === 'hidden' || body.style.overflowY === 'hidden') {
+            body.style.setProperty('overflow-y', 'scroll', 'important');
+          }
+
+          // Force padding-right to 0 (override Radix's padding compensation)
+          if (body.style.paddingRight) {
+            body.style.setProperty('padding-right', '0', 'important');
+          }
+        }
+      });
+    });
+
+    // Observe body element for style attribute changes
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['style']
+    });
+
+    console.log('[RSVP Widget] MutationObserver installed to prevent scrollbar layout shift');
   }
 
   /**
