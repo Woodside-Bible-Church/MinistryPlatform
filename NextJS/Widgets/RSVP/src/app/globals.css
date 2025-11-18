@@ -142,6 +142,13 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+    /* Prevent Radix UI from hiding scrollbar when modals/dropdowns open */
+    overflow-y: scroll !important;
+  }
+  /* Allow Radix portals to still prevent scroll when needed */
+  body[data-scroll-locked] {
+    overflow-y: scroll !important;
+    padding-right: 0 !important;
   }
 }
 
