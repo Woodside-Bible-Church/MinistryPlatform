@@ -68,6 +68,10 @@ class RSVPWidget {
     // We need to copy those styles into our shadow DOM
     this.injectStyles();
 
+    // Inject global body styles to prevent layout shift from dropdowns
+    // This must be in the main document, not shadow DOM, because Radix portals render outside
+    this.injectGlobalBodyStyles();
+
     // Store portal container globally for Radix UI components to access
     (window as any).__RSVP_WIDGET_PORTAL_CONTAINER__ = portalContainer;
 
@@ -86,6 +90,30 @@ class RSVPWidget {
     );
 
     console.log('RSVP Widget initialized with Shadow DOM');
+  }
+
+  /**
+   * Inject global body styles to prevent layout shift when dropdowns open
+   * This must be injected into the main document, not shadow DOM
+   */
+  private injectGlobalBodyStyles() {
+    // Check if we've already injected these styles
+    if (document.getElementById('rsvp-widget-global-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'rsvp-widget-global-styles';
+    style.textContent = `
+      /* Prevent layout shift when Radix UI dropdowns hide scrollbar */
+      body {
+        overflow-y: scroll !important;
+      }
+      /* Override Radix UI's scroll lock padding compensation */
+      body[data-scroll-locked] {
+        overflow-y: scroll !important;
+        padding-right: 0 !important;
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   /**
