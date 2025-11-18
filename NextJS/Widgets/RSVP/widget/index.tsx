@@ -158,6 +158,11 @@ class RSVPWidget {
         box-sizing: border-box;
       }
 
+      /* Make the mount point fill the shadow root */
+      #rsvp-widget-app {
+        width: 100%;
+      }
+
       /* Initialize Tailwind's layer variables on :host so utilities can override them */
       :host {
         --tw-border-spacing-x: 0;
