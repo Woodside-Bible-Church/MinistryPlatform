@@ -539,6 +539,10 @@ export default function RSVPPage() {
         const { selectedServiceEventId } = saved.formData as { selectedServiceEventId?: number };
 
         if (selectedServiceEventId) {
+          // Wait a brief moment for MP widget to finish OAuth token refresh
+          // The MP widget auto-refreshes tokens on page load, but it happens asynchronously
+          await new Promise(resolve => setTimeout(resolve, 500));
+
           // Find the service time from the loaded data
           const service = rsvpData.Events.find(e => e.Event_ID === selectedServiceEventId);
 
