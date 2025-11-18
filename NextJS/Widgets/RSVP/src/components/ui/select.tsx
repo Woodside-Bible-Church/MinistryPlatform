@@ -114,23 +114,18 @@ function SelectItem({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Item>) {
   const [isHovered, setIsHovered] = React.useState(false);
-  const isChecked = props['data-state'] === 'checked';
 
   return (
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
         "[&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
+        // Use data-state attribute selector for checked styling
+        "data-[state=checked]:bg-[var(--theme-primary)] data-[state=checked]:text-white data-[state=checked]:font-semibold",
         className
       )}
       style={{
-        backgroundColor: isChecked
-          ? 'var(--theme-primary)'
-          : isHovered
-            ? 'var(--theme-accent)'
-            : 'transparent',
-        color: isChecked ? 'white' : 'inherit',
-        fontWeight: isChecked ? 600 : 'inherit',
+        backgroundColor: isHovered ? 'var(--theme-accent)' : undefined,
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
