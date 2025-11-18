@@ -2,16 +2,19 @@
 
 import { motion } from "framer-motion";
 import { QrCode } from "lucide-react";
-import { CardProps, QRCodeCardConfig, replaceTokens } from "@/types/confirmationCards";
+import { CardComponentProps, QRCodeCardConfig } from "@/types/rsvp";
+import { replaceTokens } from "@/types/confirmationCards";
 import { QRCodeSVG } from "qrcode.react";
 
-export function QRCodeCard({ config, rsvpData }: CardProps<QRCodeCardConfig>) {
+export function QRCodeCard({ card, confirmation }: CardComponentProps) {
+  const config = card.Configuration as QRCodeCardConfig;
+
   // Replace tokens in QR data
-  const qrData = replaceTokens(config.qrData, rsvpData);
-  const description = config.description ? replaceTokens(config.description, rsvpData) : "";
+  const qrData = replaceTokens(config.qrData, confirmation);
+  const description = config.description ? replaceTokens(config.description, confirmation) : "";
 
   // Confirmation number format: RSVP_ID-EVENT_ID
-  const confirmationNumber = `${rsvpData.Event_RSVP_ID}-${rsvpData.Event_ID}`;
+  const confirmationNumber = `${confirmation.Event_RSVP_ID}-${confirmation.Event_ID}`;
 
   return (
     <motion.div

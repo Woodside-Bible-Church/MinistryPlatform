@@ -2,29 +2,31 @@
 
 import { motion } from "framer-motion";
 import { Share2, Mail, MessageSquare, Copy, Check } from "lucide-react";
-import { CardProps, ShareCardConfig, replaceTokens, buildEventShareUrl } from "@/types/confirmationCards";
+import { CardComponentProps, ShareCardConfig } from "@/types/rsvp";
+import { replaceTokens, buildEventShareUrl } from "@/types/confirmationCards";
 import { useState, useRef } from "react";
 import * as Popover from "@radix-ui/react-popover";
 
-export function ShareCard({ config, rsvpData }: CardProps<ShareCardConfig>) {
+export function ShareCard({ card, confirmation }: CardComponentProps) {
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const config = card.Configuration as ShareCardConfig;
 
   // Build share URL
-  const shareUrl = config.shareUrl || buildEventShareUrl(rsvpData.Event_ID);
+  const shareUrl = config.shareUrl || buildEventShareUrl(confirmation.Event_ID);
 
   // Replace tokens in custom message
   const customMessage = config.customMessage
-    ? replaceTokens(config.customMessage, rsvpData)
-    : `Join me at ${rsvpData.Event_Title}!`;
+    ? replaceTokens(config.customMessage, confirmation)
+    : `Join me at ${confirmation.Event_Title}!`;
 
   const handleNativeShare = async () => {
     // Try native share API first (mobile devices)
     if (navigator.share) {
       try {
         await navigator.share({
-          title: rsvpData.Event_Title,
+          title: confirmation.Event_Title,
           text: customMessage,
           url: shareUrl,
         });
@@ -64,7 +66,7 @@ export function ShareCard({ config, rsvpData }: CardProps<ShareCardConfig>) {
         window.open(`sms:?body=${encodedMessage} ${encodedUrl}`);
         break;
       case "email":
-        window.open(`mailto:?subject=${encodeURIComponent(rsvpData.Event_Title)}&body=${encodedMessage} ${encodedUrl}`);
+        window.open(`mailto:?subject=${encodeURIComponent(confirmation.Event_Title)}&body=${encodedMessage} ${encodedUrl}`);
         break;
       case "facebook":
         window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, "_blank");

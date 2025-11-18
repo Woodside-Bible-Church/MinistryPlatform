@@ -3,21 +3,23 @@
 import { motion } from "framer-motion";
 import { Calendar, Download } from "lucide-react";
 import { FaGoogle, FaApple, FaMicrosoft } from "react-icons/fa";
-import { CardProps, AddToCalendarCardConfig, generateICSContent } from "@/types/confirmationCards";
+import { CardComponentProps, AddToCalendarCardConfig } from "@/types/rsvp";
+import { generateICSContent } from "@/types/confirmationCards";
 import { useState, useRef } from "react";
 import * as Popover from "@radix-ui/react-popover";
 
-export function AddToCalendarCard({ config, rsvpData }: CardProps<AddToCalendarCardConfig>) {
+export function AddToCalendarCard({ card, confirmation }: CardComponentProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const startDate = new Date(rsvpData.Event_Start_Date);
-  const endDate = new Date(rsvpData.Event_End_Date);
+  const config = card.Configuration as AddToCalendarCardConfig;
+  const startDate = new Date(confirmation.Event_Start_Date);
+  const endDate = new Date(confirmation.Event_End_Date);
 
   const formatDateForGoogle = (date: Date) => {
     return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
   };
 
-  const location = config.location || `${rsvpData.Campus_Name}, ${rsvpData.Campus_Address}, ${rsvpData.Campus_City}, ${rsvpData.Campus_State} ${rsvpData.Campus_Zip}`;
+  const location = config.location || `${confirmation.Campus_Name}, ${confirmation.Campus_Address}, ${confirmation.Campus_City}, ${confirmation.Campus_State} ${confirmation.Campus_Zip}`;
   const description = config.eventDescription || "";
 
   const handleCalendarClick = () => {
@@ -29,7 +31,7 @@ export function AddToCalendarCard({ config, rsvpData }: CardProps<AddToCalendarC
   const handleAddToCalendar = (provider: string) => {
     switch (provider) {
       case "google":
-        const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(rsvpData.Event_Title)}&dates=${formatDateForGoogle(startDate)}/${formatDateForGoogle(endDate)}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}`;
+        const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(confirmation.Event_Title)}&dates=${formatDateForGoogle(startDate)}/${formatDateForGoogle(endDate)}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}`;
         window.open(googleUrl, "_blank");
         break;
 
@@ -37,11 +39,11 @@ export function AddToCalendarCard({ config, rsvpData }: CardProps<AddToCalendarC
       case "outlook":
       case "ics":
         // Generate and download ICS file
-        const icsContent = generateICSContent(rsvpData, config);
+        const icsContent = generateICSContent(confirmation, config);
         const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `${rsvpData.Event_Title.replace(/[^a-z0-9]/gi, "_")}.ics`;
+        link.download = `${confirmation.Event_Title.replace(/[^a-z0-9]/gi, "_")}.ics`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

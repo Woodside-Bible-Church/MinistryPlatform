@@ -2,19 +2,20 @@
 
 import { motion } from "framer-motion";
 import { MapPinned, Navigation } from "lucide-react";
-import { CardProps, MapCardConfig } from "@/types/confirmationCards";
+import { CardComponentProps, MapCardConfig } from "@/types/rsvp";
 import { useState } from "react";
 
-export function MapCard({ config, rsvpData }: CardProps<MapCardConfig>) {
+export function MapCard({ card, confirmation }: CardComponentProps) {
   const [showMapSelector, setShowMapSelector] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const config = card.Configuration as MapCardConfig;
 
   // Use configured address or fallback to campus address
   const address = config.address || [
-    rsvpData.Campus_Address,
-    rsvpData.Campus_City,
-    rsvpData.Campus_State,
-    rsvpData.Campus_Zip,
+    confirmation.Campus_Address,
+    confirmation.Campus_City,
+    confirmation.Campus_State,
+    confirmation.Campus_Zip,
   ]
     .filter(Boolean)
     .join(", ");
