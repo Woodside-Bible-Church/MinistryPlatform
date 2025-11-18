@@ -93,75 +93,56 @@ class RSVPWidget {
   }
 
   /**
-   * Inject global body styles to prevent layout shift when dropdowns open
-   * This must be injected into the main document, not shadow DOM
+   * Prevent Radix UI scroll locking from causing layout shift
    *
-   * Uses MutationObserver to actively fight Radix UI's inline styles
+   * Radix UI uses RemoveScroll component which adds data-scroll-locked
+   * and manipulates overflow/padding. We intercept this to prevent shift.
    */
   private injectGlobalBodyStyles() {
-    // Check if we've already injected these styles
-    if (document.getElementById('rsvp-widget-global-styles')) return;
+    // Check if we've already set up the observer
+    if ((window as any).__RSVP_WIDGET_SCROLL_LOCK_PREVENTED__) return;
 
-    const style = document.createElement('style');
-    style.id = 'rsvp-widget-global-styles';
-    style.textContent = `
-      /* Prevent layout shift when Radix UI dropdowns hide scrollbar */
-      html, body {
-        overflow-y: scroll !important;
-      }
-      /* Override Radix UI's scroll lock padding compensation */
-      html[data-scroll-locked], body[data-scroll-locked] {
-        overflow-y: scroll !important;
-        padding-right: 0 !important;
-      }
-      /* Prevent any element from hiding overflow */
-      html {
-        scrollbar-gutter: stable !important;
-      }
-    `;
-    document.head.appendChild(style);
+    // Monitor for data-scroll-locked attribute changes
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-scroll-locked') {
+          const body = document.body;
+          const html = document.documentElement;
 
-    // MutationObserver to actively override Radix UI's inline styles
-    // Check both body and html elements as Radix might target either
-    const observeElement = (element: HTMLElement, elementName: string) => {
-      const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-          if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-            const elemStyle = element.style;
+          // If scroll lock is being applied, immediately remove it
+          if (body.hasAttribute('data-scroll-locked')) {
+            console.log('[RSVP Widget] Preventing scroll lock on body');
+            body.removeAttribute('data-scroll-locked');
 
-            console.log(`[RSVP Widget] ${elementName} style mutation detected:`, {
-              overflow: elemStyle.overflow,
-              overflowY: elemStyle.overflowY,
-              paddingRight: elemStyle.paddingRight,
-              innerHTML: element.getAttribute('style')
-            });
-
-            // Force overflow-y to scroll (override Radix's inline overflow: hidden)
-            if (elemStyle.overflow === 'hidden' || elemStyle.overflowY === 'hidden') {
-              elemStyle.setProperty('overflow-y', 'scroll', 'important');
-              console.log(`[RSVP Widget] Forced ${elementName} overflow-y to scroll`);
-            }
-
-            // Force padding-right to 0 (override Radix's padding compensation)
-            if (elemStyle.paddingRight && elemStyle.paddingRight !== '0px') {
-              elemStyle.setProperty('padding-right', '0', 'important');
-              console.log(`[RSVP Widget] Forced ${elementName} padding-right to 0`);
-            }
+            // Remove any inline styles Radix might have added
+            if (body.style.overflow) body.style.overflow = '';
+            if (body.style.paddingRight) body.style.paddingRight = '';
           }
-        });
+
+          if (html.hasAttribute('data-scroll-locked')) {
+            console.log('[RSVP Widget] Preventing scroll lock on html');
+            html.removeAttribute('data-scroll-locked');
+
+            if (html.style.overflow) html.style.overflow = '';
+            if (html.style.paddingRight) html.style.paddingRight = '';
+          }
+        }
       });
+    });
 
-      observer.observe(element, {
-        attributes: true,
-        attributeFilter: ['style']
-      });
-    };
+    // Watch both body and html for data-scroll-locked attribute
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['data-scroll-locked']
+    });
 
-    // Observe both body and html elements
-    observeElement(document.body, 'body');
-    observeElement(document.documentElement, 'html');
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-scroll-locked']
+    });
 
-    console.log('[RSVP Widget] MutationObserver installed on body and html to prevent scrollbar layout shift');
+    (window as any).__RSVP_WIDGET_SCROLL_LOCK_PREVENTED__ = true;
+    console.log('[RSVP Widget] Scroll lock prevention installed');
   }
 
   /**
