@@ -157,23 +157,26 @@
     border-color: var(--theme-secondary);
   }
 
+
   /* RSVP Button Styles - Uses CSS variables for dynamic theming via API */
   .btn-primary {
     @apply font-bold uppercase tracking-wide;
     color: var(--theme-primary);
-    background-color: var(--theme-secondary);
-    border: 2px solid var(--theme-secondary);
+    background-color: var(--theme-accent);
+    border: 2px solid var(--theme-accent);
     transition: all 0.2s ease;
   }
 
   .btn-primary:hover {
-    background-color: var(--background);
-    border-color: var(--background);
+    background-color: var(--theme-secondary);
+    border-color: var(--theme-secondary);
+    color: var(--theme-background);
   }
 
   .btn-primary:focus-visible {
-    background-color: var(--background);
-    border-color: var(--background);
+    background-color: var(--theme-secondary);
+    border-color: var(--theme-secondary);
+    color: var(--theme-background);
     outline: none;
     box-shadow: none;
   }
@@ -185,19 +188,21 @@
 
   .btn-secondary {
     @apply font-bold uppercase tracking-wide;
-    color: var(--theme-secondary);
+    color: var(--theme-primary);
     background-color: transparent;
-    border: 2px solid var(--theme-secondary);
+    border: 2px solid var(--theme-primary);
     transition: all 0.2s ease;
   }
 
   .btn-secondary:hover {
-    background-color: var(--theme-secondary);
+    background-color: var(--theme-accent);
+    border-color: var(--theme-accent);
     color: var(--theme-primary);
   }
 
   .btn-secondary:focus-visible {
-    background-color: var(--theme-secondary);
+    background-color: var(--theme-accent);
+    border-color: var(--theme-accent);
     color: var(--theme-primary);
     outline: none;
     box-shadow: none;
@@ -206,6 +211,13 @@
   .btn-secondary:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  /* Input placeholder styling - use theme primary color */
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--theme-primary) !important;
+    opacity: 0.6;
   }
 }
 

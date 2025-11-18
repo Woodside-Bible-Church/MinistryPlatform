@@ -625,10 +625,10 @@ export default function RSVPPage() {
       });
 
       // Build submission request
-      // Use Project_RSVP_ID from fetched data (which was resolved from slug if needed)
+      // Use Project_ID from fetched data (which was resolved from slug if needed)
       const submissionRequest: RSVPSubmissionRequest = {
         Event_ID: data.eventId,
-        Project_RSVP_ID: rsvpData?.Project_RSVP.Project_RSVP_ID || 1,
+        Project_ID: rsvpData?.Project.Project_ID || 1,
         Contact_ID: null, // TODO: Get from auth when implemented
         First_Name: data.firstName,
         Last_Name: data.lastName,
@@ -700,10 +700,23 @@ export default function RSVPPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div
+      className="min-h-screen bg-white"
+      style={{
+        // Override theme CSS variables for dynamic branding from database
+        ['--theme-primary' as string]: rsvpData?.Project?.RSVP_Primary_Color || '#4F624C',
+        ['--theme-secondary' as string]: rsvpData?.Project?.RSVP_Secondary_Color || '#C5AB94',
+        ['--theme-accent' as string]: rsvpData?.Project?.RSVP_Accent_Color || '#E8DDD0',
+        ['--theme-background' as string]: rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B',
+        // Also update Tailwind CSS v4 color variables (used by bg-*, text-*, border-* utilities)
+        ['--color-primary' as string]: rsvpData?.Project?.RSVP_Primary_Color || '#4F624C',
+        ['--color-secondary' as string]: rsvpData?.Project?.RSVP_Secondary_Color || '#C5AB94',
+        ['--color-accent' as string]: rsvpData?.Project?.RSVP_Accent_Color || '#E8DDD0',
+      } as React.CSSProperties}
+    >
       {/* Glassmorphic Top Navigation Bar - Fixed (Only show in Next.js dev mode, not widget) */}
       {!isWidget && (
-        <div className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-primary/95 border-b border-white/20 py-3 px-8 shadow-lg">
+        <div className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b border-white/20 py-3 px-8 shadow-lg" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 95%, transparent)' }}>
           <div className="max-w-[1600px] mx-auto flex justify-between items-center">
             {/* Left: Project Selector */}
             <div className="flex items-center gap-3">
@@ -771,7 +784,12 @@ export default function RSVPPage() {
         {/* Background Pattern */}
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url('${baseUrl}/assets/BG.png')` }}
+          style={{
+            backgroundImage: rsvpData?.Project?.RSVP_BG_Image_URL
+              ? `url('${rsvpData.Project.RSVP_BG_Image_URL}')`
+              : `url('${baseUrl}/assets/BG.png')`,
+            backgroundColor: rsvpData?.Project?.RSVP_Background_Color || undefined
+          }}
         />
 
         {/* Content Container */}
@@ -791,14 +809,16 @@ export default function RSVPPage() {
                 </p>
               </div>
 
-              {/* Christmas Image - Mobile/Tablet (between blurb and instructions) */}
-              <div className="xl:hidden my-2">
-                <img
-                  src={`${baseUrl}/assets/Christmas24_web_1480x1080.jpg`}
-                  alt="Christmas Service"
-                  className="w-full h-auto shadow-2xl max-w-md mx-auto"
-                />
-              </div>
+              {/* RSVP Image - Mobile/Tablet (between blurb and instructions) */}
+              {rsvpData?.Project?.RSVP_Image_URL && (
+                <div className="xl:hidden my-2">
+                  <img
+                    src={rsvpData.Project.RSVP_Image_URL}
+                    alt={rsvpData.Project.RSVP_Title || "RSVP"}
+                    className="w-full h-auto shadow-2xl max-w-md mx-auto"
+                  />
+                </div>
+              )}
 
               {/* Dynamic Instructions + Campus Filter - Aligned with bottom of image */}
               <div className="space-y-3 md:space-y-4">
@@ -825,25 +845,35 @@ export default function RSVPPage() {
                         {/* Service Selection Card - Clickable */}
                         <button
                           onClick={handleBackToServices}
-                          className="bg-primary px-4 py-3 w-full md:w-auto text-left hover:bg-primary/90 transition-colors"
+                          className="px-4 py-3 w-full md:w-auto text-left transition-colors"
+                          style={{
+                            backgroundColor: rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B',
+                            color: rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = `${rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B'}E6`;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B';
+                          }}
                         >
                           <div className="flex items-center gap-3">
                             {/* Back Arrow - Left Side */}
-                            <ArrowLeft className="w-5 h-5 text-white/70 flex-shrink-0" />
+                            <ArrowLeft className="w-5 h-5 flex-shrink-0" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC'}B3` }} />
 
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <Clock className="w-4 h-4 text-white" />
-                                <span className="text-lg font-bold text-white">
+                                <Clock className="w-4 h-4" style={{ color: rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC' }} />
+                                <span className="text-lg font-bold" style={{ color: rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC' }}>
                                   {new Date(selectedServiceTime.Event_Start_Date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                                 </span>
                               </div>
-                              <p className="text-xs font-medium text-white/70 uppercase tracking-wide">
+                              <p className="text-xs font-medium uppercase tracking-wide" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC'}B3` }}>
                                 {new Date(selectedServiceTime.Event_Start_Date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                               </p>
                               <div className="flex items-center gap-1 mt-1">
-                                <MapPin className="w-3 h-3 text-white/60" />
-                                <span className="text-xs text-white/80 font-medium uppercase tracking-wide">
+                                <MapPin className="w-3 h-3" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC'}99` }} />
+                                <span className="text-xs font-medium uppercase tracking-wide" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC'}CC` }}>
                                   {selectedServiceTime.Campus_Name} Campus
                                 </span>
                               </div>
@@ -855,27 +885,37 @@ export default function RSVPPage() {
                         {formStep === 2 && formData.firstName && (
                           <button
                             onClick={() => setFormStep(1)}
-                            className="bg-primary px-4 py-3 w-full md:w-auto text-left hover:bg-primary/90 transition-colors"
+                            className="px-4 py-3 w-full md:w-auto text-left transition-colors"
+                            style={{
+                              backgroundColor: rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B',
+                              color: rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = `${rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B'}E6`;
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B';
+                            }}
                           >
                             <div className="flex items-center gap-3">
                               {/* Back Arrow - Left Side */}
-                              <ArrowLeft className="w-5 h-5 text-white/70 flex-shrink-0" />
+                              <ArrowLeft className="w-5 h-5 flex-shrink-0" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC'}B3` }} />
 
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC' }}>
                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                                     <circle cx="12" cy="7" r="4"></circle>
                                   </svg>
-                                  <span className="text-lg font-bold text-white">
+                                  <span className="text-lg font-bold" style={{ color: rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC' }}>
                                     {formData.firstName} {formData.lastName}
                                   </span>
                                 </div>
-                                <p className="text-xs font-medium text-white/70 uppercase tracking-wide">
+                                <p className="text-xs font-medium uppercase tracking-wide" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC'}B3` }}>
                                   {formData.emailAddress}
                                 </p>
                                 {formData.phoneNumber && (
-                                  <p className="text-xs text-white/80 font-medium uppercase tracking-wide mt-1">
+                                  <p className="text-xs font-medium uppercase tracking-wide mt-1" style={{ color: `${rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC'}CC` }}>
                                     {formData.phoneNumber}
                                   </p>
                                 )}
@@ -887,8 +927,8 @@ export default function RSVPPage() {
 
                       {/* Progress Indicator */}
                       <div className="flex items-center gap-2 max-w-md">
-                        <div className="flex-1 h-1 bg-secondary"></div>
-                        <div className={`flex-1 h-1 ${formStep === 2 ? 'bg-secondary' : 'bg-white/20'}`}></div>
+                        <div className="flex-1 h-1" style={{ backgroundColor: rsvpData?.Project?.RSVP_Accent_Color || '#C88F7B' }}></div>
+                        <div className="flex-1 h-1" style={{ backgroundColor: formStep === 2 ? (rsvpData?.Project?.RSVP_Accent_Color || '#C88F7B') : 'rgba(255, 255, 255, 0.2)' }}></div>
                       </div>
                       <p className="text-xs text-white/70 uppercase tracking-wide font-medium">Step {formStep} of 2</p>
                     </div>
@@ -913,21 +953,29 @@ export default function RSVPPage() {
                               repeat: Infinity,
                               ease: "easeInOut",
                             }}
-                            className="absolute inset-0 bg-secondary rounded-full"
+                            className="absolute inset-0 rounded-full"
+                            style={{ backgroundColor: 'var(--theme-secondary)' }}
                           />
                           {/* Check icon */}
-                          <div className="relative w-16 h-16 bg-secondary text-primary rounded-full flex items-center justify-center">
-                            <CheckCircle2 className="w-8 h-8" />
+                          <div
+                            className="relative w-16 h-16 rounded-full flex items-center justify-center border-2"
+                            style={{
+                              backgroundColor: 'var(--theme-primary)',
+                              borderColor: 'var(--theme-primary)',
+                              color: 'var(--theme-background)'
+                            }}
+                          >
+                            <CheckCircle2 className="w-9 h-9 stroke-[2.5]" />
                           </div>
                         </div>
                       </motion.div>
 
                       {/* Text */}
                       <div>
-                        <h2 className="text-2xl font-bold text-white mb-1 text-right md:text-left">
+                        <h2 className="text-2xl font-bold mb-1 text-right md:text-left" style={{ color: 'var(--theme-secondary)' }}>
                           You&apos;re All Set
                         </h2>
-                        <p className="text-base text-white opacity-80 text-right md:text-left">
+                        <p className="text-base text-right md:text-left" style={{ color: 'var(--theme-primary)', opacity: 0.9 }}>
                           We can&apos;t wait to see you at Christmas.
                         </p>
                       </div>
@@ -944,12 +992,24 @@ export default function RSVPPage() {
                         setSelectedCampusId(parseInt(value))
                       }
                     >
-                      <SelectTrigger className="w-full h-12 bg-white border-2 border-white/50 hover:border-white transition-colors text-base font-semibold text-primary shadow-md">
+                      <SelectTrigger
+                        className="w-full h-12 border-2 transition-colors text-base font-semibold shadow-md"
+                        style={{
+                          backgroundColor: rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B',
+                          borderColor: rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B',
+                          outlineColor: rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B',
+                          color: 'var(--theme-primary)',
+                        }}
+                      >
                         <SelectValue placeholder="Select Campus" />
                       </SelectTrigger>
                       <SelectContent>
                         {availableCampuses.map((campus) => (
-                          <SelectItem key={campus.id} value={campus.id.toString()} className="text-base py-3 cursor-pointer group">
+                          <SelectItem
+                            key={campus.id}
+                            value={campus.id.toString()}
+                            className="text-base py-3 cursor-pointer group"
+                          >
                             <div className="flex items-center gap-3">
                               {campus.svgUrl ? (
                                 <div className="relative w-6 h-6">
@@ -971,7 +1031,7 @@ export default function RSVPPage() {
                                   />
                                 </div>
                               ) : (
-                                <MapPin className="w-5 h-5 text-primary" />
+                                <MapPin className="w-5 h-5" style={{ color: 'var(--theme-primary)' }} />
                               )}
                               <span>{campus.name}</span>
                             </div>
@@ -984,14 +1044,16 @@ export default function RSVPPage() {
               </div>
             </div>
 
-            {/* Christmas Image - Desktop Only (right side) */}
-            <div className="hidden xl:block flex-shrink-0 w-[520px]">
-              <img
-                src={`${baseUrl}/assets/Christmas24_web_1480x1080.jpg`}
-                alt="Christmas Service"
-                className="w-full h-auto shadow-2xl"
-              />
-            </div>
+            {/* RSVP Image - Desktop Only (right side) */}
+            {rsvpData?.Project?.RSVP_Image_URL && (
+              <div className="hidden xl:block flex-shrink-0 w-[520px]">
+                <img
+                  src={rsvpData.Project.RSVP_Image_URL}
+                  alt={rsvpData.Project.RSVP_Title || "RSVP"}
+                  className="w-full h-auto shadow-2xl"
+                />
+              </div>
+            )}
           </div>
 
           {/* Main Content Section - Full Width */}
@@ -1052,6 +1114,9 @@ export default function RSVPPage() {
                                   selected={false}
                                   onSelect={() => handleServiceSelect(service)}
                                   isCarousel={services.length > 1}
+                                  backgroundColor={rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B'}
+                                  accentColor={rsvpData?.Project?.RSVP_Secondary_Color || '#C5AB94'}
+                                  textColor={rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC'}
                                 />
                               ))}
                             </div>
@@ -1119,6 +1184,9 @@ export default function RSVPPage() {
                       initialData={formData}
                       onDataChange={setFormData}
                       questions={rsvpData?.Questions || []}
+                      backgroundColor={rsvpData?.Project?.RSVP_Background_Color || '#0F1E1B'}
+                      textColor={rsvpData?.Project?.RSVP_Primary_Color || '#F4EEDC'}
+                      accentColor={rsvpData?.Project?.RSVP_Accent_Color || '#C88F7B'}
                     />
                   </motion.div>
                 )}
@@ -1150,7 +1218,7 @@ export default function RSVPPage() {
       {filteredInformationalEvents.length > 0 && (
         <section className="bg-gray-50 py-12">
           <div className="relative mx-auto px-8 max-w-[1600px]">
-            <h2 className="text-3xl font-bold text-primary mb-6">
+            <h2 className="text-3xl font-bold mb-6" style={{ color: 'var(--theme-primary)' }}>
               Other Christmas Events
             </h2>
             <div className="flex flex-wrap gap-4">

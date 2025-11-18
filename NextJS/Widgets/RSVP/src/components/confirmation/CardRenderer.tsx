@@ -1,6 +1,5 @@
-import { ConfirmationCard } from "@/types/confirmationCards";
-import { RSVPConfirmation } from "@/types/rsvp";
-import { InstructionsCard } from "./cards/InstructionsCard";
+import { ParsedConfirmationCard, RSVPConfirmation } from "@/types/rsvp";
+import { InstructionsCard } from "../rsvp/cards/InstructionsCard";
 import { MapCard } from "./cards/MapCard";
 import { QRCodeCard } from "./cards/QRCodeCard";
 import { ShareCard } from "./cards/ShareCard";
@@ -17,7 +16,7 @@ const cardComponents = {
 };
 
 interface CardRendererProps {
-  card: ConfirmationCard;
+  card: ParsedConfirmationCard;
   rsvpData: RSVPConfirmation;
 }
 
@@ -33,14 +32,13 @@ export function CardRenderer({ card, rsvpData }: CardRendererProps) {
     return null;
   }
 
-  // TypeScript can't infer the correct config type from the union
-  // Each card component will validate its own config type at runtime
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return <CardComponent config={card.Configuration as any} rsvpData={rsvpData} />;
+  // Pass the full card object and confirmation data
+  // Each card component expects { card, confirmation }
+  return <CardComponent card={card} confirmation={rsvpData} />;
 }
 
 interface CardListRendererProps {
-  cards: ConfirmationCard[];
+  cards: ParsedConfirmationCard[];
   rsvpData: RSVPConfirmation;
 }
 

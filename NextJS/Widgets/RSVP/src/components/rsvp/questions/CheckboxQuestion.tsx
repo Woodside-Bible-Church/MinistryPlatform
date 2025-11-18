@@ -54,17 +54,24 @@ export function CheckboxQuestion({
         <div className="flex min-[480px]:grid min-[480px]:grid-cols-[auto_1fr_auto] items-center justify-between min-[480px]:justify-start gap-3 mb-3">
           {/* Icon - shows Icon_Name or HelpCircle fallback */}
           <motion.div
-            className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0"
+            className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 backdrop-blur-sm"
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.2)'
+            }}
             animate={booleanValue ? {
               scale: [1, 1.2, 1],
               rotate: [0, 10, -10, 0]
             } : {}}
             transition={{ duration: 0.5, ease: 'easeOut' }}
           >
-            <IconComponent className="w-5 h-5 text-secondary" />
+            <IconComponent className="w-5 h-5" style={{ color: 'var(--theme-primary)' }} />
           </motion.div>
 
-          <Label className="text-lg font-semibold leading-tight text-white cursor-pointer text-right min-[480px]:text-center block flex-1">
+          <Label
+            className="text-lg font-semibold leading-tight cursor-pointer text-right min-[480px]:text-center block flex-1"
+            style={{ color: 'var(--theme-secondary)' }}
+          >
             {question.Question_Text}
             {question.Is_Required && <span className="ml-1 text-red-200">*</span>}
           </Label>
@@ -74,7 +81,12 @@ export function CheckboxQuestion({
 
         {/* Helper Text (full width below) */}
         {question.Helper_Text && (
-          <p className="text-sm text-white/70 w-full text-center">{question.Helper_Text}</p>
+          <p
+            className="text-sm w-full text-center"
+            style={{ color: 'var(--theme-primary)', opacity: 0.8 }}
+          >
+            {question.Helper_Text}
+          </p>
         )}
 
         {/* Click to confirm text (full width below) */}

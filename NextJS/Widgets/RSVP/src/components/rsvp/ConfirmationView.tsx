@@ -128,11 +128,12 @@ export default function ConfirmationView({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-primary p-6 w-full flex flex-col h-full"
+        className="p-6 w-full flex flex-col h-full"
+        style={{ backgroundColor: 'var(--theme-background)' }}
       >
         {/* Personalized Greeting */}
         <div className="py-2 mb-4">
-          <p className="text-2xl font-bold text-white">
+          <p className="text-2xl font-bold" style={{ color: 'var(--theme-secondary)' }}>
             {confirmation.First_Name}, we&apos;ll see you soon!
           </p>
         </div>
@@ -141,14 +142,20 @@ export default function ConfirmationView({
         <div className="space-y-6 flex-1">
           {/* Service Time */}
           <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center mt-0.5">
-              <Clock className="w-5 h-5 text-secondary" />
+            <div
+              className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mt-0.5 backdrop-blur-sm"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
+              }}
+            >
+              <Clock className="w-5 h-5" style={{ color: 'var(--theme-primary)' }} />
             </div>
             <div>
-              <p className="text-lg font-bold text-white">
+              <p className="text-lg font-bold" style={{ color: 'var(--theme-secondary)' }}>
                 {formatServiceTime(startDate)}
               </p>
-              <p className="text-sm text-white/70">
+              <p className="text-sm" style={{ color: 'var(--theme-primary)', opacity: 0.8 }}>
                 {formatServiceDate(startDate)}
               </p>
             </div>
@@ -176,14 +183,20 @@ export default function ConfirmationView({
 
             return (
               <div key={question.Question_ID} className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center mt-0.5">
-                  <IconComponent className="w-5 h-5 text-secondary" />
+                <div
+                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mt-0.5 backdrop-blur-sm"
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}
+                >
+                  <IconComponent className="w-5 h-5" style={{ color: 'var(--theme-primary)' }} />
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-white">
+                  <p className="text-lg font-bold" style={{ color: 'var(--theme-secondary)' }}>
                     {displayValue}
                   </p>
-                  <p className="text-sm text-white/70">
+                  <p className="text-sm" style={{ color: 'var(--theme-primary)', opacity: 0.8 }}>
                     {question.Question_Text}
                   </p>
                 </div>
@@ -193,17 +206,23 @@ export default function ConfirmationView({
 
           {/* Campus Location */}
           <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center mt-0.5">
-              <MapPin className="w-5 h-5 text-secondary" />
+            <div
+              className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mt-0.5 backdrop-blur-sm"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
+              }}
+            >
+              <MapPin className="w-5 h-5" style={{ color: 'var(--theme-primary)' }} />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-lg font-bold text-white">
+              <p className="text-lg font-bold" style={{ color: 'var(--theme-secondary)' }}>
                 {confirmation.Campus_Name} Campus
               </p>
-              <p className="text-sm text-white/70">
+              <p className="text-sm" style={{ color: 'var(--theme-primary)', opacity: 0.8 }}>
                 {fullAddress}
               </p>
-              <p className="text-xs text-white/60 mt-1">Enter through the main entrance</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--theme-primary)', opacity: 0.7 }}>Enter through the main entrance</p>
             </div>
           </div>
 
