@@ -8,35 +8,41 @@
 import { NextResponse } from 'next/server';
 import { ministryPlatformProvider } from '@/providers/MinistryPlatform/ministryPlatformProvider';
 
-interface ProjectRSVP {
-  Project_RSVP_ID: number;
+interface Project {
+  Project_ID: number;
   RSVP_Title: string;
   RSVP_Slug: string | null;
-  Is_Active: boolean;
+  RSVP_Is_Active: boolean;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    // Check for cache bypass parameter
+    const { searchParams } = new URL(request.url);
+    const bypassCache = searchParams.get('cache') === 'no';
+
     // Get MP provider singleton instance
     const mp = ministryPlatformProvider.getInstance();
 
-    // Fetch all active Project_RSVPs
-    const projects = await mp.getTableRecords<ProjectRSVP>('Project_RSVPs', {
-      $select: 'Project_RSVP_ID, RSVP_Title, RSVP_Slug, Is_Active',
-      $filter: 'Is_Active = 1',
+    // Fetch all active Projects with RSVP functionality
+    const projects = await mp.getTableRecords<Project>('Projects', {
+      $select: 'Project_ID, RSVP_Title, RSVP_Slug, RSVP_Is_Active',
+      $filter: 'RSVP_Is_Active = 1 AND RSVP_Slug IS NOT NULL',
       $orderby: 'RSVP_Title',
     });
 
     // Transform to dropdown options format
     // Use slug if available, otherwise use numeric ID
     const options = projects.map((project) => ({
-      value: project.RSVP_Slug || project.Project_RSVP_ID.toString(),
-      label: `${project.RSVP_Title} (${project.RSVP_Slug || `ID: ${project.Project_RSVP_ID}`})`,
+      value: project.RSVP_Slug || project.Project_ID.toString(),
+      label: `${project.RSVP_Title} (${project.RSVP_Slug || `ID: ${project.Project_ID}`})`,
     }));
 
     return NextResponse.json(options, {
       headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        'Cache-Control': bypassCache
+          ? 'no-cache, no-store, must-revalidate'
+          : 'public, s-maxage=60, stale-while-revalidate=120',
       },
     });
   } catch (error) {
