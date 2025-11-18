@@ -53,6 +53,9 @@ interface RSVPFormProps {
   initialData: Partial<RSVPFormInput>;
   onDataChange: (data: Partial<RSVPFormInput>) => void;
   questions: RSVPQuestion[];
+  backgroundColor?: string;
+  textColor?: string;
+  accentColor?: string;
 }
 
 export default function RSVPForm({
@@ -64,6 +67,9 @@ export default function RSVPForm({
   initialData,
   onDataChange,
   questions,
+  backgroundColor = '#0F1E1B',
+  textColor = '#F4EEDC',
+  accentColor = '#C88F7B',
 }: RSVPFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -398,13 +404,13 @@ export default function RSVPForm({
     <div className="space-y-6">
       {/* Step 1: Tell Us About Yourself */}
       {formStep === 1 && (
-        <div className="bg-primary p-6 space-y-12 max-w-xl">
+        <div className="p-6 space-y-12 max-w-xl" style={{ backgroundColor }}>
           {/* Loading State - Show while fetching household data */}
           {isLoadingHousehold && (
             <div className="space-y-3">
-              <Label className="text-white">Loading your information...</Label>
-              <div className="w-full bg-white/10 border border-white/20 rounded-md p-4 flex items-center justify-center min-h-[3.5rem]">
-                <Loader2 className="w-5 h-5 text-white/60 animate-spin" />
+              <Label style={{ color: textColor }}>Loading your information...</Label>
+              <div className="w-full rounded-md p-4 flex items-center justify-center min-h-[3.5rem]" style={{ backgroundColor: `${textColor}1A`, border: `1px solid ${textColor}33` }}>
+                <Loader2 className="w-5 h-5 animate-spin" style={{ color: `${textColor}99` }} />
               </div>
             </div>
           )}
@@ -435,14 +441,14 @@ export default function RSVPForm({
           {/* Fill Out As Dropdown - Only show for authenticated users (after loading) */}
           {!isLoadingHousehold && currentUser && (
             <div className="space-y-3">
-              <Label htmlFor="fillOutAs" className="text-white">
+              <Label htmlFor="fillOutAs" style={{ color: textColor }}>
                 Fill Out As
               </Label>
               <Select
                 value={selectedPerson}
                 onValueChange={handlePersonChange}
               >
-                <SelectTrigger className="w-full bg-white/10 border-white/20 text-white min-h-[3.5rem]">
+                <SelectTrigger className="w-full min-h-[3.5rem]" style={{ backgroundColor: `${textColor}1A`, borderColor: `${textColor}33`, color: textColor }}>
                   <SelectValue placeholder="Select person" />
                 </SelectTrigger>
                 <SelectContent>
@@ -481,12 +487,19 @@ export default function RSVPForm({
                   ))}
 
                   {/* Add New Person - Make it stand out */}
-                  <SelectItem value="new" className="bg-primary/10 border-t-2 border-primary/20 mt-2 focus:!bg-primary focus:!text-white group">
+                  <SelectItem
+                    value="new"
+                    className="border-t-2 mt-2 group"
+                    style={{
+                      backgroundColor: `${accentColor}1A`,
+                      borderTopColor: `${accentColor}33`,
+                    }}
+                  >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center transition-colors">
-                        <UserPlus className="size-5 text-primary group-focus:!text-white transition-colors" />
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center transition-colors" style={{ backgroundColor: `${accentColor}33` }}>
+                        <UserPlus className="size-5 transition-colors" style={{ color: accentColor }} />
                       </div>
-                      <span className="font-semibold text-primary group-focus:!text-white transition-colors">Add New Person</span>
+                      <span className="font-semibold transition-colors" style={{ color: accentColor }}>Add New Person</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -501,18 +514,23 @@ export default function RSVPForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* First Name */}
             <div className="space-y-2">
-              <Label htmlFor="firstName" className="text-white">
+              <Label htmlFor="firstName" style={{ color: textColor }}>
                 First Name <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: `${textColor}99` }} />
                 <Input
                   id="firstName"
                   {...register("firstName")}
                   name="firstName"
                   autoComplete="given-name"
                   disabled={!!(currentUser && selectedPerson !== "new")}
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="pl-10 disabled:opacity-60 disabled:cursor-not-allowed"
+                  style={{
+                    backgroundColor: `${textColor}1A`,
+                    borderColor: `${textColor}33`,
+                    color: textColor
+                  }}
                   placeholder="First Name"
                 />
               </div>
@@ -525,18 +543,23 @@ export default function RSVPForm({
 
             {/* Last Name */}
             <div className="space-y-2">
-              <Label htmlFor="lastName" className="text-white">
+              <Label htmlFor="lastName" style={{ color: textColor }}>
                 Last Name <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: `${textColor}99` }} />
                 <Input
                   id="lastName"
                   {...register("lastName")}
                   name="lastName"
                   autoComplete="family-name"
                   disabled={!!(currentUser && selectedPerson !== "new")}
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="pl-10 disabled:opacity-60 disabled:cursor-not-allowed"
+                  style={{
+                    backgroundColor: `${textColor}1A`,
+                    borderColor: `${textColor}33`,
+                    color: textColor
+                  }}
                   placeholder="Last Name"
                 />
               </div>
@@ -550,11 +573,11 @@ export default function RSVPForm({
 
           {/* Email */}
           <div className="space-y-2">
-            <Label htmlFor="emailAddress" className="text-white">
+            <Label htmlFor="emailAddress" style={{ color: textColor }}>
               Email Address <span className="text-destructive">*</span>
             </Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: `${textColor}99` }} />
               <Input
                 id="emailAddress"
                 type="email"
@@ -562,7 +585,12 @@ export default function RSVPForm({
                 name="emailAddress"
                 autoComplete="email"
                 disabled={!!(currentUser && selectedPerson !== "new")}
-                className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="pl-10 disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: `${textColor}1A`,
+                  borderColor: `${textColor}33`,
+                  color: textColor
+                }}
                 placeholder="email@example.com"
               />
             </div>
@@ -575,9 +603,9 @@ export default function RSVPForm({
 
           {/* Phone */}
           <div className="space-y-2">
-            <Label htmlFor="phoneNumber" className="text-white">Phone Number</Label>
+            <Label htmlFor="phoneNumber" style={{ color: textColor }}>Phone Number</Label>
             <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: `${textColor}99` }} />
               <Input
                 id="phoneNumber"
                 type="tel"
@@ -588,7 +616,12 @@ export default function RSVPForm({
                 onChange={handlePhoneChange}
                 maxLength={17}
                 disabled={!!(currentUser && selectedPerson !== "new")}
-                className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="pl-10 disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: `${textColor}1A`,
+                  borderColor: `${textColor}33`,
+                  color: textColor
+                }}
                 placeholder="(123) 456-7890"
               />
             </div>
@@ -626,7 +659,7 @@ export default function RSVPForm({
       {/* Step 2: Complete Your RSVP */}
       {formStep === 2 && (
         <form onSubmit={handleSubmit(handleStep2Submit)}>
-          <div className="bg-primary p-6 space-y-12 max-w-xl">
+          <div className="p-6 space-y-12 max-w-xl" style={{ backgroundColor }}>
             {/* Dynamic Questions */}
             {parsedQuestions.map((question) => (
               <DynamicQuestion

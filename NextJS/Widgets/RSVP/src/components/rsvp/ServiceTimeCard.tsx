@@ -14,6 +14,9 @@ interface ServiceTimeCardProps {
   selected: boolean;
   onSelect: () => void;
   isCarousel?: boolean; // Whether this card is part of a carousel (multiple cards)
+  backgroundColor?: string; // Dynamic background color from database
+  accentColor?: string; // Dynamic accent color for checkmark
+  textColor?: string; // Dynamic text color from database
 }
 
 export default function ServiceTimeCard({
@@ -21,6 +24,9 @@ export default function ServiceTimeCard({
   selected,
   onSelect,
   isCarousel = true,
+  backgroundColor = '#0F1E1B',
+  accentColor = '#C5AB94',
+  textColor = '#F4EEDC',
 }: ServiceTimeCardProps) {
   const startDate = new Date(serviceTime.Event_Start_Date);
   const capacityPercentage = Math.round(serviceTime.Capacity_Percentage);
@@ -39,21 +45,27 @@ export default function ServiceTimeCard({
         focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2
         ${
           selected
-            ? "bg-primary shadow-2xl ring-2 ring-white"
+            ? "shadow-2xl ring-2 ring-white"
             : serviceTime.Is_Available
-            ? "bg-primary hover:shadow-xl"
-            : "bg-primary/50 opacity-60 cursor-not-allowed"
+            ? "hover:shadow-xl"
+            : "opacity-60 cursor-not-allowed"
         }
       `}
+      style={{
+        backgroundColor: serviceTime.Is_Available
+          ? backgroundColor
+          : `${backgroundColor}80`, // 50% opacity for unavailable
+        color: textColor,
+      }}
     >
-      <div className="px-5 py-5">
+      <div className="px-5 py-5" style={{ color: textColor }}>
         {/* Service Time Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             {/* Time */}
             <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5 text-white" />
-              <span className="text-3xl font-bold text-white">
+              <Clock className="w-5 h-5" style={{ color: textColor }} />
+              <span className="text-3xl font-bold" style={{ color: textColor }}>
                 {formatServiceTime(startDate)}
               </span>
             </div>
@@ -66,7 +78,7 @@ export default function ServiceTimeCard({
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: "spring", stiffness: 200 }}
             >
-              <CheckCircle2 className="w-7 h-7 text-secondary" />
+              <CheckCircle2 className="w-7 h-7" style={{ color: accentColor }} />
             </motion.div>
           )}
         </div>
@@ -75,16 +87,16 @@ export default function ServiceTimeCard({
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-white/60" />
-              <span className="text-white/80 font-medium uppercase text-xs tracking-wide">
+              <Users className="w-4 h-4" style={{ color: `${textColor}99` }} />
+              <span className="font-medium uppercase text-xs tracking-wide" style={{ color: `${textColor}CC` }}>
                 {getCapacityStatusText(capacityPercentage)}
               </span>
             </div>
-            <span className="font-bold text-white text-lg">{capacityPercentage}%</span>
+            <span className="font-bold text-lg" style={{ color: textColor }}>{capacityPercentage}%</span>
           </div>
 
           {/* Progress Bar */}
-          <div className="h-2 bg-white/20 overflow-hidden">
+          <div className="h-2 overflow-hidden" style={{ backgroundColor: `${textColor}33` }}>
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${Math.min(capacityPercentage, 100)}%` }}
@@ -96,16 +108,23 @@ export default function ServiceTimeCard({
 
         {/* RSVP Call-to-Action */}
         {serviceTime.Is_Available && !selected && (
-          <div className="mt-4 pt-4 border-t border-white/20">
+          <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${textColor}33` }}>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-extrabold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent uppercase tracking-wider">
+              <span
+                className="text-sm font-extrabold uppercase tracking-wider bg-clip-text text-transparent"
+                style={{
+                  backgroundImage: `linear-gradient(to right, ${textColor}, ${textColor}66)`,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }}
+              >
                 Click to RSVP
               </span>
               <motion.div
                 animate={{ x: [0, 4, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
               >
-                <ChevronRight className="w-5 h-5 text-white" />
+                <ChevronRight className="w-5 h-5" style={{ color: textColor }} />
               </motion.div>
             </div>
           </div>
