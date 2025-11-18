@@ -10,7 +10,7 @@ CREATE OR ALTER PROCEDURE api_Custom_Schedule_RSVP_Emails
     @Event_RSVP_ID INT,
     @Event_ID INT,
     @Congregation_ID INT,
-    @Project_RSVP_ID INT,
+    @Project_ID INT,  -- Changed from @Project_RSVP_ID
     @First_Name NVARCHAR(50),
     @Last_Name NVARCHAR(50),
     @Email_Address NVARCHAR(100),
@@ -51,17 +51,18 @@ BEGIN
             @Event_End_Date = e.Event_End_Date,
             @Campus_Name = c.Congregation_Name,
             @Campus_Location = l.Location_Name,
-            @Campus_Address = l.Address_Line_1,
-            @Campus_City = l.City,
-            @Campus_State = l.[State/Region],
-            @Campus_Zip = l.Postal_Code,
-            @RSVP_Title = pr.RSVP_Title,
-            @RSVP_Description = pr.RSVP_Description,
-            @Confirmation_Template_ID = pr.Confirmation_Template_ID
+            @Campus_Address = a.Address_Line_1,
+            @Campus_City = a.City,
+            @Campus_State = a.[State/Region],
+            @Campus_Zip = a.Postal_Code,
+            @RSVP_Title = p.RSVP_Title,
+            @RSVP_Description = p.RSVP_Description,
+            @Confirmation_Template_ID = p.RSVP_Confirmation_Template_ID
         FROM Events e
-        INNER JOIN Project_RSVPs pr ON pr.Project_RSVP_ID = @Project_RSVP_ID
+        INNER JOIN Projects p ON p.Project_ID = @Project_ID
         LEFT JOIN Congregations c ON e.Congregation_ID = c.Congregation_ID
         LEFT JOIN Locations l ON c.Location_ID = l.Location_ID
+        LEFT JOIN Addresses a ON l.Address_ID = a.Address_ID
         WHERE e.Event_ID = @Event_ID;
 
         -- ===================================================================
@@ -261,7 +262,7 @@ BEGIN
             Send_Days_Offset,
             Send_Specific_DateTime
         FROM RSVP_Email_Campaigns
-        WHERE Project_RSVP_ID = @Project_RSVP_ID
+        WHERE Project_ID = @Project_ID  -- Changed from Project_RSVP_ID
           AND Is_Active = 1
           AND (Congregation_ID IS NULL OR Congregation_ID = @Congregation_ID)
         ORDER BY Display_Order;

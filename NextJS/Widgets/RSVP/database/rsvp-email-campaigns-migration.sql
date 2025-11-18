@@ -101,7 +101,7 @@ CREATE TABLE RSVP_Email_Campaign_Conditions (
     Created_Date DATETIME NOT NULL DEFAULT GETDATE(),
 
     CONSTRAINT FK_RSVP_Campaign_Conditions_Campaign FOREIGN KEY (Campaign_ID) REFERENCES RSVP_Email_Campaigns(Campaign_ID) ON DELETE CASCADE,
-    CONSTRAINT FK_RSVP_Campaign_Conditions_Question FOREIGN KEY (Question_ID) REFERENCES RSVP_Questions(Question_ID),
+    CONSTRAINT FK_RSVP_Campaign_Conditions_Question FOREIGN KEY (Question_ID) REFERENCES Project_RSVP_Questions(Project_RSVP_Question_ID),
     CONSTRAINT CK_RSVP_Campaign_Conditions_Type CHECK (
         Condition_Type IN (
             'Equals', 'Not_Equals', 'Contains', 'Not_Contains',

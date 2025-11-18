@@ -67,7 +67,7 @@ DECLARE @Answers_JSON NVARCHAR(MAX);
 
 SELECT @Answers_JSON = (
     SELECT
-        a.Question_ID,
+        a.Project_RSVP_Question_ID AS Question_ID,
         q.Question_Text,
         COALESCE(
             CAST(a.Numeric_Value AS NVARCHAR(100)),
@@ -77,7 +77,7 @@ SELECT @Answers_JSON = (
             'No answer'
         ) AS Answer
     FROM Event_RSVP_Answers a
-    INNER JOIN RSVP_Questions q ON a.Question_ID = q.Question_ID
+    INNER JOIN Project_RSVP_Questions q ON a.Project_RSVP_Question_ID = q.Project_RSVP_Question_ID
     WHERE a.Event_RSVP_ID = @Event_RSVP_ID
     FOR JSON PATH
 );
@@ -486,7 +486,7 @@ SELECT
     cond.Condition_Value
 FROM RSVP_Email_Campaigns camp
 INNER JOIN RSVP_Email_Campaign_Conditions cond ON camp.Campaign_ID = cond.Campaign_ID
-LEFT JOIN RSVP_Questions q ON cond.Question_ID = q.Question_ID
+LEFT JOIN Project_RSVP_Questions q ON cond.Question_ID = q.Project_RSVP_Question_ID
 WHERE camp.Campaign_ID = @YourCampaignID;
 ```
 
@@ -494,7 +494,7 @@ WHERE camp.Campaign_ID = @YourCampaignID;
 ```sql
 -- Check user's actual answers
 SELECT
-    q.Question_ID,
+    q.Project_RSVP_Question_ID AS Question_ID,
     q.Question_Text,
     COALESCE(
         CAST(a.Numeric_Value AS NVARCHAR(100)),
@@ -503,7 +503,7 @@ SELECT
         'No answer'
     ) AS User_Answer
 FROM Event_RSVP_Answers a
-INNER JOIN RSVP_Questions q ON a.Question_ID = q.Question_ID
+INNER JOIN Project_RSVP_Questions q ON a.Project_RSVP_Question_ID = q.Project_RSVP_Question_ID
 WHERE a.Event_RSVP_ID = @YourRSVPID;
 ```
 

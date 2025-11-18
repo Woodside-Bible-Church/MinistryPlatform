@@ -15,7 +15,7 @@ GO
 
 CREATE PROCEDURE [dbo].[api_Custom_RSVP_Submit_JSON]
     @Event_ID INT,
-    @Project_RSVP_ID INT,
+    @Project_ID INT,  -- Changed from @Project_RSVP_ID
     @Contact_ID INT = NULL,
     @First_Name NVARCHAR(50),
     @Last_Name NVARCHAR(50),
@@ -51,9 +51,9 @@ BEGIN
         -- ===================================================================
         -- Validate inputs
         -- ===================================================================
-        IF @Event_ID IS NULL OR @Project_RSVP_ID IS NULL
+        IF @Event_ID IS NULL OR @Project_ID IS NULL
         BEGIN
-            SELECT 'error' AS status, 'Event_ID and Project_RSVP_ID are required' AS message
+            SELECT 'error' AS status, 'Event_ID and Project_ID are required' AS message
             FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
             ROLLBACK TRANSACTION;
             RETURN;
@@ -71,10 +71,11 @@ BEGIN
         IF NOT EXISTS (
             SELECT 1
             FROM Project_Events pe
-            INNER JOIN Project_RSVPs pr ON pe.Project_ID = pr.Project_ID
+            INNER JOIN Projects p ON pe.Project_ID = p.Project_ID
             WHERE pe.Event_ID = @Event_ID
-              AND pr.Project_RSVP_ID = @Project_RSVP_ID
+              AND p.Project_ID = @Project_ID
               AND pe.Include_In_RSVP = 1
+              AND p.RSVP_Is_Active = 1
         )
         BEGIN
             SELECT 'error' AS status, 'Event not found or not available for RSVP' AS message
@@ -119,7 +120,8 @@ BEGIN
 
         INSERT INTO Event_RSVPs (
             Event_ID,
-            Project_RSVP_ID,
+            Project_ID,  -- Changed from Project_RSVP_ID
+            Project_RSVP_ID,  -- Keep for backward compatibility during transition
             Contact_ID,
             First_Name,
             Last_Name,
@@ -139,7 +141,8 @@ BEGIN
         INTO @ToBeAudited
         VALUES (
             @Event_ID,
-            @Project_RSVP_ID,
+            @Project_ID,
+            @Project_ID,  -- Duplicate for backward compatibility
             @Contact_ID,
             @First_Name,
             @Last_Name,
@@ -277,6 +280,46 @@ BEGIN
         );
 
         -- ===================================================================
+        -- Schedule Confirmation Email + Campaigns (TEMPORARILY DISABLED)
+        -- ===================================================================
+        -- DECLARE @Congregation_ID INT;
+        -- SELECT @Congregation_ID = Congregation_ID FROM Events WHERE Event_ID = @Event_ID;
+
+        -- -- Build Answers_JSON for email templates
+        -- DECLARE @Answers_JSON NVARCHAR(MAX);
+        -- SELECT @Answers_JSON = (
+        --     SELECT
+        --         a.Project_RSVP_Question_ID AS Question_ID,
+        --         q.Question_Text,
+        --         CASE
+        --             WHEN a.Answer_Numeric IS NOT NULL THEN CAST(a.Answer_Numeric AS NVARCHAR(100))
+        --             WHEN a.Answer_Boolean IS NOT NULL THEN CASE WHEN a.Answer_Boolean = 1 THEN 'Yes' ELSE 'No' END
+        --             WHEN a.Answer_Date IS NOT NULL THEN CONVERT(NVARCHAR(50), a.Answer_Date, 101)
+        --             WHEN a.Answer_Text IS NOT NULL THEN a.Answer_Text
+        --             ELSE 'No answer'
+        --         END AS Answer
+        --     FROM Event_RSVP_Answers a
+        --     INNER JOIN Project_RSVP_Questions q ON a.Project_RSVP_Question_ID = q.Project_RSVP_Question_ID
+        --     WHERE a.Event_RSVP_ID = @EventRSVPID
+        --     FOR JSON PATH
+        -- );
+
+        -- -- Schedule emails (doesn't throw errors - just logs failures)
+        -- EXEC api_Custom_Schedule_RSVP_Emails
+        --     @Event_RSVP_ID = @EventRSVPID,
+        --     @Event_ID = @Event_ID,
+        --     @Congregation_ID = @Congregation_ID,
+        --     @Project_ID = @Project_ID,  -- Changed from @Project_RSVP_ID
+        --     @First_Name = @First_Name,
+        --     @Last_Name = @Last_Name,
+        --     @Email_Address = @Email_Address,
+        --     @Phone_Number = @Phone_Number,
+        --     @Confirmation_Code = @ConfirmationCode,
+        --     @Party_Size = @PartySize,
+        --     @Answers_JSON = @Answers_JSON,
+        --     @Author_User_ID = COALESCE(@AuditUserID, 1);
+
+        -- ===================================================================
         -- Write Audit Logs to dp_Audit_Log
         -- ===================================================================
         IF EXISTS (SELECT 1 FROM @ToBeAudited)
@@ -345,7 +388,7 @@ DECLARE @AnswersJson NVARCHAR(MAX) = N'[
 
 EXEC api_Custom_RSVP_Submit_JSON
     @Event_ID = 101,
-    @Project_RSVP_ID = 1,
+    @Project_ID = 1,  -- Changed from @Project_RSVP_ID
     @Contact_ID = 228155,
     @First_Name = 'John',
     @Last_Name = 'Doe',
