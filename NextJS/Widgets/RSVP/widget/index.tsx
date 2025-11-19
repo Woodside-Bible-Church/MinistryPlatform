@@ -234,7 +234,9 @@ class RSVPWidget {
     // #rsvp-widget-app is our mount point, equivalent to body
     let shadowCSS = styleText
       .replace(/:root\b/g, ':host')
-      .replace(/\bbody\b/g, '#rsvp-widget-app');
+      .replace(/\bbody\b/g, '#rsvp-widget-app')
+      // Remove overflow-y: scroll from #rsvp-widget-app to prevent internal scrollbar
+      .replace(/(#rsvp-widget-app\s*{[^}]*?)overflow-y:\s*scroll\s*!important;?/g, '$1');
 
     // Inject reset first, then Tailwind styles
     const style = document.createElement('style');
