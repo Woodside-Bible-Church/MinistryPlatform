@@ -804,7 +804,7 @@ export default function RSVPPage() {
         ['--color-secondary' as string]: rsvpData?.Project?.RSVP_Secondary_Color || '#FFFFFF',
         ['--color-accent' as string]: rsvpData?.Project?.RSVP_Accent_Color || '#62BB46',
         // Force full width in widget mode (compensate for scrollbar)
-        ...(isWidget ? { width: '100vw', maxWidth: '100vw' } : {}),
+        ...(isWidget ? { width: 'calc(100% + 15px)', marginRight: '-15px', marginLeft: 0 } : {}),
       } as React.CSSProperties}
     >
       {/* Glassmorphic Top Navigation Bar - Fixed (Only show in Next.js dev mode, not widget) */}
