@@ -888,8 +888,8 @@ export default function RSVPPage() {
           style={{
             backgroundImage: rsvpData?.Project?.RSVP_BG_Image_URL
               ? `url('${rsvpData.Project.RSVP_BG_Image_URL}')`
-              : `url('${baseUrl}/assets/BG.png')`,
-            backgroundColor: rsvpData?.Project?.RSVP_Background_Color || undefined
+              : undefined,
+            backgroundColor: rsvpData?.Project?.RSVP_Background_Color || '#6B7280' // Gray-500 fallback
           }}
         />
 
