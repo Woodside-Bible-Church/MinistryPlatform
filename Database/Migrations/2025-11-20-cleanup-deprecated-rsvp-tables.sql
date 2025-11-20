@@ -72,10 +72,7 @@ IF OBJECT_ID('dbo.RSVP_Email_Campaign_Log', 'U') IS NOT NULL
 ELSE
     SELECT 'RSVP_Email_Campaign_Log' AS table_name, 0 AS row_count, '(already dropped)' AS status;
 
-IF OBJECT_ID('dbo.RSVP_Statuses', 'U') IS NOT NULL
-    SELECT 'RSVP_Statuses' AS table_name, COUNT(*) AS row_count FROM RSVP_Statuses;
-ELSE
-    SELECT 'RSVP_Statuses' AS table_name, 0 AS row_count, '(already dropped)' AS status;
+-- RSVP_Statuses not included - it's a pre-existing lookup table, not custom RSVP
 
 PRINT '';
 PRINT 'Checking for foreign key references to Question_Types...';
@@ -117,8 +114,8 @@ WHERE OBJECT_NAME(fk.parent_object_id) IN (
     'Project_RSVPs',
     'Event_RSVPs',
     'Project_RSVP_Questions',
-    'Question_Types',
-    'RSVP_Statuses'
+    'Question_Types'
+    -- Note: RSVP_Statuses excluded - it's a pre-existing lookup table
 );
 
 IF LEN(@sql) > 0
@@ -220,14 +217,8 @@ END
 ELSE
     PRINT '- Project_RSVPs already dropped or does not exist';
 
-IF OBJECT_ID('dbo.RSVP_Statuses', 'U') IS NOT NULL
-BEGIN
-    PRINT 'Dropping table: RSVP_Statuses';
-    DROP TABLE dbo.RSVP_Statuses;
-    PRINT '✓ RSVP_Statuses dropped';
-END
-ELSE
-    PRINT '- RSVP_Statuses already dropped or does not exist';
+-- RSVP_Statuses is NOT dropped - it's a pre-existing MP lookup table
+PRINT '- RSVP_Statuses preserved (pre-existing lookup table, not custom RSVP)';
 
 -- Check if Question_Types is safe to drop (only drop if no other tables reference it)
 DECLARE @questionTypesReferences INT = 0;
