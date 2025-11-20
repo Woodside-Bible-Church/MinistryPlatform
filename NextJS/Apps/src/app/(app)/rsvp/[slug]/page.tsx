@@ -597,7 +597,7 @@ export default function ProjectDetailPage({
                               {config.bullets && config.bullets.length > 0 && (
                                 <div className="space-y-4">
                                   {config.bullets.map((bullet, index) => {
-                                    const IconComponent = getIconComponent(bullet.icon);
+                                    const IconComponent = getIconComponent(bullet.icon || null);
                                     return (
                                       <div
                                         key={index}
