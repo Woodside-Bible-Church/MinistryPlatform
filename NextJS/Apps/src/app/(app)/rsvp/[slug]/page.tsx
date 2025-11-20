@@ -322,51 +322,6 @@ export default function ProjectDetailPage({
         </div>
       </div>
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-muted-foreground mb-1">
-                RSVP Events
-              </div>
-              <div className="text-3xl font-bold text-foreground">
-                {includedEvents.length}
-              </div>
-            </div>
-            <Calendar className="w-10 h-10 text-[#61bc47]" />
-          </div>
-        </div>
-
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-muted-foreground mb-1">
-                Total RSVPs
-              </div>
-              <div className="text-3xl font-bold text-foreground">
-                {totalRSVPs}
-              </div>
-            </div>
-            <Activity className="w-10 h-10 text-[#61bc47]" />
-          </div>
-        </div>
-
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-muted-foreground mb-1">
-                Total Attendees
-              </div>
-              <div className="text-3xl font-bold text-foreground">
-                {totalAttendees}
-              </div>
-            </div>
-            <Users className="w-10 h-10 text-[#61bc47]" />
-          </div>
-        </div>
-      </div>
-
       {/* Project Events Section - Grouped by Campus */}
       <div className="mb-12">
         <h2 className="text-2xl font-semibold text-foreground mb-6">
