@@ -558,39 +558,47 @@ export default function ProjectDetailPage({
 
                     return (
                       <div className="mt-8">
-                        <h4 className="text-xl font-semibold text-foreground mb-4">
-                          What to Expect
-                        </h4>
-                        <div className="space-y-4">
-                          {campusCards.map((card) => {
-                            const IconComponent = getIconComponent(card.Icon_Name);
-                            // Parse configuration JSON if it exists
-                            let config: { title?: string; description?: string } = {};
-                            try {
-                              if (card.Configuration) {
-                                config = JSON.parse(card.Configuration);
-                              }
-                            } catch (e) {
-                              console.error("Failed to parse card configuration:", e);
+                        {campusCards.map((card) => {
+                          // Parse configuration JSON if it exists
+                          let config: { title?: string; bullets?: Array<{ icon?: string; text?: string }> } = {};
+                          try {
+                            if (card.Configuration) {
+                              config = JSON.parse(card.Configuration);
                             }
+                          } catch (e) {
+                            console.error("Failed to parse card configuration:", e);
+                          }
 
-                            return (
-                              <div
-                                key={card.Card_ID}
-                                className="flex items-start gap-4"
-                              >
-                                <div className="flex-shrink-0 w-16 h-16 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
-                                  <IconComponent className="w-8 h-8 text-white" />
+                          return (
+                            <div key={card.Card_ID}>
+                              <h4 className="text-xl font-semibold text-foreground mb-4">
+                                {config.title || card.Card_Type_Name}
+                              </h4>
+                              {config.bullets && config.bullets.length > 0 && (
+                                <div className="space-y-6">
+                                  {config.bullets.map((bullet, index) => {
+                                    const IconComponent = getIconComponent(bullet.icon);
+                                    return (
+                                      <div
+                                        key={index}
+                                        className="flex items-start gap-4"
+                                      >
+                                        <div className="flex-shrink-0 w-14 h-14 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
+                                          <IconComponent className="w-7 h-7 text-white" />
+                                        </div>
+                                        <div className="flex-1">
+                                          <p className="text-base text-white/90 leading-relaxed">
+                                            {bullet.text}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
                                 </div>
-                                <div className="flex-1">
-                                  <p className="text-lg text-white">
-                                    {config.description || config.title || card.Card_Type_Name}
-                                  </p>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     );
                   })()}
