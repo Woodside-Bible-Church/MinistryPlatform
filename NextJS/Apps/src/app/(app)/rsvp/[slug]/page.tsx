@@ -12,6 +12,7 @@ import {
   List,
   CheckCircle2,
   XCircle,
+  Pencil,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -100,27 +101,20 @@ export default function ProjectDetailPage({
   useEffect(() => {
     async function loadData() {
       try {
-        // Load project by slug
-        const projectResponse = await fetch(`/api/rsvp/projects/by-slug/${slug}`);
-        if (!projectResponse.ok) throw new Error("Failed to fetch project");
-        const projectData = await projectResponse.json();
-        setProject(projectData);
+        // Load all project details in one call using stored procedure
+        const response = await fetch(`/api/rsvp/projects/details/${slug}`);
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("API Error:", errorData);
+          throw new Error(`Failed to fetch project details: ${response.status}`);
+        }
+        const data = await response.json();
 
-        // Load events using project ID
-        const eventsResponse = await fetch(
-          `/api/rsvp/projects/${projectData.Project_ID}/events`
-        );
-        if (!eventsResponse.ok) throw new Error("Failed to fetch events");
-        const eventsData = await eventsResponse.json();
-        setEvents(eventsData);
+        console.log("Project details loaded:", data);
 
-        // Load RSVPs using project ID
-        const rsvpsResponse = await fetch(
-          `/api/rsvp/projects/${projectData.Project_ID}/rsvps`
-        );
-        if (!rsvpsResponse.ok) throw new Error("Failed to fetch RSVPs");
-        const rsvpsData = await rsvpsResponse.json();
-        setRsvps(rsvpsData);
+        setProject(data.Project);
+        setEvents(data.Events || []);
+        setRsvps(data.RSVPs || []);
       } catch (error) {
         console.error("Error loading project data:", error);
       } finally {
@@ -268,79 +262,207 @@ export default function ProjectDetailPage({
         </div>
       </div>
 
-      {/* Project Events Section */}
+      {/* Project Events Section - Grouped by Campus */}
       <div className="mb-12">
-          <div className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground mb-4">
-              Project Events
-            </h2>
+        <h2 className="text-2xl font-semibold text-foreground mb-6">
+          Project Events
+        </h2>
 
-            {events.length === 0 ? (
-              <div className="bg-card border-2 border-dashed border-border rounded-lg p-12 text-center">
-                <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-xl font-semibold text-foreground mb-2">
-                  No events in this project
-                </h3>
-                <p className="text-muted-foreground">
-                  Add events to this project in MinistryPlatform.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {events.map((event) => (
-                  <div
-                    key={event.Event_ID}
-                    className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-lg font-semibold text-foreground">
-                            {event.Event_Title}
-                          </h3>
-                          {event.Include_In_RSVP ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-[#61bc47]/10 text-[#61bc47] border border-[#61bc47]/20">
-                              <CheckCircle2 className="w-3 h-3" />
-                              RSVP Enabled
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                              <XCircle className="w-3 h-3" />
-                              RSVP Disabled
-                            </span>
-                          )}
+        {events.length === 0 ? (
+          <div className="bg-card border-2 border-dashed border-border rounded-lg p-12 text-center">
+            <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-xl font-semibold text-foreground mb-2">
+              No events in this project
+            </h3>
+            <p className="text-muted-foreground">
+              Add events to this project in MinistryPlatform.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-12">
+            {/* Group events by campus, then by date */}
+            {Object.entries(
+              includedEvents.reduce((campusGroups, event) => {
+                const campus = event.Congregation_Name || "No Campus";
+                if (!campusGroups[campus]) campusGroups[campus] = [];
+                campusGroups[campus].push(event);
+                return campusGroups;
+              }, {} as Record<string, typeof includedEvents>)
+            )
+            .sort(([campusA], [campusB]) => campusA.localeCompare(campusB))
+            .map(([campus, campusEvents]) => (
+              <div key={campus}>
+                {/* Campus Header */}
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-foreground">{campus}</h3>
+                  <div className="h-1 w-20 bg-[#61bc47] rounded mt-2" />
+                </div>
+
+                <div className="space-y-8">
+                  {/* Group campus events by date */}
+                  {Object.entries(
+                    campusEvents.reduce((dateGroups, event) => {
+                      const date = event.Event_Start_Date
+                        ? new Date(event.Event_Start_Date).toLocaleDateString("en-US", {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : "No Date";
+                      if (!dateGroups[date]) dateGroups[date] = [];
+                      dateGroups[date].push(event);
+                      return dateGroups;
+                    }, {} as Record<string, typeof campusEvents>)
+                  ).map(([date, dateEvents]) => (
+                    <div key={date}>
+                      {/* Date Header */}
+                      <div className="flex items-center gap-2 mb-4">
+                        <Calendar className="w-5 h-5 text-[#61bc47]" />
+                        <h4 className="text-lg font-semibold text-foreground">{date}</h4>
+                      </div>
+
+                      {/* Event Cards - Horizontal Scroll */}
+                      <div className="overflow-x-auto pb-4 -mx-4 px-4">
+                        <div className="flex gap-4" style={{ minWidth: "min-content" }}>
+                          {dateEvents.map((event) => (
+                            <div
+                              key={event.Event_ID}
+                              className="bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-shadow flex-shrink-0 relative"
+                              style={{ width: "320px" }}
+                            >
+                        {/* Edit Button */}
+                        <button
+                          className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                          onClick={() => {
+                            // TODO: Open edit modal/dialog
+                            console.log('Edit event:', event.Event_ID);
+                          }}
+                          title="Edit event settings"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+
+                        {/* Time */}
+                        <div className="flex items-center gap-2 mb-4">
+                          <Activity className="w-5 h-5 text-[#61bc47]" />
+                          <span className="text-2xl font-bold text-foreground">
+                            {event.Event_Start_Date
+                              ? new Date(event.Event_Start_Date).toLocaleTimeString("en-US", {
+                                  hour: "numeric",
+                                  minute: "2-digit",
+                                })
+                              : "N/A"}
+                          </span>
                         </div>
-                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            {formatDateTime(event.Event_Start_Date)}
-                          </div>
-                          {event.Congregation_Name && (
-                            <div>{event.Congregation_Name}</div>
-                          )}
-                          {event.Event_Type && (
-                            <div className="text-xs font-mono">
-                              {event.Event_Type}
-                            </div>
-                          )}
-                        </div>
-                        {event.Include_In_RSVP && (
-                          <div className="mt-2 flex gap-4 text-sm">
-                            <span className="text-foreground">
-                              <strong>{event.RSVP_Count}</strong> RSVPs
-                            </span>
-                            <span className="text-foreground">
-                              <strong>{event.Total_Attendees}</strong> Attendees
-                            </span>
+
+                        {/* Campus Name */}
+                        {event.Congregation_Name && (
+                          <div className="text-sm text-muted-foreground mb-4 uppercase tracking-wide">
+                            {event.Congregation_Name}
                           </div>
                         )}
+
+                        {/* Capacity Bar */}
+                        <div className="mb-4">
+                          {(() => {
+                            const modifier = event.RSVP_Capacity_Modifier ?? 0;
+                            const effectiveAttendees = event.Total_Attendees + modifier;
+                            const capacityPercentage = event.Capacity
+                              ? Math.round((effectiveAttendees / event.Capacity) * 100)
+                              : 0;
+
+                            // Get color based on percentage (matching widget)
+                            const getCapacityColor = (pct: number): string => {
+                              if (pct <= 50) return "#10B981"; // green-500
+                              if (pct <= 75) return "#EAB308"; // yellow-500
+                              if (pct <= 90) return "#F97316"; // orange-500
+                              return "#EF4444"; // red-500
+                            };
+
+                            // Get status text (matching widget)
+                            const getCapacityText = (pct: number): string => {
+                              if (pct === 0) return "Plenty of space";
+                              if (pct <= 50) return "Plenty of space";
+                              if (pct <= 75) return "Good availability";
+                              if (pct <= 90) return "Filling up";
+                              if (pct < 100) return "Near capacity";
+                              return "Overflow";
+                            };
+
+                            return (
+                              <>
+                                <div className="flex items-center justify-between text-sm mb-2">
+                                  <div className="flex items-center gap-2">
+                                    <Users className="w-4 h-4 text-muted-foreground" />
+                                    <span className="font-medium uppercase text-xs tracking-wide text-muted-foreground">
+                                      {getCapacityText(capacityPercentage)}
+                                    </span>
+                                  </div>
+                                  {event.Capacity && (
+                                    <span className="font-bold text-lg text-foreground">
+                                      {capacityPercentage}%
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="w-full bg-muted rounded-full h-2">
+                                  <div
+                                    className="h-2 rounded-full transition-all"
+                                    style={{
+                                      width: event.Capacity
+                                        ? `${Math.min(capacityPercentage, 100)}%`
+                                        : "0%",
+                                      backgroundColor: getCapacityColor(capacityPercentage),
+                                    }}
+                                  />
+                                </div>
+                                {!event.Capacity && (
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    No capacity limit
+                                  </div>
+                                )}
+                              </>
+                            );
+                          })()}
+                        </div>
+
+                        {/* Stats */}
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">RSVPs:</span>
+                            <span className="font-semibold text-foreground">
+                              {event.RSVP_Count}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Total Attendees:</span>
+                            <span className="font-semibold text-foreground">
+                              {event.Total_Attendees}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Capacity:</span>
+                            <span className="font-semibold text-foreground">
+                              {event.Capacity ?? 'Unlimited'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Capacity Modifier:</span>
+                            <span className="font-semibold text-foreground">
+                              {event.RSVP_Capacity_Modifier != null && event.RSVP_Capacity_Modifier > 0 ? '+' : ''}{event.RSVP_Capacity_Modifier ?? 0}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
-            )}
+            ))}
           </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* RSVP Submissions Section */}

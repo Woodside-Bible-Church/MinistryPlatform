@@ -92,6 +92,7 @@ export async function GET(request: NextRequest) {
       Events: rawData.Events,
       Questions: rawData.Questions,
       Confirmation_Cards: rawData.Confirmation_Cards,
+      Campus_Meeting_Instructions: rawData.Campus_Meeting_Instructions,
     };
 
     // Return the transformed data

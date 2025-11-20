@@ -1,5 +1,6 @@
 import { MinistryPlatformClient } from "@/providers/MinistryPlatform/core/ministryPlatformClient";
 import { TableService } from "@/providers/MinistryPlatform/services/tableService";
+import { ProcedureService } from "@/providers/MinistryPlatform/services/procedureService";
 import {
   Project,
   CreateProject,
@@ -22,10 +23,12 @@ export class ProjectRSVPService {
   private static instance: ProjectRSVPService;
   private mp: MinistryPlatformClient;
   private tableService: TableService;
+  private procedureService: ProcedureService;
 
   private constructor(mp: MinistryPlatformClient) {
     this.mp = mp;
     this.tableService = new TableService(mp);
+    this.procedureService = new ProcedureService(mp);
   }
 
   public static async getInstance(): Promise<ProjectRSVPService> {
@@ -77,19 +80,19 @@ export class ProjectRSVPService {
             }
           );
 
-          // Count RSVPs across all events in this project
+          // Count RSVPs across all events in this project (using Event_Participants)
           const eventIds = await this.getEventIdsForProject(project.Project_ID);
           let rsvpCount = 0;
 
           if (eventIds.length > 0) {
-            const rsvps = await this.tableService.getTableRecords<any>(
-              "Event_RSVPs",
+            const participants = await this.tableService.getTableRecords<any>(
+              "Event_Participants",
               {
-                $filter: `Event_ID IN (${eventIds.join(",")})`,
-                $select: "Event_RSVP_ID",
+                $filter: `Event_ID IN (${eventIds.join(",")}) AND Participation_Status_ID = 2`,
+                $select: "Event_Participant_ID",
               }
             );
-            rsvpCount = rsvps.length;
+            rsvpCount = participants.length;
           }
 
           return {
@@ -177,71 +180,34 @@ export class ProjectRSVPService {
   // =====================================================
 
   /**
-   * Get all events for a project with RSVP details
+   * Get complete project details with events and RSVPs using stored procedure
    */
-  public async getProjectEvents(
-    projectId: number
-  ): Promise<ProjectEventWithDetails[]> {
+  public async getProjectDetails(projectIdOrSlug: number | string) {
     try {
-      // Query Events table directly (now has Project_ID field)
-      const result = await this.tableService.getTableRecords<any>(
-        "Events",
-        {
-          $select: `
-            Event_ID,
-            Project_ID,
-            Include_In_RSVP,
-            RSVP_Capacity_Modifier,
-            Event_Title,
-            Event_Start_Date,
-            Event_End_Date,
-            Congregation_ID_Table.Congregation_Name,
-            Congregation_ID,
-            Event_Type_ID_Table.Event_Type
-          `,
-          $filter: `Project_ID = ${projectId}`,
-          $orderby: "Event_Start_Date",
+      // MinistryPlatform API expects @ prefix for parameter names
+      const params = typeof projectIdOrSlug === 'number'
+        ? { '@Project_ID': projectIdOrSlug }
+        : { '@RSVP_Slug': projectIdOrSlug };
+
+      const result = await this.procedureService.executeProcedure(
+        'api_Custom_RSVP_Project_Details_JSON',
+        params
+      );
+
+      // Stored proc returns JSON in a special column format
+      if (result && result.length > 0 && result[0] && result[0].length > 0) {
+        const firstRow = result[0][0] as any;
+        // The column name is typically JsonResult or similar
+        const jsonString = firstRow.JsonResult;
+
+        if (jsonString) {
+          return JSON.parse(jsonString);
         }
-      );
+      }
 
-      // Get RSVP counts for each event
-      const eventsWithStats = await Promise.all(
-        result.map(async (event: any) => {
-          const rsvps = await this.tableService.getTableRecords<any>(
-            "Event_RSVPs",
-            {
-              $filter: `Event_ID = ${event.Event_ID}`,
-              $select: "Event_RSVP_ID",
-            }
-          );
-
-          const rsvpCount = rsvps.length;
-          // TODO: Add totalAttendees calculation once Party_Size field name is confirmed
-          const totalAttendees = rsvpCount; // Fallback: assume 1 person per RSVP
-
-          return {
-            Project_Event_ID: event.Event_ID, // Use Event_ID since Project_Event_ID no longer exists
-            Project_ID: event.Project_ID,
-            Event_ID: event.Event_ID,
-            Include_In_RSVP: event.Include_In_RSVP,
-            RSVP_Capacity_Modifier: event.RSVP_Capacity_Modifier,
-            Event_Title: event.Event_Title || "",
-            Event_Start_Date: event.Event_Start_Date,
-            Event_End_Date: event.Event_End_Date,
-            Congregation_Name: event.Congregation_ID_Table?.Congregation_Name || null,
-            Congregation_ID: event.Congregation_ID || null,
-            Event_Type: event.Event_Type_ID_Table?.Event_Type || null,
-            RSVP_Count: rsvpCount,
-            Total_Attendees: totalAttendees,
-            Capacity: null, // Would come from Event table or calculation
-            Available_Capacity: null,
-          };
-        })
-      );
-
-      return eventsWithStats;
+      return null;
     } catch (error) {
-      console.error(`Error fetching events for project ${projectId}:`, error);
+      console.error(`Error fetching project details:`, error);
       throw error;
     }
   }
@@ -285,7 +251,7 @@ export class ProjectRSVPService {
   // =====================================================
 
   /**
-   * Get all RSVP submissions for a project
+   * Get all RSVP submissions for a project (using Event_Participants)
    */
   public async getProjectRSVPs(projectId: number): Promise<ProjectRSVP[]> {
     try {
@@ -296,38 +262,45 @@ export class ProjectRSVPService {
         return [];
       }
 
-      // Get all RSVPs for these events
-      // TODO: Update field names once Event_RSVPs table structure is confirmed
-      const rsvps = await this.tableService.getTableRecords<any>(
-        "Event_RSVPs",
+      // Get all participants for these events
+      // Join to Contacts table to get contact information
+      const participants = await this.tableService.getTableRecords<any>(
+        "Event_Participants",
         {
           $select: `
-            Event_RSVP_ID,
-            Event_RSVPs.Event_ID,
-            First_Name,
-            Last_Name,
+            Event_Participant_ID,
+            Event_Participants.Event_ID,
+            Event_Participants.Participant_ID,
+            Participation_Status_ID,
+            Participant_Start_Date,
+            Participant_ID_Table.First_Name,
+            Participant_ID_Table.Last_Name,
+            Participant_ID_Table.Email_Address,
+            Participant_ID_Table.Mobile_Phone,
             Event_ID_Table.Event_Title,
             Event_ID_Table.Event_Start_Date,
+            Event_ID_Table.Project_ID,
             Event_ID_Table_Congregation_ID_Table.Congregation_Name
           `,
-          $filter: `Event_RSVPs.Event_ID IN (${eventIds.join(",")})`,
+          $filter: `Event_Participants.Event_ID IN (${eventIds.join(",")}) AND Participation_Status_ID = 2`,
+          $orderby: "Participant_Start_Date DESC",
         }
       );
 
-      return rsvps.map((r: any) => ({
-        Event_RSVP_ID: r.Event_RSVP_ID,
-        Event_ID: r.Event_ID,
-        Contact_ID: null, // TODO: Add once field name is confirmed
-        First_Name: r.First_Name || "",
-        Last_Name: r.Last_Name || "",
-        Email_Address: null, // TODO: Add once field name is confirmed
-        Phone_Number: null, // TODO: Add once field name is confirmed
-        Party_Size: 1,
-        Is_New_Visitor: null, // TODO: Add once field name is confirmed
-        RSVP_Date: new Date().toISOString(), // TODO: Add once field name is confirmed
-        Event_Title: r.Event_ID_Table?.Event_Title || null,
-        Event_Start_Date: r.Event_ID_Table?.Event_Start_Date || null,
-        Campus_Name: r.Event_ID_Table_Congregation_ID_Table?.Congregation_Name || null,
+      return participants.map((p: any) => ({
+        Event_RSVP_ID: p.Event_Participant_ID, // Map to Event_Participant_ID for compatibility
+        Event_ID: p.Event_ID,
+        Contact_ID: p.Participant_ID,
+        First_Name: p.Participant_ID_Table?.First_Name || "",
+        Last_Name: p.Participant_ID_Table?.Last_Name || "",
+        Email_Address: p.Participant_ID_Table?.Email_Address || null,
+        Phone_Number: p.Participant_ID_Table?.Mobile_Phone || null,
+        Party_Size: 1, // Default to 1 per participant
+        Is_New_Visitor: false, // Event_Participants doesn't track guest status
+        RSVP_Date: p.Participation_Start_Date || new Date().toISOString(),
+        Event_Title: p.Event_ID_Table?.Event_Title || null,
+        Event_Start_Date: p.Event_ID_Table?.Event_Start_Date || null,
+        Campus_Name: p.Event_ID_Table_Congregation_ID_Table?.Congregation_Name || null,
       }));
     } catch (error) {
       console.error(`Error fetching RSVPs for project ${projectId}:`, error);
@@ -336,41 +309,47 @@ export class ProjectRSVPService {
   }
 
   /**
-   * Get RSVPs for a specific event
+   * Get RSVPs for a specific event (using Event_Participants)
    */
   public async getEventRSVPs(eventId: number): Promise<ProjectRSVP[]> {
     try {
-      // TODO: Update field names once Event_RSVPs table structure is confirmed
-      const rsvps = await this.tableService.getTableRecords<any>(
-        "Event_RSVPs",
+      const participants = await this.tableService.getTableRecords<any>(
+        "Event_Participants",
         {
           $select: `
-            Event_RSVP_ID,
-            Event_RSVPs.Event_ID,
-            First_Name,
-            Last_Name,
+            Event_Participant_ID,
+            Event_Participants.Event_ID,
+            Event_Participants.Participant_ID,
+            Participation_Status_ID,
+            Participant_Start_Date,
+            Participant_ID_Table.First_Name,
+            Participant_ID_Table.Last_Name,
+            Participant_ID_Table.Email_Address,
+            Participant_ID_Table.Mobile_Phone,
             Event_ID_Table.Event_Title,
             Event_ID_Table.Event_Start_Date,
+            Event_ID_Table.Project_ID,
             Event_ID_Table_Congregation_ID_Table.Congregation_Name
           `,
-          $filter: `Event_RSVPs.Event_ID = ${eventId}`,
+          $filter: `Event_Participants.Event_ID = ${eventId} AND Participation_Status_ID = 2`,
+          $orderby: "Participant_Start_Date DESC",
         }
       );
 
-      return rsvps.map((r: any) => ({
-        Event_RSVP_ID: r.Event_RSVP_ID,
-        Event_ID: r.Event_ID,
-        Contact_ID: null, // TODO: Add once field name is confirmed
-        First_Name: r.First_Name || "",
-        Last_Name: r.Last_Name || "",
-        Email_Address: null, // TODO: Add once field name is confirmed
-        Phone_Number: null, // TODO: Add once field name is confirmed
-        Party_Size: 1,
-        Is_New_Visitor: null, // TODO: Add once field name is confirmed
-        RSVP_Date: new Date().toISOString(), // TODO: Add once field name is confirmed
-        Event_Title: r.Event_ID_Table?.Event_Title || null,
-        Event_Start_Date: r.Event_ID_Table?.Event_Start_Date || null,
-        Campus_Name: r.Event_ID_Table_Congregation_ID_Table?.Congregation_Name || null,
+      return participants.map((p: any) => ({
+        Event_RSVP_ID: p.Event_Participant_ID, // Map to Event_Participant_ID for compatibility
+        Event_ID: p.Event_ID,
+        Contact_ID: p.Participant_ID,
+        First_Name: p.Participant_ID_Table?.First_Name || "",
+        Last_Name: p.Participant_ID_Table?.Last_Name || "",
+        Email_Address: p.Participant_ID_Table?.Email_Address || null,
+        Phone_Number: p.Participant_ID_Table?.Mobile_Phone || null,
+        Party_Size: 1, // Default to 1 per participant
+        Is_New_Visitor: false, // Event_Participants doesn't track guest status
+        RSVP_Date: p.Participation_Start_Date || new Date().toISOString(),
+        Event_Title: p.Event_ID_Table?.Event_Title || null,
+        Event_Start_Date: p.Event_ID_Table?.Event_Start_Date || null,
+        Campus_Name: p.Event_ID_Table_Congregation_ID_Table?.Congregation_Name || null,
       }));
     } catch (error) {
       console.error(`Error fetching RSVPs for event ${eventId}:`, error);

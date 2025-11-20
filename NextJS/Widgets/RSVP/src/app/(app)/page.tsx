@@ -660,6 +660,20 @@ export default function RSVPPage() {
     }));
   }, [rsvpData]);
 
+  // Get campus-specific meeting instructions for the selected campus
+  const currentCampusMeetingInstructions = useMemo(() => {
+    if (!rsvpData?.Campus_Meeting_Instructions || selectedCampusId === null) {
+      return null;
+    }
+
+    // Find meeting instructions for the selected campus
+    const campusInstructions = rsvpData.Campus_Meeting_Instructions.find(
+      instruction => instruction.Congregation_ID === selectedCampusId
+    );
+
+    return campusInstructions?.Meeting_Instructions || null;
+  }, [rsvpData, selectedCampusId]);
+
   // Handlers
   const handleServiceSelect = async (serviceTime: ServiceTimeResponse) => {
     // In widget mode, check if token is expired before proceeding
@@ -912,6 +926,13 @@ export default function RSVPPage() {
                   Our hope is that you, along with your friends and family, come and
                   celebrate Christmas at Woodside.
                 </p>
+
+                {/* Campus-specific meeting instructions */}
+                {currentCampusMeetingInstructions && (
+                  <p className="text-base md:text-xl leading-relaxed text-white opacity-90 mt-4">
+                    {currentCampusMeetingInstructions}
+                  </p>
+                )}
               </div>
 
               {/* RSVP Image - Mobile/Tablet (between blurb and instructions) */}

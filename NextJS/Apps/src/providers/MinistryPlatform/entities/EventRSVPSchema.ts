@@ -7,7 +7,10 @@ import { z } from "zod";
 export const EventRSVPSchema = z.object({
   Event_RSVP_ID: z.number().int().positive(),
   Event_ID: z.number().int().positive(),
+  Project_ID: z.number().int().positive(),
+  Project_RSVP_ID: z.number().int().positive().optional().nullable(), // Backward compatibility
   Contact_ID: z.number().int().positive().nullable(),
+  Event_Participant_ID: z.number().int().positive().nullable(), // Link to Event_Participants
 
   // Personal Information
   First_Name: z.string().min(1).max(50),
@@ -17,10 +20,15 @@ export const EventRSVPSchema = z.object({
 
   // RSVP Details
   Party_Size: z.number().int().min(1).default(1),
-  Is_New_Visitor: z.boolean().default(false),
+  Is_New_Visitor: z.boolean().default(false).nullable(),
+  Is_Guest: z.boolean().default(false),
+
+  // Tracking
+  Submission_Date: z.coerce.date(),
+  Confirmation_Code: z.string().max(20).nullable(),
 
   // Metadata
-  RSVP_Date: z.coerce.date(),
+  RSVP_Date: z.coerce.date().optional().nullable(), // Deprecated in favor of Submission_Date
   Domain_ID: z.number().int().default(1),
 });
 

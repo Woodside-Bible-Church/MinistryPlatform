@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getRSVPService } from "@/services/rsvpService";
+import { getProjectRSVPService } from "@/services/projectRsvpService";
 
 /**
  * GET /api/rsvp/events/[eventId]/rsvps
@@ -20,8 +20,8 @@ export async function GET(
       );
     }
 
-    const service = await getRSVPService();
-    const rsvps = await service.getRSVPsForEvent(id);
+    const service = await getProjectRSVPService();
+    const rsvps = await service.getEventRSVPs(id);
 
     return NextResponse.json(rsvps);
   } catch (error) {

@@ -285,6 +285,31 @@ BEGIN
     END
 
     -- ===================================================================
+    -- Get Campus Meeting Instructions from Project_Campuses
+    -- ===================================================================
+    DECLARE @CampusMeetingInstructionsJson NVARCHAR(MAX);
+
+    SELECT @CampusMeetingInstructionsJson = (
+        SELECT
+            pc.Congregation_ID,
+            c.Congregation_Name AS Campus_Name,
+            c.Campus_Slug,
+            e.Meeting_Instructions
+        FROM Project_Campuses pc
+        INNER JOIN Congregations c ON pc.Congregation_ID = c.Congregation_ID
+        LEFT JOIN Events e ON pc.Public_Event_ID = e.Event_ID
+        WHERE pc.Project_ID = @Project_ID
+          AND pc.Is_Active = 1
+          AND (@Congregation_ID IS NULL OR pc.Congregation_ID = @Congregation_ID)
+        ORDER BY c.Congregation_Name ASC
+        FOR JSON PATH
+    );
+
+    -- Default to empty array if no campus instructions
+    IF @CampusMeetingInstructionsJson IS NULL
+        SET @CampusMeetingInstructionsJson = '[]';
+
+    -- ===================================================================
     -- Get Confirmation Cards
     -- ===================================================================
     DECLARE @CardsJson NVARCHAR(MAX);
@@ -326,7 +351,8 @@ BEGIN
         N'"Project":' + @ProjectJson + N',' +
         N'"Events":' + @EventsJson + N',' +
         N'"Questions":' + @QuestionsJson + N',' +
-        N'"Confirmation_Cards":' + @CardsJson +
+        N'"Confirmation_Cards":' + @CardsJson + N',' +
+        N'"Campus_Meeting_Instructions":' + @CampusMeetingInstructionsJson +
     N'}';
 
     SELECT @Result AS JsonResult;

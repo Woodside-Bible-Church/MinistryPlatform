@@ -35,6 +35,17 @@ export interface ProjectRSVPDataResponse {
   Events: RSVPEvent[];
   Questions: RSVPQuestion[];
   Confirmation_Cards: ConfirmationCard[];
+  Campus_Meeting_Instructions?: CampusMeetingInstruction[];
+}
+
+/**
+ * Campus-specific meeting instructions from Project_Campuses table
+ */
+export interface CampusMeetingInstruction {
+  Congregation_ID: number;
+  Campus_Name: string;
+  Campus_Slug: string;
+  Meeting_Instructions: string | null;
 }
 
 /**
