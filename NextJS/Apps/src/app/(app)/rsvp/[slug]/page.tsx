@@ -557,7 +557,7 @@ export default function ProjectDetailPage({
                     if (campusCards.length === 0) return null;
 
                     return (
-                      <div className="mt-8 space-y-6">
+                      <div className="mt-8 flex flex-wrap gap-6">
                         {campusCards.map((card) => {
                           // Parse configuration JSON if it exists
                           let config: { title?: string; bullets?: Array<{ icon?: string; text?: string }> } = {};
@@ -573,13 +573,13 @@ export default function ProjectDetailPage({
                           const isGlobal = card.Congregation_ID === null || card.Congregation_ID === 1;
 
                           return (
-                            <div key={card.Card_ID} className="bg-card border border-border rounded-lg p-6">
-                              <div className="flex items-center justify-between mb-6">
+                            <div key={card.Card_ID} className="bg-card border border-border rounded-lg p-6 w-fit max-w-md">
+                              <div className="flex items-center gap-4 mb-6">
                                 <h4 className="text-xl font-semibold text-foreground">
                                   {config.title || card.Card_Type_Name}
                                 </h4>
                                 {isGlobal && (
-                                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#61bc47]/10 text-[#61bc47] border border-[#61bc47]/20">
+                                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#61bc47]/10 text-[#61bc47] border border-[#61bc47]/20 whitespace-nowrap">
                                     All campuses
                                   </span>
                                 )}
