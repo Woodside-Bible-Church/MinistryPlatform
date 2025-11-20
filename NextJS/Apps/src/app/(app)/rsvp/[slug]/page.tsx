@@ -360,10 +360,6 @@ export default function ProjectDetailPage({
       {/* Project Events Section - Grouped by Campus */}
       {activeTab === "events" && (
       <div className="mb-12">
-        <h2 className="text-2xl font-semibold text-foreground mb-6">
-          Project Events
-        </h2>
-
         {events.length === 0 ? (
           <div className="bg-card border-2 border-dashed border-border rounded-lg p-12 text-center">
             <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
@@ -638,12 +634,6 @@ export default function ProjectDetailPage({
       {activeTab === "rsvps" && (
       <div className="mb-12">
           <div className="space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-semibold text-foreground">
-                Who's Coming?
-              </h2>
-            </div>
-
             {rsvps.length === 0 ? (
               <div className="bg-card border-2 border-dashed border-border rounded-lg p-12 text-center">
                 <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
