@@ -29,25 +29,53 @@ PRINT '';
 PRINT 'STEP 1: Verifying tables are safe to drop...';
 PRINT '';
 
--- Check row counts in tables to be dropped
-PRINT 'Row counts in deprecated tables:';
-SELECT 'Project_RSVPs' AS table_name, COUNT(*) AS row_count FROM Project_RSVPs
-UNION ALL
-SELECT 'Event_RSVPs', COUNT(*) FROM Event_RSVPs
-UNION ALL
-SELECT 'Event_RSVP_Answers', COUNT(*) FROM Event_RSVP_Answers
-UNION ALL
-SELECT 'Project_RSVP_Questions', COUNT(*) FROM Project_RSVP_Questions
-UNION ALL
-SELECT 'Question_Options', COUNT(*) FROM Question_Options
-UNION ALL
-SELECT 'RSVP_Email_Campaigns', COUNT(*) FROM RSVP_Email_Campaigns
-UNION ALL
-SELECT 'RSVP_Email_Campaign_Conditions', COUNT(*) FROM RSVP_Email_Campaign_Conditions
-UNION ALL
-SELECT 'RSVP_Email_Campaign_Log', COUNT(*) FROM RSVP_Email_Campaign_Log
-UNION ALL
-SELECT 'RSVP_Statuses', COUNT(*) FROM RSVP_Statuses;
+-- Check row counts in tables to be dropped (only if they exist)
+PRINT 'Row counts in deprecated tables (if they still exist):';
+
+IF OBJECT_ID('dbo.Project_RSVPs', 'U') IS NOT NULL
+    SELECT 'Project_RSVPs' AS table_name, COUNT(*) AS row_count FROM Project_RSVPs;
+ELSE
+    SELECT 'Project_RSVPs' AS table_name, 0 AS row_count, '(already dropped)' AS status;
+
+IF OBJECT_ID('dbo.Event_RSVPs', 'U') IS NOT NULL
+    SELECT 'Event_RSVPs' AS table_name, COUNT(*) AS row_count FROM Event_RSVPs;
+ELSE
+    SELECT 'Event_RSVPs' AS table_name, 0 AS row_count, '(already dropped)' AS status;
+
+IF OBJECT_ID('dbo.Event_RSVP_Answers', 'U') IS NOT NULL
+    SELECT 'Event_RSVP_Answers' AS table_name, COUNT(*) AS row_count FROM Event_RSVP_Answers;
+ELSE
+    SELECT 'Event_RSVP_Answers' AS table_name, 0 AS row_count, '(already dropped)' AS status;
+
+IF OBJECT_ID('dbo.Project_RSVP_Questions', 'U') IS NOT NULL
+    SELECT 'Project_RSVP_Questions' AS table_name, COUNT(*) AS row_count FROM Project_RSVP_Questions;
+ELSE
+    SELECT 'Project_RSVP_Questions' AS table_name, 0 AS row_count, '(already dropped)' AS status;
+
+IF OBJECT_ID('dbo.Question_Options', 'U') IS NOT NULL
+    SELECT 'Question_Options' AS table_name, COUNT(*) AS row_count FROM Question_Options;
+ELSE
+    SELECT 'Question_Options' AS table_name, 0 AS row_count, '(already dropped)' AS status;
+
+IF OBJECT_ID('dbo.RSVP_Email_Campaigns', 'U') IS NOT NULL
+    SELECT 'RSVP_Email_Campaigns' AS table_name, COUNT(*) AS row_count FROM RSVP_Email_Campaigns;
+ELSE
+    SELECT 'RSVP_Email_Campaigns' AS table_name, 0 AS row_count, '(already dropped)' AS status;
+
+IF OBJECT_ID('dbo.RSVP_Email_Campaign_Conditions', 'U') IS NOT NULL
+    SELECT 'RSVP_Email_Campaign_Conditions' AS table_name, COUNT(*) AS row_count FROM RSVP_Email_Campaign_Conditions;
+ELSE
+    SELECT 'RSVP_Email_Campaign_Conditions' AS table_name, 0 AS row_count, '(already dropped)' AS status;
+
+IF OBJECT_ID('dbo.RSVP_Email_Campaign_Log', 'U') IS NOT NULL
+    SELECT 'RSVP_Email_Campaign_Log' AS table_name, COUNT(*) AS row_count FROM RSVP_Email_Campaign_Log;
+ELSE
+    SELECT 'RSVP_Email_Campaign_Log' AS table_name, 0 AS row_count, '(already dropped)' AS status;
+
+IF OBJECT_ID('dbo.RSVP_Statuses', 'U') IS NOT NULL
+    SELECT 'RSVP_Statuses' AS table_name, COUNT(*) AS row_count FROM RSVP_Statuses;
+ELSE
+    SELECT 'RSVP_Statuses' AS table_name, 0 AS row_count, '(already dropped)' AS status;
 
 PRINT '';
 PRINT 'Checking for foreign key references to Question_Types...';
