@@ -825,37 +825,94 @@ export default function ProjectDetailPage({
                               </td>
                             </tr>
                           ) : (
-                            filteredRsvps.map((rsvp) => {
-                              const answers = parseAnswerSummary(rsvp.Answer_Summary);
+                            <>
+                              {filteredRsvps.map((rsvp) => {
+                                const answers = parseAnswerSummary(rsvp.Answer_Summary);
 
-                              return (
-                                <tr
-                                  key={rsvp.Event_RSVP_ID}
-                                  className="border-b border-border hover:bg-muted/50 transition-colors"
-                                >
-                                  <td className="py-3 px-4 text-sm text-foreground whitespace-nowrap">
-                                    {rsvp.First_Name} {rsvp.Last_Name}
-                                  </td>
-                                  <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
-                                    {rsvp.Event_Title || "N/A"}
-                                  </td>
-                                  <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
-                                    {rsvp.Campus_Name || "N/A"}
-                                  </td>
-                                  {questions.map((question) => (
-                                    <td
-                                      key={question}
-                                      className="py-3 px-4 text-sm text-foreground whitespace-nowrap"
-                                    >
-                                      {answers[question] || "-"}
+                                return (
+                                  <tr
+                                    key={rsvp.Event_RSVP_ID}
+                                    className="border-b border-border hover:bg-muted/50 transition-colors"
+                                  >
+                                    <td className="py-3 px-4 text-sm text-foreground whitespace-nowrap">
+                                      {rsvp.First_Name} {rsvp.Last_Name}
                                     </td>
-                                  ))}
-                                  <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
-                                    {formatDate(rsvp.RSVP_Date)}
-                                  </td>
-                                </tr>
-                              );
-                            })
+                                    <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
+                                      {rsvp.Event_Title || "N/A"}
+                                    </td>
+                                    <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
+                                      {rsvp.Campus_Name || "N/A"}
+                                    </td>
+                                    {questions.map((question) => (
+                                      <td
+                                        key={question}
+                                        className="py-3 px-4 text-sm text-foreground whitespace-nowrap"
+                                      >
+                                        {answers[question] || "-"}
+                                      </td>
+                                    ))}
+                                    <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
+                                      {formatDate(rsvp.RSVP_Date)}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                              {/* Summary Row */}
+                              <tr className="bg-muted/50 font-semibold border-t-2 border-border">
+                                <td className="py-3 px-4 text-sm text-foreground whitespace-nowrap">
+                                  Total: {filteredRsvps.length}
+                                </td>
+                                <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
+                                  -
+                                </td>
+                                <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
+                                  -
+                                </td>
+                                {questions.map((question) => {
+                                  // Collect all values for this question
+                                  const values = filteredRsvps
+                                    .map(r => parseAnswerSummary(r.Answer_Summary)[question])
+                                    .filter(Boolean);
+
+                                  // Check if numeric
+                                  const numericValues = values.map(v => parseFloat(v)).filter(n => !isNaN(n));
+                                  if (numericValues.length > 0 && numericValues.length === values.length) {
+                                    // All values are numeric - show sum
+                                    const sum = numericValues.reduce((a, b) => a + b, 0);
+                                    return (
+                                      <td key={question} className="py-3 px-4 text-sm text-foreground whitespace-nowrap">
+                                        {sum}
+                                      </td>
+                                    );
+                                  }
+
+                                  // For non-numeric, show count of unique values
+                                  const uniqueCount = new Set(values).size;
+                                  if (uniqueCount <= 3) {
+                                    // Show value counts if few unique values (boolean-like)
+                                    const counts = values.reduce((acc, val) => {
+                                      acc[val] = (acc[val] || 0) + 1;
+                                      return acc;
+                                    }, {} as Record<string, number>);
+
+                                    return (
+                                      <td key={question} className="py-3 px-4 text-sm text-foreground whitespace-nowrap">
+                                        {Object.entries(counts).map(([val, count]) => `${val}: ${count}`).join(", ")}
+                                      </td>
+                                    );
+                                  }
+
+                                  return (
+                                    <td key={question} className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
+                                      -
+                                    </td>
+                                  );
+                                })}
+                                <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
+                                  -
+                                </td>
+                              </tr>
+                            </>
                           )}
                         </tbody>
                       </table>
