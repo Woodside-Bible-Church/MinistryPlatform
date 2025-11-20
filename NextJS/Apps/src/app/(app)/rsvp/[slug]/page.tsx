@@ -22,6 +22,7 @@ import {
   Info,
   Search,
   X,
+  ChevronDown,
   type LucideIcon,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -181,7 +182,8 @@ export default function ProjectDetailPage({
 
   // Filter states
   const [searchText, setSearchText] = useState("");
-  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
+  const [columnFilters, setColumnFilters] = useState<Record<string, string[]>>({});
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -211,6 +213,21 @@ export default function ProjectDetailPage({
 
     loadData();
   }, [slug]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (openDropdown) {
+        const target = event.target as HTMLElement;
+        if (!target.closest(".filter-dropdown")) {
+          setOpenDropdown(null);
+        }
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openDropdown]);
 
   const includedEvents = events.filter((e) => e.Include_In_RSVP);
   const totalRSVPs = rsvps.length;
@@ -697,9 +714,11 @@ export default function ProjectDetailPage({
 
                       // Column-specific filters
                       const answers = parseAnswerSummary(rsvp.Answer_Summary);
-                      for (const [question, filterValue] of Object.entries(columnFilters)) {
-                        if (filterValue && answers[question] !== filterValue) {
-                          return false;
+                      for (const [question, filterValues] of Object.entries(columnFilters)) {
+                        if (filterValues && filterValues.length > 0) {
+                          if (!filterValues.includes(answers[question])) {
+                            return false;
+                          }
                         }
                       }
 
@@ -725,6 +744,9 @@ export default function ProjectDetailPage({
                                 rsvps.map(r => parseAnswerSummary(r.Answer_Summary)[question]).filter(Boolean)
                               )).sort();
 
+                              const selectedValues = columnFilters[question] || [];
+                              const isOpen = openDropdown === question;
+
                               return (
                                 <th
                                   key={question}
@@ -733,26 +755,58 @@ export default function ProjectDetailPage({
                                   <div className="flex flex-col gap-2">
                                     <span>{question}</span>
                                     {uniqueValues.length > 0 && uniqueValues.length <= 10 && (
-                                      <select
-                                        value={columnFilters[question] || ""}
-                                        onChange={(e) => {
-                                          setColumnFilters(prev => {
-                                            const next = { ...prev };
-                                            if (e.target.value) {
-                                              next[question] = e.target.value;
-                                            } else {
-                                              delete next[question];
-                                            }
-                                            return next;
-                                          });
-                                        }}
-                                        className="text-xs font-normal border border-border rounded px-2 py-1 bg-background text-foreground"
-                                      >
-                                        <option value="">All</option>
-                                        {uniqueValues.map(value => (
-                                          <option key={value} value={value}>{value}</option>
-                                        ))}
-                                      </select>
+                                      <div className="relative filter-dropdown">
+                                        <button
+                                          onClick={() => setOpenDropdown(isOpen ? null : question)}
+                                          className="w-full text-xs font-normal border border-border rounded px-2 py-1 bg-background text-foreground flex items-center justify-between hover:bg-muted transition-colors"
+                                        >
+                                          <span className="truncate">
+                                            {selectedValues.length === 0
+                                              ? "All"
+                                              : selectedValues.length === 1
+                                              ? selectedValues[0]
+                                              : `${selectedValues.length} selected`}
+                                          </span>
+                                          <ChevronDown className="w-3 h-3 flex-shrink-0 ml-1" />
+                                        </button>
+                                        {isOpen && (
+                                          <div className="absolute z-10 mt-1 w-full min-w-[200px] bg-background border border-border rounded-md shadow-lg max-h-60 overflow-auto">
+                                            {uniqueValues.map((value) => {
+                                              const isSelected = selectedValues.includes(value);
+                                              return (
+                                                <label
+                                                  key={value}
+                                                  className="flex items-center gap-2 px-3 py-2 hover:bg-muted cursor-pointer text-xs"
+                                                >
+                                                  <input
+                                                    type="checkbox"
+                                                    checked={isSelected}
+                                                    onChange={(e) => {
+                                                      setColumnFilters((prev) => {
+                                                        const next = { ...prev };
+                                                        const current = next[question] || [];
+                                                        if (e.target.checked) {
+                                                          next[question] = [...current, value];
+                                                        } else {
+                                                          next[question] = current.filter(
+                                                            (v) => v !== value
+                                                          );
+                                                          if (next[question].length === 0) {
+                                                            delete next[question];
+                                                          }
+                                                        }
+                                                        return next;
+                                                      });
+                                                    }}
+                                                    className="rounded border-border text-[#61bc47] focus:ring-[#61bc47]"
+                                                  />
+                                                  <span className="flex-1">{value}</span>
+                                                </label>
+                                              );
+                                            })}
+                                          </div>
+                                        )}
+                                      </div>
                                     )}
                                   </div>
                                 </th>
