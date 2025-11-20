@@ -25,15 +25,30 @@ BEGIN
     -- ===================================================================
     -- Resolve RSVP_Slug to Project_RSVP_ID if slug is provided
     -- ===================================================================
+    DECLARE @ProjectID INT;
+
     IF @RSVP_Slug IS NOT NULL AND @Project_RSVP_ID IS NULL
     BEGIN
+        -- First, get the Project_ID from the Projects table using the slug
+        SELECT @ProjectID = Project_ID
+        FROM Projects
+        WHERE RSVP_Slug = @RSVP_Slug AND RSVP_Is_Active = 1;
+
+        IF @ProjectID IS NULL
+        BEGIN
+            SELECT 'error' AS status, 'Project not found with slug: ' + @RSVP_Slug AS message
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
+            RETURN;
+        END
+
+        -- Then, get the Project_RSVP_ID from Project_RSVPs for this project
         SELECT @Project_RSVP_ID = Project_RSVP_ID
         FROM Project_RSVPs
-        WHERE RSVP_Slug = @RSVP_Slug AND Is_Active = 1;
+        WHERE Project_ID = @ProjectID AND Is_Active = 1;
 
         IF @Project_RSVP_ID IS NULL
         BEGIN
-            SELECT 'error' AS status, 'Project RSVP not found with slug: ' + @RSVP_Slug AS message
+            SELECT 'error' AS status, 'No active RSVP configuration found for project: ' + @RSVP_Slug AS message
             FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
             RETURN;
         END
@@ -58,7 +73,7 @@ BEGIN
     END
 
     -- ===================================================================
-    -- Get Project_RSVP Configuration
+    -- Get Project_RSVP Configuration with Project branding fields
     -- ===================================================================
     DECLARE @ProjectRSVPJson NVARCHAR(MAX);
 
@@ -74,8 +89,42 @@ BEGIN
             pr.Is_Active,
             pr.Require_Contact_Lookup,
             pr.Allow_Guest_Submission,
-            pr.RSVP_Slug
+            pr.RSVP_Slug,
+            -- Build RSVP_Image_URL from dp_Files table
+            RSVP_Image_URL = CASE
+                WHEN F_Image.File_ID IS NOT NULL AND CS.Value IS NOT NULL AND D.Domain_GUID IS NOT NULL
+                THEN CONCAT(CS.Value, '?dn=', CONVERT(varchar(40), D.Domain_GUID), '&fn=', F_Image.Unique_Name, '.', F_Image.Extension)
+                ELSE NULL
+            END,
+            -- Build RSVP_BG_Image_URL from dp_Files table
+            RSVP_BG_Image_URL = CASE
+                WHEN F_BG.File_ID IS NOT NULL AND CS.Value IS NOT NULL AND D.Domain_GUID IS NOT NULL
+                THEN CONCAT(CS.Value, '?dn=', CONVERT(varchar(40), D.Domain_GUID), '&fn=', F_BG.Unique_Name, '.', F_BG.Extension)
+                ELSE NULL
+            END,
+            -- Branding color fields from Projects table
+            p.RSVP_Primary_Color,
+            p.RSVP_Secondary_Color,
+            p.RSVP_Accent_Color,
+            p.RSVP_Background_Color
         FROM Project_RSVPs pr
+        INNER JOIN Projects p ON pr.Project_ID = p.Project_ID
+        -- Join to dp_Files for RSVP_Image.jpg
+        LEFT OUTER JOIN dp_Files F_Image ON F_Image.Record_ID = p.Project_ID
+            AND F_Image.Table_Name = 'Projects'
+            AND F_Image.File_Name = 'RSVP_Image.jpg'
+        -- Join to dp_Files for RSVP_BG_Image.jpg
+        LEFT OUTER JOIN dp_Files F_BG ON F_BG.Record_ID = p.Project_ID
+            AND F_BG.Table_Name = 'Projects'
+            AND F_BG.File_Name = 'RSVP_BG_Image.jpg'
+        -- Join to get ImageURL configuration setting
+        LEFT OUTER JOIN dp_Configuration_Settings CS
+            ON CS.Domain_ID = COALESCE(p.Domain_ID, 1)
+            AND CS.Key_Name = 'ImageURL'
+            AND CS.Application_Code = 'Common'
+        -- Join to get Domain GUID
+        LEFT OUTER JOIN dp_Domains D
+            ON D.Domain_ID = COALESCE(p.Domain_ID, 1)
         WHERE pr.Project_RSVP_ID = @Project_RSVP_ID
           AND pr.Is_Active = 1
         FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
@@ -115,15 +164,15 @@ BEGIN
             ISNULL(e.Participants_Expected, 500) AS Capacity,
             -- Count current RSVPs for this event
             (SELECT COUNT(*) FROM Event_RSVPs er WHERE er.Event_ID = e.Event_ID) AS Current_RSVPs,
-            -- Apply the capacity modifier
-            ISNULL(pe.RSVP_Capacity_Modifier, 0) AS RSVP_Capacity_Modifier,
+            -- Apply the capacity modifier from Events table
+            ISNULL(e.RSVP_Capacity_Modifier, 0) AS RSVP_Capacity_Modifier,
             -- Calculate adjusted RSVP count
-            (SELECT COUNT(*) FROM Event_RSVPs er WHERE er.Event_ID = e.Event_ID) + ISNULL(pe.RSVP_Capacity_Modifier, 0) AS Adjusted_RSVP_Count,
+            (SELECT COUNT(*) FROM Event_RSVPs er WHERE er.Event_ID = e.Event_ID) + ISNULL(e.RSVP_Capacity_Modifier, 0) AS Adjusted_RSVP_Count,
             -- Calculate capacity percentage with modifier
             CASE
                 WHEN ISNULL(e.Participants_Expected, 500) = 0 THEN 0
                 ELSE CAST(
-                    ((SELECT COUNT(*) FROM Event_RSVPs er WHERE er.Event_ID = e.Event_ID) + ISNULL(pe.RSVP_Capacity_Modifier, 0)) * 100.0
+                    ((SELECT COUNT(*) FROM Event_RSVPs er WHERE er.Event_ID = e.Event_ID) + ISNULL(e.RSVP_Capacity_Modifier, 0)) * 100.0
                     / ISNULL(e.Participants_Expected, 500) AS INT
                 )
             END AS Capacity_Percentage,
@@ -132,7 +181,7 @@ BEGIN
             -- Is_Available - true if capacity percentage < 100
             CASE
                 WHEN ISNULL(e.Participants_Expected, 500) = 0 THEN CAST(0 AS BIT)
-                WHEN ((SELECT COUNT(*) FROM Event_RSVPs er WHERE er.Event_ID = e.Event_ID) + ISNULL(pe.RSVP_Capacity_Modifier, 0)) >= ISNULL(e.Participants_Expected, 500) THEN CAST(0 AS BIT)
+                WHEN ((SELECT COUNT(*) FROM Event_RSVPs er WHERE er.Event_ID = e.Event_ID) + ISNULL(e.RSVP_Capacity_Modifier, 0)) >= ISNULL(e.Participants_Expected, 500) THEN CAST(0 AS BIT)
                 ELSE CAST(1 AS BIT)
             END AS Is_Available,
             -- Campus address info for map from Locations table
@@ -140,8 +189,7 @@ BEGIN
             ISNULL(a.City, '') AS Campus_City,
             ISNULL(a.[State/Region], '') AS Campus_State,
             ISNULL(a.Postal_Code, '') AS Campus_Zip
-        FROM Project_Events pe
-        INNER JOIN Events e ON pe.Event_ID = e.Event_ID
+        FROM Events e
         LEFT JOIN Congregations c ON e.Congregation_ID = c.Congregation_ID
         LEFT JOIN Locations l ON c.Location_ID = l.Location_ID
         LEFT JOIN Addresses a ON l.Address_ID = a.Address_ID
@@ -157,8 +205,8 @@ BEGIN
         -- Join to get Domain GUID
         LEFT OUTER JOIN dp_Domains D
             ON D.Domain_ID = COALESCE(c.Domain_ID, 1)
-        WHERE pe.Project_ID = (SELECT Project_ID FROM Project_RSVPs WHERE Project_RSVP_ID = @Project_RSVP_ID)
-          AND pe.Include_In_RSVP = 1
+        WHERE e.Project_ID = (SELECT Project_ID FROM Project_RSVPs WHERE Project_RSVP_ID = @Project_RSVP_ID)
+          AND e.Include_In_RSVP = 1
           -- Date filter removed for testing - can be added back later
           -- AND e.Event_Start_Date >= GETDATE() - 1
           AND (@Congregation_ID IS NULL OR e.Congregation_ID = @Congregation_ID)

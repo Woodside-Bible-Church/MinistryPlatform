@@ -491,6 +491,9 @@ export default function RSVPPage() {
         const data = await response.json();
         console.log('[DEBUG] Raw API response:', data);
         console.log('[DEBUG] Events count:', data.Events?.length || 0);
+        if (data.Events && data.Events.length > 0) {
+          console.log('[DEBUG] First event Minor_Registration:', data.Events[0].Minor_Registration);
+        }
 
         setRsvpData(data);
       } catch (error) {
@@ -684,9 +687,10 @@ export default function RSVPPage() {
     setCurrentView("form");
   };
 
-  const handleFormSubmit = async (data: RSVPFormInput, answers: Record<number, RSVPAnswerValue>) => {
+  const handleFormSubmit = async (data: RSVPFormInput, answers: Record<number, RSVPAnswerValue>, contactId: number | null) => {
     console.log('[DEBUG] Form submission - Contact Data:', data);
     console.log('[DEBUG] Form submission - Dynamic Answers:', answers);
+    console.log('[DEBUG] Form submission - Contact_ID:', contactId);
 
     try {
       // Convert answers object to array format for API
@@ -720,7 +724,7 @@ export default function RSVPPage() {
       const submissionRequest: RSVPSubmissionRequest = {
         Event_ID: data.eventId,
         Project_ID: rsvpData?.Project.Project_ID || 1,
-        Contact_ID: null, // TODO: Get from auth when implemented
+        Contact_ID: contactId, // Pass Contact_ID from household dropdown (null if "new person")
         First_Name: data.firstName,
         Last_Name: data.lastName,
         Email_Address: data.emailAddress,

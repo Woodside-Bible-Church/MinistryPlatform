@@ -51,11 +51,11 @@ BEGIN
         -- Check if event exists and is linked to this project
         IF NOT EXISTS (
             SELECT 1
-            FROM Project_Events pe
-            INNER JOIN Project_RSVPs pr ON pe.Project_ID = pr.Project_ID
-            WHERE pe.Event_ID = @Event_ID
+            FROM Events e
+            INNER JOIN Project_RSVPs pr ON e.Project_ID = pr.Project_ID
+            WHERE e.Event_ID = @Event_ID
               AND pr.Project_RSVP_ID = @Project_RSVP_ID
-              AND pe.Include_In_RSVP = 1
+              AND e.Include_In_RSVP = 1
         )
         BEGIN
             SELECT 'error' AS status, 'Event not found or not available for RSVP' AS message

@@ -30,28 +30,29 @@ export function DynamicQuestion(props: QuestionComponentProps) {
   const { question } = props;
 
   // Map component names to React components
+  // Keys must match Component_Name values from database (without "Question" suffix)
   const componentMap: Record<string, React.ComponentType<QuestionComponentProps>> = {
-    CounterQuestion,
-    CheckboxQuestion,
-    TextQuestion,
-    TextareaQuestion,
-    DropdownQuestion,
-    RadioQuestion,
-    MultiCheckboxQuestion,
-    DateQuestion,
-    TimeQuestion,
-    EmailQuestion,
-    PhoneQuestion,
+    Counter: CounterQuestion,
+    Checkbox: CheckboxQuestion,
+    Text: TextQuestion,
+    Textarea: TextareaQuestion,
+    Dropdown: DropdownQuestion,
+    Radio: RadioQuestion,
+    MultiCheckbox: MultiCheckboxQuestion,
+    Date: DateQuestion,
+    Time: TimeQuestion,
+    Email: EmailQuestion,
+    Phone: PhoneQuestion,
     // TODO: Implement remaining question types:
-    // SearchableDropdownQuestion,
-    // MultiSelectDropdownQuestion,
-    // TagInputQuestion,
-    // ButtonGroupQuestion,
-    // MultiButtonGroupQuestion,
-    // SliderQuestion,
-    // RatingQuestion,
-    // FileUploadQuestion,
-    // ColorPickerQuestion,
+    // SearchableDropdown: SearchableDropdownQuestion,
+    // MultiSelectDropdown: MultiSelectDropdownQuestion,
+    // TagInput: TagInputQuestion,
+    // ButtonGroup: ButtonGroupQuestion,
+    // MultiButtonGroup: MultiButtonGroupQuestion,
+    // Slider: SliderQuestion,
+    // Rating: RatingQuestion,
+    // FileUpload: FileUploadQuestion,
+    // ColorPicker: ColorPickerQuestion,
   };
 
   const QuestionComponent = componentMap[question.Component_Name];

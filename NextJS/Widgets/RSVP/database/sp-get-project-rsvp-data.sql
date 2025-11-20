@@ -80,15 +80,15 @@ BEGIN
             ISNULL(e.Participants_Expected, 500) AS Capacity,
             -- Count current RSVPs for this event
             (SELECT COUNT(*) FROM Event_RSVPs er WHERE er.Event_ID = e.Event_ID) AS Current_RSVPs,
-            -- Apply the capacity modifier
-            ISNULL(pe.RSVP_Capacity_Modifier, 0) AS RSVP_Capacity_Modifier,
+            -- Apply the capacity modifier from Events table
+            ISNULL(e.RSVP_Capacity_Modifier, 0) AS RSVP_Capacity_Modifier,
             -- Calculate adjusted RSVP count
-            (SELECT COUNT(*) FROM Event_RSVPs er WHERE er.Event_ID = e.Event_ID) + ISNULL(pe.RSVP_Capacity_Modifier, 0) AS Adjusted_RSVP_Count,
+            (SELECT COUNT(*) FROM Event_RSVPs er WHERE er.Event_ID = e.Event_ID) + ISNULL(e.RSVP_Capacity_Modifier, 0) AS Adjusted_RSVP_Count,
             -- Calculate capacity percentage with modifier
             CASE
                 WHEN ISNULL(e.Participants_Expected, 500) = 0 THEN 0
                 ELSE CAST(
-                    ((SELECT COUNT(*) FROM Event_RSVPs er WHERE er.Event_ID = e.Event_ID) + ISNULL(pe.RSVP_Capacity_Modifier, 0)) * 100.0
+                    ((SELECT COUNT(*) FROM Event_RSVPs er WHERE er.Event_ID = e.Event_ID) + ISNULL(e.RSVP_Capacity_Modifier, 0)) * 100.0
                     / ISNULL(e.Participants_Expected, 500) AS INT
                 )
             END AS Capacity_Percentage,
@@ -97,7 +97,7 @@ BEGIN
             -- Is_Available - true if capacity percentage < 100
             CASE
                 WHEN ISNULL(e.Participants_Expected, 500) = 0 THEN CAST(0 AS BIT)
-                WHEN ((SELECT COUNT(*) FROM Event_RSVPs er WHERE er.Event_ID = e.Event_ID) + ISNULL(pe.RSVP_Capacity_Modifier, 0)) >= ISNULL(e.Participants_Expected, 500) THEN CAST(0 AS BIT)
+                WHEN ((SELECT COUNT(*) FROM Event_RSVPs er WHERE er.Event_ID = e.Event_ID) + ISNULL(e.RSVP_Capacity_Modifier, 0)) >= ISNULL(e.Participants_Expected, 500) THEN CAST(0 AS BIT)
                 ELSE CAST(1 AS BIT)
             END AS Is_Available,
             -- Campus address info for map from Locations table
@@ -105,13 +105,12 @@ BEGIN
             ISNULL(a.City, '') AS Campus_City,
             ISNULL(a.[State/Region], '') AS Campus_State,
             ISNULL(a.Postal_Code, '') AS Campus_Zip
-        FROM Project_Events pe
-        INNER JOIN Events e ON pe.Event_ID = e.Event_ID
+        FROM Events e
         LEFT JOIN Congregations c ON e.Congregation_ID = c.Congregation_ID
         LEFT JOIN Locations l ON c.Location_ID = l.Location_ID
         LEFT JOIN Addresses a ON l.Address_ID = a.Address_ID
-        WHERE pe.Project_ID = (SELECT Project_ID FROM Project_RSVPs WHERE Project_RSVP_ID = @Project_RSVP_ID)
-          AND pe.Include_In_RSVP = 1
+        WHERE e.Project_ID = (SELECT Project_ID FROM Project_RSVPs WHERE Project_RSVP_ID = @Project_RSVP_ID)
+          AND e.Include_In_RSVP = 1
           -- Date filter removed for testing - can be added back later
           -- AND e.Event_Start_Date >= GETDATE() - 1
           AND (@Congregation_ID IS NULL OR e.Congregation_ID = @Congregation_ID)

@@ -70,11 +70,11 @@ BEGIN
         -- Check if event exists and is linked to this project
         IF NOT EXISTS (
             SELECT 1
-            FROM Project_Events pe
-            INNER JOIN Projects p ON pe.Project_ID = p.Project_ID
-            WHERE pe.Event_ID = @Event_ID
+            FROM Events e
+            INNER JOIN Projects p ON e.Project_ID = p.Project_ID
+            WHERE e.Event_ID = @Event_ID
               AND p.Project_ID = @Project_ID
-              AND pe.Include_In_RSVP = 1
+              AND e.Include_In_RSVP = 1
               AND p.RSVP_Is_Active = 1
         )
         BEGIN

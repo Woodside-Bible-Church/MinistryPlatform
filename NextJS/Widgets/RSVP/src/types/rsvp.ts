@@ -90,17 +90,18 @@ export interface RSVPEvent {
   Campus_Slug: string | null;
   Campus_SVG_URL: string | null;
   Campus_Location: string | null;
-  Capacity: number;
+  Capacity: number; // 9999 = unlimited capacity (NULL in DB)
   Current_RSVPs: number;
   RSVP_Capacity_Modifier: number;
   Adjusted_RSVP_Count: number;
   Capacity_Percentage: number;
-  Max_Capacity: number;
+  Max_Capacity: number; // 9999 = unlimited capacity (NULL in DB)
   Is_Available: boolean;
   Campus_Address: string | null;
   Campus_City: string | null;
   Campus_State: string | null;
   Campus_Zip: string | null;
+  Minor_Registration: boolean; // Allow parents to register minors without email
 }
 
 // ===================================================================
@@ -215,7 +216,8 @@ export interface ParsedConfirmationCard extends Omit<ConfirmationCard, 'Configur
 export interface RSVPSubmissionRequest {
   Event_ID: number;
   Project_ID: number;  // Changed from Project_RSVP_ID
-  Contact_ID?: number | null;
+  Contact_ID?: number | null;  // Person submitting the RSVP (logged in user)
+  Participant_ID?: number | null;  // Person attending the event (from family dropdown selection)
   First_Name: string;
   Last_Name: string;
   Email_Address: string;
@@ -491,8 +493,10 @@ export function getCapacityColorClass(percentage: number): string {
 
 /**
  * Get capacity status text
+ * Note: percentage of 0 could mean either truly 0% or unlimited capacity (NULL in DB)
  */
 export function getCapacityStatusText(percentage: number): string {
+  if (percentage === 0) return "Plenty of space"; // Could be unlimited capacity or just empty
   if (percentage <= 50) return "Plenty of space";
   if (percentage <= 75) return "Good availability";
   if (percentage <= 90) return "Filling up";

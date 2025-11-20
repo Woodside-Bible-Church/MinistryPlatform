@@ -46,7 +46,7 @@ interface HouseholdMember {
 
 interface RSVPFormProps {
   selectedServiceTime: ServiceTimeResponse;
-  onSubmit: (data: RSVPFormInput, answers: Record<number, RSVPAnswerValue>) => Promise<void>;
+  onSubmit: (data: RSVPFormInput, answers: Record<number, RSVPAnswerValue>, contactId: number | null) => Promise<void>;
   onBack: () => void;
   formStep: 1 | 2;
   onStepChange: (step: 1 | 2) => void;
@@ -266,6 +266,29 @@ export default function RSVPForm({
     fetchHouseholdData();
   }, [session, setValue]);
 
+  // Filter household members based on Minor_Registration flag
+  // If minor registration is disabled, only show contacts with email
+  // If enabled, show all household members
+  const eligibleHouseholdMembers = householdMembers.filter(member => {
+    console.log('[RSVPForm] Filtering member:', member.Display_Name, 'Email:', member.Email_Address, 'Minor_Registration:', selectedServiceTime.Minor_Registration);
+    if (selectedServiceTime.Minor_Registration) {
+      // Minor registration enabled - show all household members
+      return true;
+    }
+    // Minor registration disabled - only show members with email
+    return !!member.Email_Address;
+  });
+
+  console.log('[RSVPForm] Total household members:', householdMembers.length);
+  console.log('[RSVPForm] Eligible household members:', eligibleHouseholdMembers.length);
+  console.log('[RSVPForm] Minor_Registration flag:', selectedServiceTime.Minor_Registration);
+
+  // Detect if selected person is a minor (no email address)
+  const selectedMember = selectedPerson !== "new"
+    ? householdMembers.find(m => m.Contact_ID === parseInt(selectedPerson))
+    : null;
+  const isMinor = selectedMember && !selectedMember.Email_Address;
+
   // Handle person selection change
   const handlePersonChange = (value: string) => {
     setSelectedPerson(value);
@@ -290,8 +313,17 @@ export default function RSVPForm({
       if (person) {
         setValue("firstName", person.First_Name);
         setValue("lastName", person.Last_Name);
-        setValue("emailAddress", person.Email_Address || "");
-        setValue("phoneNumber", person.Mobile_Phone || "");
+
+        // Minor registration logic: use parent's email/phone if person has no email
+        if (!person.Email_Address && currentUser) {
+          // This is a minor - use logged-in user's (parent's) contact info
+          setValue("emailAddress", currentUser.Email_Address || "");
+          setValue("phoneNumber", currentUser.Mobile_Phone || "");
+        } else {
+          // Regular contact with email - use their own info
+          setValue("emailAddress", person.Email_Address || "");
+          setValue("phoneNumber", person.Mobile_Phone || "");
+        }
       }
     }
   };
@@ -393,8 +425,11 @@ export default function RSVPForm({
   const handleStep2Submit = async (data: RSVPFormInput) => {
     setIsSubmitting(true);
     try {
-      // Pass both the validated form data and the dynamic answers
-      await onSubmit(data, answers);
+      // Determine Contact_ID: null if "new", otherwise parse the selectedPerson ID
+      const contactId = selectedPerson === "new" ? null : parseInt(selectedPerson);
+
+      // Pass the validated form data, dynamic answers, and Contact_ID
+      await onSubmit(data, answers, contactId);
     } finally {
       setIsSubmitting(false);
     }
@@ -468,8 +503,8 @@ export default function RSVPForm({
                     </div>
                   </SelectItem>
 
-                  {/* Household Members */}
-                  {householdMembers.map((member) => (
+                  {/* Household Members - filtered based on Minor_Registration */}
+                  {eligibleHouseholdMembers.map((member) => (
                     <SelectItem key={member.Contact_ID} value={member.Contact_ID.toString()}>
                       <div className="flex items-center gap-3">
                         {member.Image_GUID ? (
@@ -599,6 +634,11 @@ export default function RSVPForm({
                 {errors.emailAddress.message}
               </p>
             )}
+            {isMinor && (
+              <p className="text-sm italic" style={{ color: `${textColor}CC` }}>
+                Using parent&apos;s email for minor registration
+              </p>
+            )}
           </div>
 
           {/* Phone */}
@@ -628,6 +668,11 @@ export default function RSVPForm({
             {errors.phoneNumber && (
               <p className="text-sm text-red-200 italic">
                 {errors.phoneNumber.message}
+              </p>
+            )}
+            {isMinor && (
+              <p className="text-sm italic" style={{ color: `${textColor}CC` }}>
+                Using parent&apos;s phone for minor registration
               </p>
             )}
           </div>
