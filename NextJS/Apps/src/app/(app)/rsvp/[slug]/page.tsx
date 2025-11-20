@@ -327,13 +327,13 @@ export default function ProjectDetailPage({
 
       {/* Tabs */}
       <div className="border-b border-border mb-8">
-        <div className="flex gap-8">
+        <div className="flex gap-2">
           <button
             onClick={() => setActiveTab("events")}
-            className={`pb-4 px-2 font-semibold transition-colors relative ${
+            className={`pb-4 px-6 py-2 font-semibold transition-all relative rounded-t-lg ${
               activeTab === "events"
                 ? "text-[#61bc47]"
-                : "text-muted-foreground hover:text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
             }`}
           >
             Events
@@ -343,10 +343,10 @@ export default function ProjectDetailPage({
           </button>
           <button
             onClick={() => setActiveTab("rsvps")}
-            className={`pb-4 px-2 font-semibold transition-colors relative ${
+            className={`pb-4 px-6 py-2 font-semibold transition-all relative rounded-t-lg ${
               activeTab === "rsvps"
                 ? "text-[#61bc47]"
-                : "text-muted-foreground hover:text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
             }`}
           >
             Who's Coming?
