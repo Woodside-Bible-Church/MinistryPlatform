@@ -134,6 +134,34 @@ function getIconComponent(iconName: string | null): LucideIcon {
   return iconMap[iconName || "Info"] || Info;
 }
 
+// Parse Answer_Summary field into key-value pairs
+function parseAnswerSummary(answerSummary: string | null): Record<string, string> {
+  if (!answerSummary) return {};
+  const answers: Record<string, string> = {};
+  const lines = answerSummary.split(/\r?\n|<br>/gi).filter((line) => line.trim());
+  lines.forEach((line) => {
+    const colonIndex = line.indexOf(":");
+    if (colonIndex > 0) {
+      const question = line.substring(0, colonIndex).trim();
+      const answer = line.substring(colonIndex + 1).trim();
+      if (question && answer) {
+        answers[question] = answer;
+      }
+    }
+  });
+  return answers;
+}
+
+// Get all unique questions from all RSVPs
+function getAllQuestions(rsvps: ProjectRSVP[]): string[] {
+  const questionsSet = new Set<string>();
+  rsvps.forEach((rsvp) => {
+    const answers = parseAnswerSummary(rsvp.Answer_Summary);
+    Object.keys(answers).forEach((question) => questionsSet.add(question));
+  });
+  return Array.from(questionsSet).sort();
+}
+
 export default function ProjectDetailPage({
   params,
 }: {
@@ -335,39 +363,16 @@ export default function ProjectDetailPage({
         ) : (
           <div className="space-y-12">
             {/* Group events by campus, then by date */}
-            {(() => {
-              // First, group events by campus
-              const campusGroups: Record<string, typeof includedEvents> = {};
-              includedEvents.forEach((event) => {
+            {Object.entries(
+              includedEvents.reduce((campusGroups, event) => {
                 const campus = event.Congregation_Name || "No Campus";
                 if (!campusGroups[campus]) campusGroups[campus] = [];
                 campusGroups[campus].push(event);
-              });
-
-              // Add campuses from Project_Campuses that don't have events yet
-              // but have either a Public Event or Confirmation Cards
-              projectCampuses.forEach((projectCampus) => {
-                const campusName = projectCampus.Campus_Name;
-                // Check if this campus already has events
-                if (!campusGroups[campusName]) {
-                  // Check if this campus has a public event OR confirmation cards
-                  const hasPublicEvent = projectCampus.Public_Event_ID !== null;
-                  const hasConfirmationCards = confirmationCards.some(
-                    (card) =>
-                      card.Is_Global ||
-                      card.Congregation_ID === projectCampus.Congregation_ID
-                  );
-
-                  if (hasPublicEvent || hasConfirmationCards) {
-                    // Add this campus with empty events array
-                    campusGroups[campusName] = [];
-                  }
-                }
-              });
-
-              return Object.entries(campusGroups)
-                .sort(([campusA], [campusB]) => campusA.localeCompare(campusB))
-                .map(([campus, campusEvents]) => (
+                return campusGroups;
+              }, {} as Record<string, typeof includedEvents>)
+            )
+            .sort(([campusA], [campusB]) => campusA.localeCompare(campusB))
+            .map(([campus, campusEvents]) => (
               <div key={campus}>
                 {/* Campus Header */}
                 <div className="mb-6">
@@ -375,7 +380,6 @@ export default function ProjectDetailPage({
                   <div className="h-1 w-20 bg-[#61bc47] rounded mt-2" />
                 </div>
 
-                {campusEvents.length > 0 && (
                 <div className="space-y-8">
                   {/* Group campus events by date */}
                   {Object.entries(
@@ -536,20 +540,12 @@ export default function ProjectDetailPage({
                 </div>
               </div>
             ))}
-          </div>
-                )}
 
                   {/* Confirmation Cards for this campus */}
                   {(() => {
                     // Get the Congregation_ID for this campus to filter cards
-                    // First try to get from events, then from projectCampuses
-                    let congregationId = campusEvents[0]?.Congregation_ID;
-                    if (!congregationId) {
-                      const projectCampus = projectCampuses.find(
-                        (pc) => pc.Campus_Name === campus
-                      );
-                      congregationId = projectCampus?.Congregation_ID;
-                    }
+                    const campusEvent = campusEvents[0];
+                    const congregationId = campusEvent?.Congregation_ID;
 
                     // Filter cards for this campus (campus-specific + global cards)
                     const campusCards = confirmationCards.filter(
@@ -603,8 +599,7 @@ export default function ProjectDetailPage({
                   })()}
           </div>
               </div>
-            ));
-            })()}
+            ))}
           </div>
         )}
       </div>
@@ -613,7 +608,7 @@ export default function ProjectDetailPage({
       <div className="mb-12">
           <div className="space-y-4">
             <h2 className="text-2xl font-semibold text-foreground mb-4">
-              RSVP Submissions
+              Who's Coming?
             </h2>
 
             {rsvps.length === 0 ? (
@@ -628,71 +623,72 @@ export default function ProjectDetailPage({
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">
-                        Name
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">
-                        Event
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">
-                        Party Size
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">
-                        Contact
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">
-                        Campus
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">
-                        Submitted
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rsvps.map((rsvp) => (
-                      <tr
-                        key={rsvp.Event_RSVP_ID}
-                        className="border-b border-border hover:bg-muted/50 transition-colors"
-                      >
-                        <td className="py-3 px-4 text-sm text-foreground">
-                          <div>
-                            {rsvp.First_Name} {rsvp.Last_Name}
-                            {rsvp.Is_New_Visitor && (
-                              <span className="ml-2 text-xs font-medium text-[#61bc47]">
-                                New Visitor
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-sm text-muted-foreground">
-                          {rsvp.Event_Title || "N/A"}
-                        </td>
-                        <td className="py-3 px-4 text-sm text-foreground">
-                          {rsvp.Party_Size || 1}
-                        </td>
-                        <td className="py-3 px-4 text-sm text-muted-foreground">
-                          <div className="space-y-1">
-                            {rsvp.Email_Address && (
-                              <div className="text-xs">{rsvp.Email_Address}</div>
-                            )}
-                            {rsvp.Phone_Number && (
-                              <div className="text-xs">{rsvp.Phone_Number}</div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-sm text-muted-foreground">
-                          {rsvp.Campus_Name || "N/A"}
-                        </td>
-                        <td className="py-3 px-4 text-sm text-muted-foreground">
-                          {formatDate(rsvp.RSVP_Date)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                {(() => {
+                  // Get all unique questions from RSVPs
+                  const questions = getAllQuestions(rsvps);
+
+                  return (
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
+                            Name
+                          </th>
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
+                            Event
+                          </th>
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
+                            Campus
+                          </th>
+                          {questions.map((question) => (
+                            <th
+                              key={question}
+                              className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap"
+                            >
+                              {question}
+                            </th>
+                          ))}
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
+                            Submitted
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rsvps.map((rsvp) => {
+                          const answers = parseAnswerSummary(rsvp.Answer_Summary);
+
+                          return (
+                            <tr
+                              key={rsvp.Event_RSVP_ID}
+                              className="border-b border-border hover:bg-muted/50 transition-colors"
+                            >
+                              <td className="py-3 px-4 text-sm text-foreground whitespace-nowrap">
+                                {rsvp.First_Name} {rsvp.Last_Name}
+                              </td>
+                              <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
+                                {rsvp.Event_Title || "N/A"}
+                              </td>
+                              <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
+                                {rsvp.Campus_Name || "N/A"}
+                              </td>
+                              {questions.map((question) => (
+                                <td
+                                  key={question}
+                                  className="py-3 px-4 text-sm text-foreground whitespace-nowrap"
+                                >
+                                  {answers[question] || "-"}
+                                </td>
+                              ))}
+                              <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
+                                {formatDate(rsvp.RSVP_Date)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  );
+                })()}
               </div>
             )}
           </div>
