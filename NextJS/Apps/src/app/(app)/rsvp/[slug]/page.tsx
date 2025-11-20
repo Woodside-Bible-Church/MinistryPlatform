@@ -20,6 +20,8 @@ import {
   Heart,
   MapPin,
   Info,
+  Search,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -176,6 +178,10 @@ export default function ProjectDetailPage({
   const [projectCampuses, setProjectCampuses] = useState<ProjectCampus[]>([]);
   const [confirmationCards, setConfirmationCards] = useState<ConfirmationCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Filter states
+  const [searchText, setSearchText] = useState("");
+  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function loadData() {
@@ -622,9 +628,11 @@ export default function ProjectDetailPage({
       {/* RSVP Submissions Section */}
       <div className="mb-12">
           <div className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground mb-4">
-              Who's Coming?
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-semibold text-foreground">
+                Who's Coming?
+              </h2>
+            </div>
 
             {rsvps.length === 0 ? (
               <div className="bg-card border-2 border-dashed border-border rounded-lg p-12 text-center">
@@ -637,74 +645,170 @@ export default function ProjectDetailPage({
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                {(() => {
-                  // Get all unique questions from RSVPs
-                  const questions = getAllQuestions(rsvps);
+              <>
+                {/* Filter Controls */}
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder="Search by name, event, or campus..."
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
+                    />
+                  </div>
+                  {(searchText || Object.keys(columnFilters).length > 0) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSearchText("");
+                        setColumnFilters({});
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <X className="w-4 h-4" />
+                      Clear Filters
+                    </Button>
+                  )}
+                </div>
 
-                  return (
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="border-b border-border">
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
-                            Name
-                          </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
-                            Event
-                          </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
-                            Campus
-                          </th>
-                          {questions.map((question) => (
-                            <th
-                              key={question}
-                              className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap"
-                            >
-                              {question}
+                <div className="overflow-x-auto border border-border rounded-lg">
+                  {(() => {
+                    // Get all unique questions from RSVPs
+                    const questions = getAllQuestions(rsvps);
+
+                    // Filter RSVPs
+                    const filteredRsvps = rsvps.filter((rsvp) => {
+                      // Search text filter (name, event, campus)
+                      if (searchText) {
+                        const searchLower = searchText.toLowerCase();
+                        const fullName = `${rsvp.First_Name} ${rsvp.Last_Name}`.toLowerCase();
+                        const event = (rsvp.Event_Title || "").toLowerCase();
+                        const campus = (rsvp.Campus_Name || "").toLowerCase();
+
+                        if (!fullName.includes(searchLower) &&
+                            !event.includes(searchLower) &&
+                            !campus.includes(searchLower)) {
+                          return false;
+                        }
+                      }
+
+                      // Column-specific filters
+                      const answers = parseAnswerSummary(rsvp.Answer_Summary);
+                      for (const [question, filterValue] of Object.entries(columnFilters)) {
+                        if (filterValue && answers[question] !== filterValue) {
+                          return false;
+                        }
+                      }
+
+                      return true;
+                    });
+
+                    return (
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="border-b border-border bg-muted/50">
+                            <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
+                              Name
                             </th>
-                          ))}
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
-                            Submitted
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {rsvps.map((rsvp) => {
-                          const answers = parseAnswerSummary(rsvp.Answer_Summary);
+                            <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
+                              Event
+                            </th>
+                            <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
+                              Campus
+                            </th>
+                            {questions.map((question) => {
+                              // Get unique values for this question
+                              const uniqueValues = Array.from(new Set(
+                                rsvps.map(r => parseAnswerSummary(r.Answer_Summary)[question]).filter(Boolean)
+                              )).sort();
 
-                          return (
-                            <tr
-                              key={rsvp.Event_RSVP_ID}
-                              className="border-b border-border hover:bg-muted/50 transition-colors"
-                            >
-                              <td className="py-3 px-4 text-sm text-foreground whitespace-nowrap">
-                                {rsvp.First_Name} {rsvp.Last_Name}
-                              </td>
-                              <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
-                                {rsvp.Event_Title || "N/A"}
-                              </td>
-                              <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
-                                {rsvp.Campus_Name || "N/A"}
-                              </td>
-                              {questions.map((question) => (
-                                <td
+                              return (
+                                <th
                                   key={question}
-                                  className="py-3 px-4 text-sm text-foreground whitespace-nowrap"
+                                  className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap"
                                 >
-                                  {answers[question] || "-"}
-                                </td>
-                              ))}
-                              <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
-                                {formatDate(rsvp.RSVP_Date)}
+                                  <div className="flex flex-col gap-2">
+                                    <span>{question}</span>
+                                    {uniqueValues.length > 0 && uniqueValues.length <= 10 && (
+                                      <select
+                                        value={columnFilters[question] || ""}
+                                        onChange={(e) => {
+                                          setColumnFilters(prev => {
+                                            const next = { ...prev };
+                                            if (e.target.value) {
+                                              next[question] = e.target.value;
+                                            } else {
+                                              delete next[question];
+                                            }
+                                            return next;
+                                          });
+                                        }}
+                                        className="text-xs font-normal border border-border rounded px-2 py-1 bg-background text-foreground"
+                                      >
+                                        <option value="">All</option>
+                                        {uniqueValues.map(value => (
+                                          <option key={value} value={value}>{value}</option>
+                                        ))}
+                                      </select>
+                                    )}
+                                  </div>
+                                </th>
+                              );
+                            })}
+                            <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
+                              Submitted
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredRsvps.length === 0 ? (
+                            <tr>
+                              <td colSpan={questions.length + 4} className="py-8 text-center text-muted-foreground">
+                                No RSVPs match your filters
                               </td>
                             </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  );
-                })()}
-              </div>
+                          ) : (
+                            filteredRsvps.map((rsvp) => {
+                              const answers = parseAnswerSummary(rsvp.Answer_Summary);
+
+                              return (
+                                <tr
+                                  key={rsvp.Event_RSVP_ID}
+                                  className="border-b border-border hover:bg-muted/50 transition-colors"
+                                >
+                                  <td className="py-3 px-4 text-sm text-foreground whitespace-nowrap">
+                                    {rsvp.First_Name} {rsvp.Last_Name}
+                                  </td>
+                                  <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
+                                    {rsvp.Event_Title || "N/A"}
+                                  </td>
+                                  <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
+                                    {rsvp.Campus_Name || "N/A"}
+                                  </td>
+                                  {questions.map((question) => (
+                                    <td
+                                      key={question}
+                                      className="py-3 px-4 text-sm text-foreground whitespace-nowrap"
+                                    >
+                                      {answers[question] || "-"}
+                                    </td>
+                                  ))}
+                                  <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
+                                    {formatDate(rsvp.RSVP_Date)}
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
+                    );
+                  })()}
+                </div>
+              </>
             )}
           </div>
       </div>
