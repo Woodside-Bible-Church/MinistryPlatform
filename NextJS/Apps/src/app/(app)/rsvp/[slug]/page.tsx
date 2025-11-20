@@ -14,6 +14,13 @@ import {
   CheckCircle2,
   XCircle,
   Pencil,
+  Clock,
+  Baby,
+  Music,
+  Heart,
+  MapPin,
+  Info,
+  type LucideIcon,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -63,6 +70,31 @@ type ProjectRSVP = {
   Event_Title: string | null;
   Event_Start_Date: string | null;
   Campus_Name: string | null;
+  Answer_Summary: string | null;
+};
+
+type ProjectCampus = {
+  Project_Campus_ID: number;
+  Congregation_ID: number;
+  Campus_Name: string;
+  Public_Event_ID: number | null;
+  Public_Event_Title: string | null;
+  Meeting_Instructions: string | null;
+  Is_Active: boolean | null;
+  Display_Order: number | null;
+};
+
+type ConfirmationCard = {
+  Card_ID: number;
+  Card_Type_ID: number;
+  Card_Type_Name: string;
+  Component_Name: string;
+  Icon_Name: string | null;
+  Display_Order: number;
+  Congregation_ID: number | null;
+  Campus_Name: string | null;
+  Is_Global: boolean;
+  Configuration: string | null;
 };
 
 function formatDate(dateString: string | null) {
@@ -86,6 +118,22 @@ function formatDateTime(dateString: string | null) {
   });
 }
 
+// Helper to get icon component by name
+function getIconComponent(iconName: string | null): LucideIcon {
+  const iconMap: Record<string, LucideIcon> = {
+    Clock,
+    Baby,
+    Music,
+    Heart,
+    MapPin,
+    Info,
+    Calendar,
+    Users,
+    Activity,
+  };
+  return iconMap[iconName || "Info"] || Info;
+}
+
 export default function ProjectDetailPage({
   params,
 }: {
@@ -97,6 +145,8 @@ export default function ProjectDetailPage({
   const [project, setProject] = useState<Project | null>(null);
   const [events, setEvents] = useState<ProjectEventWithDetails[]>([]);
   const [rsvps, setRsvps] = useState<ProjectRSVP[]>([]);
+  const [projectCampuses, setProjectCampuses] = useState<ProjectCampus[]>([]);
+  const [confirmationCards, setConfirmationCards] = useState<ConfirmationCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -116,6 +166,8 @@ export default function ProjectDetailPage({
         setProject(data.Project);
         setEvents(data.Events || []);
         setRsvps(data.RSVPs || []);
+        setProjectCampuses(data.Project_Campuses || []);
+        setConfirmationCards(data.Confirmation_Cards || []);
       } catch (error) {
         console.error("Error loading project data:", error);
       } finally {
@@ -460,6 +512,63 @@ export default function ProjectDetailPage({
                 </div>
               </div>
             ))}
+
+                  {/* Confirmation Cards for this campus */}
+                  {(() => {
+                    // Get the Congregation_ID for this campus to filter cards
+                    const campusEvent = campusEvents[0];
+                    const congregationId = campusEvent?.Congregation_ID;
+
+                    // Filter cards for this campus (campus-specific + global cards)
+                    const campusCards = confirmationCards.filter(
+                      (card) =>
+                        card.Is_Global ||
+                        (congregationId && card.Congregation_ID === congregationId)
+                    );
+
+                    if (campusCards.length === 0) return null;
+
+                    return (
+                      <div className="mt-8">
+                        <h4 className="text-xl font-semibold text-foreground mb-4">
+                          What to Expect
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {campusCards.map((card) => {
+                            const IconComponent = getIconComponent(card.Icon_Name);
+                            // Parse configuration JSON if it exists
+                            let config: { title?: string; description?: string } = {};
+                            try {
+                              if (card.Configuration) {
+                                config = JSON.parse(card.Configuration);
+                              }
+                            } catch (e) {
+                              console.error("Failed to parse card configuration:", e);
+                            }
+
+                            return (
+                              <div
+                                key={card.Card_ID}
+                                className="bg-card border border-border rounded-lg p-6 flex items-start gap-4"
+                              >
+                                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-[#61bc47]/10 flex items-center justify-center">
+                                  <IconComponent className="w-6 h-6 text-[#61bc47]" />
+                                </div>
+                                <div className="flex-1">
+                                  <h5 className="font-semibold text-foreground mb-1">
+                                    {config.title || card.Card_Type_Name}
+                                  </h5>
+                                  <p className="text-sm text-muted-foreground">
+                                    {config.description || ""}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })()}
           </div>
               </div>
             ))}
