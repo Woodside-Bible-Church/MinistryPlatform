@@ -185,6 +185,9 @@ export default function ProjectDetailPage({
   const [columnFilters, setColumnFilters] = useState<Record<string, string[]>>({});
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
+  // Tab state
+  const [activeTab, setActiveTab] = useState<"events" | "rsvps">("events");
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -322,7 +325,40 @@ export default function ProjectDetailPage({
         </div>
       </div>
 
+      {/* Tabs */}
+      <div className="border-b border-border mb-8">
+        <div className="flex gap-8">
+          <button
+            onClick={() => setActiveTab("events")}
+            className={`pb-4 px-2 font-semibold transition-colors relative ${
+              activeTab === "events"
+                ? "text-[#61bc47]"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Events
+            {activeTab === "events" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#61bc47]" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("rsvps")}
+            className={`pb-4 px-2 font-semibold transition-colors relative ${
+              activeTab === "rsvps"
+                ? "text-[#61bc47]"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Who's Coming?
+            {activeTab === "rsvps" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#61bc47]" />
+            )}
+          </button>
+        </div>
+      </div>
+
       {/* Project Events Section - Grouped by Campus */}
+      {activeTab === "events" && (
       <div className="mb-12">
         <h2 className="text-2xl font-semibold text-foreground mb-6">
           Project Events
@@ -596,8 +632,10 @@ export default function ProjectDetailPage({
           </div>
         )}
       </div>
+      )}
 
       {/* RSVP Submissions Section */}
+      {activeTab === "rsvps" && (
       <div className="mb-12">
           <div className="space-y-4">
             <div className="flex items-center justify-between mb-4">
@@ -878,6 +916,7 @@ export default function ProjectDetailPage({
             )}
           </div>
       </div>
+      )}
     </div>
   );
 }
