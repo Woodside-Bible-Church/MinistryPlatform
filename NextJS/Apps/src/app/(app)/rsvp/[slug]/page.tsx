@@ -557,7 +557,7 @@ export default function ProjectDetailPage({
                     if (campusCards.length === 0) return null;
 
                     return (
-                      <div className="mt-8">
+                      <div className="mt-8 space-y-6">
                         {campusCards.map((card) => {
                           // Parse configuration JSON if it exists
                           let config: { title?: string; bullets?: Array<{ icon?: string; text?: string }> } = {};
@@ -569,25 +569,35 @@ export default function ProjectDetailPage({
                             console.error("Failed to parse card configuration:", e);
                           }
 
+                          // Check if card is global (null or 1)
+                          const isGlobal = card.Congregation_ID === null || card.Congregation_ID === 1;
+
                           return (
-                            <div key={card.Card_ID}>
-                              <h4 className="text-xl font-semibold text-foreground mb-4">
-                                {config.title || card.Card_Type_Name}
-                              </h4>
+                            <div key={card.Card_ID} className="bg-card border border-border rounded-lg p-6">
+                              <div className="flex items-center justify-between mb-6">
+                                <h4 className="text-xl font-semibold text-foreground">
+                                  {config.title || card.Card_Type_Name}
+                                </h4>
+                                {isGlobal && (
+                                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#61bc47]/10 text-[#61bc47] border border-[#61bc47]/20">
+                                    All campuses
+                                  </span>
+                                )}
+                              </div>
                               {config.bullets && config.bullets.length > 0 && (
-                                <div className="space-y-6">
+                                <div className="space-y-4">
                                   {config.bullets.map((bullet, index) => {
                                     const IconComponent = getIconComponent(bullet.icon);
                                     return (
                                       <div
                                         key={index}
-                                        className="flex items-start gap-4"
+                                        className="flex items-center gap-4"
                                       >
-                                        <div className="flex-shrink-0 w-14 h-14 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
-                                          <IconComponent className="w-7 h-7 text-white" />
+                                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#61bc47]/10 border border-[#61bc47]/20 flex items-center justify-center">
+                                          <IconComponent className="w-5 h-5 text-[#61bc47]" />
                                         </div>
                                         <div className="flex-1">
-                                          <p className="text-base text-white/90 leading-relaxed">
+                                          <p className="text-sm text-muted-foreground leading-relaxed">
                                             {bullet.text}
                                           </p>
                                         </div>
