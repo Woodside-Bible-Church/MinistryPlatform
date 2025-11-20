@@ -561,7 +561,7 @@ export default function ProjectDetailPage({
                         <h4 className="text-xl font-semibold text-foreground mb-4">
                           What to Expect
                         </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-4">
                           {campusCards.map((card) => {
                             const IconComponent = getIconComponent(card.Icon_Name);
                             // Parse configuration JSON if it exists
@@ -577,17 +577,14 @@ export default function ProjectDetailPage({
                             return (
                               <div
                                 key={card.Card_ID}
-                                className="bg-card border border-border rounded-lg p-6 flex items-start gap-4"
+                                className="flex items-start gap-4"
                               >
-                                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-[#61bc47]/10 flex items-center justify-center">
-                                  <IconComponent className="w-6 h-6 text-[#61bc47]" />
+                                <div className="flex-shrink-0 w-16 h-16 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
+                                  <IconComponent className="w-8 h-8 text-white" />
                                 </div>
                                 <div className="flex-1">
-                                  <h5 className="font-semibold text-foreground mb-1">
-                                    {config.title || card.Card_Type_Name}
-                                  </h5>
-                                  <p className="text-sm text-muted-foreground">
-                                    {config.description || ""}
+                                  <p className="text-lg text-white">
+                                    {config.description || config.title || card.Card_Type_Name}
                                   </p>
                                 </div>
                               </div>
