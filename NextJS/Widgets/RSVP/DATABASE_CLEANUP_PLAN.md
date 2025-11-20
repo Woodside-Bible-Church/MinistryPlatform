@@ -43,10 +43,11 @@ Now that the RSVP system has been successfully migrated to use native MinistryPl
 - **Status:** Email features not implemented yet
 - **Action:** Drop table (can rebuild if needed later)
 
-### 9. **RSVP_Statuses** ❌ DEPRECATED
-- **Status:** No longer used
-- **Replaced by:** Native MP `Participation_Status` lookup
-- **Migration complete:** Yes
+### 9. **RSVP_Statuses** ✅ KEEP
+- **Status:** Pre-existing MP lookup table (NOT custom)
+- **Used by:** Event_Participants.RSVP_Status_ID (FK reference)
+- **Values:** 1=Yes, 2=No, 3=Maybe
+- **Action:** Do not drop - this was mistakenly included because it has "RSVP" in the name
 
 ### 10. **Question_Types** ❓ MAYBE DROP
 - **Status:** Used only by deprecated tables
@@ -72,6 +73,10 @@ Now that the RSVP system has been successfully migrated to use native MinistryPl
 ### Custom Tables (Still in Use)
 1. **Project_Confirmation_Cards** - Custom table for confirmation page cards
 2. **Card_Types** - Lookup table for confirmation card types
+
+### Pre-existing MP Lookup Tables
+1. **RSVP_Statuses** - Pre-existing lookup table (1=Yes, 2=No, 3=Maybe)
+   - Used by Event_Participants.RSVP_Status_ID
 
 ## Columns to Drop from Events Table
 
@@ -115,7 +120,7 @@ DROP TABLE IF EXISTS RSVP_Email_Campaigns;         -- References Project_RSVPs
 
 -- Step 3: Drop parent tables and lookup tables
 DROP TABLE IF EXISTS Project_RSVPs;                -- Parent table
-DROP TABLE IF EXISTS RSVP_Statuses;                -- Lookup table
+-- Note: RSVP_Statuses is NOT dropped - it's a pre-existing MP lookup table
 DROP TABLE IF EXISTS Question_Types;               -- Lookup table (check for other references first)
 ```
 
