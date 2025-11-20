@@ -335,16 +335,39 @@ export default function ProjectDetailPage({
         ) : (
           <div className="space-y-12">
             {/* Group events by campus, then by date */}
-            {Object.entries(
-              includedEvents.reduce((campusGroups, event) => {
+            {(() => {
+              // First, group events by campus
+              const campusGroups: Record<string, typeof includedEvents> = {};
+              includedEvents.forEach((event) => {
                 const campus = event.Congregation_Name || "No Campus";
                 if (!campusGroups[campus]) campusGroups[campus] = [];
                 campusGroups[campus].push(event);
-                return campusGroups;
-              }, {} as Record<string, typeof includedEvents>)
-            )
-            .sort(([campusA], [campusB]) => campusA.localeCompare(campusB))
-            .map(([campus, campusEvents]) => (
+              });
+
+              // Add campuses from Project_Campuses that don't have events yet
+              // but have either a Public Event or Confirmation Cards
+              projectCampuses.forEach((projectCampus) => {
+                const campusName = projectCampus.Campus_Name;
+                // Check if this campus already has events
+                if (!campusGroups[campusName]) {
+                  // Check if this campus has a public event OR confirmation cards
+                  const hasPublicEvent = projectCampus.Public_Event_ID !== null;
+                  const hasConfirmationCards = confirmationCards.some(
+                    (card) =>
+                      card.Is_Global ||
+                      card.Congregation_ID === projectCampus.Congregation_ID
+                  );
+
+                  if (hasPublicEvent || hasConfirmationCards) {
+                    // Add this campus with empty events array
+                    campusGroups[campusName] = [];
+                  }
+                }
+              });
+
+              return Object.entries(campusGroups)
+                .sort(([campusA], [campusB]) => campusA.localeCompare(campusB))
+                .map(([campus, campusEvents]) => (
               <div key={campus}>
                 {/* Campus Header */}
                 <div className="mb-6">
@@ -352,6 +375,7 @@ export default function ProjectDetailPage({
                   <div className="h-1 w-20 bg-[#61bc47] rounded mt-2" />
                 </div>
 
+                {campusEvents.length > 0 && (
                 <div className="space-y-8">
                   {/* Group campus events by date */}
                   {Object.entries(
@@ -512,12 +536,20 @@ export default function ProjectDetailPage({
                 </div>
               </div>
             ))}
+          </div>
+                )}
 
                   {/* Confirmation Cards for this campus */}
                   {(() => {
                     // Get the Congregation_ID for this campus to filter cards
-                    const campusEvent = campusEvents[0];
-                    const congregationId = campusEvent?.Congregation_ID;
+                    // First try to get from events, then from projectCampuses
+                    let congregationId = campusEvents[0]?.Congregation_ID;
+                    if (!congregationId) {
+                      const projectCampus = projectCampuses.find(
+                        (pc) => pc.Campus_Name === campus
+                      );
+                      congregationId = projectCampus?.Congregation_ID;
+                    }
 
                     // Filter cards for this campus (campus-specific + global cards)
                     const campusCards = confirmationCards.filter(
@@ -571,7 +603,8 @@ export default function ProjectDetailPage({
                   })()}
           </div>
               </div>
-            ))}
+            ));
+            })()}
           </div>
         )}
       </div>
