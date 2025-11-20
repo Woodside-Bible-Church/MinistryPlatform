@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { use } from "react";
 import Link from "next/link";
+import { useCampus } from "@/contexts/CampusContext";
 import {
   Calendar,
   Users,
@@ -182,9 +183,10 @@ export default function ProjectDetailPage({
               {displayTitle}
             </h1>
             {project.RSVP_Description && (
-              <p className="text-muted-foreground max-w-3xl">
-                {project.RSVP_Description}
-              </p>
+              <p
+                className="text-muted-foreground max-w-3xl"
+                dangerouslySetInnerHTML={{ __html: project.RSVP_Description }}
+              />
             )}
           </div>
           <div className="flex gap-2">
