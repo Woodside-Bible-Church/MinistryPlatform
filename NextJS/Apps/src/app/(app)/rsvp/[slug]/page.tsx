@@ -637,7 +637,7 @@ export default function ProjectDetailPage({
               <div key={campus.Congregation_ID}>
                 {/* Campus Header - Only show when Church Wide */}
                 {isChurchWide && (
-                  <div className="sticky top-16 bg-background/80 backdrop-blur-md border-b border-border z-10 py-4 mb-2">
+                  <div className="sticky top-16 bg-background/60 backdrop-blur-md border-b border-border z-10 py-4 mb-2">
                     <h3 className="text-2xl font-bold text-foreground">{campus.Campus_Name}</h3>
                     <div className="h-1 w-20 bg-[#61bc47] rounded mt-2" />
                   </div>
@@ -645,7 +645,7 @@ export default function ProjectDetailPage({
 
                 {/* Public Event Info */}
                 {campus.Public_Event_ID ? (
-                  <div className={`bg-card border border-border rounded-lg overflow-hidden max-w-md relative ${isChurchWide ? 'mt-4' : 'mb-6'}`}>
+                  <div className={`bg-card border border-border rounded-lg overflow-hidden max-w-md relative mb-6 ${isChurchWide ? 'mt-4' : ''}`}>
                     {/* Edit Button */}
                     <button
                       className="absolute top-2 right-2 p-2 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors z-10 backdrop-blur-sm"
@@ -681,7 +681,7 @@ export default function ProjectDetailPage({
                     </div>
                   </div>
                 ) : (
-                  <div className={`bg-card border border-dashed border-border rounded-lg p-6 text-center max-w-md ${isChurchWide ? 'mt-4' : 'mb-6'}`}>
+                  <div className={`bg-card border border-dashed border-border rounded-lg p-6 text-center max-w-md mb-6 ${isChurchWide ? 'mt-4' : ''}`}>
                     <p className="text-sm text-muted-foreground">No public-facing event configured</p>
                   </div>
                 )}
