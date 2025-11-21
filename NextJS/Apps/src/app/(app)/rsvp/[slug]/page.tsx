@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Line } from "recharts";
 
 type Project = {
   Project_ID: number;
@@ -997,6 +998,245 @@ export default function ProjectDetailPage({
       {activeTab === "rsvps" && (
       <div className="mb-12">
           <div className="space-y-4">
+            {/* Floating Stats - Only show when there are RSVPs */}
+            {filteredRsvps.length > 0 && (
+              <div className="flex gap-8 mb-8">
+                <div>
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <Activity className="w-5 h-5 text-[#61bc47] flex-shrink-0" />
+                    <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total Attendees</h3>
+                  </div>
+                  <p className="text-5xl font-bold text-foreground">{totalAttendees}</p>
+                </div>
+                <div>
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <Users className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                    <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total RSVPs</h3>
+                  </div>
+                  <p className="text-5xl font-bold text-muted-foreground">{totalRSVPs}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Charts - 2 Column Grid */}
+            {filteredRsvps.length > 0 && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                {/* RSVPs Over Time Chart */}
+                <div className="bg-card border border-border rounded-lg p-6 flex flex-col h-[500px]">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">RSVPs Over Time</h3>
+                  <div className="flex-1 min-h-0">
+                    {(() => {
+                      // Build cumulative RSVP and attendee data by date
+                      const sortedRsvps = [...filteredRsvps].sort((a, b) =>
+                        new Date(a.RSVP_Date).getTime() - new Date(b.RSVP_Date).getTime()
+                      );
+
+                      // Group by date and calculate cumulative for both RSVPs and attendees
+                      const dateMap = new Map<string, { rsvpCount: number; attendeeCount: number }>();
+
+                      sortedRsvps.forEach(rsvp => {
+                        const date = new Date(rsvp.RSVP_Date).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        });
+                        if (!dateMap.has(date)) {
+                          dateMap.set(date, { rsvpCount: 0, attendeeCount: 0 });
+                        }
+                        const current = dateMap.get(date)!;
+                        current.rsvpCount += 1;
+                        current.attendeeCount += (rsvp.Party_Size || 1);
+                      });
+
+                      const dataPoints: Array<{ date: string; rsvps: number; attendees: number }> = [];
+                      let cumulativeRsvps = 0;
+                      let cumulativeAttendees = 0;
+
+                      dateMap.forEach((data, date) => {
+                        cumulativeRsvps += data.rsvpCount;
+                        cumulativeAttendees += data.attendeeCount;
+                        dataPoints.push({ date, rsvps: cumulativeRsvps, attendees: cumulativeAttendees });
+                      });
+
+                      return (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={dataPoints} margin={{ top: 10, right: 20, bottom: 5, left: 5 }}>
+                            <defs>
+                              <linearGradient id="colorAttendees" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#61bc47" stopOpacity={0.3}/>
+                                <stop offset="95%" stopColor="#61bc47" stopOpacity={0}/>
+                              </linearGradient>
+                              <linearGradient id="colorRsvps" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
+                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid
+                              strokeDasharray="3 3"
+                              stroke="#666666"
+                              strokeOpacity={0.5}
+                              vertical={true}
+                              horizontal={true}
+                            />
+                            <XAxis
+                              dataKey="date"
+                              stroke="#888888"
+                              fontSize={11}
+                              tickLine={true}
+                              axisLine={true}
+                              angle={-45}
+                              textAnchor="end"
+                              height={50}
+                              tick={{ fill: "#888888" }}
+                            />
+                            <YAxis
+                              stroke="#888888"
+                              fontSize={11}
+                              tickLine={true}
+                              axisLine={true}
+                              tick={{ fill: "#888888" }}
+                              allowDecimals={false}
+                            />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: "hsl(var(--card))",
+                                border: "1px solid hsl(var(--border))",
+                                borderRadius: "6px",
+                                fontSize: "12px"
+                              }}
+                              labelStyle={{ color: "hsl(var(--foreground))" }}
+                            />
+                            <Legend
+                              verticalAlign="top"
+                              height={30}
+                              iconType="line"
+                              wrapperStyle={{ fontSize: "12px" }}
+                            />
+                            <Area
+                              type="monotone"
+                              dataKey="attendees"
+                              stroke="#61bc47"
+                              strokeWidth={2}
+                              fill="url(#colorAttendees)"
+                              name="Total Attendees"
+                              dot={{ fill: "#61bc47", strokeWidth: 2, r: 4, stroke: "#fff" }}
+                              activeDot={{ r: 6, fill: "#61bc47", stroke: "#fff", strokeWidth: 2 }}
+                            />
+                            <Area
+                              type="monotone"
+                              dataKey="rsvps"
+                              stroke="#3b82f6"
+                              strokeWidth={2}
+                              fill="url(#colorRsvps)"
+                              name="Total RSVPs"
+                              dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4, stroke: "#fff" }}
+                              activeDot={{ r: 6, fill: "#3b82f6", stroke: "#fff", strokeWidth: 2 }}
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                {/* Events Chart */}
+                <div className="bg-card border border-border rounded-lg p-6 flex flex-col h-[500px]">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-foreground">
+                      {isChurchWide ? "Events" : selectedCampus.Congregation_Name}
+                    </h3>
+                    {/* Legend - Sticky at top */}
+                    <div className="flex items-center gap-4 text-xs">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-sm bg-[#3b82f6]" />
+                        <span className="text-muted-foreground">RSVPs</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-sm bg-[#61bc47]" />
+                        <span className="text-muted-foreground">Party Size</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex-1 overflow-y-auto space-y-3">
+                    {(() => {
+                      // Group by campus, then by event
+                      const campusEventData = filteredRsvps.reduce((acc, rsvp) => {
+                        const campus = rsvp.Campus_Name || "Unknown Campus";
+                        const event = rsvp.Event_Title || "Unknown Event";
+
+                        if (!acc[campus]) {
+                          acc[campus] = {};
+                        }
+                        if (!acc[campus][event]) {
+                          acc[campus][event] = { rsvpCount: 0, attendeeCount: 0 };
+                        }
+
+                        acc[campus][event].rsvpCount++;
+                        acc[campus][event].attendeeCount += (rsvp.Party_Size || 1);
+
+                        return acc;
+                      }, {} as Record<string, Record<string, { rsvpCount: number; attendeeCount: number }>>);
+
+                      // Find max for scaling across all events
+                      const allEventsData = Object.values(campusEventData).flatMap(events => Object.values(events));
+                      const maxAttendees = Math.max(...allEventsData.map(e => e.attendeeCount));
+
+                      return (
+                        <>
+                          {Object.entries(campusEventData)
+                            .sort(([campusA], [campusB]) => campusA.localeCompare(campusB))
+                            .map(([campus, events]) => (
+                              <div key={campus} className="space-y-3">
+                                {/* Campus Header - only if Church Wide */}
+                                {isChurchWide && (
+                                  <h4 className="text-sm font-semibold text-foreground/80 pt-2 first:pt-0">{campus}</h4>
+                                )}
+
+                                {/* Events for this campus */}
+                                {Object.entries(events)
+                                  .sort(([, a], [, b]) => b.attendeeCount - a.attendeeCount)
+                                  .map(([event, data]) => {
+                                    const rsvpPercentage = (data.rsvpCount / maxAttendees) * 100;
+                                    const partySizeCount = data.attendeeCount - data.rsvpCount;
+                                    const partySizePercentage = (partySizeCount / maxAttendees) * 100;
+
+                                    return (
+                                      <div key={event} className="space-y-1.5">
+                                        <div className="flex items-center justify-between text-xs">
+                                          <div className="flex-1 truncate">
+                                            <span className="font-medium text-muted-foreground">{event}</span>
+                                          </div>
+                                          <span className="font-semibold text-foreground ml-2">{data.attendeeCount}</span>
+                                        </div>
+                                        {/* Stacked horizontal bar */}
+                                        <div className="flex h-6 bg-muted rounded-full overflow-hidden">
+                                          {/* RSVPs portion (blue) */}
+                                          <div
+                                            className="bg-[#3b82f6] flex items-center justify-center text-[10px] text-white font-semibold"
+                                            style={{ width: `${rsvpPercentage}%` }}
+                                          >
+                                            {rsvpPercentage > 12 && data.rsvpCount}
+                                          </div>
+                                          {/* Party Size portion (green) */}
+                                          <div
+                                            className="bg-[#61bc47] flex items-center justify-center text-[10px] text-white font-semibold"
+                                            style={{ width: `${partySizePercentage}%` }}
+                                          >
+                                            {partySizePercentage > 12 && `+${partySizeCount}`}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                              </div>
+                            ))}
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {filteredRsvps.length === 0 ? (
               <div className="bg-card border-2 border-dashed border-border rounded-lg p-12 text-center">
                 <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
