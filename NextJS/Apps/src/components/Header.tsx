@@ -249,11 +249,15 @@ export default function Header() {
                       style={{ display: svgLoaded ? 'block' : 'none' }}
                     />
                     {!svgLoaded && (
-                      <MapPinIcon className="w-5 h-5 md:w-7 md:h-7 text-foreground group-hover:text-[#61bc47] dark:text-[oklch(0.8_0_0)] dark:group-hover:text-[#61bc47] transition-colors" />
+                      <div className="w-6 h-6 md:w-10 md:h-10 rounded-full bg-foreground/10 dark:bg-[oklch(0.8_0_0)]/10 group-hover:bg-[#61bc47]/20 backdrop-blur-sm border border-foreground/20 dark:border-[oklch(0.8_0_0)]/20 group-hover:border-[#61bc47]/30 flex items-center justify-center transition-all duration-200">
+                        <MapPinIcon className="w-3 h-3 md:w-5 md:h-5 text-foreground group-hover:text-[#61bc47] dark:text-[oklch(0.8_0_0)] dark:group-hover:text-[#61bc47] transition-colors" />
+                      </div>
                     )}
                   </>
                 ) : (
-                  <MapPinIcon className="w-5 h-5 md:w-7 md:h-7 text-foreground group-hover:text-[#61bc47] dark:text-[oklch(0.8_0_0)] dark:group-hover:text-[#61bc47] transition-colors" />
+                  <div className="w-6 h-6 md:w-10 md:h-10 rounded-full bg-foreground/10 dark:bg-[oklch(0.8_0_0)]/10 group-hover:bg-[#61bc47]/20 backdrop-blur-sm border border-foreground/20 dark:border-[oklch(0.8_0_0)]/20 group-hover:border-[#61bc47]/30 flex items-center justify-center transition-all duration-200">
+                    <MapPinIcon className="w-3 h-3 md:w-5 md:h-5 text-foreground group-hover:text-[#61bc47] dark:text-[oklch(0.8_0_0)] dark:group-hover:text-[#61bc47] transition-colors" />
+                  </div>
                 )}
                 {campusLoading ? (
                   <span className="hidden md:inline">Loading...</span>
@@ -296,15 +300,19 @@ export default function Header() {
                       <img
                         src={congregation.Campus_SVG_URL}
                         alt={`${congregation.Congregation_Name} Campus`}
-                        className={`w-8 h-8 mr-2 transition-all duration-200 ${
+                        className={`w-10 h-10 mr-2 transition-all duration-200 ${
                           selectedCampus?.Congregation_ID === congregation.Congregation_ID
                             ? ""
                             : "grayscale group-hover:grayscale-0"
                         }`}
                       />
                     ) : (
-                      <div className="w-10 h-10 mr-2 flex items-center justify-center">
-                        <MapPinIcon className={`w-7 h-7 transition-colors ${
+                      <div className={`w-10 h-10 mr-2 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-sm border ${
+                        selectedCampus?.Congregation_ID === congregation.Congregation_ID
+                          ? "bg-[#61bc47]/20 border-[#61bc47]/30"
+                          : "bg-foreground/10 dark:bg-[oklch(0.8_0_0)]/10 group-hover:bg-[#61bc47]/20 border-foreground/20 dark:border-[oklch(0.8_0_0)]/20 group-hover:border-[#61bc47]/30"
+                      }`}>
+                        <MapPinIcon className={`w-5 h-5 transition-colors ${
                           selectedCampus?.Congregation_ID === congregation.Congregation_ID
                             ? "text-[#61bc47]"
                             : "text-foreground group-hover:text-[#61bc47]"
