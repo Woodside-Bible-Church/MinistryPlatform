@@ -645,20 +645,29 @@ export default function RSVPPage() {
   }, [filteredServiceTimes]);
 
   // Parse confirmation cards from RSVP data
+  // Filter cards to only show cards that match the confirmation's campus OR are global (null Congregation_ID)
   const confirmationCards = useMemo<ParsedConfirmationCard[]>(() => {
     if (!rsvpData?.Confirmation_Cards) return [];
 
-    return rsvpData.Confirmation_Cards.map(card => ({
-      Card_ID: card.Card_ID,
-      Card_Type_ID: card.Card_Type_ID,
-      Card_Type_Name: card.Card_Type_Name,
-      Component_Name: card.Component_Name,
-      Icon_Name: card.Icon_Name,
-      Display_Order: card.Display_Order,
-      Congregation_ID: card.Congregation_ID,
-      Configuration: parseCardConfiguration(card.Configuration),
-    }));
-  }, [rsvpData]);
+    return rsvpData.Confirmation_Cards
+      .filter(card => {
+        // If we don't have a confirmation yet, show all cards (shouldn't happen, but safe)
+        if (!confirmation?.Congregation_ID) return true;
+
+        // Show card if it's global (null Congregation_ID) OR matches the event's campus
+        return card.Congregation_ID === null || card.Congregation_ID === confirmation.Congregation_ID;
+      })
+      .map(card => ({
+        Card_ID: card.Card_ID,
+        Card_Type_ID: card.Card_Type_ID,
+        Card_Type_Name: card.Card_Type_Name,
+        Component_Name: card.Component_Name,
+        Icon_Name: card.Icon_Name,
+        Display_Order: card.Display_Order,
+        Congregation_ID: card.Congregation_ID,
+        Configuration: parseCardConfiguration(card.Configuration),
+      }));
+  }, [rsvpData, confirmation]);
 
   // Get campus-specific meeting instructions for the selected campus
   const currentCampusMeetingInstructions = useMemo(() => {

@@ -34,11 +34,39 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, account, profile, trigger }): Promise<JWT> {
       console.log('JWT Callback - trigger:', trigger, 'account:', !!account, 'token exists:', !!token, 'profile:', !!profile)
-      
+
       if (account && profile) {
         console.log('JWT Callback - Setting initial token from account')
         const mpProfile = profile as { ext_Contact_ID?: string }
         console.log('JWT Callback - profile.ext_Contact_ID:', mpProfile.ext_Contact_ID)
+
+        // If Contact_ID is not in the profile, look it up by email using the access token
+        let contactId = mpProfile.ext_Contact_ID
+
+        if (!contactId && profile.email && account.access_token) {
+          try {
+            console.log('JWT Callback - Looking up Contact_ID by email:', profile.email)
+            const response = await fetch(
+              `${process.env.MINISTRY_PLATFORM_BASE_URL}/api/tables/Contacts?$filter=Email_Address='${encodeURIComponent(profile.email as string)}'&$select=Contact_ID`,
+              {
+                headers: {
+                  'Authorization': `Bearer ${account.access_token}`,
+                  'Content-Type': 'application/json',
+                },
+              }
+            )
+
+            if (response.ok) {
+              const contacts = await response.json()
+              if (contacts && contacts.length > 0) {
+                contactId = contacts[0].Contact_ID?.toString()
+                console.log('JWT Callback - Found Contact_ID:', contactId)
+              }
+            }
+          } catch (error) {
+            console.error('JWT Callback - Error looking up Contact_ID:', error)
+          }
+        }
 
         return {
           ...token,
@@ -51,7 +79,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: profile.name,
           firstName: profile.given_name,
           lastName: profile.family_name,
-          contactId: mpProfile.ext_Contact_ID,
+          contactId: contactId,
         } as JWT
       }
     

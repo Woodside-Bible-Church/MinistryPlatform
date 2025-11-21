@@ -75,6 +75,8 @@ export async function POST(request: NextRequest) {
       params
     );
 
+    console.log('[RSVP Submit] Raw result:', JSON.stringify(result, null, 2));
+
     // Stored procedure returns nested array with JsonResult
     // Format: [[{"JsonResult": "{...}"}]]
     if (!result || !Array.isArray(result) || result.length === 0) {
@@ -85,17 +87,21 @@ export async function POST(request: NextRequest) {
     }
 
     const firstRow = result[0];
+    console.log('[RSVP Submit] First row:', JSON.stringify(firstRow, null, 2));
+
     if (!Array.isArray(firstRow) || firstRow.length === 0) {
       return NextResponse.json(
-        { error: 'Invalid data format from stored procedure' },
+        { error: 'Invalid data format from stored procedure', receivedData: result },
         { status: 500 }
       );
     }
 
     const jsonResultRow = firstRow[0] as { JsonResult?: string };
+    console.log('[RSVP Submit] JsonResult row:', JSON.stringify(jsonResultRow, null, 2));
+
     if (!jsonResultRow.JsonResult) {
       return NextResponse.json(
-        { error: 'No JsonResult field in response' },
+        { error: 'No JsonResult field in response', receivedRow: jsonResultRow },
         { status: 500 }
       );
     }
