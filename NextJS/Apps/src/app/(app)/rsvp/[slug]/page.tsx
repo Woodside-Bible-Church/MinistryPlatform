@@ -333,7 +333,7 @@ export default function ProjectDetailPage({
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
             }`}
           >
-            Campuses
+            {isChurchWide ? "Campuses" : selectedCampus.Congregation_Name}
             {activeTab === "campuses" && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#61bc47]" />
             )}
