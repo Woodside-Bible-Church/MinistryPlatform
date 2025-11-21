@@ -41,6 +41,45 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         console.log('JWT Callback - Setting initial token from account')
         console.log('Profile roles:', (profile as any).roles)
 
+        // Fetch user groups during initial sign-in
+        let allRoles: string[] = (profile as any).roles || []
+
+        try {
+          const mp = new MPHelper()
+          const users = await mp.getTableRecords<{ User_ID: number }>({
+            table: 'dp_Users',
+            select: 'User_ID',
+            filter: `User_GUID='${profile.sub}'`,
+            top: 1,
+          })
+
+          if (users.length > 0) {
+            const userId = users[0].User_ID
+            const allUserGroupLinks = await mp.getTableRecords<{ User_Group_ID: number }>({
+              table: 'dp_User_User_Groups',
+              select: 'User_Group_ID',
+              filter: `User_ID=${userId}`,
+            })
+
+            const groupIds = allUserGroupLinks.map(g => g.User_Group_ID).filter(Boolean)
+
+            if (groupIds.length > 0) {
+              const groupIdList = groupIds.join(',')
+              const userGroups = await mp.getTableRecords<{ User_Group_ID: number; User_Group_Name: string }>({
+                table: 'dp_User_Groups',
+                select: 'User_Group_ID, User_Group_Name',
+                filter: `User_Group_ID IN (${groupIdList})`,
+              })
+
+              const allGroupNames = userGroups.map(g => g.User_Group_Name).filter(Boolean)
+              allRoles = [...new Set([...allRoles, ...allGroupNames])]
+              console.log('JWT Callback - Initial token created with roles:', allRoles)
+            }
+          }
+        } catch (error) {
+          console.error('JWT Callback - Error fetching user groups during sign-in:', error)
+        }
+
         return {
           ...token,
           accessToken: account.access_token,
@@ -52,7 +91,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: profile.name,
           firstName: profile.given_name,
           lastName: profile.family_name,
-          roles: (profile as any).roles || [],
+          roles: allRoles,
         } as JWT
       }
     
@@ -64,6 +103,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // Check if token is expired and refresh if needed
       if (token.expiresAt && Date.now() < (token.expiresAt as number) * 1000) {
         console.log('JWT Callback - Token still valid')
+        // Token is valid, return it as-is
+        // Roles were already fetched during initial sign-in
         return token
       }
     

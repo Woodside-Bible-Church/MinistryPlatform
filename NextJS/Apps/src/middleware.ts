@@ -77,10 +77,17 @@ async function checkUserHasAccessToRoute(
   userRoles: string[]
 ): Promise<boolean> {
   try {
-    // Find the application with this route
-    const app = await db.query.applications.findFirst({
-      where: eq(applications.route, pathname),
-    });
+    // Get all applications to check against
+    const allApps = await db.query.applications.findMany();
+
+    // Find the application that matches this route
+    // Check for exact match first, then check if pathname starts with the app route
+    let app = allApps.find(a => a.route === pathname);
+
+    // If no exact match, check if this is a sub-route (e.g., /rsvp/christmas-2025 matches /rsvp)
+    if (!app) {
+      app = allApps.find(a => pathname.startsWith(a.route + '/'));
+    }
 
     // If no app found for this route, allow access (might be a dynamic route or other page)
     if (!app) {
@@ -259,7 +266,56 @@ export async function middleware(request: NextRequest) {
 
     // Check if user has permission to access this route
     const userEmail = token.email as string;
-    let userRoles = (token.roles as string[]) || [];
+    let userRoles: string[] = [];
+
+    // Fetch user roles from MinistryPlatform (security roles + user groups)
+    // This matches the logic in auth.ts session callback
+    try {
+      const MPHelper = (await import('@/providers/MinistryPlatform/mpHelper')).MPHelper;
+      const mp = new MPHelper();
+
+      // Get User_ID from User_GUID (sub)
+      const users = await mp.getTableRecords<{ User_ID: number }>({
+        table: 'dp_Users',
+        select: 'User_ID',
+        filter: `User_GUID='${token.sub}'`,
+        top: 1,
+      });
+
+      if (users.length > 0) {
+        const userId = users[0].User_ID;
+
+        // Fetch ALL user group IDs
+        const allUserGroupLinks = await mp.getTableRecords<{ User_Group_ID: number }>({
+          table: 'dp_User_User_Groups',
+          select: 'User_Group_ID',
+          filter: `User_ID=${userId}`,
+        });
+
+        const groupIds = allUserGroupLinks.map(g => g.User_Group_ID).filter(Boolean);
+
+        if (groupIds.length > 0) {
+          // Fetch user group names using IN() clause
+          const groupIdList = groupIds.join(',');
+          const userGroups = await mp.getTableRecords<{ User_Group_ID: number; User_Group_Name: string }>({
+            table: 'dp_User_Groups',
+            select: 'User_Group_ID, User_Group_Name',
+            filter: `User_Group_ID IN (${groupIdList})`,
+          });
+
+          const allGroupNames = userGroups.map(g => g.User_Group_Name).filter(Boolean);
+
+          // Combine OAuth security roles (from token if available) with ALL user groups
+          const oauthRoles = (token.roles as string[]) || [];
+          userRoles = [...new Set([...oauthRoles, ...allGroupNames])];
+          console.log('Middleware: Fetched user roles. Total roles:', userRoles.length);
+        }
+      }
+    } catch (error) {
+      console.error('Middleware: Error fetching user roles:', error);
+      // If we can't fetch roles, use whatever is in the token (might be empty)
+      userRoles = (token.roles as string[]) || [];
+    }
 
     // Check for app-specific permission simulation (cookie-based)
     const isAdmin = userRoles.includes('Administrators');
