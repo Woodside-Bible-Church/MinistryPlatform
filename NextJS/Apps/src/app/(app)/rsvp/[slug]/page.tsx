@@ -961,7 +961,7 @@ export default function ProjectDetailPage({
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <input
                       type="text"
-                      placeholder="Search by name, event, or campus..."
+                      placeholder={isChurchWide ? "Search by name, event, or campus..." : "Search by name or event..."}
                       value={searchText}
                       onChange={(e) => setSearchText(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
@@ -1027,9 +1027,11 @@ export default function ProjectDetailPage({
                             <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
                               Event
                             </th>
-                            <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
-                              Campus
-                            </th>
+                            {isChurchWide && (
+                              <th className="text-left py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">
+                                Campus
+                              </th>
+                            )}
                             {questions.map((question) => {
                               // Get unique values for this question from congregation-filtered RSVPs
                               const uniqueValues = Array.from(new Set(
@@ -1112,7 +1114,7 @@ export default function ProjectDetailPage({
                         <tbody>
                           {searchFilteredRsvps.length === 0 ? (
                             <tr>
-                              <td colSpan={questions.length + 4} className="py-8 text-center text-muted-foreground">
+                              <td colSpan={questions.length + (isChurchWide ? 4 : 3)} className="py-8 text-center text-muted-foreground">
                                 No RSVPs match your filters
                               </td>
                             </tr>
@@ -1132,9 +1134,11 @@ export default function ProjectDetailPage({
                                     <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
                                       {rsvp.Event_Title || "N/A"}
                                     </td>
-                                    <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
-                                      {rsvp.Campus_Name || "N/A"}
-                                    </td>
+                                    {isChurchWide && (
+                                      <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
+                                        {rsvp.Campus_Name || "N/A"}
+                                      </td>
+                                    )}
                                     {questions.map((question) => (
                                       <td
                                         key={question}
@@ -1157,9 +1161,11 @@ export default function ProjectDetailPage({
                                 <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
                                   -
                                 </td>
-                                <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
-                                  -
-                                </td>
+                                {isChurchWide && (
+                                  <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
+                                    -
+                                  </td>
+                                )}
                                 {questions.map((question) => {
                                   // Collect all values for this question
                                   const values = searchFilteredRsvps
