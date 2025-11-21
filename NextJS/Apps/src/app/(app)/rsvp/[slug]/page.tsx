@@ -31,6 +31,8 @@ import { Button } from "@/components/ui/button";
 type Project = {
   Project_ID: number;
   Project_Title: string;
+  Project_Type_ID: number | null;
+  Project_Type: string | null;
   RSVP_Title: string | null;
   RSVP_Description: string | null;
   RSVP_Start_Date: string | null;
@@ -190,6 +192,7 @@ export default function ProjectDetailPage({
   const [campuses, setCampuses] = useState<ProjectCampus[]>([]);
   const [rsvps, setRsvps] = useState<ProjectRSVP[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [typeProjects, setTypeProjects] = useState<Array<{Project_ID: number; Project_Title: string; RSVP_Slug: string}>>([]);
 
   // Filter states
   const [searchText, setSearchText] = useState("");
@@ -216,6 +219,27 @@ export default function ProjectDetailPage({
         setProject(data.Project);
         setCampuses(data.Campuses || []);
         setRsvps(data.RSVPs || []);
+
+        // If project has a type, fetch all projects of the same type for dropdown
+        if (data.Project?.Project_Type_ID) {
+          const projectsResponse = await fetch("/api/rsvp/projects");
+          if (projectsResponse.ok) {
+            const allProjects = await projectsResponse.json();
+            const sameTypeProjects = allProjects
+              .filter((p: any) => p.Project_Type_ID === data.Project.Project_Type_ID)
+              .sort((a: any, b: any) => {
+                const dateA = a.RSVP_Start_Date ? new Date(a.RSVP_Start_Date).getTime() : 0;
+                const dateB = b.RSVP_Start_Date ? new Date(b.RSVP_Start_Date).getTime() : 0;
+                return dateB - dateA;
+              })
+              .map((p: any) => ({
+                Project_ID: p.Project_ID,
+                Project_Title: p.Project_Title,
+                RSVP_Slug: p.RSVP_Slug,
+              }));
+            setTypeProjects(sameTypeProjects);
+          }
+        }
       } catch (error) {
         console.error("Error loading project data:", error);
       } finally {
@@ -296,18 +320,55 @@ export default function ProjectDetailPage({
   return (
     <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
       {/* Back Button */}
-      <Link
-        href="/rsvp"
-        className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
-      >
-        <ChevronLeft className="w-4 h-4" />
-        Back to Project RSVPs
-      </Link>
+      <div className="mb-6">
+        <Link
+          href="/rsvp"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Back to Project RSVPs
+        </Link>
+      </div>
 
-      {/* Project Title */}
-      <h1 className="text-3xl font-bold text-primary dark:text-foreground mb-6">
-        {project.Project_Title}
-      </h1>
+      {/* Project Title with dropdown if multiple in same type */}
+      {typeProjects.length > 1 ? (
+        <div className="mb-6">
+          <div className="relative inline-block group">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <h1 className="text-3xl font-bold text-primary dark:text-foreground group-hover:text-[#61bc47] transition-colors">
+                {project.Project_Title}
+              </h1>
+              <ChevronDown className="w-6 h-6 text-primary dark:text-foreground group-hover:text-[#61bc47] transition-colors" />
+              <select
+                value={project.Project_ID}
+                onChange={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const selectedProject = typeProjects.find(p => p.Project_ID === parseInt(e.target.value));
+                  if (selectedProject?.RSVP_Slug) {
+                    window.location.href = `/rsvp/${selectedProject.RSVP_Slug}`;
+                  }
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+              >
+                {typeProjects.map((p) => (
+                  <option key={p.Project_ID} value={p.Project_ID}>
+                    {p.Project_Title}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </div>
+      ) : (
+        <h1 className="text-3xl font-bold text-primary dark:text-foreground mb-6">
+          {project.Project_Title}
+        </h1>
+      )}
 
       {/* Tabs */}
       <div className="border-b border-border mb-8">

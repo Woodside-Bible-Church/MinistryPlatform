@@ -46,64 +46,27 @@ export class ProjectRSVPService {
 
   /**
    * Get all active RSVP projects
+   * Uses stored procedure for better performance
    */
   public async getActiveRSVPProjects(): Promise<RSVPProjectList[]> {
     try {
-      // Get projects where RSVP_Is_Active = true
-      const projects = await this.tableService.getTableRecords<any>(
-        "Projects",
-        {
-          $select: `
-            Project_ID,
-            Project_Title,
-            RSVP_Title,
-            RSVP_Description,
-            RSVP_Start_Date,
-            RSVP_End_Date,
-            RSVP_Is_Active,
-            RSVP_Slug
-          `,
-          $filter: "RSVP_Is_Active = 1",
-          $orderby: "RSVP_Start_Date DESC",
+      const result = await this.procedureService.executeProcedure(
+        'api_Custom_RSVP_Management_Projects_JSON',
+        {}
+      );
+
+      // Stored proc returns JSON in a special column format
+      if (result && result.length > 0 && result[0] && result[0].length > 0) {
+        const firstRow = result[0][0] as any;
+        // The column name is typically JsonResult or similar
+        const jsonString = firstRow.JsonResult;
+
+        if (jsonString) {
+          return JSON.parse(jsonString);
         }
-      );
+      }
 
-      // For each project, count events and RSVPs
-      const projectsWithCounts = await Promise.all(
-        projects.map(async (project) => {
-          // Count project events (now from Events table)
-          const events = await this.tableService.getTableRecords<any>(
-            "Events",
-            {
-              $filter: `Project_ID = ${project.Project_ID} AND Include_In_RSVP = 1`,
-              $select: "Event_ID",
-            }
-          );
-
-          // Count RSVPs across all events in this project (using Event_Participants)
-          const eventIds = await this.getEventIdsForProject(project.Project_ID);
-          let rsvpCount = 0;
-
-          if (eventIds.length > 0) {
-            const participants = await this.tableService.getTableRecords<any>(
-              "Event_Participants",
-              {
-                $filter: `Event_ID IN (${eventIds.join(",")}) AND Participation_Status_ID = 2`,
-                $select: "Event_Participant_ID",
-              }
-            );
-            rsvpCount = participants.length;
-          }
-
-          return {
-            ...project,
-            Event_Count: events.length,
-            RSVP_Count: rsvpCount,
-          };
-        })
-      );
-
-      return projectsWithCounts;
+      return [];
     } catch (error) {
       console.error("Error fetching active RSVP projects:", error);
       throw error;

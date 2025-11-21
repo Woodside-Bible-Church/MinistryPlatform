@@ -51,6 +51,8 @@ BEGIN
         SELECT TOP 1
             p.Project_ID,
             p.Project_Title,
+            p.Project_Type_ID,
+            pt.Project_Type,
             p.RSVP_Title,
             p.RSVP_Description,
             p.RSVP_Start_Date,
@@ -78,6 +80,7 @@ BEGIN
                 ELSE NULL
             END
         FROM Projects p
+        LEFT JOIN Project_Types pt ON p.Project_Type_ID = pt.Project_Type_ID
         -- Join to dp_files to get RSVP_BG_Image.jpg file
         LEFT OUTER JOIN dp_files BG ON BG.Record_ID = p.Project_ID
             AND BG.Table_Name = 'Projects'

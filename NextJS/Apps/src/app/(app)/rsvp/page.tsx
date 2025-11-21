@@ -2,115 +2,102 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Calendar, Users, TrendingUp, Plus, Search, Activity } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { TrendingUp, Search, ChevronDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
 type RSVPProject = {
   Project_ID: number;
   Project_Title: string;
+  Project_Type_ID: number | null;
+  Project_Type: string | null;
   RSVP_Title: string | null;
   RSVP_Description: string | null;
   RSVP_Start_Date: string | null;
   RSVP_End_Date: string | null;
   RSVP_Is_Active: boolean | null;
   RSVP_Slug: string | null;
+  RSVP_Image_URL: string | null;
   Event_Count: number;
   RSVP_Count: number;
 };
 
-function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function ProjectCard({ project }: { project: RSVPProject }) {
-  const now = new Date();
-  const startDate = project.RSVP_Start_Date ? new Date(project.RSVP_Start_Date) : null;
-  const endDate = project.RSVP_End_Date ? new Date(project.RSVP_End_Date) : null;
-
-  const isUpcoming = startDate && startDate > now;
-  const isOngoing = startDate && endDate && startDate <= now && endDate >= now;
-  const isPast = endDate && endDate < now;
-
-  const getStatusColor = () => {
-    if (isPast) return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
-    if (isOngoing) return "bg-[#61bc47]/10 text-[#61bc47] border border-[#61bc47]/20";
-    return "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400";
-  };
-
-  const getStatusText = () => {
-    if (isPast) return "Past";
-    if (isOngoing) return "Active";
-    return "Upcoming";
-  };
-
+function ProjectCard({ project, typeProjects }: { project: RSVPProject; typeProjects?: RSVPProject[] }) {
+  const router = useRouter();
   const displayTitle = project.RSVP_Title || project.Project_Title;
+  const hasMultipleInType = typeProjects && typeProjects.length > 1;
 
   return (
-    <Link
-      href={`/rsvp/${project.RSVP_Slug}`}
-      className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-xl hover:border-primary/50 dark:hover:border-[#61bc47]/50 transition-all group"
-    >
-      <div className="p-6">
-        {/* Header */}
-        <div className="flex justify-between items-start mb-3">
-          <h3 className="text-xl font-semibold text-foreground flex-1 pr-2 group-hover:text-[#61bc47] transition-colors">
-            {displayTitle}
-          </h3>
-        </div>
-
-        {/* Status Badges */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          <span
-            className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor()}`}
-          >
-            {getStatusText()}
-          </span>
-          {project.Event_Count > 0 && (
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
-              <Calendar className="w-4 h-4" />
-              {project.Event_Count} {project.Event_Count === 1 ? "event" : "events"}
-            </span>
+    <div className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all">
+      <Link href={`/rsvp/${project.RSVP_Slug}`} className="block">
+        <div className="p-6">
+          {/* Project Title with dropdown if multiple in same type */}
+          {hasMultipleInType ? (
+            <div className="relative inline-block mb-3 group">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <h2 className="text-2xl font-bold text-foreground group-hover:text-[#61bc47] transition-colors">
+                  {project.Project_Title}
+                </h2>
+                <ChevronDown className="w-5 h-5 text-foreground group-hover:text-[#61bc47] transition-colors" />
+                <select
+                  value={project.Project_ID}
+                  onChange={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const selectedProject = typeProjects.find(p => p.Project_ID === parseInt(e.target.value));
+                    if (selectedProject?.RSVP_Slug) {
+                      window.location.href = `/rsvp/${selectedProject.RSVP_Slug}`;
+                    }
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                >
+                  {typeProjects.map((p) => (
+                    <option key={p.Project_ID} value={p.Project_ID}>
+                      {p.Project_Title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          ) : (
+            <h2 className="text-2xl font-bold text-foreground mb-3 hover:text-[#61bc47] transition-colors">
+              {project.Project_Title}
+            </h2>
           )}
-          {project.RSVP_Count > 0 && (
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400">
-              <Activity className="w-4 h-4" />
-              {project.RSVP_Count} {project.RSVP_Count === 1 ? "RSVP" : "RSVPs"}
-            </span>
+
+          {/* RSVP Image */}
+          {project.RSVP_Image_URL && (
+            <div className="mb-4 rounded-lg overflow-hidden">
+              <img
+                src={project.RSVP_Image_URL}
+                alt={displayTitle}
+                className="w-full h-auto object-cover"
+              />
+            </div>
+          )}
+
+          {/* RSVP Title */}
+          {project.RSVP_Title && (
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              {project.RSVP_Title}
+            </h3>
+          )}
+
+          {/* RSVP Description */}
+          {project.RSVP_Description && (
+            <div
+              className="text-sm text-muted-foreground line-clamp-3"
+              dangerouslySetInnerHTML={{ __html: project.RSVP_Description }}
+            />
           )}
         </div>
-
-        {/* Description */}
-        {project.RSVP_Description && (
-          <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-            {project.RSVP_Description}
-          </p>
-        )}
-
-        {/* Date Range */}
-        {startDate && endDate && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Calendar className="w-4 h-4" />
-            <span>
-              {formatDate(project.RSVP_Start_Date!)} - {formatDate(project.RSVP_End_Date!)}
-            </span>
-          </div>
-        )}
-
-        {/* Slug Badge (for reference) */}
-        {project.RSVP_Slug && (
-          <div className="mt-3 pt-3 border-t border-border">
-            <span className="text-xs text-muted-foreground font-mono">
-              /{project.RSVP_Slug}
-            </span>
-          </div>
-        )}
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 }
 
@@ -125,6 +112,7 @@ export default function RSVPPage() {
         const response = await fetch("/api/rsvp/projects");
         if (!response.ok) throw new Error("Failed to fetch RSVP projects");
         const data = await response.json();
+        console.log("RSVP Projects loaded:", data);
         setProjects(data);
       } catch (error) {
         console.error("Error loading RSVP projects:", error);
@@ -144,9 +132,53 @@ export default function RSVPPage() {
     return (
       (displayTitle?.toLowerCase() || "").includes(query) ||
       (p.RSVP_Description?.toLowerCase() || "").includes(query) ||
-      (p.RSVP_Slug?.toLowerCase() || "").includes(query)
+      (p.RSVP_Slug?.toLowerCase() || "").includes(query) ||
+      (p.Project_Title?.toLowerCase() || "").includes(query)
     );
   });
+
+  // Group projects by Project_Type_ID
+  const projectsByType: Record<string, RSVPProject[]> = {};
+  const standaloneProjects: RSVPProject[] = [];
+
+  filteredProjects.forEach((project) => {
+    if (project.Project_Type_ID) {
+      const typeKey = project.Project_Type_ID.toString();
+      if (!projectsByType[typeKey]) {
+        projectsByType[typeKey] = [];
+      }
+      projectsByType[typeKey].push(project);
+    } else {
+      standaloneProjects.push(project);
+    }
+  });
+
+  // Sort projects within each type by start date descending (most recent first)
+  Object.keys(projectsByType).forEach((typeId) => {
+    projectsByType[typeId].sort((a, b) => {
+      const dateA = a.RSVP_Start_Date ? new Date(a.RSVP_Start_Date).getTime() : 0;
+      const dateB = b.RSVP_Start_Date ? new Date(b.RSVP_Start_Date).getTime() : 0;
+      return dateB - dateA;
+    });
+  });
+
+  // Convert to array and sort by the most recent project's date in each group
+  const sortedProjectGroups = Object.entries(projectsByType)
+    .map(([typeId, typeProjects]) => ({
+      typeId,
+      projects: typeProjects,
+      mostRecentDate: typeProjects[0]?.RSVP_Start_Date
+        ? new Date(typeProjects[0].RSVP_Start_Date).getTime()
+        : 0,
+    }))
+    .sort((a, b) => b.mostRecentDate - a.mostRecentDate);
+
+  console.log("Sorted project groups:", sortedProjectGroups.map(g => ({
+    type: g.typeId,
+    mostRecent: g.projects[0]?.Project_Title,
+    date: g.projects[0]?.RSVP_Start_Date,
+    allProjects: g.projects.map(p => ({ title: p.Project_Title, date: p.RSVP_Start_Date }))
+  })));
 
   if (isLoading) {
     return (
@@ -236,8 +268,21 @@ export default function RSVPPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredProjects.map((p) => (
-            <ProjectCard key={p.Project_ID} project={p} />
+          {/* Projects grouped by type - show most recent with dropdown */}
+          {sortedProjectGroups.map((group) => {
+            const mostRecentProject = group.projects[0]; // Already sorted by date desc
+            return (
+              <ProjectCard
+                key={mostRecentProject.Project_ID}
+                project={mostRecentProject}
+                typeProjects={group.projects}
+              />
+            );
+          })}
+
+          {/* Standalone projects without a type */}
+          {standaloneProjects.map((project) => (
+            <ProjectCard key={project.Project_ID} project={project} />
           ))}
         </div>
       )}
