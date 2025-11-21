@@ -197,7 +197,7 @@ export default function ProjectDetailPage({
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   // Tab state
-  const [activeTab, setActiveTab] = useState<"events" | "rsvps">("events");
+  const [activeTab, setActiveTab] = useState<"details" | "events" | "rsvps">("details");
 
   useEffect(() => {
     async function loadData() {
@@ -304,105 +304,228 @@ export default function ProjectDetailPage({
         Back to Project RSVPs
       </Link>
 
-      {/* Project Header */}
-      <div className="mb-8 bg-card border border-border rounded-lg p-6">
-        <div className="flex justify-between items-start mb-6">
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-primary dark:text-foreground mb-2">
-              {displayTitle}
-            </h1>
-            {project.RSVP_Description && (
-              <p
-                className="text-muted-foreground max-w-3xl"
-                dangerouslySetInnerHTML={{ __html: project.RSVP_Description }}
-              />
-            )}
-
-            {/* Project Dates */}
-            {project.RSVP_Start_Date && project.RSVP_End_Date && (
-              <div className="flex items-center gap-1 mt-3 text-sm text-muted-foreground">
-                <Calendar className="w-4 h-4" />
-                {formatDate(project.RSVP_Start_Date)} -{" "}
-                {formatDate(project.RSVP_End_Date)}
-              </div>
-            )}
-          </div>
+      {/* Tabs */}
+      <div className="border-b border-border mb-8">
+        <div className="flex gap-2">
           <button
-            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-            onClick={() => {
-              // TODO: Open edit project modal/dialog
-              console.log('Edit project:', project.Project_ID);
-            }}
-            title="Edit project details"
+            onClick={() => setActiveTab("details")}
+            className={`pb-4 px-6 py-2 font-semibold transition-all relative rounded-t-lg ${
+              activeTab === "details"
+                ? "text-[#61bc47]"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            }`}
           >
-            <Pencil className="w-4 h-4" />
+            Details
+            {activeTab === "details" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#61bc47]" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("events")}
+            className={`pb-4 px-6 py-2 font-semibold transition-all relative rounded-t-lg ${
+              activeTab === "events"
+                ? "text-[#61bc47]"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            }`}
+          >
+            Events
+            {activeTab === "events" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#61bc47]" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("rsvps")}
+            className={`pb-4 px-6 py-2 font-semibold transition-all relative rounded-t-lg ${
+              activeTab === "rsvps"
+                ? "text-[#61bc47]"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            }`}
+          >
+            Who's Coming?
+            {activeTab === "rsvps" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#61bc47]" />
+            )}
           </button>
         </div>
+      </div>
 
-        {/* Divider */}
-        <div className="border-t border-border my-6"></div>
-
-        {/* Project Configuration */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Left Column */}
-          <div className="space-y-4">
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Status
-              </label>
-              <p className="text-sm text-foreground mt-1">
-                {project.RSVP_Is_Active ? 'Active' : 'Inactive'}
-              </p>
+      {/* Details Tab */}
+      {activeTab === "details" && (
+        <div className="mb-12 space-y-6">
+          {/* Project Information Card */}
+          <div className="bg-card border border-border rounded-lg p-6">
+            <div className="flex justify-between items-start mb-6">
+              <h2 className="text-xl font-semibold text-foreground">Project Information</h2>
+              <button
+                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                onClick={() => {
+                  // TODO: Open edit project info modal/dialog
+                  console.log('Edit project info:', project.Project_ID);
+                }}
+                title="Edit project information"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
             </div>
 
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Require Contact Lookup
-              </label>
-              <p className="text-sm text-foreground mt-1">
-                {project.RSVP_Require_Contact_Lookup ? 'Yes' : 'No'}
-              </p>
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Allow Guest Submission
-              </label>
-              <p className="text-sm text-foreground mt-1">
-                {project.RSVP_Allow_Guest_Submission ? 'Yes' : 'No'}
-              </p>
-            </div>
-
-            {project.RSVP_Confirmation_Email_Template_ID && (
+            <div className="space-y-4">
+              {/* Project Title */}
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  Confirmation Email Template ID
+                  Project Title
                 </label>
-                <p className="text-sm text-foreground mt-1 font-mono">
-                  {project.RSVP_Confirmation_Email_Template_ID}
+                <p className="text-sm text-foreground mt-1">
+                  {project.Project_Title}
                 </p>
               </div>
-            )}
 
-            {project.RSVP_Confirmation_Template_ID && (
+              {/* RSVP Title */}
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  Confirmation Template ID
+                  RSVP Title
                 </label>
-                <p className="text-sm text-foreground mt-1 font-mono">
-                  {project.RSVP_Confirmation_Template_ID}
+                <p className="text-sm text-foreground mt-1">
+                  {displayTitle}
                 </p>
               </div>
-            )}
+
+              {/* Description */}
+              {project.RSVP_Description && (
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    Description
+                  </label>
+                  <div
+                    className="text-sm text-foreground mt-1"
+                    dangerouslySetInnerHTML={{ __html: project.RSVP_Description }}
+                  />
+                </div>
+              )}
+
+              {/* Date Range */}
+              {project.RSVP_Start_Date && project.RSVP_End_Date && (
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    Date Range
+                  </label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <p className="text-sm text-foreground">
+                      {formatDate(project.RSVP_Start_Date)} - {formatDate(project.RSVP_End_Date)}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Right Column - Colors */}
-          <div className="space-y-4">
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Colors
-              </label>
-              <div className="mt-2 space-y-2">
+          {/* General Settings Card */}
+          <div className="bg-card border border-border rounded-lg p-6">
+            <div className="flex justify-between items-start mb-6">
+              <h2 className="text-xl font-semibold text-foreground">General Settings</h2>
+              <button
+                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                onClick={() => {
+                  // TODO: Open edit project modal/dialog
+                  console.log('Edit project:', project.Project_ID);
+                }}
+                title="Edit general settings"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Status
+                </label>
+                <p className="text-sm text-foreground mt-1">
+                  {project.RSVP_Is_Active ? 'Active' : 'Inactive'}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Require Contact Lookup
+                </label>
+                <p className="text-sm text-foreground mt-1">
+                  {project.RSVP_Require_Contact_Lookup ? 'Yes' : 'No'}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Allow Guest Submission
+                </label>
+                <p className="text-sm text-foreground mt-1">
+                  {project.RSVP_Allow_Guest_Submission ? 'Yes' : 'No'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Template Configuration Card */}
+          {(project.RSVP_Confirmation_Email_Template_ID || project.RSVP_Confirmation_Template_ID) && (
+            <div className="bg-card border border-border rounded-lg p-6">
+              <div className="flex justify-between items-start mb-6">
+                <h2 className="text-xl font-semibold text-foreground">Template Configuration</h2>
+                <button
+                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                  onClick={() => {
+                    // TODO: Open edit template modal/dialog
+                    console.log('Edit templates:', project.Project_ID);
+                  }}
+                  title="Edit template configuration"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {project.RSVP_Confirmation_Email_Template_ID && (
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      Confirmation Email Template ID
+                    </label>
+                    <p className="text-sm text-foreground mt-1 font-mono">
+                      {project.RSVP_Confirmation_Email_Template_ID}
+                    </p>
+                  </div>
+                )}
+
+                {project.RSVP_Confirmation_Template_ID && (
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      Confirmation Template ID
+                    </label>
+                    <p className="text-sm text-foreground mt-1 font-mono">
+                      {project.RSVP_Confirmation_Template_ID}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Colors Card */}
+          {(project.RSVP_Primary_Color || project.RSVP_Secondary_Color || project.RSVP_Accent_Color || project.RSVP_Background_Color) && (
+            <div className="bg-card border border-border rounded-lg p-6">
+              <div className="flex justify-between items-start mb-6">
+                <h2 className="text-xl font-semibold text-foreground">Colors</h2>
+                <button
+                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                  onClick={() => {
+                    // TODO: Open edit colors modal/dialog
+                    console.log('Edit colors:', project.Project_ID);
+                  }}
+                  title="Edit colors"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {project.RSVP_Primary_Color && (
                   <div className="flex items-center gap-2">
                     <div
@@ -453,67 +576,51 @@ export default function ProjectDetailPage({
                 )}
               </div>
             </div>
-          </div>
-        </div>
+          )}
 
-        {/* Images Section - Full Width Below */}
-        {(project.RSVP_Image_URL || project.RSVP_BG_Image_URL) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-            {project.RSVP_Image_URL && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-2">Image</p>
-                <img
-                  src={project.RSVP_Image_URL}
-                  alt="RSVP Image"
-                  className="w-full h-auto rounded border border-border"
-                />
+          {/* Images Card */}
+          {(project.RSVP_Image_URL || project.RSVP_BG_Image_URL) && (
+            <div className="bg-card border border-border rounded-lg p-6">
+              <div className="flex justify-between items-start mb-6">
+                <h2 className="text-xl font-semibold text-foreground">Images</h2>
+                <button
+                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                  onClick={() => {
+                    // TODO: Open edit images modal/dialog
+                    console.log('Edit images:', project.Project_ID);
+                  }}
+                  title="Edit images"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
               </div>
-            )}
-            {project.RSVP_BG_Image_URL && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-2">Background Image</p>
-                <img
-                  src={project.RSVP_BG_Image_URL}
-                  alt="Background Image"
-                  className="w-full h-auto rounded border border-border"
-                />
-              </div>
-            )}
-          </div>
-        )}
-      </div>
 
-      {/* Tabs */}
-      <div className="border-b border-border mb-8">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setActiveTab("events")}
-            className={`pb-4 px-6 py-2 font-semibold transition-all relative rounded-t-lg ${
-              activeTab === "events"
-                ? "text-[#61bc47]"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-            }`}
-          >
-            Events
-            {activeTab === "events" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#61bc47]" />
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("rsvps")}
-            className={`pb-4 px-6 py-2 font-semibold transition-all relative rounded-t-lg ${
-              activeTab === "rsvps"
-                ? "text-[#61bc47]"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-            }`}
-          >
-            Who's Coming?
-            {activeTab === "rsvps" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#61bc47]" />
-            )}
-          </button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {project.RSVP_Image_URL && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">Image</p>
+                    <img
+                      src={project.RSVP_Image_URL}
+                      alt="RSVP Image"
+                      className="w-full h-auto rounded border border-border"
+                    />
+                  </div>
+                )}
+                {project.RSVP_BG_Image_URL && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">Background Image</p>
+                    <img
+                      src={project.RSVP_BG_Image_URL}
+                      alt="Background Image"
+                      className="w-full h-auto rounded border border-border"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
       {/* Project Events Section - Grouped by Campus */}
       {activeTab === "events" && (
