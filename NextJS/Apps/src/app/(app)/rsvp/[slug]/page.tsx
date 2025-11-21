@@ -635,56 +635,56 @@ export default function ProjectDetailPage({
             {/* Iterate through each campus */}
             {filteredCampuses.map((campus) => (
               <div key={campus.Congregation_ID}>
-                {/* Campus Header */}
-                <div className="mb-6">
-                  <h3 className="text-2xl font-bold text-foreground">{campus.Campus_Name}</h3>
-                  <div className="h-1 w-20 bg-[#61bc47] rounded mt-2" />
+                {/* Campus Header - Only show when Church Wide */}
+                {isChurchWide && (
+                  <div className="mb-6">
+                    <h3 className="text-2xl font-bold text-foreground">{campus.Campus_Name}</h3>
+                    <div className="h-1 w-20 bg-[#61bc47] rounded mt-2" />
+                  </div>
+                )}
 
-                  {/* Public Event Info */}
-                  {campus.Public_Event_ID ? (
-                    <div className="mt-4 bg-card border border-border rounded-lg overflow-hidden max-w-md relative">
-                      {/* Edit Button */}
-                      <button
-                        className="absolute top-2 right-2 p-2 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors z-10 backdrop-blur-sm"
-                        onClick={() => {
-                          // TODO: Open edit meeting instructions modal/dialog
-                          console.log('Edit meeting instructions for event:', campus.Public_Event_ID);
-                        }}
-                        title="Edit meeting instructions"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
+                {/* Public Event Info */}
+                {campus.Public_Event_ID ? (
+                  <div className={`bg-card border border-border rounded-lg overflow-hidden max-w-md relative ${isChurchWide ? 'mt-4' : 'mb-6'}`}>
+                    {/* Edit Button */}
+                    <button
+                      className="absolute top-2 right-2 p-2 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors z-10 backdrop-blur-sm"
+                      onClick={() => {
+                        // TODO: Open edit meeting instructions modal/dialog
+                        console.log('Edit meeting instructions for event:', campus.Public_Event_ID);
+                      }}
+                      title="Edit meeting instructions"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
 
-                      {/* Public Event Image */}
-                      {campus.Public_Event_Image_URL && (
-                        <div className="w-full bg-muted">
-                          <img
-                            src={campus.Public_Event_Image_URL}
-                            alt={campus.Public_Event_Title || 'Campus Event'}
-                            className="w-full h-auto"
-                          />
-                        </div>
-                      )}
-
-                      {/* Public Event Text Content */}
-                      <div className="p-4">
-                        {campus.Public_Event_Title && (
-                          <div className="flex items-center gap-2 mb-2">
-                            <Info className="w-4 h-4 text-[#61bc47]" />
-                            <h4 className="font-semibold text-foreground">{campus.Public_Event_Title}</h4>
-                          </div>
-                        )}
-                        {campus.Meeting_Instructions && (
-                          <p className="text-sm text-muted-foreground pl-6">{campus.Meeting_Instructions}</p>
-                        )}
+                    {/* Public Event Image */}
+                    {campus.Public_Event_Image_URL && (
+                      <div className="w-full bg-muted">
+                        <img
+                          src={campus.Public_Event_Image_URL}
+                          alt="Additional Meeting Information"
+                          className="w-full h-auto"
+                        />
                       </div>
+                    )}
+
+                    {/* Public Event Text Content */}
+                    <div className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Info className="w-4 h-4 text-[#61bc47]" />
+                        <h4 className="font-semibold text-foreground">Additional Meeting Information</h4>
+                      </div>
+                      {campus.Meeting_Instructions && (
+                        <p className="text-sm text-muted-foreground pl-6">{campus.Meeting_Instructions}</p>
+                      )}
                     </div>
-                  ) : (
-                    <div className="mt-4 bg-card border border-dashed border-border rounded-lg p-6 text-center max-w-md">
-                      <p className="text-sm text-muted-foreground">No public-facing event configured</p>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div className={`bg-card border border-dashed border-border rounded-lg p-6 text-center max-w-md ${isChurchWide ? 'mt-4' : 'mb-6'}`}>
+                    <p className="text-sm text-muted-foreground">No public-facing event configured</p>
+                  </div>
+                )}
 
                 {/* Check if campus has events */}
                 {!campus.Events || campus.Events.length === 0 ? (
