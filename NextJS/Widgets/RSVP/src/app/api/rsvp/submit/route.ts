@@ -96,10 +96,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const jsonResultRow = firstRow[0] as { JsonResult?: string };
+    const jsonResultRow = firstRow[0] as Record<string, string>;
     console.log('[RSVP Submit] JsonResult row:', JSON.stringify(jsonResultRow, null, 2));
 
-    if (!jsonResultRow.JsonResult) {
+    // Handle both JsonResult and GUID field names (SQL Server auto-generates GUID field names when using FOR JSON PATH without column alias)
+    let jsonString: string | undefined;
+
+    if (jsonResultRow.JsonResult) {
+      jsonString = jsonResultRow.JsonResult;
+    } else {
+      // Try to find any field that looks like a GUID (starts with "JSON_")
+      const guidField = Object.keys(jsonResultRow).find(key => key.startsWith('JSON_'));
+      if (guidField) {
+        jsonString = jsonResultRow[guidField];
+      }
+    }
+
+    if (!jsonString) {
       return NextResponse.json(
         { error: 'No JsonResult field in response', receivedRow: jsonResultRow },
         { status: 500 }
@@ -107,7 +120,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse the JSON string
-    const data: RSVPSubmissionResponse = JSON.parse(jsonResultRow.JsonResult);
+    const data: RSVPSubmissionResponse = JSON.parse(jsonString);
 
     // Check if submission was successful
     if (data.status === 'error') {
