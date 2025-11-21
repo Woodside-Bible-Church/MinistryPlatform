@@ -749,8 +749,8 @@ export default function ProjectDetailPage({
                           </span>
                         </div>
 
-                        {/* Campus Name */}
-                        {event.Congregation_Name && (
+                        {/* Campus Name - Only show when Church Wide */}
+                        {isChurchWide && event.Congregation_Name && (
                           <div className="text-sm text-muted-foreground mb-4 uppercase tracking-wide">
                             {event.Congregation_Name}
                           </div>
