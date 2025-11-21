@@ -173,6 +173,9 @@ export default function ProjectDetailPage({
   const resolvedParams = use(params);
   const slug = resolvedParams.slug;
 
+  // Get selected campus from context
+  const { selectedCampus } = useCampus();
+
   const [project, setProject] = useState<Project | null>(null);
   const [events, setEvents] = useState<ProjectEventWithDetails[]>([]);
   const [rsvps, setRsvps] = useState<ProjectRSVP[]>([]);
@@ -232,9 +235,25 @@ export default function ProjectDetailPage({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openDropdown]);
 
-  const includedEvents = events.filter((e) => e.Include_In_RSVP);
-  const totalRSVPs = rsvps.length;
-  const totalAttendees = rsvps.reduce(
+  // Filter events and RSVPs by selected congregation
+  // Church Wide (ID = 1) shows all, specific campus shows only that campus
+  const isChurchWide = !selectedCampus || selectedCampus.Congregation_ID === 1;
+
+  const filteredEvents = events.filter((e) => {
+    if (!e.Include_In_RSVP) return false;
+    if (isChurchWide) return true;
+    return e.Congregation_ID === selectedCampus.Congregation_ID;
+  });
+
+  const filteredRsvps = rsvps.filter((r) => {
+    if (isChurchWide) return true;
+    // Match by campus name since RSVPs have Campus_Name
+    return r.Campus_Name === selectedCampus.Congregation_Name;
+  });
+
+  const includedEvents = filteredEvents;
+  const totalRSVPs = filteredRsvps.length;
+  const totalAttendees = filteredRsvps.reduce(
     (sum, r) => sum + (r.Party_Size || 0),
     0
   );
@@ -436,7 +455,7 @@ export default function ProjectDetailPage({
 
                         {/* Time */}
                         <div className="flex items-center gap-2 mb-4">
-                          <Activity className="w-5 h-5 text-[#61bc47]" />
+                          <Clock className="w-5 h-5 text-[#61bc47]" />
                           <span className="text-2xl font-bold text-foreground">
                             {event.Event_Start_Date
                               ? new Date(event.Event_Start_Date).toLocaleTimeString("en-US", {
@@ -567,58 +586,67 @@ export default function ProjectDetailPage({
                     if (campusCards.length === 0) return null;
 
                     return (
-                      <div className="mt-8 flex flex-wrap gap-6">
-                        {campusCards.map((card) => {
-                          // Parse configuration JSON if it exists
-                          let config: { title?: string; bullets?: Array<{ icon?: string; text?: string }> } = {};
-                          try {
-                            if (card.Configuration) {
-                              config = JSON.parse(card.Configuration);
+                      <div className="mt-8">
+                        {/* Confirmation Cards Heading */}
+                        <div className="flex items-center gap-2 mb-6">
+                          <CheckCircle2 className="w-5 h-5 text-[#61bc47]" />
+                          <h4 className="text-lg font-semibold text-foreground">
+                            Confirmation Cards
+                          </h4>
+                        </div>
+                        <div className="flex flex-wrap gap-6">
+                          {campusCards.map((card) => {
+                            // Parse configuration JSON if it exists
+                            let config: { title?: string; bullets?: Array<{ icon?: string; text?: string }> } = {};
+                            try {
+                              if (card.Configuration) {
+                                config = JSON.parse(card.Configuration);
+                              }
+                            } catch (e) {
+                              console.error("Failed to parse card configuration:", e);
                             }
-                          } catch (e) {
-                            console.error("Failed to parse card configuration:", e);
-                          }
 
-                          // Check if card is global (null or 1)
-                          const isGlobal = card.Congregation_ID === null || card.Congregation_ID === 1;
+                            // Check if card is global (null or 1)
+                            const isGlobal = card.Congregation_ID === null || card.Congregation_ID === 1;
 
-                          return (
-                            <div key={card.Card_ID} className="bg-card border border-border rounded-lg p-6 w-fit max-w-md">
-                              <div className="flex items-center gap-4 mb-6">
-                                <h4 className="text-xl font-semibold text-foreground">
-                                  {config.title || card.Card_Type_Name}
-                                </h4>
-                                {isGlobal && (
-                                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#61bc47]/10 text-[#61bc47] border border-[#61bc47]/20 whitespace-nowrap">
-                                    All campuses
-                                  </span>
+                            return (
+                              <div key={card.Card_ID} className="bg-card border border-border rounded-lg p-6 w-fit max-w-md">
+                                <div className="flex items-center gap-4 mb-6">
+                                  <h4 className="text-xl font-semibold text-foreground">
+                                    {config.title || card.Card_Type_Name}
+                                  </h4>
+                                  {isGlobal && (
+                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#61bc47]/10 text-[#61bc47] border border-[#61bc47]/20 whitespace-nowrap">
+                                      All campuses
+                                    </span>
+                                  )}
+                                </div>
+                                {config.bullets && config.bullets.length > 0 && (
+                                  <div className="space-y-4">
+                                    {config.bullets.map((bullet, index) => {
+                                      const IconComponent = getIconComponent(bullet.icon || null);
+                                      return (
+                                        <div
+                                          key={index}
+                                          className="flex items-center gap-4"
+                                        >
+                                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#61bc47]/10 border border-[#61bc47]/20 flex items-center justify-center">
+                                            <IconComponent className="w-5 h-5 text-[#61bc47]" />
+                                          </div>
+                                          <div className="flex-1">
+                                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                              {bullet.text}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
                                 )}
                               </div>
-                              {config.bullets && config.bullets.length > 0 && (
-                                <div className="space-y-4">
-                                  {config.bullets.map((bullet, index) => {
-                                    const IconComponent = getIconComponent(bullet.icon || null);
-                                    return (
-                                      <div
-                                        key={index}
-                                        className="flex items-center gap-4"
-                                      >
-                                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#61bc47]/10 border border-[#61bc47]/20 flex items-center justify-center">
-                                          <IconComponent className="w-5 h-5 text-[#61bc47]" />
-                                        </div>
-                                        <div className="flex-1">
-                                          <p className="text-sm text-muted-foreground leading-relaxed">
-                                            {bullet.text}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
+                        </div>
                       </div>
                     );
                   })()}
@@ -634,7 +662,7 @@ export default function ProjectDetailPage({
       {activeTab === "rsvps" && (
       <div className="mb-12">
           <div className="space-y-4">
-            {rsvps.length === 0 ? (
+            {filteredRsvps.length === 0 ? (
               <div className="bg-card border-2 border-dashed border-border rounded-lg p-12 text-center">
                 <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-xl font-semibold text-foreground mb-2">
@@ -676,11 +704,11 @@ export default function ProjectDetailPage({
 
                 <div className="overflow-x-auto border border-border rounded-lg">
                   {(() => {
-                    // Get all unique questions from RSVPs
-                    const questions = getAllQuestions(rsvps);
+                    // Get all unique questions from filtered RSVPs (respecting congregation filter)
+                    const questions = getAllQuestions(filteredRsvps);
 
-                    // Filter RSVPs
-                    const filteredRsvps = rsvps.filter((rsvp) => {
+                    // Apply search and column filters to already congregation-filtered RSVPs
+                    const searchFilteredRsvps = filteredRsvps.filter((rsvp) => {
                       // Search text filter (name, event, campus)
                       if (searchText) {
                         const searchLower = searchText.toLowerCase();
@@ -722,9 +750,9 @@ export default function ProjectDetailPage({
                               Campus
                             </th>
                             {questions.map((question) => {
-                              // Get unique values for this question
+                              // Get unique values for this question from congregation-filtered RSVPs
                               const uniqueValues = Array.from(new Set(
-                                rsvps.map(r => parseAnswerSummary(r.Answer_Summary)[question]).filter(Boolean)
+                                filteredRsvps.map(r => parseAnswerSummary(r.Answer_Summary)[question]).filter(Boolean)
                               )).sort();
 
                               const selectedValues = columnFilters[question] || [];
@@ -801,7 +829,7 @@ export default function ProjectDetailPage({
                           </tr>
                         </thead>
                         <tbody>
-                          {filteredRsvps.length === 0 ? (
+                          {searchFilteredRsvps.length === 0 ? (
                             <tr>
                               <td colSpan={questions.length + 4} className="py-8 text-center text-muted-foreground">
                                 No RSVPs match your filters
@@ -809,7 +837,7 @@ export default function ProjectDetailPage({
                             </tr>
                           ) : (
                             <>
-                              {filteredRsvps.map((rsvp) => {
+                              {searchFilteredRsvps.map((rsvp) => {
                                 const answers = parseAnswerSummary(rsvp.Answer_Summary);
 
                                 return (
@@ -843,7 +871,7 @@ export default function ProjectDetailPage({
                               {/* Summary Row */}
                               <tr className="bg-muted/50 font-semibold border-t-2 border-border">
                                 <td className="py-3 px-4 text-sm text-foreground whitespace-nowrap">
-                                  Total: {filteredRsvps.length}
+                                  Total: {searchFilteredRsvps.length}
                                 </td>
                                 <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
                                   -
@@ -853,7 +881,7 @@ export default function ProjectDetailPage({
                                 </td>
                                 {questions.map((question) => {
                                   // Collect all values for this question
-                                  const values = filteredRsvps
+                                  const values = searchFilteredRsvps
                                     .map(r => parseAnswerSummary(r.Answer_Summary)[question])
                                     .filter(Boolean);
 
