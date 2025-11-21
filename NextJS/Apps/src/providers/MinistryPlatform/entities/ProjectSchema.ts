@@ -30,6 +30,7 @@ export const ProjectSchema = z.object({
   RSVP_Confirmation_Email_Template_ID: z.number().int().nullable(),
   RSVP_Reminder_Email_Template_ID: z.number().int().nullable(),
   RSVP_Days_To_Remind: z.number().int().nullable(),
+  RSVP_URL: z.string().max(500).nullable(),
 
   Domain_ID: z.number().int().default(1),
 });

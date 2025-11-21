@@ -41,6 +41,7 @@ import {
   Plus,
   Trash2,
   Save,
+  ExternalLink,
   type LucideIcon,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -68,6 +69,7 @@ type Project = {
   RSVP_Confirmation_Email_Template_ID: number | null;
   RSVP_Reminder_Email_Template_ID: number | null;
   RSVP_Days_To_Remind: number | null;
+  RSVP_URL: string | null;
   RSVP_BG_Image_URL: string | null;
   RSVP_Image_URL: string | null;
 };
@@ -110,6 +112,7 @@ type ProjectRSVP = {
 type ProjectCampus = {
   Congregation_ID: number;
   Campus_Name: string;
+  Campus_Slug: string | null;
   Public_Event_ID: number | null;
   Public_Event_Title: string | null;
   Meeting_Instructions: string | null;
@@ -307,6 +310,7 @@ export default function ProjectDetailPage({
     RSVP_Description: "",
     RSVP_Start_Date: "",
     RSVP_End_Date: "",
+    RSVP_URL: "",
   });
 
   // Local state for General Settings fields
@@ -341,6 +345,7 @@ export default function ProjectDetailPage({
         RSVP_Description: project.RSVP_Description || "",
         RSVP_Start_Date: project.RSVP_Start_Date ? project.RSVP_Start_Date.split("T")[0] : "",
         RSVP_End_Date: project.RSVP_End_Date ? project.RSVP_End_Date.split("T")[0] : "",
+        RSVP_URL: project.RSVP_URL || "",
       });
     }
   }, [project]);
@@ -517,6 +522,7 @@ export default function ProjectDetailPage({
         RSVP_Description: projectInfoForm.RSVP_Description || null,
         RSVP_Start_Date: projectInfoForm.RSVP_Start_Date || null,
         RSVP_End_Date: projectInfoForm.RSVP_End_Date || null,
+        RSVP_URL: projectInfoForm.RSVP_URL || null,
       };
 
       const response = await fetch(`/api/rsvp/projects/${project.Project_ID}`, {
@@ -968,6 +974,7 @@ export default function ProjectDetailPage({
                           RSVP_Description: project.RSVP_Description || "",
                           RSVP_Start_Date: project.RSVP_Start_Date ? project.RSVP_Start_Date.split("T")[0] : "",
                           RSVP_End_Date: project.RSVP_End_Date ? project.RSVP_End_Date.split("T")[0] : "",
+                          RSVP_URL: project.RSVP_URL || "",
                         });
                       }
                     } else {
@@ -1048,6 +1055,24 @@ export default function ProjectDetailPage({
                     />
                   </div>
                 </div>
+
+                {/* RSVP URL Input */}
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                    RSVP URL
+                  </label>
+                  <input
+                    type="text"
+                    value={projectInfoForm.RSVP_URL}
+                    onChange={(e) => setProjectInfoForm({ ...projectInfoForm, RSVP_URL: e.target.value })}
+                    disabled={isSavingProjectInfo}
+                    placeholder="woodsidebible.org/christmas"
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Base URL for the RSVP page (e.g., woodsidebible.org/christmas)
+                  </p>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -1086,6 +1111,18 @@ export default function ProjectDetailPage({
                         {formatDate(project.RSVP_Start_Date)} - {formatDate(project.RSVP_End_Date)}
                       </p>
                     </div>
+                  </div>
+                )}
+
+                {/* RSVP URL */}
+                {project.RSVP_URL && (
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      RSVP URL
+                    </label>
+                    <p className="text-sm text-foreground mt-1">
+                      {project.RSVP_URL}
+                    </p>
                   </div>
                 )}
               </div>
@@ -1660,8 +1697,23 @@ export default function ProjectDetailPage({
                 {/* Campus Header - Only show when Church Wide */}
                 {isChurchWide && (
                   <div className="sticky top-16 bg-background/60 backdrop-blur-md border-b border-border z-10 py-4 mb-2">
-                    <h3 className="text-2xl font-bold text-foreground">{campus.Campus_Name}</h3>
-                    <div className="h-1 w-20 bg-[#61bc47] rounded mt-2" />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-2xl font-bold text-foreground">{campus.Campus_Name}</h3>
+                        <div className="h-1 w-20 bg-[#61bc47] rounded mt-2" />
+                      </div>
+                      {project?.RSVP_URL && campus.Campus_Slug && (
+                        <a
+                          href={`https://${project.RSVP_URL}?campus=${campus.Campus_Slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 px-4 py-2 bg-[#61bc47] text-white rounded-md hover:bg-[#51a839] transition-colors text-sm font-medium"
+                        >
+                          <span>View RSVP Page</span>
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 )}
 

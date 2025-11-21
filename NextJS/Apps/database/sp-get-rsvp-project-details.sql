@@ -68,6 +68,7 @@ BEGIN
             p.RSVP_Confirmation_Email_Template_ID,
             p.RSVP_Reminder_Email_Template_ID,
             p.RSVP_Days_To_Remind,
+            p.RSVP_URL,
             -- Build RSVP_BG_Image_URL from dp_files
             RSVP_BG_Image_URL = CASE
                 WHEN BG.File_ID IS NOT NULL AND CS.Value IS NOT NULL AND D.Domain_GUID IS NOT NULL
@@ -143,6 +144,7 @@ BEGIN
         SELECT
             pc.Congregation_ID,
             c.Congregation_Name AS Campus_Name,
+            c.Campus_Slug,
             pc.Public_Event_ID,
             pe.Event_Title AS Public_Event_Title,
             pe.Meeting_Instructions,
