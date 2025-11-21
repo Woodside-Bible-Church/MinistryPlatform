@@ -637,7 +637,7 @@ export default function ProjectDetailPage({
               <div key={campus.Congregation_ID}>
                 {/* Campus Header - Only show when Church Wide */}
                 {isChurchWide && (
-                  <div className="mb-6">
+                  <div className="sticky top-0 bg-background z-10 py-4 mb-2">
                     <h3 className="text-2xl font-bold text-foreground">{campus.Campus_Name}</h3>
                     <div className="h-1 w-20 bg-[#61bc47] rounded mt-2" />
                   </div>
