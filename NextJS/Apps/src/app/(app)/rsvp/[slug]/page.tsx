@@ -197,7 +197,7 @@ export default function ProjectDetailPage({
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   // Tab state
-  const [activeTab, setActiveTab] = useState<"details" | "events" | "rsvps">("details");
+  const [activeTab, setActiveTab] = useState<"details" | "campuses" | "rsvps">("details");
 
   useEffect(() => {
     async function loadData() {
@@ -326,15 +326,15 @@ export default function ProjectDetailPage({
             )}
           </button>
           <button
-            onClick={() => setActiveTab("events")}
+            onClick={() => setActiveTab("campuses")}
             className={`pb-4 px-6 py-2 font-semibold transition-all relative rounded-t-lg ${
-              activeTab === "events"
+              activeTab === "campuses"
                 ? "text-[#61bc47]"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
             }`}
           >
-            Events
-            {activeTab === "events" && (
+            Campuses
+            {activeTab === "campuses" && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#61bc47]" />
             )}
           </button>
@@ -617,8 +617,8 @@ export default function ProjectDetailPage({
         </div>
       )}
 
-      {/* Project Events Section - Grouped by Campus */}
-      {activeTab === "events" && (
+      {/* Campuses Section - Campus-specific configuration */}
+      {activeTab === "campuses" && (
       <div className="mb-12">
         {filteredCampuses.length === 0 ? (
           <div className="bg-card border-2 border-dashed border-border rounded-lg p-12 text-center">
