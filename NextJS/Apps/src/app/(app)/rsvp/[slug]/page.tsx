@@ -1717,6 +1717,21 @@ export default function ProjectDetailPage({
                   </div>
                 )}
 
+                {/* RSVP Page Link - Show when single campus selected */}
+                {!isChurchWide && project?.RSVP_URL && campus.Campus_Slug && (
+                  <div className="mb-6">
+                    <a
+                      href={`https://${project.RSVP_URL}?campus=${campus.Campus_Slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-[#61bc47] text-white rounded-md hover:bg-[#51a839] transition-colors text-sm font-medium"
+                    >
+                      <span>View RSVP Page</span>
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  </div>
+                )}
+
                 {/* Public Event Info */}
                 {campus.Public_Event_ID ? (
                   <div className={`bg-card border border-border rounded-lg overflow-hidden max-w-md relative mb-6 ${isChurchWide ? 'mt-4' : ''}`}>
