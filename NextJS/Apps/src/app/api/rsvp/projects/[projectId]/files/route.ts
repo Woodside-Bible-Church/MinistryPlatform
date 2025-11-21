@@ -81,7 +81,7 @@ export async function POST(
     await mp.ensureValidToken();
 
     // Step 1: Get existing files to see if this file already exists
-    const existingFiles = await mp.get(`/files/Projects/${projectId}`);
+    const existingFiles = (await mp.get(`/files/Projects/${projectId}`)) as any[];
     const existingFile = existingFiles.find((f: any) => f.FileName === fileName);
 
     // Step 2: If file exists, delete it first
