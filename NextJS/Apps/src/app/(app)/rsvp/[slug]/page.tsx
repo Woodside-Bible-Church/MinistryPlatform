@@ -304,6 +304,11 @@ export default function ProjectDetailPage({
         Back to Project RSVPs
       </Link>
 
+      {/* Project Title */}
+      <h1 className="text-3xl font-bold text-primary dark:text-foreground mb-6">
+        {project.Project_Title}
+      </h1>
+
       {/* Tabs */}
       <div className="border-b border-border mb-8">
         <div className="flex gap-2">
@@ -369,16 +374,6 @@ export default function ProjectDetailPage({
             </div>
 
             <div className="space-y-4">
-              {/* Project Title */}
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  Project Title
-                </label>
-                <p className="text-sm text-foreground mt-1">
-                  {project.Project_Title}
-                </p>
-              </div>
-
               {/* RSVP Title */}
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
