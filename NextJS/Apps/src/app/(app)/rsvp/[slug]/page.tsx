@@ -757,23 +757,11 @@ export default function ProjectDetailPage({
                 {campus.Confirmation_Cards && campus.Confirmation_Cards.length > 0 && (
                   <div className="mt-8">
                     {/* Confirmation Cards Heading */}
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 className="w-5 h-5 text-[#61bc47]" />
-                        <h4 className="text-lg font-semibold text-foreground">
-                          Confirmation Cards
-                        </h4>
-                      </div>
-                      <button
-                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-                        onClick={() => {
-                          // TODO: Open edit confirmation cards modal/dialog
-                          console.log('Edit confirmation cards for campus:', campus.Congregation_ID);
-                        }}
-                        title="Edit confirmation cards"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
+                    <div className="flex items-center gap-2 mb-6">
+                      <CheckCircle2 className="w-5 h-5 text-[#61bc47]" />
+                      <h4 className="text-lg font-semibold text-foreground">
+                        Confirmation Cards
+                      </h4>
                     </div>
                     <div className="flex flex-wrap gap-6">
                       {campus.Confirmation_Cards.map((card) => {
@@ -791,7 +779,19 @@ export default function ProjectDetailPage({
                           const isGlobal = card.Congregation_ID === null || card.Congregation_ID === 1;
 
                           return (
-                            <div key={card.Card_ID} className="bg-card border border-border rounded-lg p-6 w-fit max-w-md">
+                            <div key={card.Card_ID} className="bg-card border border-border rounded-lg p-6 w-fit max-w-md relative">
+                              {/* Edit Button */}
+                              <button
+                                className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                                onClick={() => {
+                                  // TODO: Open edit confirmation card modal/dialog
+                                  console.log('Edit confirmation card:', card.Card_ID);
+                                }}
+                                title="Edit confirmation card"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+
                               <div className="flex items-center gap-4 mb-6">
                                 <h4 className="text-xl font-semibold text-foreground">
                                   {config.title || card.Card_Type_Name}
