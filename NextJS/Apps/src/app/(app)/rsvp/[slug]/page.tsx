@@ -2014,7 +2014,10 @@ export default function ProjectDetailPage({
                                     cardId: card.Card_ID,
                                     config: {
                                       title: config.title || card.Card_Type_Name,
-                                      bullets: config.bullets || []
+                                      bullets: (config.bullets || []).map(b => ({
+                                        icon: b.icon || "Info",
+                                        text: b.text || ""
+                                      }))
                                     }
                                   });
                                 }}
