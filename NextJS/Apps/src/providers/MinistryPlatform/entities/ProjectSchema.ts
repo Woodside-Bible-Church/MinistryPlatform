@@ -28,7 +28,8 @@ export const ProjectSchema = z.object({
   RSVP_Accent_Color: z.string().max(7).nullable(),
   RSVP_Background_Color: z.string().max(7).nullable(),
   RSVP_Confirmation_Email_Template_ID: z.number().int().nullable(),
-  RSVP_Confirmation_Template_ID: z.number().int().nullable(),
+  RSVP_Reminder_Email_Template_ID: z.number().int().nullable(),
+  RSVP_Days_To_Remind: z.number().int().nullable(),
 
   Domain_ID: z.number().int().default(1),
 });

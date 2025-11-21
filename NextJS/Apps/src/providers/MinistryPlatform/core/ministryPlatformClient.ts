@@ -66,4 +66,39 @@ export class MinistryPlatformClient {
     public getHttpClient(): HttpClient {
         return this.httpClient;
     }
+
+    /**
+     * Convenience method: GET request
+     */
+    public async get<T = unknown>(endpoint: string, queryParams?: any): Promise<T> {
+        return this.httpClient.get<T>(endpoint, queryParams);
+    }
+
+    /**
+     * Convenience method: POST request with JSON body
+     */
+    public async post<T = unknown>(endpoint: string, body?: any, queryParams?: any): Promise<T> {
+        return this.httpClient.post<T>(endpoint, body, queryParams);
+    }
+
+    /**
+     * Convenience method: POST request with FormData
+     */
+    public async postFormData<T = unknown>(endpoint: string, formData: FormData, queryParams?: any): Promise<T> {
+        return this.httpClient.postFormData<T>(endpoint, formData, queryParams);
+    }
+
+    /**
+     * Convenience method: PUT request with JSON body
+     */
+    public async put<T = unknown>(endpoint: string, body: any, queryParams?: any): Promise<T> {
+        return this.httpClient.put<T>(endpoint, body, queryParams);
+    }
+
+    /**
+     * Convenience method: DELETE request
+     */
+    public async delete<T = unknown>(endpoint: string, queryParams?: any): Promise<T> {
+        return this.httpClient.delete<T>(endpoint, queryParams);
+    }
 }

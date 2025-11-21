@@ -23,11 +23,30 @@ import {
   Search,
   X,
   ChevronDown,
+  Coffee,
+  Car,
+  Gift,
+  Book,
+  Smile,
+  Star,
+  Home,
+  Leaf,
+  Sun,
+  Moon,
+  Umbrella,
+  TreePine,
+  Sparkles,
+  Waves,
+  Zap,
+  Plus,
+  Trash2,
+  Save,
   type LucideIcon,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Line } from "recharts";
+import { TemplateSelector } from "@/components/rsvp/TemplateSelector";
 
 type Project = {
   Project_ID: number;
@@ -47,7 +66,8 @@ type Project = {
   RSVP_Accent_Color: string | null;
   RSVP_Background_Color: string | null;
   RSVP_Confirmation_Email_Template_ID: number | null;
-  RSVP_Confirmation_Template_ID: number | null;
+  RSVP_Reminder_Email_Template_ID: number | null;
+  RSVP_Days_To_Remind: number | null;
   RSVP_BG_Image_URL: string | null;
   RSVP_Image_URL: string | null;
 };
@@ -146,8 +166,53 @@ function getIconComponent(iconName: string | null): LucideIcon {
     Calendar,
     Users,
     Activity,
+    Coffee,
+    Car,
+    Gift,
+    Book,
+    Smile,
+    Star,
+    Home,
+    Leaf,
+    Sun,
+    Moon,
+    Umbrella,
+    TreePine,
+    Sparkles,
+    Waves,
+    Zap,
   };
   return iconMap[iconName || "Info"] || Info;
+}
+
+// Get all available icons for picker
+function getAvailableIcons(): Array<{ name: string; component: LucideIcon }> {
+  return [
+    { name: "Clock", component: Clock },
+    { name: "Baby", component: Baby },
+    { name: "Music", component: Music },
+    { name: "Heart", component: Heart },
+    { name: "MapPin", component: MapPin },
+    { name: "Info", component: Info },
+    { name: "Calendar", component: Calendar },
+    { name: "Users", component: Users },
+    { name: "Activity", component: Activity },
+    { name: "Coffee", component: Coffee },
+    { name: "Car", component: Car },
+    { name: "Gift", component: Gift },
+    { name: "Book", component: Book },
+    { name: "Smile", component: Smile },
+    { name: "Star", component: Star },
+    { name: "Home", component: Home },
+    { name: "Leaf", component: Leaf },
+    { name: "Sun", component: Sun },
+    { name: "Moon", component: Moon },
+    { name: "Umbrella", component: Umbrella },
+    { name: "TreePine", component: TreePine },
+    { name: "Sparkles", component: Sparkles },
+    { name: "Waves", component: Waves },
+    { name: "Zap", component: Zap },
+  ];
 }
 
 // Parse Answer_Summary field into key-value pairs
@@ -202,6 +267,121 @@ export default function ProjectDetailPage({
 
   // Tab state
   const [activeTab, setActiveTab] = useState<"details" | "campuses" | "rsvps">("details");
+
+  // Edit mode states
+  const [isEditingTemplates, setIsEditingTemplates] = useState(false);
+  const [isSavingTemplates, setIsSavingTemplates] = useState(false);
+  const [isEditingProjectInfo, setIsEditingProjectInfo] = useState(false);
+  const [isSavingProjectInfo, setIsSavingProjectInfo] = useState(false);
+  const [isEditingGeneralSettings, setIsEditingGeneralSettings] = useState(false);
+  const [isSavingGeneralSettings, setIsSavingGeneralSettings] = useState(false);
+  const [isEditingColors, setIsEditingColors] = useState(false);
+  const [isSavingColors, setIsSavingColors] = useState(false);
+  const [isEditingImages, setIsEditingImages] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  // Campus editing states
+  const [editingMeetingInstructions, setEditingMeetingInstructions] = useState<number | null>(null); // Event_ID being edited
+  const [meetingInstructionsForm, setMeetingInstructionsForm] = useState<string>("");
+  const [isSavingMeetingInstructions, setIsSavingMeetingInstructions] = useState(false);
+
+  const [editingEventCapacity, setEditingEventCapacity] = useState<number | null>(null); // Event_ID being edited
+  const [eventCapacityForm, setEventCapacityForm] = useState<{
+    capacity: number | null;
+    modifier: number | null;
+  }>({ capacity: null, modifier: null });
+  const [isSavingEventCapacity, setIsSavingEventCapacity] = useState(false);
+
+  const [editingConfirmationCard, setEditingConfirmationCard] = useState<{
+    cardId: number;
+    config: { title: string; bullets: Array<{ icon: string; text: string }> };
+  } | null>(null);
+  const [isSavingConfirmationCard, setIsSavingConfirmationCard] = useState(false);
+
+  // Local state for Days to Remind with debouncing
+  const [daysToRemindInput, setDaysToRemindInput] = useState<string>("");
+
+  // Local state for Project Info fields
+  const [projectInfoForm, setProjectInfoForm] = useState({
+    RSVP_Title: "",
+    RSVP_Description: "",
+    RSVP_Start_Date: "",
+    RSVP_End_Date: "",
+  });
+
+  // Local state for General Settings fields
+  const [generalSettingsForm, setGeneralSettingsForm] = useState({
+    RSVP_Is_Active: false,
+    RSVP_Require_Contact_Lookup: false,
+    RSVP_Allow_Guest_Submission: false,
+  });
+
+  // Local state for Colors fields
+  const [colorsForm, setColorsForm] = useState({
+    RSVP_Primary_Color: "",
+    RSVP_Secondary_Color: "",
+    RSVP_Accent_Color: "",
+    RSVP_Background_Color: "",
+  });
+
+  // Sync local input with project state when project loads
+  useEffect(() => {
+    if (project?.RSVP_Days_To_Remind !== null && project?.RSVP_Days_To_Remind !== undefined) {
+      setDaysToRemindInput(project.RSVP_Days_To_Remind.toString());
+    } else {
+      setDaysToRemindInput("");
+    }
+  }, [project?.RSVP_Days_To_Remind]);
+
+  // Sync Project Info form with project state
+  useEffect(() => {
+    if (project) {
+      setProjectInfoForm({
+        RSVP_Title: project.RSVP_Title || "",
+        RSVP_Description: project.RSVP_Description || "",
+        RSVP_Start_Date: project.RSVP_Start_Date ? project.RSVP_Start_Date.split("T")[0] : "",
+        RSVP_End_Date: project.RSVP_End_Date ? project.RSVP_End_Date.split("T")[0] : "",
+      });
+    }
+  }, [project]);
+
+  // Sync General Settings form with project state
+  useEffect(() => {
+    if (project) {
+      setGeneralSettingsForm({
+        RSVP_Is_Active: project.RSVP_Is_Active ?? false,
+        RSVP_Require_Contact_Lookup: project.RSVP_Require_Contact_Lookup ?? false,
+        RSVP_Allow_Guest_Submission: project.RSVP_Allow_Guest_Submission ?? false,
+      });
+    }
+  }, [project]);
+
+  // Sync Colors form with project state
+  useEffect(() => {
+    if (project) {
+      setColorsForm({
+        RSVP_Primary_Color: project.RSVP_Primary_Color || "",
+        RSVP_Secondary_Color: project.RSVP_Secondary_Color || "",
+        RSVP_Accent_Color: project.RSVP_Accent_Color || "",
+        RSVP_Background_Color: project.RSVP_Background_Color || "",
+      });
+    }
+  }, [project]);
+
+  // Debounce Days to Remind updates (wait 800ms after user stops typing)
+  useEffect(() => {
+    if (!isEditingTemplates) return;
+
+    const timer = setTimeout(() => {
+      const numValue = daysToRemindInput === "" ? null : parseInt(daysToRemindInput, 10);
+      // Only update if value actually changed
+      if (numValue !== project?.RSVP_Days_To_Remind && !isNaN(numValue as any)) {
+        handleTemplateUpdate("RSVP_Days_To_Remind", numValue);
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [daysToRemindInput, isEditingTemplates]);
 
   useEffect(() => {
     async function loadData() {
@@ -286,6 +466,349 @@ export default function ProjectDetailPage({
     (sum, r) => sum + (r.Party_Size || 0),
     0
   );
+
+  // Optimistic update handler for templates
+  const handleTemplateUpdate = async (
+    field: "RSVP_Confirmation_Email_Template_ID" | "RSVP_Reminder_Email_Template_ID" | "RSVP_Days_To_Remind",
+    value: number | null
+  ) => {
+    if (!project) return;
+
+    // Store previous value for rollback
+    const previousValue = project[field];
+
+    // Optimistic update
+    setProject({ ...project, [field]: value });
+    setIsSavingTemplates(true);
+
+    try {
+      const response = await fetch(`/api/rsvp/projects/${project.Project_ID}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [field]: value }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update template");
+      }
+
+      const updatedProject = await response.json();
+      setProject({ ...project, ...updatedProject });
+    } catch (error) {
+      console.error("Error updating template:", error);
+      // Rollback on error
+      setProject({ ...project, [field]: previousValue });
+      alert("Failed to update template. Please try again.");
+    } finally {
+      setIsSavingTemplates(false);
+    }
+  };
+
+  // Handler for saving project info changes
+  const handleSaveProjectInfo = async () => {
+    if (!project) return;
+
+    setIsSavingProjectInfo(true);
+
+    try {
+      // Prepare update payload
+      const updateData: Partial<Project> = {
+        RSVP_Title: projectInfoForm.RSVP_Title || null,
+        RSVP_Description: projectInfoForm.RSVP_Description || null,
+        RSVP_Start_Date: projectInfoForm.RSVP_Start_Date || null,
+        RSVP_End_Date: projectInfoForm.RSVP_End_Date || null,
+      };
+
+      const response = await fetch(`/api/rsvp/projects/${project.Project_ID}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update project information");
+      }
+
+      const updatedProject = await response.json();
+      setProject({ ...project, ...updatedProject });
+      setIsEditingProjectInfo(false);
+    } catch (error) {
+      console.error("Error updating project information:", error);
+      alert("Failed to update project information. Please try again.");
+    } finally {
+      setIsSavingProjectInfo(false);
+    }
+  };
+
+  // Handler for saving general settings changes
+  const handleSaveGeneralSettings = async () => {
+    if (!project) return;
+
+    setIsSavingGeneralSettings(true);
+
+    try {
+      const response = await fetch(`/api/rsvp/projects/${project.Project_ID}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(generalSettingsForm),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update general settings");
+      }
+
+      const updatedProject = await response.json();
+      setProject({ ...project, ...updatedProject });
+      setIsEditingGeneralSettings(false);
+    } catch (error) {
+      console.error("Error updating general settings:", error);
+      alert("Failed to update general settings. Please try again.");
+    } finally {
+      setIsSavingGeneralSettings(false);
+    }
+  };
+
+  // Handler for saving colors changes
+  const handleSaveColors = async () => {
+    if (!project) return;
+
+    setIsSavingColors(true);
+
+    try {
+      // Prepare update payload - convert empty strings to null
+      const updateData = {
+        RSVP_Primary_Color: colorsForm.RSVP_Primary_Color || null,
+        RSVP_Secondary_Color: colorsForm.RSVP_Secondary_Color || null,
+        RSVP_Accent_Color: colorsForm.RSVP_Accent_Color || null,
+        RSVP_Background_Color: colorsForm.RSVP_Background_Color || null,
+      };
+
+      const response = await fetch(`/api/rsvp/projects/${project.Project_ID}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update colors");
+      }
+
+      const updatedProject = await response.json();
+      setProject({ ...project, ...updatedProject });
+      setIsEditingColors(false);
+    } catch (error) {
+      console.error("Error updating colors:", error);
+      alert("Failed to update colors. Please try again.");
+    } finally {
+      setIsSavingColors(false);
+    }
+  };
+
+  // Handler for uploading images
+  const handleImageUpload = async (file: File, fileName: "RSVP_Image.jpg" | "RSVP_BG_Image.jpg") => {
+    if (!project) return;
+
+    setIsUploadingImage(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("fileName", fileName);
+
+      const response = await fetch(`/api/rsvp/projects/${project.Project_ID}/files`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to upload image");
+      }
+
+      // Reload the project to get the updated image URLs
+      const projectResponse = await fetch(`/api/rsvp/projects/details/${project.RSVP_Slug || project.Project_ID}`);
+      if (!projectResponse.ok) {
+        throw new Error("Failed to reload project");
+      }
+
+      const data = await projectResponse.json();
+      setProject(data.Project);
+
+      alert("Image uploaded successfully!");
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      alert("Failed to upload image. Please try again.");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  // Handler for deleting images
+  const handleImageDelete = async (fileName: "RSVP_Image.jpg" | "RSVP_BG_Image.jpg") => {
+    if (!project) return;
+    if (!confirm(`Are you sure you want to delete the ${fileName === "RSVP_Image.jpg" ? "main" : "background"} image?`)) return;
+
+    setIsUploadingImage(true);
+
+    try {
+      // Get files to find the fileId
+      const filesResponse = await fetch(`/api/rsvp/projects/${project.Project_ID}/files`);
+      if (!filesResponse.ok) {
+        throw new Error("Failed to fetch files");
+      }
+
+      const files = await filesResponse.json();
+      const fileToDelete = files.find((f: any) => f.FileName === fileName);
+
+      if (!fileToDelete) {
+        alert("File not found");
+        return;
+      }
+
+      // Delete the file
+      const deleteResponse = await fetch(`/api/rsvp/projects/${project.Project_ID}/files?fileId=${fileToDelete.FileId}`, {
+        method: "DELETE",
+      });
+
+      if (!deleteResponse.ok) {
+        throw new Error("Failed to delete image");
+      }
+
+      // Reload the project to get the updated image URLs
+      const projectResponse = await fetch(`/api/rsvp/projects/details/${project.RSVP_Slug || project.Project_ID}`);
+      if (!projectResponse.ok) {
+        throw new Error("Failed to reload project");
+      }
+
+      const data = await projectResponse.json();
+      setProject(data.Project);
+
+      alert("Image deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting image:", error);
+      alert("Failed to delete image. Please try again.");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  // Handler for saving meeting instructions
+  const handleSaveMeetingInstructions = async () => {
+    if (!editingMeetingInstructions) return;
+
+    setIsSavingMeetingInstructions(true);
+
+    try {
+      const response = await fetch(`/api/rsvp/events/${editingMeetingInstructions}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          Meeting_Instructions: meetingInstructionsForm
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update meeting instructions");
+      }
+
+      // Reload project data
+      const projectResponse = await fetch(`/api/rsvp/projects/details/${project?.RSVP_Slug || project?.Project_ID}`);
+      if (!projectResponse.ok) {
+        throw new Error("Failed to reload project");
+      }
+
+      const data = await projectResponse.json();
+      setProject(data.Project);
+      setCampuses(data.Campuses);
+
+      setEditingMeetingInstructions(null);
+      alert("Meeting instructions updated successfully!");
+    } catch (error) {
+      console.error("Error updating meeting instructions:", error);
+      alert("Failed to update meeting instructions. Please try again.");
+    } finally {
+      setIsSavingMeetingInstructions(false);
+    }
+  };
+
+  // Handler for saving event capacity
+  const handleSaveEventCapacity = async () => {
+    if (!editingEventCapacity) return;
+
+    setIsSavingEventCapacity(true);
+
+    try {
+      const response = await fetch(`/api/rsvp/events/${editingEventCapacity}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          RSVP_Capacity: eventCapacityForm.capacity,
+          RSVP_Capacity_Modifier: eventCapacityForm.modifier
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update event capacity");
+      }
+
+      // Reload project data
+      const projectResponse = await fetch(`/api/rsvp/projects/details/${project?.RSVP_Slug || project?.Project_ID}`);
+      if (!projectResponse.ok) {
+        throw new Error("Failed to reload project");
+      }
+
+      const data = await projectResponse.json();
+      setProject(data.Project);
+      setCampuses(data.Campuses);
+
+      setEditingEventCapacity(null);
+      alert("Event capacity updated successfully!");
+    } catch (error) {
+      console.error("Error updating event capacity:", error);
+      alert("Failed to update event capacity. Please try again.");
+    } finally {
+      setIsSavingEventCapacity(false);
+    }
+  };
+
+  // Handler for saving confirmation card
+  const handleSaveConfirmationCard = async () => {
+    if (!editingConfirmationCard) return;
+
+    setIsSavingConfirmationCard(true);
+
+    try {
+      const response = await fetch(`/api/rsvp/confirmation-cards/${editingConfirmationCard.cardId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: editingConfirmationCard.config.title,
+          bullets: editingConfirmationCard.config.bullets
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update confirmation card");
+      }
+
+      // Reload project data
+      const projectResponse = await fetch(`/api/rsvp/projects/details/${project?.RSVP_Slug || project?.Project_ID}`);
+      if (!projectResponse.ok) {
+        throw new Error("Failed to reload project");
+      }
+
+      const data = await projectResponse.json();
+      setProject(data.Project);
+      setCampuses(data.Campuses);
+
+      setEditingConfirmationCard(null);
+      alert("Confirmation card updated successfully!");
+    } catch (error) {
+      console.error("Error updating confirmation card:", error);
+      alert("Failed to update confirmation card. Please try again.");
+    } finally {
+      setIsSavingConfirmationCard(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -423,257 +946,694 @@ export default function ProjectDetailPage({
           <div className="bg-card border border-border rounded-lg p-6">
             <div className="flex justify-between items-start mb-6">
               <h2 className="text-xl font-semibold text-foreground">Project Information</h2>
-              <button
-                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-                onClick={() => {
-                  // TODO: Open edit project info modal/dialog
-                  console.log('Edit project info:', project.Project_ID);
-                }}
-                title="Edit project information"
-              >
-                <Pencil className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                {isEditingProjectInfo && (
+                  <button
+                    className="px-3 py-1.5 text-sm bg-[#61bc47] text-white hover:bg-[#51a839] rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => handleSaveProjectInfo()}
+                    disabled={isSavingProjectInfo}
+                  >
+                    Save
+                  </button>
+                )}
+                <button
+                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                  onClick={() => {
+                    if (isEditingProjectInfo) {
+                      setIsEditingProjectInfo(false);
+                      // Reset form to current project values
+                      if (project) {
+                        setProjectInfoForm({
+                          RSVP_Title: project.RSVP_Title || "",
+                          RSVP_Description: project.RSVP_Description || "",
+                          RSVP_Start_Date: project.RSVP_Start_Date ? project.RSVP_Start_Date.split("T")[0] : "",
+                          RSVP_End_Date: project.RSVP_End_Date ? project.RSVP_End_Date.split("T")[0] : "",
+                        });
+                      }
+                    } else {
+                      setIsEditingProjectInfo(true);
+                    }
+                  }}
+                  title={isEditingProjectInfo ? "Cancel editing" : "Edit project information"}
+                  disabled={isSavingProjectInfo}
+                >
+                  {isEditingProjectInfo ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
-            <div className="space-y-4">
-              {/* RSVP Title */}
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  RSVP Title
-                </label>
-                <p className="text-sm text-foreground mt-1">
-                  {displayTitle}
-                </p>
-              </div>
-
-              {/* Description */}
-              {project.RSVP_Description && (
+            {isEditingProjectInfo ? (
+              <div className="space-y-4">
+                {/* RSVP Title Input */}
                 <div>
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                    RSVP Title
+                  </label>
+                  <input
+                    type="text"
+                    value={projectInfoForm.RSVP_Title}
+                    onChange={(e) => setProjectInfoForm({ ...projectInfoForm, RSVP_Title: e.target.value })}
+                    disabled={isSavingProjectInfo}
+                    placeholder="Enter custom RSVP title or leave blank to use project title"
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Leave blank to use project title: "{project.Project_Title}"
+                  </p>
+                </div>
+
+                {/* Description Textarea */}
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                     Description
                   </label>
-                  <div
-                    className="text-sm text-foreground mt-1"
-                    dangerouslySetInnerHTML={{ __html: project.RSVP_Description }}
+                  <textarea
+                    value={projectInfoForm.RSVP_Description}
+                    onChange={(e) => setProjectInfoForm({ ...projectInfoForm, RSVP_Description: e.target.value })}
+                    disabled={isSavingProjectInfo}
+                    placeholder="Enter description (HTML supported)"
+                    rows={4}
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed resize-y"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    HTML is supported for formatting
+                  </p>
                 </div>
-              )}
 
-              {/* Date Range */}
-              {project.RSVP_Start_Date && project.RSVP_End_Date && (
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Date Range
-                  </label>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Calendar className="w-4 h-4 text-muted-foreground" />
-                    <p className="text-sm text-foreground">
-                      {formatDate(project.RSVP_Start_Date)} - {formatDate(project.RSVP_End_Date)}
-                    </p>
+                {/* Date Range Inputs */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                      Start Date
+                    </label>
+                    <input
+                      type="date"
+                      value={projectInfoForm.RSVP_Start_Date}
+                      onChange={(e) => setProjectInfoForm({ ...projectInfoForm, RSVP_Start_Date: e.target.value })}
+                      disabled={isSavingProjectInfo}
+                      className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                      End Date
+                    </label>
+                    <input
+                      type="date"
+                      value={projectInfoForm.RSVP_End_Date}
+                      onChange={(e) => setProjectInfoForm({ ...projectInfoForm, RSVP_End_Date: e.target.value })}
+                      disabled={isSavingProjectInfo}
+                      className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* RSVP Title */}
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    RSVP Title
+                  </label>
+                  <p className="text-sm text-foreground mt-1">
+                    {displayTitle}
+                  </p>
+                </div>
+
+                {/* Description */}
+                {project.RSVP_Description && (
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      Description
+                    </label>
+                    <div
+                      className="text-sm text-foreground mt-1"
+                      dangerouslySetInnerHTML={{ __html: project.RSVP_Description }}
+                    />
+                  </div>
+                )}
+
+                {/* Date Range */}
+                {project.RSVP_Start_Date && project.RSVP_End_Date && (
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      Date Range
+                    </label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
+                      <p className="text-sm text-foreground">
+                        {formatDate(project.RSVP_Start_Date)} - {formatDate(project.RSVP_End_Date)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {isSavingProjectInfo && (
+              <div className="mt-4 text-sm text-muted-foreground italic">
+                Saving changes...
+              </div>
+            )}
           </div>
 
           {/* General Settings Card */}
           <div className="bg-card border border-border rounded-lg p-6">
             <div className="flex justify-between items-start mb-6">
               <h2 className="text-xl font-semibold text-foreground">General Settings</h2>
-              <button
-                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-                onClick={() => {
-                  // TODO: Open edit project modal/dialog
-                  console.log('Edit project:', project.Project_ID);
-                }}
-                title="Edit general settings"
-              >
-                <Pencil className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  Status
-                </label>
-                <p className="text-sm text-foreground mt-1">
-                  {project.RSVP_Is_Active ? 'Active' : 'Inactive'}
-                </p>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  Require Contact Lookup
-                </label>
-                <p className="text-sm text-foreground mt-1">
-                  {project.RSVP_Require_Contact_Lookup ? 'Yes' : 'No'}
-                </p>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  Allow Guest Submission
-                </label>
-                <p className="text-sm text-foreground mt-1">
-                  {project.RSVP_Allow_Guest_Submission ? 'Yes' : 'No'}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Template Configuration Card */}
-          {(project.RSVP_Confirmation_Email_Template_ID || project.RSVP_Confirmation_Template_ID) && (
-            <div className="bg-card border border-border rounded-lg p-6">
-              <div className="flex justify-between items-start mb-6">
-                <h2 className="text-xl font-semibold text-foreground">Template Configuration</h2>
+              <div className="flex items-center gap-2">
+                {isEditingGeneralSettings && (
+                  <button
+                    className="px-3 py-1.5 text-sm bg-[#61bc47] text-white hover:bg-[#51a839] rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => handleSaveGeneralSettings()}
+                    disabled={isSavingGeneralSettings}
+                  >
+                    Save
+                  </button>
+                )}
                 <button
                   className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
                   onClick={() => {
-                    // TODO: Open edit template modal/dialog
-                    console.log('Edit templates:', project.Project_ID);
+                    if (isEditingGeneralSettings) {
+                      setIsEditingGeneralSettings(false);
+                      // Reset form to current project values
+                      if (project) {
+                        setGeneralSettingsForm({
+                          RSVP_Is_Active: project.RSVP_Is_Active ?? false,
+                          RSVP_Require_Contact_Lookup: project.RSVP_Require_Contact_Lookup ?? false,
+                          RSVP_Allow_Guest_Submission: project.RSVP_Allow_Guest_Submission ?? false,
+                        });
+                      }
+                    } else {
+                      setIsEditingGeneralSettings(true);
+                    }
                   }}
-                  title="Edit template configuration"
+                  title={isEditingGeneralSettings ? "Cancel editing" : "Edit general settings"}
+                  disabled={isSavingGeneralSettings}
                 >
-                  <Pencil className="w-4 h-4" />
+                  {isEditingGeneralSettings ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
                 </button>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {project.RSVP_Confirmation_Email_Template_ID && (
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                      Confirmation Email Template ID
-                    </label>
-                    <p className="text-sm text-foreground mt-1 font-mono">
-                      {project.RSVP_Confirmation_Email_Template_ID}
-                    </p>
-                  </div>
-                )}
-
-                {project.RSVP_Confirmation_Template_ID && (
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                      Confirmation Template ID
-                    </label>
-                    <p className="text-sm text-foreground mt-1 font-mono">
-                      {project.RSVP_Confirmation_Template_ID}
-                    </p>
-                  </div>
-                )}
-              </div>
             </div>
-          )}
+
+            {isEditingGeneralSettings ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                    Status
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={generalSettingsForm.RSVP_Is_Active}
+                      onChange={(e) => setGeneralSettingsForm({ ...generalSettingsForm, RSVP_Is_Active: e.target.checked })}
+                      disabled={isSavingGeneralSettings}
+                      className="w-5 h-5 rounded border-border text-[#61bc47] focus:ring-[#61bc47] disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    <span className="text-sm text-foreground">Active</span>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                    Require Contact Lookup
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={generalSettingsForm.RSVP_Require_Contact_Lookup}
+                      onChange={(e) => setGeneralSettingsForm({ ...generalSettingsForm, RSVP_Require_Contact_Lookup: e.target.checked })}
+                      disabled={isSavingGeneralSettings}
+                      className="w-5 h-5 rounded border-border text-[#61bc47] focus:ring-[#61bc47] disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    <span className="text-sm text-foreground">Require Lookup</span>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                    Allow Guest Submission
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={generalSettingsForm.RSVP_Allow_Guest_Submission}
+                      onChange={(e) => setGeneralSettingsForm({ ...generalSettingsForm, RSVP_Allow_Guest_Submission: e.target.checked })}
+                      disabled={isSavingGeneralSettings}
+                      className="w-5 h-5 rounded border-border text-[#61bc47] focus:ring-[#61bc47] disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    <span className="text-sm text-foreground">Allow Guests</span>
+                  </label>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    Status
+                  </label>
+                  <p className="text-sm text-foreground mt-1">
+                    {project.RSVP_Is_Active ? 'Active' : 'Inactive'}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    Require Contact Lookup
+                  </label>
+                  <p className="text-sm text-foreground mt-1">
+                    {project.RSVP_Require_Contact_Lookup ? 'Yes' : 'No'}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    Allow Guest Submission
+                  </label>
+                  <p className="text-sm text-foreground mt-1">
+                    {project.RSVP_Allow_Guest_Submission ? 'Yes' : 'No'}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {isSavingGeneralSettings && (
+              <div className="mt-4 text-sm text-muted-foreground italic">
+                Saving changes...
+              </div>
+            )}
+          </div>
+
+          {/* Emails Card - Always visible */}
+          <div className="bg-card border border-border rounded-lg p-6">
+            <div className="flex justify-between items-start mb-6">
+              <h2 className="text-xl font-semibold text-foreground">Emails</h2>
+              <button
+                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                onClick={() => setIsEditingTemplates(!isEditingTemplates)}
+                title={isEditingTemplates ? "Cancel editing" : "Edit email configuration"}
+                disabled={isSavingTemplates}
+              >
+                {isEditingTemplates ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
+              </button>
+            </div>
+
+            {isEditingTemplates ? (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <TemplateSelector
+                    label="Confirmation Email Template"
+                    type="email"
+                    value={project.RSVP_Confirmation_Email_Template_ID}
+                    onChange={(value) => handleTemplateUpdate("RSVP_Confirmation_Email_Template_ID", value)}
+                    disabled={isSavingTemplates}
+                    placeholder="Select email template..."
+                  />
+
+                  <TemplateSelector
+                    label="Reminder Email Template"
+                    type="email"
+                    value={project.RSVP_Reminder_Email_Template_ID}
+                    onChange={(value) => handleTemplateUpdate("RSVP_Reminder_Email_Template_ID", value)}
+                    disabled={isSavingTemplates}
+                    placeholder="Select email template..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                    Days Before Event to Send Reminder
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="365"
+                    value={daysToRemindInput}
+                    onChange={(e) => setDaysToRemindInput(e.target.value)}
+                    disabled={isSavingTemplates}
+                    placeholder="e.g., 3"
+                    className="w-full max-w-xs px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    How many days before the event should reminder emails be sent
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      Confirmation Email Template
+                    </label>
+                    <p className="text-sm text-foreground mt-1">
+                      {project.RSVP_Confirmation_Email_Template_ID ? (
+                        <span className="font-mono">ID: {project.RSVP_Confirmation_Email_Template_ID}</span>
+                      ) : (
+                        <span className="text-muted-foreground italic">Not set</span>
+                      )}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      Reminder Email Template
+                    </label>
+                    <p className="text-sm text-foreground mt-1">
+                      {project.RSVP_Reminder_Email_Template_ID ? (
+                        <span className="font-mono">ID: {project.RSVP_Reminder_Email_Template_ID}</span>
+                      ) : (
+                        <span className="text-muted-foreground italic">Not set</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    Days Before Event to Send Reminder
+                  </label>
+                  <p className="text-sm text-foreground mt-1">
+                    {project.RSVP_Days_To_Remind !== null ? (
+                      <span>{project.RSVP_Days_To_Remind} days</span>
+                    ) : (
+                      <span className="text-muted-foreground italic">Not set</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {isSavingTemplates && (
+              <div className="mt-4 text-sm text-muted-foreground italic">
+                Saving changes...
+              </div>
+            )}
+          </div>
 
           {/* Colors Card */}
           {(project.RSVP_Primary_Color || project.RSVP_Secondary_Color || project.RSVP_Accent_Color || project.RSVP_Background_Color) && (
             <div className="bg-card border border-border rounded-lg p-6">
               <div className="flex justify-between items-start mb-6">
                 <h2 className="text-xl font-semibold text-foreground">Colors</h2>
-                <button
-                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-                  onClick={() => {
-                    // TODO: Open edit colors modal/dialog
-                    console.log('Edit colors:', project.Project_ID);
-                  }}
-                  title="Edit colors"
-                >
-                  <Pencil className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-2">
+                  {isEditingColors && (
+                    <button
+                      className="px-3 py-1.5 text-sm bg-[#61bc47] text-white hover:bg-[#51a839] rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => handleSaveColors()}
+                      disabled={isSavingColors}
+                    >
+                      Save
+                    </button>
+                  )}
+                  <button
+                    className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                    onClick={() => {
+                      if (isEditingColors) {
+                        setIsEditingColors(false);
+                        // Reset form to current project values
+                        if (project) {
+                          setColorsForm({
+                            RSVP_Primary_Color: project.RSVP_Primary_Color || "",
+                            RSVP_Secondary_Color: project.RSVP_Secondary_Color || "",
+                            RSVP_Accent_Color: project.RSVP_Accent_Color || "",
+                            RSVP_Background_Color: project.RSVP_Background_Color || "",
+                          });
+                        }
+                      } else {
+                        setIsEditingColors(true);
+                      }
+                    }}
+                    title={isEditingColors ? "Cancel editing" : "Edit colors"}
+                    disabled={isSavingColors}
+                  >
+                    {isEditingColors ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {project.RSVP_Primary_Color && (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-8 h-8 rounded border border-border"
-                      style={{ backgroundColor: project.RSVP_Primary_Color }}
-                    />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Primary</p>
-                      <p className="text-sm font-mono text-foreground">{project.RSVP_Primary_Color}</p>
+              {isEditingColors ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Primary Color */}
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                      Primary Color
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={colorsForm.RSVP_Primary_Color || "#000000"}
+                        onChange={(e) => setColorsForm({ ...colorsForm, RSVP_Primary_Color: e.target.value })}
+                        disabled={isSavingColors}
+                        className="w-12 h-12 rounded border border-border cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                      <input
+                        type="text"
+                        value={colorsForm.RSVP_Primary_Color}
+                        onChange={(e) => setColorsForm({ ...colorsForm, RSVP_Primary_Color: e.target.value })}
+                        disabled={isSavingColors}
+                        placeholder="#000000"
+                        className="flex-1 px-3 py-2 border border-border rounded-md bg-background text-foreground font-mono placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
                     </div>
                   </div>
-                )}
-                {project.RSVP_Secondary_Color && (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-8 h-8 rounded border border-border"
-                      style={{ backgroundColor: project.RSVP_Secondary_Color }}
-                    />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Secondary</p>
-                      <p className="text-sm font-mono text-foreground">{project.RSVP_Secondary_Color}</p>
+
+                  {/* Secondary Color */}
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                      Secondary Color
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={colorsForm.RSVP_Secondary_Color || "#000000"}
+                        onChange={(e) => setColorsForm({ ...colorsForm, RSVP_Secondary_Color: e.target.value })}
+                        disabled={isSavingColors}
+                        className="w-12 h-12 rounded border border-border cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                      <input
+                        type="text"
+                        value={colorsForm.RSVP_Secondary_Color}
+                        onChange={(e) => setColorsForm({ ...colorsForm, RSVP_Secondary_Color: e.target.value })}
+                        disabled={isSavingColors}
+                        placeholder="#000000"
+                        className="flex-1 px-3 py-2 border border-border rounded-md bg-background text-foreground font-mono placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
                     </div>
                   </div>
-                )}
-                {project.RSVP_Accent_Color && (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-8 h-8 rounded border border-border"
-                      style={{ backgroundColor: project.RSVP_Accent_Color }}
-                    />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Accent</p>
-                      <p className="text-sm font-mono text-foreground">{project.RSVP_Accent_Color}</p>
+
+                  {/* Accent Color */}
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                      Accent Color
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={colorsForm.RSVP_Accent_Color || "#000000"}
+                        onChange={(e) => setColorsForm({ ...colorsForm, RSVP_Accent_Color: e.target.value })}
+                        disabled={isSavingColors}
+                        className="w-12 h-12 rounded border border-border cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                      <input
+                        type="text"
+                        value={colorsForm.RSVP_Accent_Color}
+                        onChange={(e) => setColorsForm({ ...colorsForm, RSVP_Accent_Color: e.target.value })}
+                        disabled={isSavingColors}
+                        placeholder="#000000"
+                        className="flex-1 px-3 py-2 border border-border rounded-md bg-background text-foreground font-mono placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
                     </div>
                   </div>
-                )}
-                {project.RSVP_Background_Color && (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-8 h-8 rounded border border-border"
-                      style={{ backgroundColor: project.RSVP_Background_Color }}
-                    />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Background</p>
-                      <p className="text-sm font-mono text-foreground">{project.RSVP_Background_Color}</p>
+
+                  {/* Background Color */}
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                      Background Color
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={colorsForm.RSVP_Background_Color || "#000000"}
+                        onChange={(e) => setColorsForm({ ...colorsForm, RSVP_Background_Color: e.target.value })}
+                        disabled={isSavingColors}
+                        className="w-12 h-12 rounded border border-border cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                      <input
+                        type="text"
+                        value={colorsForm.RSVP_Background_Color}
+                        onChange={(e) => setColorsForm({ ...colorsForm, RSVP_Background_Color: e.target.value })}
+                        disabled={isSavingColors}
+                        placeholder="#000000"
+                        className="flex-1 px-3 py-2 border border-border rounded-md bg-background text-foreground font-mono placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
                     </div>
                   </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {project.RSVP_Primary_Color && (
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-8 h-8 rounded border border-border"
+                        style={{ backgroundColor: project.RSVP_Primary_Color }}
+                      />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Primary</p>
+                        <p className="text-sm font-mono text-foreground">{project.RSVP_Primary_Color}</p>
+                      </div>
+                    </div>
+                  )}
+                  {project.RSVP_Secondary_Color && (
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-8 h-8 rounded border border-border"
+                        style={{ backgroundColor: project.RSVP_Secondary_Color }}
+                      />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Secondary</p>
+                        <p className="text-sm font-mono text-foreground">{project.RSVP_Secondary_Color}</p>
+                      </div>
+                    </div>
+                  )}
+                  {project.RSVP_Accent_Color && (
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-8 h-8 rounded border border-border"
+                        style={{ backgroundColor: project.RSVP_Accent_Color }}
+                      />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Accent</p>
+                        <p className="text-sm font-mono text-foreground">{project.RSVP_Accent_Color}</p>
+                      </div>
+                    </div>
+                  )}
+                  {project.RSVP_Background_Color && (
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-8 h-8 rounded border border-border"
+                        style={{ backgroundColor: project.RSVP_Background_Color }}
+                      />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Background</p>
+                        <p className="text-sm font-mono text-foreground">{project.RSVP_Background_Color}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {isSavingColors && (
+                <div className="mt-4 text-sm text-muted-foreground italic">
+                  Saving changes...
+                </div>
+              )}
             </div>
           )}
 
           {/* Images Card */}
-          {(project.RSVP_Image_URL || project.RSVP_BG_Image_URL) && (
+          {(project.RSVP_Image_URL || project.RSVP_BG_Image_URL || isEditingImages) && (
             <div className="bg-card border border-border rounded-lg p-6">
               <div className="flex justify-between items-start mb-6">
                 <h2 className="text-xl font-semibold text-foreground">Images</h2>
                 <button
                   className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-                  onClick={() => {
-                    // TODO: Open edit images modal/dialog
-                    console.log('Edit images:', project.Project_ID);
-                  }}
-                  title="Edit images"
+                  onClick={() => setIsEditingImages(!isEditingImages)}
+                  title={isEditingImages ? "Cancel editing" : "Edit images"}
+                  disabled={isUploadingImage}
                 >
-                  <Pencil className="w-4 h-4" />
+                  {isEditingImages ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
                 </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {project.RSVP_Image_URL && (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-2">Image</p>
+                {/* RSVP Image */}
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Image</p>
+                  {project.RSVP_Image_URL && (
                     <img
                       src={project.RSVP_Image_URL}
                       alt="RSVP Image"
-                      className="w-full h-auto rounded border border-border"
+                      className="w-full h-auto rounded border border-border mb-3"
                     />
-                  </div>
-                )}
-                {project.RSVP_BG_Image_URL && (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-2">Background Image</p>
+                  )}
+                  {isEditingImages && (
+                    <div className="space-y-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleImageUpload(file, "RSVP_Image.jpg");
+                          }
+                        }}
+                        disabled={isUploadingImage}
+                        className="block w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-[#61bc47] file:text-white hover:file:bg-[#51a839] file:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                      {project.RSVP_Image_URL && (
+                        <button
+                          onClick={() => handleImageDelete("RSVP_Image.jpg")}
+                          disabled={isUploadingImage}
+                          className="w-full px-3 py-2 text-sm border border-border rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Delete Image
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {!project.RSVP_Image_URL && !isEditingImages && (
+                    <p className="text-sm text-muted-foreground italic">No image set</p>
+                  )}
+                </div>
+
+                {/* Background Image */}
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Background Image</p>
+                  {project.RSVP_BG_Image_URL && (
                     <img
                       src={project.RSVP_BG_Image_URL}
                       alt="Background Image"
-                      className="w-full h-auto rounded border border-border"
+                      className="w-full h-auto rounded border border-border mb-3"
                     />
-                  </div>
-                )}
+                  )}
+                  {isEditingImages && (
+                    <div className="space-y-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleImageUpload(file, "RSVP_BG_Image.jpg");
+                          }
+                        }}
+                        disabled={isUploadingImage}
+                        className="block w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-[#61bc47] file:text-white hover:file:bg-[#51a839] file:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                      {project.RSVP_BG_Image_URL && (
+                        <button
+                          onClick={() => handleImageDelete("RSVP_BG_Image.jpg")}
+                          disabled={isUploadingImage}
+                          className="w-full px-3 py-2 text-sm border border-border rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Delete Background Image
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {!project.RSVP_BG_Image_URL && !isEditingImages && (
+                    <p className="text-sm text-muted-foreground italic">No background image set</p>
+                  )}
+                </div>
               </div>
+
+              {isUploadingImage && (
+                <div className="mt-4 text-sm text-muted-foreground italic">
+                  Uploading image...
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -708,18 +1668,6 @@ export default function ProjectDetailPage({
                 {/* Public Event Info */}
                 {campus.Public_Event_ID ? (
                   <div className={`bg-card border border-border rounded-lg overflow-hidden max-w-md relative mb-6 ${isChurchWide ? 'mt-4' : ''}`}>
-                    {/* Edit Button */}
-                    <button
-                      className="absolute top-2 right-2 p-2 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors z-10 backdrop-blur-sm"
-                      onClick={() => {
-                        // TODO: Open edit meeting instructions modal/dialog
-                        console.log('Edit meeting instructions for event:', campus.Public_Event_ID);
-                      }}
-                      title="Edit meeting instructions"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-
                     {/* Public Event Image */}
                     {campus.Public_Event_Image_URL && (
                       <div className="w-full bg-muted">
@@ -733,12 +1681,64 @@ export default function ProjectDetailPage({
 
                     {/* Public Event Text Content */}
                     <div className="p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Info className="w-4 h-4 text-[#61bc47]" />
-                        <h4 className="font-semibold text-foreground">Additional Meeting Information</h4>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Info className="w-4 h-4 text-[#61bc47]" />
+                          <h4 className="font-semibold text-foreground">Additional Meeting Information</h4>
+                        </div>
+                        {editingMeetingInstructions === campus.Public_Event_ID ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingMeetingInstructions(null);
+                                setMeetingInstructionsForm("");
+                              }}
+                              className="px-3 py-1 text-xs border border-border rounded-md text-foreground hover:bg-muted transition-colors"
+                              disabled={isSavingMeetingInstructions}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={handleSaveMeetingInstructions}
+                              className="px-3 py-1 text-xs bg-[#61bc47] text-white rounded-md hover:bg-[#51a839] transition-colors flex items-center gap-1"
+                              disabled={isSavingMeetingInstructions}
+                            >
+                              {isSavingMeetingInstructions ? (
+                                <>Saving...</>
+                              ) : (
+                                <>
+                                  <Save className="w-3 h-3" />
+                                  Save
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                            onClick={() => {
+                              setEditingMeetingInstructions(campus.Public_Event_ID!);
+                              setMeetingInstructionsForm(campus.Meeting_Instructions || "");
+                            }}
+                            title="Edit meeting instructions"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
-                      {campus.Meeting_Instructions && (
-                        <p className="text-sm text-muted-foreground pl-6">{campus.Meeting_Instructions}</p>
+                      {editingMeetingInstructions === campus.Public_Event_ID ? (
+                        <textarea
+                          value={meetingInstructionsForm}
+                          onChange={(e) => setMeetingInstructionsForm(e.target.value)}
+                          className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] pl-6"
+                          rows={6}
+                          disabled={isSavingMeetingInstructions}
+                          placeholder="Enter meeting instructions..."
+                        />
+                      ) : (
+                        campus.Meeting_Instructions && (
+                          <p className="text-sm text-muted-foreground pl-6">{campus.Meeting_Instructions}</p>
+                        )
                       )}
                     </div>
                   </div>
@@ -786,29 +1786,61 @@ export default function ProjectDetailPage({
                               className="bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-shadow flex-shrink-0 relative"
                               style={{ width: "320px" }}
                             >
-                        {/* Edit Button */}
-                        <button
-                          className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-                          onClick={() => {
-                            // TODO: Open edit modal/dialog
-                            console.log('Edit event:', event.Event_ID);
-                          }}
-                          title="Edit event settings"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-
-                        {/* Time */}
-                        <div className="flex items-center gap-2 mb-4">
-                          <Clock className="w-5 h-5 text-[#61bc47]" />
-                          <span className="text-2xl font-bold text-foreground">
-                            {event.Event_Start_Date
-                              ? new Date(event.Event_Start_Date).toLocaleTimeString("en-US", {
-                                  hour: "numeric",
-                                  minute: "2-digit",
-                                })
-                              : "N/A"}
-                          </span>
+                        {/* Header with Time and Edit Controls */}
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-5 h-5 text-[#61bc47]" />
+                            <span className="text-2xl font-bold text-foreground">
+                              {event.Event_Start_Date
+                                ? new Date(event.Event_Start_Date).toLocaleTimeString("en-US", {
+                                    hour: "numeric",
+                                    minute: "2-digit",
+                                  })
+                                : "N/A"}
+                            </span>
+                          </div>
+                          {editingEventCapacity === event.Event_ID ? (
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => {
+                                  setEditingEventCapacity(null);
+                                  setEventCapacityForm({ capacity: null, modifier: null });
+                                }}
+                                className="px-2 py-1 text-xs border border-border rounded-md text-foreground hover:bg-muted transition-colors"
+                                disabled={isSavingEventCapacity}
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={handleSaveEventCapacity}
+                                className="px-2 py-1 text-xs bg-[#61bc47] text-white rounded-md hover:bg-[#51a839] transition-colors flex items-center gap-1"
+                                disabled={isSavingEventCapacity}
+                              >
+                                {isSavingEventCapacity ? (
+                                  <>Saving...</>
+                                ) : (
+                                  <>
+                                    <Save className="w-3 h-3" />
+                                    Save
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                              onClick={() => {
+                                setEditingEventCapacity(event.Event_ID);
+                                setEventCapacityForm({
+                                  capacity: event.Capacity,
+                                  modifier: event.RSVP_Capacity_Modifier
+                                });
+                              }}
+                              title="Edit event capacity"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
 
                         {/* Capacity Bar */}
@@ -888,18 +1920,55 @@ export default function ProjectDetailPage({
                               {event.Total_Attendees}
                             </span>
                           </div>
-                          <div className="flex justify-between">
+                          <div className="flex justify-between items-center">
                             <span className="text-muted-foreground">Capacity:</span>
-                            <span className="font-semibold text-foreground">
-                              {event.Capacity ?? 'Unlimited'}
-                            </span>
+                            {editingEventCapacity === event.Event_ID ? (
+                              <input
+                                type="number"
+                                value={eventCapacityForm.capacity ?? ""}
+                                onChange={(e) =>
+                                  setEventCapacityForm({
+                                    ...eventCapacityForm,
+                                    capacity: e.target.value ? parseInt(e.target.value) : null
+                                  })
+                                }
+                                className="w-24 px-2 py-1 bg-background border border-border rounded text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                                placeholder="Unlimited"
+                                disabled={isSavingEventCapacity}
+                              />
+                            ) : (
+                              <span className="font-semibold text-foreground">
+                                {event.Capacity ?? 'Unlimited'}
+                              </span>
+                            )}
                           </div>
-                          <div className="flex justify-between">
+                          <div className="flex justify-between items-center">
                             <span className="text-muted-foreground">Capacity Modifier:</span>
-                            <span className="font-semibold text-foreground">
-                              {event.RSVP_Capacity_Modifier != null && event.RSVP_Capacity_Modifier > 0 ? '+' : ''}{event.RSVP_Capacity_Modifier ?? 0}
-                            </span>
+                            {editingEventCapacity === event.Event_ID ? (
+                              <input
+                                type="number"
+                                value={eventCapacityForm.modifier ?? ""}
+                                onChange={(e) =>
+                                  setEventCapacityForm({
+                                    ...eventCapacityForm,
+                                    modifier: e.target.value ? parseInt(e.target.value) : null
+                                  })
+                                }
+                                className="w-24 px-2 py-1 bg-background border border-border rounded text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                                placeholder="0"
+                                disabled={isSavingEventCapacity}
+                              />
+                            ) : (
+                              <span className="font-semibold text-foreground">
+                                {event.RSVP_Capacity_Modifier != null && event.RSVP_Capacity_Modifier > 0 ? '+' : ''}{event.RSVP_Capacity_Modifier ?? 0}
+                              </span>
+                            )}
                           </div>
+                          {editingEventCapacity === event.Event_ID && (
+                            <p className="text-xs text-muted-foreground italic mt-2">
+                              Modifier represents additional attendees to account for (e.g., fake RSVPs or reserved spots)
+                            </p>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -941,8 +2010,13 @@ export default function ProjectDetailPage({
                               <button
                                 className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
                                 onClick={() => {
-                                  // TODO: Open edit confirmation card modal/dialog
-                                  console.log('Edit confirmation card:', card.Card_ID);
+                                  setEditingConfirmationCard({
+                                    cardId: card.Card_ID,
+                                    config: {
+                                      title: config.title || card.Card_Type_Name,
+                                      bullets: config.bullets || []
+                                    }
+                                  });
                                 }}
                                 title="Edit confirmation card"
                               >
@@ -1515,6 +2589,191 @@ export default function ProjectDetailPage({
             )}
           </div>
       </div>
+      )}
+
+
+      {/* Confirmation Card Edit Modal */}
+      {editingConfirmationCard && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-xl font-semibold text-foreground">Edit Confirmation Card</h3>
+                <button
+                  onClick={() => setEditingConfirmationCard(null)}
+                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                  disabled={isSavingConfirmationCard}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="space-y-6">
+                {/* Title Input */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Card Title
+                  </label>
+                  <input
+                    type="text"
+                    value={editingConfirmationCard.config.title}
+                    onChange={(e) =>
+                      setEditingConfirmationCard({
+                        ...editingConfirmationCard,
+                        config: {
+                          ...editingConfirmationCard.config,
+                          title: e.target.value
+                        }
+                      })
+                    }
+                    className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                    disabled={isSavingConfirmationCard}
+                  />
+                </div>
+
+                {/* Bullets */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-3">
+                    Bullet Points
+                  </label>
+                  <div className="space-y-4">
+                    {editingConfirmationCard.config.bullets.map((bullet, index) => (
+                      <div key={index} className="flex gap-3 items-start p-4 bg-background border border-border rounded-lg">
+                        <div className="flex-1 space-y-3">
+                          {/* Icon Picker */}
+                          <div>
+                            <label className="block text-xs font-medium text-muted-foreground mb-2">
+                              Icon
+                            </label>
+                            <div className="grid grid-cols-8 gap-2">
+                              {getAvailableIcons().map((iconOption) => {
+                                const IconComp = iconOption.component;
+                                const isSelected = bullet.icon === iconOption.name;
+                                return (
+                                  <button
+                                    key={iconOption.name}
+                                    type="button"
+                                    onClick={() => {
+                                      const newBullets = [...editingConfirmationCard.config.bullets];
+                                      newBullets[index] = { ...bullet, icon: iconOption.name };
+                                      setEditingConfirmationCard({
+                                        ...editingConfirmationCard,
+                                        config: {
+                                          ...editingConfirmationCard.config,
+                                          bullets: newBullets
+                                        }
+                                      });
+                                    }}
+                                    className={`p-3 rounded-md border transition-all ${
+                                      isSelected
+                                        ? "border-[#61bc47] bg-[#61bc47]/10"
+                                        : "border-border hover:border-[#61bc47]/50 hover:bg-muted"
+                                    }`}
+                                    title={iconOption.name}
+                                    disabled={isSavingConfirmationCard}
+                                  >
+                                    <IconComp className={`w-5 h-5 ${isSelected ? "text-[#61bc47]" : "text-muted-foreground"}`} />
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {/* Text Input */}
+                          <div>
+                            <label className="block text-xs font-medium text-muted-foreground mb-2">
+                              Text
+                            </label>
+                            <textarea
+                              value={bullet.text}
+                              onChange={(e) => {
+                                const newBullets = [...editingConfirmationCard.config.bullets];
+                                newBullets[index] = { ...bullet, text: e.target.value };
+                                setEditingConfirmationCard({
+                                  ...editingConfirmationCard,
+                                  config: {
+                                    ...editingConfirmationCard.config,
+                                    bullets: newBullets
+                                  }
+                                });
+                              }}
+                              className="w-full px-3 py-2 bg-card border border-border rounded-md text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                              rows={2}
+                              disabled={isSavingConfirmationCard}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Delete Button */}
+                        <button
+                          onClick={() => {
+                            const newBullets = editingConfirmationCard.config.bullets.filter((_, i) => i !== index);
+                            setEditingConfirmationCard({
+                              ...editingConfirmationCard,
+                              config: {
+                                ...editingConfirmationCard.config,
+                                bullets: newBullets
+                              }
+                            });
+                          }}
+                          className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 rounded-md transition-colors"
+                          title="Delete bullet point"
+                          disabled={isSavingConfirmationCard}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* Add Bullet Button */}
+                    <button
+                      onClick={() => {
+                        setEditingConfirmationCard({
+                          ...editingConfirmationCard,
+                          config: {
+                            ...editingConfirmationCard.config,
+                            bullets: [
+                              ...editingConfirmationCard.config.bullets,
+                              { icon: "Info", text: "" }
+                            ]
+                          }
+                        });
+                      }}
+                      className="w-full py-3 border-2 border-dashed border-border rounded-lg text-muted-foreground hover:text-foreground hover:border-[#61bc47] transition-colors flex items-center justify-center gap-2"
+                      disabled={isSavingConfirmationCard}
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Bullet Point
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 justify-end pt-4 border-t border-border">
+                  <button
+                    onClick={() => setEditingConfirmationCard(null)}
+                    className="px-4 py-2 text-sm border border-border rounded-md text-foreground hover:bg-muted transition-colors"
+                    disabled={isSavingConfirmationCard}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveConfirmationCard}
+                    className="px-4 py-2 text-sm bg-[#61bc47] text-white rounded-md hover:bg-[#51a839] transition-colors flex items-center gap-2"
+                    disabled={isSavingConfirmationCard}
+                  >
+                    {isSavingConfirmationCard ? (
+                      <>Saving...</>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        Save
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

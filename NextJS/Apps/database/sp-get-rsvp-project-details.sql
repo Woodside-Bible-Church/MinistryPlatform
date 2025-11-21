@@ -66,7 +66,8 @@ BEGIN
             p.RSVP_Accent_Color,
             p.RSVP_Background_Color,
             p.RSVP_Confirmation_Email_Template_ID,
-            p.RSVP_Confirmation_Template_ID,
+            p.RSVP_Reminder_Email_Template_ID,
+            p.RSVP_Days_To_Remind,
             -- Build RSVP_BG_Image_URL from dp_files
             RSVP_BG_Image_URL = CASE
                 WHEN BG.File_ID IS NOT NULL AND CS.Value IS NOT NULL AND D.Domain_GUID IS NOT NULL
