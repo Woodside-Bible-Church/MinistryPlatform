@@ -37,8 +37,16 @@ type Project = {
   RSVP_End_Date: string | null;
   RSVP_Is_Active: boolean | null;
   RSVP_Slug: string | null;
+  RSVP_Require_Contact_Lookup: boolean | null;
   RSVP_Allow_Guest_Submission: boolean | null;
   RSVP_Primary_Color: string | null;
+  RSVP_Secondary_Color: string | null;
+  RSVP_Accent_Color: string | null;
+  RSVP_Background_Color: string | null;
+  RSVP_Confirmation_Email_Template_ID: number | null;
+  RSVP_Confirmation_Template_ID: number | null;
+  RSVP_BG_Image_URL: string | null;
+  RSVP_Image_URL: string | null;
 };
 
 type ProjectEventWithDetails = {
@@ -77,14 +85,16 @@ type ProjectRSVP = {
 };
 
 type ProjectCampus = {
-  Project_Campus_ID: number;
   Congregation_ID: number;
   Campus_Name: string;
   Public_Event_ID: number | null;
   Public_Event_Title: string | null;
   Meeting_Instructions: string | null;
+  Public_Event_Image_URL: string | null;
   Is_Active: boolean | null;
   Display_Order: number | null;
+  Events: ProjectEventWithDetails[];
+  Confirmation_Cards: ConfirmationCard[];
 };
 
 type ConfirmationCard = {
@@ -177,10 +187,8 @@ export default function ProjectDetailPage({
   const { selectedCampus } = useCampus();
 
   const [project, setProject] = useState<Project | null>(null);
-  const [events, setEvents] = useState<ProjectEventWithDetails[]>([]);
+  const [campuses, setCampuses] = useState<ProjectCampus[]>([]);
   const [rsvps, setRsvps] = useState<ProjectRSVP[]>([]);
-  const [projectCampuses, setProjectCampuses] = useState<ProjectCampus[]>([]);
-  const [confirmationCards, setConfirmationCards] = useState<ConfirmationCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Filter states
@@ -206,10 +214,8 @@ export default function ProjectDetailPage({
         console.log("Project details loaded:", data);
 
         setProject(data.Project);
-        setEvents(data.Events || []);
+        setCampuses(data.Campuses || []);
         setRsvps(data.RSVPs || []);
-        setProjectCampuses(data.Project_Campuses || []);
-        setConfirmationCards(data.Confirmation_Cards || []);
       } catch (error) {
         console.error("Error loading project data:", error);
       } finally {
@@ -235,14 +241,13 @@ export default function ProjectDetailPage({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openDropdown]);
 
-  // Filter events and RSVPs by selected congregation
+  // Filter campuses and RSVPs by selected congregation
   // Church Wide (ID = 1) shows all, specific campus shows only that campus
   const isChurchWide = !selectedCampus || selectedCampus.Congregation_ID === 1;
 
-  const filteredEvents = events.filter((e) => {
-    if (!e.Include_In_RSVP) return false;
+  const filteredCampuses = campuses.filter((campus) => {
     if (isChurchWide) return true;
-    return e.Congregation_ID === selectedCampus.Congregation_ID;
+    return campus.Congregation_ID === selectedCampus.Congregation_ID;
   });
 
   const filteredRsvps = rsvps.filter((r) => {
@@ -251,7 +256,6 @@ export default function ProjectDetailPage({
     return r.Campus_Name === selectedCampus.Congregation_Name;
   });
 
-  const includedEvents = filteredEvents;
   const totalRSVPs = filteredRsvps.length;
   const totalAttendees = filteredRsvps.reduce(
     (sum, r) => sum + (r.Party_Size || 0),
@@ -301,9 +305,9 @@ export default function ProjectDetailPage({
       </Link>
 
       {/* Project Header */}
-      <div className="mb-8">
-        <div className="flex justify-between items-start mb-4">
-          <div>
+      <div className="mb-8 bg-card border border-border rounded-lg p-6">
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex-1">
             <h1 className="text-3xl font-bold text-primary dark:text-foreground mb-2">
               {displayTitle}
             </h1>
@@ -313,35 +317,170 @@ export default function ProjectDetailPage({
                 dangerouslySetInnerHTML={{ __html: project.RSVP_Description }}
               />
             )}
-          </div>
-          <div className="flex gap-2">
-            {project.RSVP_Is_Active ? (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-[#61bc47]/10 text-[#61bc47] border border-[#61bc47]/20">
-                <CheckCircle2 className="w-4 h-4" />
-                Active
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                <XCircle className="w-4 h-4" />
-                Inactive
-              </span>
+
+            {/* Project Dates */}
+            {project.RSVP_Start_Date && project.RSVP_End_Date && (
+              <div className="flex items-center gap-1 mt-3 text-sm text-muted-foreground">
+                <Calendar className="w-4 h-4" />
+                {formatDate(project.RSVP_Start_Date)} -{" "}
+                {formatDate(project.RSVP_End_Date)}
+              </div>
             )}
+          </div>
+          <button
+            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+            onClick={() => {
+              // TODO: Open edit project modal/dialog
+              console.log('Edit project:', project.Project_ID);
+            }}
+            title="Edit project details"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-border my-6"></div>
+
+        {/* Project Configuration */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Left Column */}
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Status
+              </label>
+              <p className="text-sm text-foreground mt-1">
+                {project.RSVP_Is_Active ? 'Active' : 'Inactive'}
+              </p>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Require Contact Lookup
+              </label>
+              <p className="text-sm text-foreground mt-1">
+                {project.RSVP_Require_Contact_Lookup ? 'Yes' : 'No'}
+              </p>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Allow Guest Submission
+              </label>
+              <p className="text-sm text-foreground mt-1">
+                {project.RSVP_Allow_Guest_Submission ? 'Yes' : 'No'}
+              </p>
+            </div>
+
+            {project.RSVP_Confirmation_Email_Template_ID && (
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Confirmation Email Template ID
+                </label>
+                <p className="text-sm text-foreground mt-1 font-mono">
+                  {project.RSVP_Confirmation_Email_Template_ID}
+                </p>
+              </div>
+            )}
+
+            {project.RSVP_Confirmation_Template_ID && (
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Confirmation Template ID
+                </label>
+                <p className="text-sm text-foreground mt-1 font-mono">
+                  {project.RSVP_Confirmation_Template_ID}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Colors */}
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Colors
+              </label>
+              <div className="mt-2 space-y-2">
+                {project.RSVP_Primary_Color && (
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-8 h-8 rounded border border-border"
+                      style={{ backgroundColor: project.RSVP_Primary_Color }}
+                    />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Primary</p>
+                      <p className="text-sm font-mono text-foreground">{project.RSVP_Primary_Color}</p>
+                    </div>
+                  </div>
+                )}
+                {project.RSVP_Secondary_Color && (
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-8 h-8 rounded border border-border"
+                      style={{ backgroundColor: project.RSVP_Secondary_Color }}
+                    />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Secondary</p>
+                      <p className="text-sm font-mono text-foreground">{project.RSVP_Secondary_Color}</p>
+                    </div>
+                  </div>
+                )}
+                {project.RSVP_Accent_Color && (
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-8 h-8 rounded border border-border"
+                      style={{ backgroundColor: project.RSVP_Accent_Color }}
+                    />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Accent</p>
+                      <p className="text-sm font-mono text-foreground">{project.RSVP_Accent_Color}</p>
+                    </div>
+                  </div>
+                )}
+                {project.RSVP_Background_Color && (
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-8 h-8 rounded border border-border"
+                      style={{ backgroundColor: project.RSVP_Background_Color }}
+                    />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Background</p>
+                      <p className="text-sm font-mono text-foreground">{project.RSVP_Background_Color}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Project Metadata */}
-        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-          {project.RSVP_Start_Date && project.RSVP_End_Date && (
-            <div className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              {formatDate(project.RSVP_Start_Date)} -{" "}
-              {formatDate(project.RSVP_End_Date)}
-            </div>
-          )}
-          {project.RSVP_Slug && (
-            <div className="font-mono text-xs">/{project.RSVP_Slug}</div>
-          )}
-        </div>
+        {/* Images Section - Full Width Below */}
+        {(project.RSVP_Image_URL || project.RSVP_BG_Image_URL) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            {project.RSVP_Image_URL && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Image</p>
+                <img
+                  src={project.RSVP_Image_URL}
+                  alt="RSVP Image"
+                  className="w-full h-auto rounded border border-border"
+                />
+              </div>
+            )}
+            {project.RSVP_BG_Image_URL && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Background Image</p>
+                <img
+                  src={project.RSVP_BG_Image_URL}
+                  alt="Background Image"
+                  className="w-full h-auto rounded border border-border"
+                />
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
@@ -379,63 +518,105 @@ export default function ProjectDetailPage({
       {/* Project Events Section - Grouped by Campus */}
       {activeTab === "events" && (
       <div className="mb-12">
-        {events.length === 0 ? (
+        {filteredCampuses.length === 0 ? (
           <div className="bg-card border-2 border-dashed border-border rounded-lg p-12 text-center">
             <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-xl font-semibold text-foreground mb-2">
-              No events in this project
+              No campuses found
             </h3>
             <p className="text-muted-foreground">
-              Add events to this project in MinistryPlatform.
+              Add campuses to this project in MinistryPlatform.
             </p>
           </div>
         ) : (
           <div className="space-y-12">
-            {/* Group events by campus, then by date */}
-            {Object.entries(
-              includedEvents.reduce((campusGroups, event) => {
-                const campus = event.Congregation_Name || "No Campus";
-                if (!campusGroups[campus]) campusGroups[campus] = [];
-                campusGroups[campus].push(event);
-                return campusGroups;
-              }, {} as Record<string, typeof includedEvents>)
-            )
-            .sort(([campusA], [campusB]) => campusA.localeCompare(campusB))
-            .map(([campus, campusEvents]) => (
-              <div key={campus}>
+            {/* Iterate through each campus */}
+            {filteredCampuses.map((campus) => (
+              <div key={campus.Congregation_ID}>
                 {/* Campus Header */}
                 <div className="mb-6">
-                  <h3 className="text-2xl font-bold text-foreground">{campus}</h3>
+                  <h3 className="text-2xl font-bold text-foreground">{campus.Campus_Name}</h3>
                   <div className="h-1 w-20 bg-[#61bc47] rounded mt-2" />
+
+                  {/* Public Event Info */}
+                  {campus.Public_Event_ID ? (
+                    <div className="mt-4 bg-card border border-border rounded-lg overflow-hidden max-w-md relative">
+                      {/* Edit Button */}
+                      <button
+                        className="absolute top-2 right-2 p-2 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors z-10 backdrop-blur-sm"
+                        onClick={() => {
+                          // TODO: Open edit meeting instructions modal/dialog
+                          console.log('Edit meeting instructions for event:', campus.Public_Event_ID);
+                        }}
+                        title="Edit meeting instructions"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+
+                      {/* Public Event Image */}
+                      {campus.Public_Event_Image_URL && (
+                        <div className="w-full bg-muted">
+                          <img
+                            src={campus.Public_Event_Image_URL}
+                            alt={campus.Public_Event_Title || 'Campus Event'}
+                            className="w-full h-auto"
+                          />
+                        </div>
+                      )}
+
+                      {/* Public Event Text Content */}
+                      <div className="p-4">
+                        {campus.Public_Event_Title && (
+                          <div className="flex items-center gap-2 mb-2">
+                            <Info className="w-4 h-4 text-[#61bc47]" />
+                            <h4 className="font-semibold text-foreground">{campus.Public_Event_Title}</h4>
+                          </div>
+                        )}
+                        {campus.Meeting_Instructions && (
+                          <p className="text-sm text-muted-foreground pl-6">{campus.Meeting_Instructions}</p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-4 bg-card border border-dashed border-border rounded-lg p-6 text-center max-w-md">
+                      <p className="text-sm text-muted-foreground">No public-facing event configured</p>
+                    </div>
+                  )}
                 </div>
 
-                <div className="space-y-8">
-                  {/* Group campus events by date */}
-                  {Object.entries(
-                    campusEvents.reduce((dateGroups, event) => {
-                      const date = event.Event_Start_Date
-                        ? new Date(event.Event_Start_Date).toLocaleDateString("en-US", {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                          })
-                        : "No Date";
-                      if (!dateGroups[date]) dateGroups[date] = [];
-                      dateGroups[date].push(event);
-                      return dateGroups;
-                    }, {} as Record<string, typeof campusEvents>)
-                  ).map(([date, dateEvents]) => (
-                    <div key={date}>
-                      {/* Date Header */}
-                      <div className="flex items-center gap-2 mb-4">
-                        <Calendar className="w-5 h-5 text-[#61bc47]" />
-                        <h4 className="text-lg font-semibold text-foreground">{date}</h4>
-                      </div>
+                {/* Check if campus has events */}
+                {!campus.Events || campus.Events.length === 0 ? (
+                  <div className="bg-card border border-dashed border-border rounded-lg p-8 text-center mb-8">
+                    <p className="text-muted-foreground">No events for this campus</p>
+                  </div>
+                ) : (
+                  <div className="space-y-8 mb-8">
+                    {/* Group campus events by date */}
+                    {Object.entries(
+                      campus.Events.reduce((dateGroups, event) => {
+                        const date = event.Event_Start_Date
+                          ? new Date(event.Event_Start_Date).toLocaleDateString("en-US", {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                            })
+                          : "No Date";
+                        if (!dateGroups[date]) dateGroups[date] = [];
+                        dateGroups[date].push(event);
+                        return dateGroups;
+                      }, {} as Record<string, ProjectEventWithDetails[]>)
+                    ).map(([date, dateEvents]) => (
+                      <div key={date}>
+                        {/* Date Header */}
+                        <div className="flex items-center gap-2 mb-4">
+                          <Calendar className="w-5 h-5 text-[#61bc47]" />
+                          <h4 className="text-lg font-semibold text-foreground">{date}</h4>
+                        </div>
 
-                      {/* Event Cards - Horizontal Scroll */}
-                      <div className="overflow-x-auto pb-4 -mx-4 px-4">
-                        <div className="flex gap-4" style={{ minWidth: "min-content" }}>
-                          {dateEvents.map((event) => (
+                        {/* Event Cards - Horizontal Scroll */}
+                        <div className="overflow-x-auto pb-4 -mx-4 px-4">
+                          <div className="flex gap-4" style={{ minWidth: "min-content" }}>
+                            {dateEvents.map((event) => (
                             <div
                               key={event.Event_ID}
                               className="bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-shadow flex-shrink-0 relative"
@@ -569,88 +750,86 @@ export default function ProjectDetailPage({
                 </div>
               </div>
             ))}
+                  </div>
+                )}
 
-                  {/* Confirmation Cards for this campus */}
-                  {(() => {
-                    // Get the Congregation_ID for this campus to filter cards
-                    const campusEvent = campusEvents[0];
-                    const congregationId = campusEvent?.Congregation_ID;
-
-                    // Filter cards for this campus (campus-specific + global cards)
-                    const campusCards = confirmationCards.filter(
-                      (card) =>
-                        card.Is_Global ||
-                        (congregationId && card.Congregation_ID === congregationId)
-                    );
-
-                    if (campusCards.length === 0) return null;
-
-                    return (
-                      <div className="mt-8">
-                        {/* Confirmation Cards Heading */}
-                        <div className="flex items-center gap-2 mb-6">
-                          <CheckCircle2 className="w-5 h-5 text-[#61bc47]" />
-                          <h4 className="text-lg font-semibold text-foreground">
-                            Confirmation Cards
-                          </h4>
-                        </div>
-                        <div className="flex flex-wrap gap-6">
-                          {campusCards.map((card) => {
-                            // Parse configuration JSON if it exists
-                            let config: { title?: string; bullets?: Array<{ icon?: string; text?: string }> } = {};
-                            try {
-                              if (card.Configuration) {
-                                config = JSON.parse(card.Configuration);
-                              }
-                            } catch (e) {
-                              console.error("Failed to parse card configuration:", e);
+                {/* Confirmation Cards for this campus */}
+                {campus.Confirmation_Cards && campus.Confirmation_Cards.length > 0 && (
+                  <div className="mt-8">
+                    {/* Confirmation Cards Heading */}
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-5 h-5 text-[#61bc47]" />
+                        <h4 className="text-lg font-semibold text-foreground">
+                          Confirmation Cards
+                        </h4>
+                      </div>
+                      <button
+                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                        onClick={() => {
+                          // TODO: Open edit confirmation cards modal/dialog
+                          console.log('Edit confirmation cards for campus:', campus.Congregation_ID);
+                        }}
+                        title="Edit confirmation cards"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-6">
+                      {campus.Confirmation_Cards.map((card) => {
+                          // Parse configuration JSON if it exists
+                          let config: { title?: string; bullets?: Array<{ icon?: string; text?: string }> } = {};
+                          try {
+                            if (card.Configuration) {
+                              config = JSON.parse(card.Configuration);
                             }
+                          } catch (e) {
+                            console.error("Failed to parse card configuration:", e);
+                          }
 
-                            // Check if card is global (null or 1)
-                            const isGlobal = card.Congregation_ID === null || card.Congregation_ID === 1;
+                          // Check if card is global (null or 1)
+                          const isGlobal = card.Congregation_ID === null || card.Congregation_ID === 1;
 
-                            return (
-                              <div key={card.Card_ID} className="bg-card border border-border rounded-lg p-6 w-fit max-w-md">
-                                <div className="flex items-center gap-4 mb-6">
-                                  <h4 className="text-xl font-semibold text-foreground">
-                                    {config.title || card.Card_Type_Name}
-                                  </h4>
-                                  {isGlobal && (
-                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#61bc47]/10 text-[#61bc47] border border-[#61bc47]/20 whitespace-nowrap">
-                                      All campuses
-                                    </span>
-                                  )}
-                                </div>
-                                {config.bullets && config.bullets.length > 0 && (
-                                  <div className="space-y-4">
-                                    {config.bullets.map((bullet, index) => {
-                                      const IconComponent = getIconComponent(bullet.icon || null);
-                                      return (
-                                        <div
-                                          key={index}
-                                          className="flex items-center gap-4"
-                                        >
-                                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#61bc47]/10 border border-[#61bc47]/20 flex items-center justify-center">
-                                            <IconComponent className="w-5 h-5 text-[#61bc47]" />
-                                          </div>
-                                          <div className="flex-1">
-                                            <p className="text-sm text-muted-foreground leading-relaxed">
-                                              {bullet.text}
-                                            </p>
-                                          </div>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
+                          return (
+                            <div key={card.Card_ID} className="bg-card border border-border rounded-lg p-6 w-fit max-w-md">
+                              <div className="flex items-center gap-4 mb-6">
+                                <h4 className="text-xl font-semibold text-foreground">
+                                  {config.title || card.Card_Type_Name}
+                                </h4>
+                                {isGlobal && (
+                                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#61bc47]/10 text-[#61bc47] border border-[#61bc47]/20 whitespace-nowrap">
+                                    All campuses
+                                  </span>
                                 )}
                               </div>
-                            );
-                          })}
-                        </div>
+                              {config.bullets && config.bullets.length > 0 && (
+                                <div className="space-y-4">
+                                  {config.bullets.map((bullet, index) => {
+                                    const IconComponent = getIconComponent(bullet.icon || null);
+                                    return (
+                                      <div
+                                        key={index}
+                                        className="flex items-center gap-4"
+                                      >
+                                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#61bc47]/10 border border-[#61bc47]/20 flex items-center justify-center">
+                                          <IconComponent className="w-5 h-5 text-[#61bc47]" />
+                                        </div>
+                                        <div className="flex-1">
+                                          <p className="text-sm text-muted-foreground leading-relaxed">
+                                            {bullet.text}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
-                    );
-                  })()}
-          </div>
+                    </div>
+                  )}
               </div>
             ))}
           </div>
