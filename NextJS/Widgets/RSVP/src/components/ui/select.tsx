@@ -66,9 +66,7 @@ function SelectContent({
     ? (window as WidgetWindow).__RSVP_WIDGET_PORTAL_CONTAINER__
     : undefined;
 
-  // Track if user is actively scrolling
-  const scrollTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-  const isScrollingRef = React.useRef(false);
+  const lastTouchRef = React.useRef<{ time: number; moving: boolean }>({ time: 0, moving: false });
 
   return (
     <SelectPrimitive.Portal container={portalContainer}>
@@ -81,32 +79,26 @@ function SelectContent({
           className
         )}
         style={{
-          // iOS smooth scrolling and touch optimization
+          // iOS momentum scrolling
           WebkitOverflowScrolling: 'touch',
-          // Prevent scroll momentum from interfering with item selection
+          // Contain scroll behavior
           overscrollBehavior: 'contain',
+          // Increase scroll area to reduce accidental dismissals
+          scrollPaddingTop: '8px',
+          scrollPaddingBottom: '8px',
         }}
         position={position}
         onScroll={() => {
-          // Mark as scrolling when scroll event fires
-          isScrollingRef.current = true;
-
-          // Clear previous timeout
-          if (scrollTimeoutRef.current) {
-            clearTimeout(scrollTimeoutRef.current);
-          }
-
-          // Set a timeout to clear scrolling flag after scroll stops
-          scrollTimeoutRef.current = setTimeout(() => {
-            isScrollingRef.current = false;
-          }, 150);
+          lastTouchRef.current.moving = true;
         }}
-        onTouchStart={() => {
-          // When touch starts, immediately clear scrolling flag if it was set
-          // This helps distinguish between scroll and tap
-          if (scrollTimeoutRef.current) {
-            clearTimeout(scrollTimeoutRef.current);
+        onPointerDownOutside={(e) => {
+          // Prevent closing if user was just scrolling
+          const now = Date.now();
+          if (now - lastTouchRef.current.time < 300 && lastTouchRef.current.moving) {
+            e.preventDefault();
+            lastTouchRef.current.moving = false;
           }
+          lastTouchRef.current.time = now;
         }}
         {...props}
       >
@@ -144,51 +136,19 @@ function SelectItem({
   children,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Item>) {
-  const itemRef = React.useRef<HTMLDivElement>(null);
-  const touchStartTimeRef = React.useRef<number>(0);
-  const touchStartYRef = React.useRef<number>(0);
-  const touchMoveRef = React.useRef(false);
-
   return (
     <SelectPrimitive.Item
-      ref={itemRef}
       data-slot="select-item"
       className={cn(
         "relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        // Increase tap target size for better mobile UX
+        "min-h-[44px]",
         className
       )}
       style={{
-        // Allow vertical scrolling but make taps register quickly without double-tap zoom
-        touchAction: 'pan-y',
         WebkitTapHighlightColor: 'transparent',
-      }}
-      onTouchStart={(e) => {
-        // Record when touch started and where
-        touchStartTimeRef.current = Date.now();
-        touchStartYRef.current = e.touches[0].clientY;
-        touchMoveRef.current = false;
-      }}
-      onTouchMove={(e) => {
-        const touchCurrentY = e.touches[0].clientY;
-        const touchDistance = Math.abs(touchCurrentY - touchStartYRef.current);
-
-        // If moved more than 5px, mark as scrolling
-        if (touchDistance > 5) {
-          touchMoveRef.current = true;
-        }
-      }}
-      onTouchEnd={() => {
-        const touchDuration = Date.now() - touchStartTimeRef.current;
-
-        // If touch was quick (<300ms) and didn't move (not a scroll), treat as tap
-        if (touchDuration < 300 && !touchMoveRef.current) {
-          // Small delay to ensure the item is focused before clicking
-          setTimeout(() => {
-            itemRef.current?.click();
-          }, 50);
-        }
       }}
       {...props}
     >
