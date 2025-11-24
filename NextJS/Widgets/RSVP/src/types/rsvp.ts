@@ -46,6 +46,7 @@ export interface CampusMeetingInstruction {
   Campus_Name: string;
   Campus_Slug: string;
   Meeting_Instructions: string | null;
+  Campus_Image_URL: string | null;  // Default image from Public_Event_ID
 }
 
 /**

@@ -683,6 +683,28 @@ export default function RSVPPage() {
     return campusInstructions?.Meeting_Instructions || null;
   }, [rsvpData, selectedCampusId]);
 
+  // Get campus-specific image URL from Public_Event_ID, fallback to project default
+  const currentImageURL = useMemo(() => {
+    if (!rsvpData?.Project?.RSVP_Image_URL && !rsvpData?.Campus_Meeting_Instructions) {
+      return null;
+    }
+
+    // If a campus is selected, check if there's a campus-specific image
+    if (selectedCampusId !== null && rsvpData?.Campus_Meeting_Instructions) {
+      const campusInstructions = rsvpData.Campus_Meeting_Instructions.find(
+        instruction => instruction.Congregation_ID === selectedCampusId
+      );
+
+      // Use campus-specific image if available, otherwise fall back to project default
+      if (campusInstructions?.Campus_Image_URL) {
+        return campusInstructions.Campus_Image_URL;
+      }
+    }
+
+    // Default to project-level image
+    return rsvpData?.Project?.RSVP_Image_URL || null;
+  }, [rsvpData, selectedCampusId]);
+
   // Handlers
   const handleServiceSelect = async (serviceTime: ServiceTimeResponse) => {
     // In widget mode, check if token is expired before proceeding
@@ -929,11 +951,10 @@ export default function RSVPPage() {
               {/* Main Header - Aligned with top of image */}
               <div>
                 <h1 className="text-3xl md:text-5xl font-bold mb-2 md:mb-3 leading-tight text-white">
-                  Join us for Christmas Services
+                  {rsvpData?.Project?.RSVP_Title || ""}
                 </h1>
                 <p className="text-base md:text-xl leading-relaxed text-white opacity-90">
-                  Our hope is that you, along with your friends and family, come and
-                  celebrate Christmas at Woodside.
+                  {rsvpData?.Project?.RSVP_Description || ""}
                 </p>
 
                 {/* Campus-specific meeting instructions */}
@@ -945,10 +966,10 @@ export default function RSVPPage() {
               </div>
 
               {/* RSVP Image - Mobile/Tablet (between blurb and instructions) */}
-              {rsvpData?.Project?.RSVP_Image_URL && (
+              {currentImageURL && (
                 <div className="xl:hidden my-2">
                   <img
-                    src={rsvpData.Project.RSVP_Image_URL}
+                    src={currentImageURL}
                     alt={rsvpData.Project.RSVP_Title || "RSVP"}
                     className="w-full h-auto shadow-2xl max-w-md mx-auto"
                   />
@@ -1181,10 +1202,10 @@ export default function RSVPPage() {
             </div>
 
             {/* RSVP Image - Desktop Only (right side) */}
-            {rsvpData?.Project?.RSVP_Image_URL && (
+            {currentImageURL && (
               <div className="hidden xl:block flex-shrink-0 w-[520px]">
                 <img
-                  src={rsvpData.Project.RSVP_Image_URL}
+                  src={currentImageURL}
                   alt={rsvpData.Project.RSVP_Title || "RSVP"}
                   className="w-full h-auto shadow-2xl"
                 />

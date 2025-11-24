@@ -294,10 +294,28 @@ BEGIN
             pc.Congregation_ID,
             c.Congregation_Name AS Campus_Name,
             c.Campus_Slug,
-            e.Meeting_Instructions
+            e.Meeting_Instructions,
+            -- Get campus-specific image from Public_Event_ID default image
+            Campus_Image_URL = CASE
+                WHEN F_Event.File_ID IS NOT NULL AND CS.Value IS NOT NULL AND D.Domain_GUID IS NOT NULL
+                THEN CONCAT(CS.Value, '?dn=', CONVERT(varchar(40), D.Domain_GUID), '&fn=', F_Event.Unique_Name, '.', F_Event.Extension)
+                ELSE NULL
+            END
         FROM Project_Campuses pc
         INNER JOIN Congregations c ON pc.Congregation_ID = c.Congregation_ID
         LEFT JOIN Events e ON pc.Public_Event_ID = e.Event_ID
+        -- Join to dp_files to get default image from Public_Event_ID
+        LEFT OUTER JOIN dp_files F_Event ON F_Event.Record_ID = pc.Public_Event_ID
+            AND F_Event.Table_Name = 'Events'
+            AND F_Event.Default_Image = 1
+        -- Join to get ImageURL configuration setting
+        LEFT OUTER JOIN dp_Configuration_Settings CS
+            ON CS.Domain_ID = COALESCE(c.Domain_ID, 1)
+            AND CS.Key_Name = 'ImageURL'
+            AND CS.Application_Code = 'Common'
+        -- Join to get Domain GUID
+        LEFT OUTER JOIN dp_Domains D
+            ON D.Domain_ID = COALESCE(c.Domain_ID, 1)
         WHERE pc.Project_ID = @Project_ID
           AND pc.Is_Active = 1
           AND (@Congregation_ID IS NULL OR pc.Congregation_ID = @Congregation_ID)
