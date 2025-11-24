@@ -66,13 +66,6 @@ function SelectContent({
     ? (window as WidgetWindow).__RSVP_WIDGET_PORTAL_CONTAINER__
     : undefined;
 
-  const lastTouchRef = React.useRef<{ time: number; moving: boolean }>({ time: 0, moving: false });
-
-  // Version check for debugging
-  React.useEffect(() => {
-    console.log('[Select Component] Version: 2024-11-24-v6');
-  }, []);
-
   return (
     <SelectPrimitive.Portal container={portalContainer}>
       <SelectPrimitive.Content
@@ -83,39 +76,7 @@ function SelectContent({
             "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
           className
         )}
-        style={{
-          // iOS momentum scrolling
-          WebkitOverflowScrolling: 'touch',
-          // Contain scroll behavior
-          overscrollBehavior: 'contain',
-          // Increase scroll area to reduce accidental dismissals
-          scrollPaddingTop: '8px',
-          scrollPaddingBottom: '8px',
-        }}
         position={position}
-        onScroll={() => {
-          lastTouchRef.current.moving = true;
-          lastTouchRef.current.time = Date.now();
-        }}
-        onInteractOutside={(e) => {
-          // Prevent closing if user was just scrolling
-          const now = Date.now();
-          const timeSinceScroll = now - lastTouchRef.current.time;
-
-          console.log('[Select] InteractOutside:', {
-            timeSinceScroll,
-            wasMoving: lastTouchRef.current.moving,
-            target: (e.target as HTMLElement).tagName
-          });
-
-          // If scrolled within last 500ms, prevent close
-          if (timeSinceScroll < 500 && lastTouchRef.current.moving) {
-            console.log('[Select] Preventing close due to recent scroll');
-            e.preventDefault();
-          } else {
-            lastTouchRef.current.moving = false;
-          }
-        }}
         {...props}
       >
         <SelectScrollUpButton />
@@ -159,22 +120,8 @@ function SelectItem({
         "relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        // Increase tap target size for better mobile UX
-        "min-h-[44px]",
         className
       )}
-      style={{
-        WebkitTapHighlightColor: 'transparent',
-      }}
-      onSelect={() => {
-        console.log('[SelectItem] onSelect triggered for:', children);
-      }}
-      onPointerDown={() => {
-        console.log('[SelectItem] onPointerDown for:', children);
-      }}
-      onClick={() => {
-        console.log('[SelectItem] onClick for:', children);
-      }}
       {...props}
     >
       <span className="absolute right-2 flex size-3.5 items-center justify-center">
