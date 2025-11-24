@@ -147,6 +147,7 @@ function SelectItem({
   const itemRef = React.useRef<HTMLDivElement>(null);
   const touchStartTimeRef = React.useRef<number>(0);
   const touchStartYRef = React.useRef<number>(0);
+  const touchMoveRef = React.useRef(false);
 
   return (
     <SelectPrimitive.Item
@@ -167,24 +168,26 @@ function SelectItem({
         // Record when touch started and where
         touchStartTimeRef.current = Date.now();
         touchStartYRef.current = e.touches[0].clientY;
+        touchMoveRef.current = false;
+      }}
+      onTouchMove={(e) => {
+        const touchCurrentY = e.touches[0].clientY;
+        const touchDistance = Math.abs(touchCurrentY - touchStartYRef.current);
+
+        // If moved more than 5px, mark as scrolling
+        if (touchDistance > 5) {
+          touchMoveRef.current = true;
+        }
       }}
       onTouchEnd={(e) => {
         const touchDuration = Date.now() - touchStartTimeRef.current;
-        const touchEndY = e.changedTouches[0].clientY;
-        const touchDistance = Math.abs(touchEndY - touchStartYRef.current);
 
-        // If touch was quick (<200ms) and didn't move much (<10px), treat as tap
-        if (touchDuration < 200 && touchDistance < 10) {
-          // Prevent default to stop any remaining scroll momentum
-          e.preventDefault();
-          // Trigger the item click by dispatching a pointer event
-          const pointerEvent = new PointerEvent('pointerdown', {
-            bubbles: true,
-            cancelable: true,
-            view: window,
-            pointerId: 1,
-          });
-          itemRef.current?.dispatchEvent(pointerEvent);
+        // If touch was quick (<300ms) and didn't move (not a scroll), treat as tap
+        if (touchDuration < 300 && !touchMoveRef.current) {
+          // Small delay to ensure the item is focused before clicking
+          setTimeout(() => {
+            itemRef.current?.click();
+          }, 50);
         }
       }}
       {...props}
