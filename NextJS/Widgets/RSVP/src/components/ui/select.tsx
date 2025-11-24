@@ -179,7 +179,7 @@ function SelectItem({
           touchMoveRef.current = true;
         }
       }}
-      onTouchEnd={(e) => {
+      onTouchEnd={() => {
         const touchDuration = Date.now() - touchStartTimeRef.current;
 
         // If touch was quick (<300ms) and didn't move (not a scroll), treat as tap
