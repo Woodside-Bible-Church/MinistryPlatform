@@ -76,6 +76,12 @@ function SelectContent({
             "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
           className
         )}
+        style={{
+          // iOS smooth scrolling and touch optimization
+          WebkitOverflowScrolling: 'touch',
+          // Prevent scroll momentum from interfering with item selection
+          overscrollBehavior: 'contain',
+        }}
         position={position}
         {...props}
       >
@@ -120,8 +126,15 @@ function SelectItem({
         "relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        // Mobile touch optimization - prevent scroll interference with taps
+        "touch-manipulation",
         className
       )}
+      style={{
+        // Ensure items remain clickable on mobile even during/after scroll
+        touchAction: 'manipulation',
+        WebkitTapHighlightColor: 'transparent',
+      }}
       {...props}
     >
       <span className="absolute right-2 flex size-3.5 items-center justify-center">
