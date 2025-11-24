@@ -126,13 +126,11 @@ function SelectItem({
         "relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        // Mobile touch optimization - prevent scroll interference with taps
-        "touch-manipulation",
         className
       )}
       style={{
-        // Ensure items remain clickable on mobile even during/after scroll
-        touchAction: 'manipulation',
+        // Allow vertical scrolling but make taps register quickly without double-tap zoom
+        touchAction: 'pan-y',
         WebkitTapHighlightColor: 'transparent',
       }}
       {...props}
