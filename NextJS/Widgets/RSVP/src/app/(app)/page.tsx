@@ -9,9 +9,6 @@ import RSVPForm from "@/components/rsvp/RSVPForm";
 import ConfirmationView from "@/components/rsvp/ConfirmationView";
 import InformationalEventCard from "@/components/rsvp/InformationalEventCard";
 import {
-  mockInformationalEvents,
-} from "@/data/mockData";
-import {
   RSVPFormInput,
   RSVPConfirmation,
   ServiceTimeResponse,
@@ -641,12 +638,6 @@ export default function RSVPPage() {
       .filter(carousel => carousel.Events.length > 0);
   }, [rsvpData, selectedCampusId]);
 
-  // Fallback: Filter mock informational events by selected campus (for backward compatibility)
-  const filteredInformationalEvents = useMemo(() => {
-    return mockInformationalEvents.filter(
-      (event) => event.campusId === selectedCampusId
-    );
-  }, [selectedCampusId]);
 
   // Group service times by date for display
   const groupedServiceTimes = useMemo(() => {
@@ -1421,25 +1412,7 @@ export default function RSVPPage() {
         </section>
       )}
 
-      {/* Fallback: Mock Informational Events Section (for backward compatibility during development) */}
-      {filteredCarousels.length === 0 && filteredInformationalEvents.length > 0 && (
-        <section className="bg-gray-50 py-12">
-          <div className="relative mx-auto px-8 max-w-[1600px]">
-            <h2 className="text-3xl font-bold mb-6" style={{ color: 'var(--theme-primary)' }}>
-              Other Christmas Events
-            </h2>
-            <div className="flex flex-wrap gap-4">
-              {filteredInformationalEvents.map((event) => (
-                <InformationalEventCard
-                  key={event.eventId}
-                  event={event}
-                  baseUrl={baseUrl}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      {/* Note: Mock data fallback removed - now using only real carousel events from database */}
       </>
       )}
 
