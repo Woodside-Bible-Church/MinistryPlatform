@@ -982,7 +982,7 @@ export default function RSVPPage() {
                 <div ref={instructionRef}>
                   {currentView === "services" && (
                     <>
-                      <h2 className="text-xl md:text-2xl font-bold text-white mb-1">
+                      <h2 className="text-xl md:text-2xl font-bold text-white mb-1 mt-6">
                         Service Times & Availability
                       </h2>
                       <p className="text-sm md:text-base text-white opacity-80">
