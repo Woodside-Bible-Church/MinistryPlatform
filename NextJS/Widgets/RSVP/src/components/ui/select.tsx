@@ -66,6 +66,10 @@ function SelectContent({
     ? (window as WidgetWindow).__RSVP_WIDGET_PORTAL_CONTAINER__
     : undefined;
 
+  // Track if user is actively scrolling
+  const scrollTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const isScrollingRef = React.useRef(false);
+
   return (
     <SelectPrimitive.Portal container={portalContainer}>
       <SelectPrimitive.Content
@@ -83,6 +87,27 @@ function SelectContent({
           overscrollBehavior: 'contain',
         }}
         position={position}
+        onScroll={() => {
+          // Mark as scrolling when scroll event fires
+          isScrollingRef.current = true;
+
+          // Clear previous timeout
+          if (scrollTimeoutRef.current) {
+            clearTimeout(scrollTimeoutRef.current);
+          }
+
+          // Set a timeout to clear scrolling flag after scroll stops
+          scrollTimeoutRef.current = setTimeout(() => {
+            isScrollingRef.current = false;
+          }, 150);
+        }}
+        onTouchStart={() => {
+          // When touch starts, immediately clear scrolling flag if it was set
+          // This helps distinguish between scroll and tap
+          if (scrollTimeoutRef.current) {
+            clearTimeout(scrollTimeoutRef.current);
+          }
+        }}
         {...props}
       >
         <SelectScrollUpButton />
@@ -119,8 +144,13 @@ function SelectItem({
   children,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Item>) {
+  const itemRef = React.useRef<HTMLDivElement>(null);
+  const touchStartTimeRef = React.useRef<number>(0);
+  const touchStartYRef = React.useRef<number>(0);
+
   return (
     <SelectPrimitive.Item
+      ref={itemRef}
       data-slot="select-item"
       className={cn(
         "relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none",
@@ -132,6 +162,30 @@ function SelectItem({
         // Allow vertical scrolling but make taps register quickly without double-tap zoom
         touchAction: 'pan-y',
         WebkitTapHighlightColor: 'transparent',
+      }}
+      onTouchStart={(e) => {
+        // Record when touch started and where
+        touchStartTimeRef.current = Date.now();
+        touchStartYRef.current = e.touches[0].clientY;
+      }}
+      onTouchEnd={(e) => {
+        const touchDuration = Date.now() - touchStartTimeRef.current;
+        const touchEndY = e.changedTouches[0].clientY;
+        const touchDistance = Math.abs(touchEndY - touchStartYRef.current);
+
+        // If touch was quick (<200ms) and didn't move much (<10px), treat as tap
+        if (touchDuration < 200 && touchDistance < 10) {
+          // Prevent default to stop any remaining scroll momentum
+          e.preventDefault();
+          // Trigger the item click by dispatching a pointer event
+          const pointerEvent = new PointerEvent('pointerdown', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            pointerId: 1,
+          });
+          itemRef.current?.dispatchEvent(pointerEvent);
+        }
       }}
       {...props}
     >
