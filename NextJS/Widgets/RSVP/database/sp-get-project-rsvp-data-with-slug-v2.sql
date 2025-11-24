@@ -235,7 +235,7 @@ BEGIN
         SELECT @AdditionalQuestionsJson = (
             SELECT
                 ff.Form_Field_ID AS Question_ID,
-                ff.Field_Label AS Question_Text,
+                COALESCE(NULLIF(ff.Alternate_Label, ''), ff.Field_Label) AS Question_Text,
                 fft.Field_Type AS Question_Type,
                 -- Extract component name from Custom_Field_Configuration JSON or use Field_Type as fallback
                 ISNULL(
