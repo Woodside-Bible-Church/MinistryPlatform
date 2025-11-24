@@ -175,6 +175,9 @@ export default function RSVPPage() {
   // Track loaded campus images
   const [loadedCampusImages, setLoadedCampusImages] = useState<Set<number>>(new Set());
 
+  // Track if component has mounted (client-side only) to prevent hydration mismatches
+  const [hasMounted, setHasMounted] = useState(false);
+
   // Build campus list from events that have RSVPs
   const availableCampuses = useMemo(() => {
     if (!rsvpData?.Events) return [];
@@ -364,6 +367,11 @@ export default function RSVPPage() {
 
     fetchUserCongregationId();
   }, [session, baseUrl, isWidget]);
+
+  // Track when component has mounted to prevent hydration mismatches
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // Set initial campus when available campuses are loaded
   useEffect(() => {
@@ -615,7 +623,25 @@ export default function RSVPPage() {
       .map(convertEventToServiceTime);
   }, [rsvpData, selectedCampusId]);
 
-  // Filter informational events by selected campus
+  // Filter carousel events by selected campus (from real API data)
+  const filteredCarousels = useMemo(() => {
+    if (!rsvpData?.Carousels || selectedCampusId === null) {
+      return [];
+    }
+
+    // Filter each carousel's events by the selected campus
+    return rsvpData.Carousels
+      .map(carousel => ({
+        ...carousel,
+        Events: carousel.Events.filter(
+          event => event.Congregation_ID === selectedCampusId
+        ),
+      }))
+      // Remove carousels with no events after filtering
+      .filter(carousel => carousel.Events.length > 0);
+  }, [rsvpData, selectedCampusId]);
+
+  // Fallback: Filter mock informational events by selected campus (for backward compatibility)
   const filteredInformationalEvents = useMemo(() => {
     return mockInformationalEvents.filter(
       (event) => event.campusId === selectedCampusId
@@ -1140,10 +1166,10 @@ export default function RSVPPage() {
                 </div>
 
                 {/* Campus Filter - Only show on services view and when not hardcoded via data-params */}
-                {currentView === "services" && !hideCampusDropdown && availableCampuses.length > 1 && selectedCampusId !== null && (
+                {currentView === "services" && !hideCampusDropdown && availableCampuses.length > 1 && selectedCampusId !== null && hasMounted && (
                   <div className="w-full md:max-w-md">
                     <Select
-                      value={selectedCampusId?.toString() ?? ''}
+                      value={selectedCampusId.toString()}
                       onValueChange={(value) =>
                         setSelectedCampusId(parseInt(value))
                       }
@@ -1371,8 +1397,32 @@ export default function RSVPPage() {
         </div>
       </section>
 
-      {/* Informational Events Section */}
-      {filteredInformationalEvents.length > 0 && (
+      {/* Event Carousels Section - Display related events grouped by carousel name */}
+      {filteredCarousels.length > 0 && (
+        <section className="bg-gray-50 py-12">
+          <div className="relative mx-auto px-8 max-w-[1600px] space-y-12">
+            {filteredCarousels.map((carousel) => (
+              <div key={carousel.Carousel_Name}>
+                <h2 className="text-3xl font-bold mb-6 text-gray-900">
+                  {carousel.Carousel_Name}
+                </h2>
+                <div className="flex flex-wrap gap-4">
+                  {carousel.Events.map((event) => (
+                    <InformationalEventCard
+                      key={event.Event_ID}
+                      event={event}
+                      baseUrl={baseUrl}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Fallback: Mock Informational Events Section (for backward compatibility during development) */}
+      {filteredCarousels.length === 0 && filteredInformationalEvents.length > 0 && (
         <section className="bg-gray-50 py-12">
           <div className="relative mx-auto px-8 max-w-[1600px]">
             <h2 className="text-3xl font-bold mb-6" style={{ color: 'var(--theme-primary)' }}>

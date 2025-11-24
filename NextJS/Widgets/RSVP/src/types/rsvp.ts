@@ -36,6 +36,7 @@ export interface ProjectRSVPDataResponse {
   Questions: RSVPQuestion[];
   Confirmation_Cards: ConfirmationCard[];
   Campus_Meeting_Instructions?: CampusMeetingInstruction[];
+  Carousels?: EventCarousel[];  // New: Non-RSVP events grouped by carousel name
 }
 
 /**
@@ -47,6 +48,32 @@ export interface CampusMeetingInstruction {
   Campus_Slug: string;
   Meeting_Instructions: string | null;
   Campus_Image_URL: string | null;  // Default image from Public_Event_ID
+}
+
+/**
+ * Event carousel grouping (for non-RSVP related events)
+ */
+export interface EventCarousel {
+  Carousel_Name: string;  // Display name for the carousel (e.g., "Other Christmas Events")
+  Events: CarouselEvent[];
+}
+
+/**
+ * Individual event in a carousel (non-RSVP event)
+ */
+export interface CarouselEvent {
+  Event_ID: number;
+  Event_Title: string;
+  Event_Start_Date: string; // ISO date string
+  Event_End_Date: string; // ISO date string
+  Event_Type_ID: number;
+  Congregation_ID: number | null;
+  Campus_Name: string | null;
+  Campus_Slug: string | null;
+  Campus_Location: string | null;
+  Description: string | null;
+  Event_Image_URL: string | null;  // Default image from Events table
+  Event_URL: string | null;  // Link to event details page
 }
 
 /**

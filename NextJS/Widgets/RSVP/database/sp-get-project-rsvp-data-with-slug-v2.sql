@@ -361,6 +361,75 @@ BEGIN
         SET @CardsJson = '[]';
 
     -- ===================================================================
+    -- Get Carousel Events (Non-RSVP Events grouped by carousel name)
+    -- ===================================================================
+    -- Events with RSVP_Carousel_Name populated will appear in themed
+    -- carousels below the RSVP section
+    DECLARE @CarouselsJson NVARCHAR(MAX);
+
+    SELECT @CarouselsJson = (
+        SELECT DISTINCT
+            e.RSVP_Carousel_Name AS Carousel_Name,
+            (
+                SELECT
+                    e2.Event_ID,
+                    e2.Event_Title,
+                    e2.Event_Start_Date,
+                    e2.Event_End_Date,
+                    e2.Event_Type_ID,
+                    e2.Congregation_ID,
+                    ISNULL(c2.Congregation_Name, '') AS Campus_Name,
+                    ISNULL(c2.Campus_Slug, '') AS Campus_Slug,
+                    ISNULL(l2.Location_Name, '') AS Campus_Location,
+                    e2.Description,
+                    -- Get event image URL from dp_files (default image)
+                    Event_Image_URL = CASE
+                        WHEN F_Event.File_ID IS NOT NULL AND CS2.Value IS NOT NULL AND D2.Domain_GUID IS NOT NULL
+                        THEN CONCAT(CS2.Value, '?dn=', CONVERT(varchar(40), D2.Domain_GUID), '&fn=', F_Event.Unique_Name, '.', F_Event.Extension)
+                        ELSE NULL
+                    END,
+                    -- Get event URL: Use External_Registration_URL if provided, otherwise use details page
+                    Event_URL = CASE
+                        WHEN e2.External_Registration_URL IS NOT NULL AND LEN(e2.External_Registration_URL) > 0
+                        THEN e2.External_Registration_URL
+                        ELSE CONCAT('https://woodsidebible.org/events/details/?id=', e2.Event_ID)
+                    END
+                FROM Events e2
+                LEFT JOIN Congregations c2 ON e2.Congregation_ID = c2.Congregation_ID
+                LEFT JOIN Locations l2 ON c2.Location_ID = l2.Location_ID
+                -- Join to dp_files to get event default image
+                LEFT OUTER JOIN dp_files F_Event ON F_Event.Record_ID = e2.Event_ID
+                    AND F_Event.Table_Name = 'Events'
+                    AND F_Event.Default_Image = 1
+                -- Join to get ImageURL configuration setting
+                LEFT OUTER JOIN dp_Configuration_Settings CS2
+                    ON CS2.Domain_ID = COALESCE(e2.Domain_ID, 1)
+                    AND CS2.Key_Name = 'ImageURL'
+                    AND CS2.Application_Code = 'Common'
+                -- Join to get Domain GUID
+                LEFT OUTER JOIN dp_Domains D2
+                    ON D2.Domain_ID = COALESCE(e2.Domain_ID, 1)
+                WHERE e2.Project_ID = @Project_ID
+                  AND e2.RSVP_Carousel_Name = e.RSVP_Carousel_Name
+                  AND (e2.Include_In_RSVP IS NULL OR e2.Include_In_RSVP = 0)
+                  AND (@Congregation_ID IS NULL OR e2.Congregation_ID = @Congregation_ID)
+                ORDER BY e2.Event_Start_Date ASC
+                FOR JSON PATH
+            ) AS Events
+        FROM Events e
+        WHERE e.Project_ID = @Project_ID
+          AND e.RSVP_Carousel_Name IS NOT NULL
+          AND (e.Include_In_RSVP IS NULL OR e.Include_In_RSVP = 0)
+          AND (@Congregation_ID IS NULL OR e.Congregation_ID = @Congregation_ID)
+        ORDER BY e.RSVP_Carousel_Name ASC
+        FOR JSON PATH
+    );
+
+    -- Default to empty array if no carousel events
+    IF @CarouselsJson IS NULL
+        SET @CarouselsJson = '[]';
+
+    -- ===================================================================
     -- Return Combined JSON Response
     -- ===================================================================
     DECLARE @Result NVARCHAR(MAX);
@@ -370,7 +439,8 @@ BEGIN
         N'"Events":' + @EventsJson + N',' +
         N'"Questions":' + @QuestionsJson + N',' +
         N'"Confirmation_Cards":' + @CardsJson + N',' +
-        N'"Campus_Meeting_Instructions":' + @CampusMeetingInstructionsJson +
+        N'"Campus_Meeting_Instructions":' + @CampusMeetingInstructionsJson + N',' +
+        N'"Carousels":' + @CarouselsJson +
     N'}';
 
     SELECT @Result AS JsonResult;

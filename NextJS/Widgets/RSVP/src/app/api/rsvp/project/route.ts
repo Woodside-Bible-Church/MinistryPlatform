@@ -93,6 +93,7 @@ export async function GET(request: NextRequest) {
       Questions: rawData.Questions,
       Confirmation_Cards: rawData.Confirmation_Cards,
       Campus_Meeting_Instructions: rawData.Campus_Meeting_Instructions,
+      Carousels: rawData.Carousels,  // Include carousel events
     };
 
     // Return the transformed data
