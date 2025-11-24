@@ -970,7 +970,7 @@ export default function RSVPPage() {
                 <div className="xl:hidden my-2">
                   <img
                     src={currentImageURL}
-                    alt={rsvpData.Project.RSVP_Title || "RSVP"}
+                    alt={rsvpData?.Project?.RSVP_Title || "RSVP"}
                     className="w-full h-auto shadow-2xl max-w-md mx-auto"
                   />
                 </div>
@@ -1206,7 +1206,7 @@ export default function RSVPPage() {
               <div className="hidden xl:block flex-shrink-0 w-[520px]">
                 <img
                   src={currentImageURL}
-                  alt={rsvpData.Project.RSVP_Title || "RSVP"}
+                  alt={rsvpData?.Project?.RSVP_Title || "RSVP"}
                   className="w-full h-auto shadow-2xl"
                 />
               </div>
