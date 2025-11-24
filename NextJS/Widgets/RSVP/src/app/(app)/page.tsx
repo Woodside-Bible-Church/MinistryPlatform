@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import CampusSelector from "@/components/rsvp/CampusSelector";
 
 type ViewType = "services" | "form" | "confirmation";
 
@@ -1158,62 +1159,15 @@ export default function RSVPPage() {
 
                 {/* Campus Filter - Only show on services view and when not hardcoded via data-params */}
                 {currentView === "services" && !hideCampusDropdown && availableCampuses.length > 1 && selectedCampusId !== null && hasMounted && (
-                  <div className="w-full md:max-w-md">
-                    <Select
-                      value={selectedCampusId.toString()}
-                      onValueChange={(value) =>
-                        setSelectedCampusId(parseInt(value))
-                      }
-                    >
-                      <SelectTrigger
-                        className="w-full h-12 border-2 transition-colors text-base font-semibold shadow-md focus-visible:ring-primary"
-                        style={{
-                          backgroundColor: rsvpData?.Project?.RSVP_Background_Color || '#1C2B39',
-                          borderColor: rsvpData?.Project?.RSVP_Background_Color || '#1C2B39',
-                          outlineColor: rsvpData?.Project?.RSVP_Background_Color || '#1C2B39',
-                          color: 'var(--theme-primary)',
-                          '--tw-ring-color': 'var(--theme-primary)',
-                        } as React.CSSProperties}
-                      >
-                        <SelectValue placeholder="Select Campus" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableCampuses.map((campus) => (
-                          <SelectItem
-                            key={campus.id}
-                            value={campus.id.toString()}
-                            className="text-base py-3 cursor-pointer group"
-                          >
-                            <div className="flex items-center gap-3">
-                              {campus.svgUrl ? (
-                                <div className="relative w-6 h-6">
-                                  {/* Loading skeleton - show while image is loading */}
-                                  {!loadedCampusImages.has(campus.id) && (
-                                    <div className="absolute inset-0 bg-gray-300 animate-pulse rounded" />
-                                  )}
-                                  <img
-                                    src={campus.svgUrl}
-                                    alt={`${campus.name} Campus`}
-                                    className={`w-6 h-6 transition-all duration-200 ${
-                                      selectedCampusId === campus.id
-                                        ? ""
-                                        : "grayscale group-hover:grayscale-0"
-                                    } ${!loadedCampusImages.has(campus.id) ? 'opacity-0' : 'opacity-100'}`}
-                                    onLoad={() => {
-                                      setLoadedCampusImages(prev => new Set(prev).add(campus.id));
-                                    }}
-                                  />
-                                </div>
-                              ) : (
-                                <MapPin className="w-5 h-5" style={{ color: 'var(--theme-primary)' }} />
-                              )}
-                              <span>{campus.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <CampusSelector
+                    campuses={availableCampuses}
+                    selectedId={selectedCampusId}
+                    onSelect={setSelectedCampusId}
+                    backgroundColor={rsvpData?.Project?.RSVP_Background_Color || '#1C2B39'}
+                    textColor={rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB'}
+                    loadedImages={loadedCampusImages}
+                    onImageLoad={(id) => setLoadedCampusImages(prev => new Set(prev).add(id))}
+                  />
                 )}
               </div>
             </div>

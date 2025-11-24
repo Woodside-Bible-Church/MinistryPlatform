@@ -1,89 +1,99 @@
 "use client";
 
-import { MapPin } from "lucide-react";
-import { Campus } from "@/types/rsvp";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { ChevronDownIcon, MapPin } from "lucide-react";
+import { useState, useEffect } from "react";
+
+interface Campus {
+  id: number;
+  name: string;
+  congregationId: number;
+  svgUrl: string | null;
+}
 
 interface CampusSelectorProps {
   campuses: Campus[];
-  selectedCampus: Campus | null;
-  onSelectCampus: (campus: Campus) => void;
+  selectedId: number;
+  onSelect: (id: number) => void;
+  backgroundColor: string;
+  textColor: string;
+  loadedImages: Set<number>;
+  onImageLoad: (id: number) => void;
 }
 
 export default function CampusSelector({
   campuses,
-  selectedCampus,
-  onSelectCampus,
+  selectedId,
+  onSelect,
+  backgroundColor,
+  textColor,
+  loadedImages,
+  onImageLoad,
 }: CampusSelectorProps) {
-  const handleValueChange = (campusId: string) => {
-    const campus = campuses.find((c) => c.id === parseInt(campusId));
-    if (campus) {
-      onSelectCampus(campus);
-    }
-  };
+  const [isMobile, setIsMobile] = useState(false);
+  const selectedCampus = campuses.find(c => c.id === selectedId);
+
+  useEffect(() => {
+    // Detect mobile on mount and resize
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   return (
-    <div className="space-y-6 max-w-md mx-auto">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold text-gray-900">
-          Select Your Campus
-        </h2>
-        <p className="text-gray-600">
-          Choose the Woodside location you&apos;d like to attend
-        </p>
-      </div>
-
-      {/* Campus Dropdown */}
-      <div className="space-y-3">
-        <Label htmlFor="campus-select" className="text-base font-medium">
-          Campus Location
-        </Label>
-        <Select
-          value={selectedCampus?.id.toString()}
-          onValueChange={handleValueChange}
-        >
-          <SelectTrigger id="campus-select" className="h-14 text-base text-white">
-            <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5 text-white" />
-              <SelectValue placeholder="Select a campus" />
+    <div className="relative w-full md:max-w-md">
+      {/* Styled trigger button */}
+      <div
+        className="relative w-full h-12 border-2 rounded-md transition-colors text-base font-semibold shadow-md flex items-center justify-between px-3 cursor-pointer"
+        style={{
+          backgroundColor,
+          borderColor: backgroundColor,
+          color: textColor,
+        }}
+      >
+        {/* Selected campus display */}
+        <div className="flex items-center gap-3 pointer-events-none">
+          {selectedCampus?.svgUrl ? (
+            <div className="relative w-6 h-6">
+              {!loadedImages.has(selectedCampus.id) && (
+                <div className="absolute inset-0 bg-gray-300 animate-pulse rounded" />
+              )}
+              <img
+                src={selectedCampus.svgUrl}
+                alt={`${selectedCampus.name} Campus`}
+                className={`w-6 h-6 ${!loadedImages.has(selectedCampus.id) ? 'opacity-0' : 'opacity-100'}`}
+                onLoad={() => onImageLoad(selectedCampus.id)}
+              />
             </div>
-          </SelectTrigger>
-          <SelectContent>
-            {campuses.map((campus) => (
-              <SelectItem
-                key={campus.id}
-                value={campus.id.toString()}
-                className="text-base py-3"
-              >
-                {campus.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          ) : (
+            <MapPin className="w-5 h-5" style={{ color: textColor }} />
+          )}
+          <span>{selectedCampus?.name || "Select Campus"}</span>
+        </div>
+
+        {/* Chevron icon */}
+        <ChevronDownIcon
+          className="w-5 h-5 transition-transform pointer-events-none"
+          style={{ color: textColor }}
+        />
       </div>
 
-      {/* Helper Text */}
-      <div className="text-center pt-2">
-        <p className="text-sm text-gray-600">
-          Not sure which campus to choose?{" "}
-          <a
-            href="https://woodsidebible.org/locations"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#61BC47] hover:underline"
-          >
-            View campus details
-          </a>
-        </p>
-      </div>
+      {/* Native select overlay - invisible but functional */}
+      <select
+        value={selectedId}
+        onChange={(e) => onSelect(parseInt(e.target.value))}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        style={{
+          // Critical for iOS: make select actually work
+          appearance: isMobile ? 'menulist' : 'none',
+        }}
+      >
+        {campuses.map((campus) => (
+          <option key={campus.id} value={campus.id}>
+            {campus.name}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
