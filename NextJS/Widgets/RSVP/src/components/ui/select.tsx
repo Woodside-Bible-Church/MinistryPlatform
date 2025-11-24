@@ -68,6 +68,11 @@ function SelectContent({
 
   const lastTouchRef = React.useRef<{ time: number; moving: boolean }>({ time: 0, moving: false });
 
+  // Version check for debugging
+  React.useEffect(() => {
+    console.log('[Select Component] Version: 2024-11-24-v6');
+  }, []);
+
   return (
     <SelectPrimitive.Portal container={portalContainer}>
       <SelectPrimitive.Content
@@ -90,15 +95,26 @@ function SelectContent({
         position={position}
         onScroll={() => {
           lastTouchRef.current.moving = true;
+          lastTouchRef.current.time = Date.now();
         }}
-        onPointerDownOutside={(e) => {
+        onInteractOutside={(e) => {
           // Prevent closing if user was just scrolling
           const now = Date.now();
-          if (now - lastTouchRef.current.time < 300 && lastTouchRef.current.moving) {
+          const timeSinceScroll = now - lastTouchRef.current.time;
+
+          console.log('[Select] InteractOutside:', {
+            timeSinceScroll,
+            wasMoving: lastTouchRef.current.moving,
+            target: (e.target as HTMLElement).tagName
+          });
+
+          // If scrolled within last 500ms, prevent close
+          if (timeSinceScroll < 500 && lastTouchRef.current.moving) {
+            console.log('[Select] Preventing close due to recent scroll');
             e.preventDefault();
+          } else {
             lastTouchRef.current.moving = false;
           }
-          lastTouchRef.current.time = now;
         }}
         {...props}
       >
@@ -149,6 +165,15 @@ function SelectItem({
       )}
       style={{
         WebkitTapHighlightColor: 'transparent',
+      }}
+      onSelect={() => {
+        console.log('[SelectItem] onSelect triggered for:', children);
+      }}
+      onPointerDown={() => {
+        console.log('[SelectItem] onPointerDown for:', children);
+      }}
+      onClick={() => {
+        console.log('[SelectItem] onClick for:', children);
       }}
       {...props}
     >
