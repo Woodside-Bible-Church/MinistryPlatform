@@ -2,6 +2,8 @@
 
 Centralized database management for all Woodside Bible Church Ministry Platform customizations and integrations.
 
+> **📋 Migration Project:** We're currently planning a major reorganization to clearly separate base MinistryPlatform schema from custom Woodside additions. See [MIGRATION_PLAN.md](./MIGRATION_PLAN.md) and [TODO.md](./TODO.md) for details.
+
 ## 📁 Folder Structure
 
 ```
@@ -137,3 +139,32 @@ When adding new database changes:
 2. Document the change
 3. Update this README
 4. Add npm scripts for easy deployment
+
+## 🔄 Database Reorganization Project
+
+We're undertaking a major effort to improve database organization and documentation:
+
+### Goals
+- Clearly separate base MinistryPlatform schema from Woodside customizations
+- Document every custom table, column, and procedure
+- Create fresh installation scripts for new MP instances
+- Sync TypeScript/Zod models with database schema
+- Centralize all SQL files in this directory
+
+### Key Documents
+- **[MIGRATION_PLAN.md](./MIGRATION_PLAN.md)** - Complete strategy and approach
+- **[TODO.md](./TODO.md)** - Detailed task breakdown with checkboxes
+- **[Scripts/compare-schemas.sql](./Scripts/compare-schemas.sql)** - Compare blank MP with production
+
+### Quick Start for Migration
+1. Restore `blank.bak` to SQL Server
+2. Run `Scripts/compare-schemas.sql` to identify customizations
+3. Follow TODO.md task list
+4. Document as you go
+
+### Benefits
+✅ Single source of truth for all database objects
+✅ Easy disaster recovery
+✅ Faster onboarding for new developers
+✅ Better change tracking
+✅ Type-safe TypeScript integration
