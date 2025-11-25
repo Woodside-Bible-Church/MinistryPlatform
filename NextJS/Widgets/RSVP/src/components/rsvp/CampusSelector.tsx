@@ -82,10 +82,13 @@ export default function CampusSelector({
       <select
         value={selectedId}
         onChange={(e) => onSelect(parseInt(e.target.value))}
-        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer [&>option]:text-black [&>option]:bg-white"
         style={{
           // Critical for iOS: make select actually work
           appearance: isMobile ? 'menulist' : 'none',
+          // Ensure dropdown options are visible on PC
+          color: '#000000',
+          backgroundColor: '#ffffff',
         }}
       >
         {campuses.map((campus) => (
