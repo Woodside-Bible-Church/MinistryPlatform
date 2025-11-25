@@ -181,7 +181,8 @@
   transform: rotate(45deg);
 }
 
-.mppw-product-options > tbody > tr > * {
+.mppw-product-options > tbody > tr > *,
+.mpp-innerpage--special-content {
   padding: 0;
 }
 
@@ -302,6 +303,19 @@ h6 {
   margin: 0 auto;
   padding: 0;
   max-width: none;
+}
+
+.mpp-innerpage {
+  display: flex;
+  flex-direction: column;
+}
+
+.mpp-innerpage--contacts-wrapper > .mpp-innerpage--special-title {
+  padding: 0;
+}
+
+.mpp-innerpage--contacts-wrapper {
+  order: 100;
 }
 
 .mpp-innerpage > img {
