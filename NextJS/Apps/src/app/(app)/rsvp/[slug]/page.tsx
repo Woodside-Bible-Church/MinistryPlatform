@@ -46,6 +46,8 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Line } from "recharts";
 import { TemplateSelector } from "@/components/rsvp/TemplateSelector";
 
@@ -109,6 +111,24 @@ type ProjectRSVP = {
   Answer_Summary: string | null;
 };
 
+type CarouselEvent = {
+  Event_ID: number;
+  Event_Title: string;
+  Event_Start_Date: string | null;
+  Event_End_Date: string | null;
+  Meeting_Instructions: string | null;
+  RSVP_Carousel_Name: string | null;
+  Congregation_ID: number | null;
+  Congregation_Name: string | null;
+  Event_Type: string | null;
+  Event_Image_URL: string | null;
+};
+
+type Carousel = {
+  Carousel_Name: string;
+  Events: CarouselEvent[];
+};
+
 type ProjectCampus = {
   Congregation_ID: number;
   Campus_Name: string;
@@ -121,6 +141,7 @@ type ProjectCampus = {
   Display_Order: number | null;
   Events: ProjectEventWithDetails[];
   Confirmation_Cards: ConfirmationCard[];
+  Carousels: Carousel[];
 };
 
 type ConfirmationCard = {
@@ -260,6 +281,7 @@ export default function ProjectDetailPage({
   const [project, setProject] = useState<Project | null>(null);
   const [campuses, setCampuses] = useState<ProjectCampus[]>([]);
   const [rsvps, setRsvps] = useState<ProjectRSVP[]>([]);
+  const [formFields, setFormFields] = useState<Array<{ Field_Label: string; Field_Order: number }>>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [typeProjects, setTypeProjects] = useState<Array<{Project_ID: number; Project_Title: string; RSVP_Slug: string}>>([]);
 
@@ -300,6 +322,17 @@ export default function ProjectDetailPage({
     config: { title: string; bullets: Array<{ icon: string; text: string }> };
   } | null>(null);
   const [isSavingConfirmationCard, setIsSavingConfirmationCard] = useState(false);
+
+  // Carousel Dialog State
+  const [carouselDialogOpen, setCarouselDialogOpen] = useState(false);
+  const [carouselDialogMode, setCarouselDialogMode] = useState<"create" | "add">("create");
+  const [carouselDialogCampus, setCarouselDialogCampus] = useState<number | null>(null);
+  const [carouselDialogName, setCarouselDialogName] = useState("");
+  const [carouselDialogSelectedEvents, setCarouselDialogSelectedEvents] = useState<number[]>([]);
+  const [carouselDialogSearchQuery, setCarouselDialogSearchQuery] = useState("");
+  const [isSavingCarousel, setIsSavingCarousel] = useState(false);
+  const [carouselAvailableEvents, setCarouselAvailableEvents] = useState<any[]>([]);
+  const [isLoadingCarouselEvents, setIsLoadingCarouselEvents] = useState(false);
 
   // Local state for Days to Remind with debouncing
   const [daysToRemindInput, setDaysToRemindInput] = useState<string>("");
@@ -405,6 +438,15 @@ export default function ProjectDetailPage({
         setProject(data.Project);
         setCampuses(data.Campuses || []);
         setRsvps(data.RSVPs || []);
+
+        // Fetch form fields if project has a form
+        if (data.Project?.Form_ID) {
+          const formFieldsResponse = await fetch(`/api/rsvp/forms/${data.Project.Form_ID}`);
+          if (formFieldsResponse.ok) {
+            const fields = await formFieldsResponse.json();
+            setFormFields(fields.sort((a: any, b: any) => a.Field_Order - b.Field_Order));
+          }
+        }
 
         // If project has a type, fetch all projects of the same type for dropdown
         if (data.Project?.Project_Type_ID) {
@@ -813,6 +855,197 @@ export default function ProjectDetailPage({
       alert("Failed to update confirmation card. Please try again.");
     } finally {
       setIsSavingConfirmationCard(false);
+    }
+  };
+
+  // Carousel Management Functions
+  const handleRemoveEventFromCarousel = async (eventId: number, eventTitle: string) => {
+    try {
+      const response = await fetch(`/api/rsvp/events/${eventId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          RSVP_Carousel_Name: null
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to remove event from carousel");
+      }
+
+      // Reload project data
+      const projectResponse = await fetch(`/api/rsvp/projects/details/${project?.RSVP_Slug || project?.Project_ID}`);
+      if (!projectResponse.ok) {
+        throw new Error("Failed to reload project");
+      }
+
+      const data = await projectResponse.json();
+      setProject(data.Project);
+      setCampuses(data.Campuses);
+
+      alert(`"${eventTitle}" removed from carousel successfully!`);
+    } catch (error) {
+      console.error("Error removing event from carousel:", error);
+      alert("Failed to remove event from carousel. Please try again.");
+    }
+  };
+
+  const handleEditCarouselName = async (oldName: string, congregationId: number) => {
+    const newName = prompt(`Enter new name for carousel "${oldName}":`, oldName);
+    if (!newName || newName.trim() === oldName || !newName.trim()) {
+      return;
+    }
+
+    try {
+      // Find all events in this carousel for this campus
+      const campus = campuses.find(c => c.Congregation_ID === congregationId);
+      if (!campus) return;
+
+      const carousel = campus.Carousels.find(c => c.Carousel_Name === oldName);
+      if (!carousel || carousel.Events.length === 0) return;
+
+      // Update all events in the carousel with the new name
+      const updatePromises = carousel.Events.map(event =>
+        fetch(`/api/rsvp/events/${event.Event_ID}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            RSVP_Carousel_Name: newName.trim()
+          }),
+        })
+      );
+
+      await Promise.all(updatePromises);
+
+      // Reload project data
+      const projectResponse = await fetch(`/api/rsvp/projects/details/${project?.RSVP_Slug || project?.Project_ID}`);
+      if (!projectResponse.ok) {
+        throw new Error("Failed to reload project");
+      }
+
+      const data = await projectResponse.json();
+      setProject(data.Project);
+      setCampuses(data.Campuses);
+
+      alert(`Carousel renamed from "${oldName}" to "${newName}" successfully!`);
+    } catch (error) {
+      console.error("Error renaming carousel:", error);
+      alert("Failed to rename carousel. Please try again.");
+    }
+  };
+
+  const handleDeleteCarousel = async (carouselName: string, congregationId: number) => {
+    try {
+      // Find all events in this carousel for this campus
+      const campus = campuses.find(c => c.Congregation_ID === congregationId);
+      if (!campus) return;
+
+      const carousel = campus.Carousels.find(c => c.Carousel_Name === carouselName);
+      if (!carousel || carousel.Events.length === 0) return;
+
+      // Remove carousel name from all events
+      const updatePromises = carousel.Events.map(event =>
+        fetch(`/api/rsvp/events/${event.Event_ID}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            RSVP_Carousel_Name: null
+          }),
+        })
+      );
+
+      await Promise.all(updatePromises);
+
+      // Reload project data
+      const projectResponse = await fetch(`/api/rsvp/projects/details/${project?.RSVP_Slug || project?.Project_ID}`);
+      if (!projectResponse.ok) {
+        throw new Error("Failed to reload project");
+      }
+
+      const data = await projectResponse.json();
+      setProject(data.Project);
+      setCampuses(data.Campuses);
+
+      alert(`Carousel "${carouselName}" deleted successfully!`);
+    } catch (error) {
+      console.error("Error deleting carousel:", error);
+      alert("Failed to delete carousel. Please try again.");
+    }
+  };
+
+  // Carousel Dialog Handlers
+  const handleOpenCarouselDialog = async (mode: "create" | "add", congregationId: number, existingCarouselName?: string) => {
+    setCarouselDialogMode(mode);
+    setCarouselDialogCampus(congregationId);
+    setCarouselDialogName(existingCarouselName || "");
+    setCarouselDialogSelectedEvents([]);
+    setCarouselDialogSearchQuery("");
+    setCarouselDialogOpen(true);
+    setIsLoadingCarouselEvents(true);
+    setCarouselAvailableEvents([]);
+
+    try {
+      // Fetch ALL events for this project and campus
+      const response = await fetch(`/api/rsvp/projects/${project?.Project_ID}/events?campusId=${congregationId}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch events");
+      }
+      const events = await response.json();
+      setCarouselAvailableEvents(events);
+    } catch (error) {
+      console.error("Error fetching carousel events:", error);
+      alert("Failed to load events. Please try again.");
+    } finally {
+      setIsLoadingCarouselEvents(false);
+    }
+  };
+
+  const handleSaveCarousel = async () => {
+    if (!carouselDialogName.trim()) {
+      alert("Please enter a carousel name");
+      return;
+    }
+
+    if (carouselDialogSelectedEvents.length === 0) {
+      alert("Please select at least one event");
+      return;
+    }
+
+    setIsSavingCarousel(true);
+
+    try {
+      // Update all selected events with the carousel name
+      const updatePromises = carouselDialogSelectedEvents.map(eventId =>
+        fetch(`/api/rsvp/events/${eventId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            RSVP_Carousel_Name: carouselDialogName.trim()
+          }),
+        })
+      );
+
+      await Promise.all(updatePromises);
+
+      // Reload project data
+      const projectResponse = await fetch(`/api/rsvp/projects/details/${project?.RSVP_Slug || project?.Project_ID}`);
+      if (!projectResponse.ok) {
+        throw new Error("Failed to reload project");
+      }
+
+      const data = await projectResponse.json();
+      setProject(data.Project);
+      setCampuses(data.Campuses);
+
+      setCarouselDialogOpen(false);
+      alert(carouselDialogMode === "create"
+        ? `Carousel "${carouselDialogName}" created successfully!`
+        : `Events added to "${carouselDialogName}" successfully!`);
+    } catch (error) {
+      console.error("Error saving carousel:", error);
+      alert("Failed to save carousel. Please try again.");
+    } finally {
+      setIsSavingCarousel(false);
     }
   };
 
@@ -2046,6 +2279,146 @@ export default function ProjectDetailPage({
                   </div>
                 )}
 
+                {/* Carousels for this campus - Related Events */}
+                <div className="mt-8 mb-8">
+                  {/* Carousels Section Heading */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-[#61bc47]" />
+                      <h4 className="text-lg font-semibold text-foreground">
+                        Other {campus.Campus_Name} Events
+                      </h4>
+                    </div>
+                    <button
+                      className="px-3 py-1.5 text-sm border border-border rounded-md text-foreground hover:bg-muted transition-colors flex items-center gap-1.5"
+                      onClick={() => handleOpenCarouselDialog("create", campus.Congregation_ID)}
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Carousel
+                    </button>
+                  </div>
+
+                  {/* Display each carousel or empty state */}
+                  {campus.Carousels && campus.Carousels.length > 0 ? (
+                    <div className="space-y-8">
+                      {campus.Carousels.map((carousel, carouselIndex) => (
+                        <div key={carouselIndex} className="space-y-4">
+                          {/* Carousel Name Header */}
+                          <div className="flex items-center justify-between">
+                            <h5 className="text-base font-semibold text-foreground">
+                              {carousel.Carousel_Name}
+                            </h5>
+                            <div className="flex items-center gap-2">
+                              <button
+                                className="px-2 py-1 text-xs border border-border rounded-md text-foreground hover:bg-muted transition-colors flex items-center gap-1"
+                                onClick={() => handleOpenCarouselDialog("add", campus.Congregation_ID, carousel.Carousel_Name)}
+                              >
+                                <Plus className="w-3 h-3" />
+                                Add Event
+                              </button>
+                              <button
+                                className="px-2 py-1 text-xs border border-border rounded-md text-foreground hover:bg-muted transition-colors"
+                                onClick={() => handleEditCarouselName(carousel.Carousel_Name, campus.Congregation_ID)}
+                                title="Edit carousel name"
+                              >
+                                <Pencil className="w-3 h-3" />
+                              </button>
+                              <button
+                                className="px-2 py-1 text-xs border border-destructive text-destructive rounded-md hover:bg-destructive/10 transition-colors"
+                                onClick={() => {
+                                  if (confirm(`Delete carousel "${carousel.Carousel_Name}"? This will remove the carousel name from all ${carousel.Events.length} event(s).`)) {
+                                    handleDeleteCarousel(carousel.Carousel_Name, campus.Congregation_ID);
+                                  }
+                                }}
+                                title="Delete carousel"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Carousel Events - Horizontal Scroll */}
+                          {carousel.Events && carousel.Events.length > 0 ? (
+                            <div className="overflow-x-auto pb-4 -mx-4 px-4">
+                              <div className="flex gap-4" style={{ minWidth: "min-content" }}>
+                                {carousel.Events.map((event) => (
+                                  <div
+                                    key={event.Event_ID}
+                                    className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow flex-shrink-0 relative group"
+                                    style={{ width: "280px" }}
+                                  >
+                                    {/* Event Image */}
+                                    {event.Event_Image_URL && (
+                                      <div className="w-full h-40 bg-muted overflow-hidden">
+                                        <img
+                                          src={event.Event_Image_URL}
+                                          alt={event.Event_Title}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                    )}
+
+                                    {/* Event Content */}
+                                    <div className="p-4">
+                                      <h6 className="font-semibold text-foreground text-sm mb-2 line-clamp-2">
+                                        {event.Event_Title}
+                                      </h6>
+
+                                      {event.Event_Start_Date && (
+                                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                                          <Calendar className="w-3 h-3" />
+                                          <span>
+                                            {new Date(event.Event_Start_Date).toLocaleDateString("en-US", {
+                                              month: "short",
+                                              day: "numeric",
+                                              year: "numeric",
+                                            })}
+                                          </span>
+                                        </div>
+                                      )}
+
+                                      {event.Meeting_Instructions && (
+                                        <p className="text-xs text-muted-foreground line-clamp-3">
+                                          {event.Meeting_Instructions}
+                                        </p>
+                                      )}
+                                    </div>
+
+                                    {/* Remove from Carousel Button - Hidden until hover */}
+                                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <button
+                                        className="p-1.5 bg-destructive text-white rounded-md hover:bg-destructive/90 transition-colors"
+                                        onClick={() => {
+                                          if (confirm(`Remove "${event.Event_Title}" from this carousel?`)) {
+                                            handleRemoveEventFromCarousel(event.Event_ID, event.Event_Title);
+                                          }
+                                        }}
+                                        title="Remove from carousel"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="bg-card border border-dashed border-border rounded-lg p-6 text-center">
+                              <p className="text-sm text-muted-foreground">No events in this carousel</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-card border border-dashed border-border rounded-lg p-8 text-center">
+                      <p className="text-muted-foreground text-sm">
+                        No carousels yet. Click "Add Carousel" above to create one.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
                 {/* Confirmation Cards for this campus */}
                 {campus.Confirmation_Cards && campus.Confirmation_Cards.length > 0 && (
                   <div className="mt-8">
@@ -2423,8 +2796,10 @@ export default function ProjectDetailPage({
 
                 <div className="overflow-x-auto border border-border rounded-lg">
                   {(() => {
-                    // Get all unique questions from filtered RSVPs (respecting congregation filter)
-                    const questions = getAllQuestions(filteredRsvps);
+                    // Get all form field labels (or fall back to extracting from RSVPs if no form fields)
+                    const questions = formFields.length > 0
+                      ? formFields.map(f => f.Field_Label)
+                      : getAllQuestions(filteredRsvps);
 
                     // Apply search and column filters to already congregation-filtered RSVPs
                     const searchFilteredRsvps = filteredRsvps.filter((rsvp) => {
@@ -2560,6 +2935,16 @@ export default function ProjectDetailPage({
                             <>
                               {searchFilteredRsvps.map((rsvp) => {
                                 const answers = parseAnswerSummary(rsvp.Answer_Summary);
+
+                                // Debug: log Answer_Summary and parsed answers for first few RSVPs
+                                if (searchFilteredRsvps.indexOf(rsvp) < 3) {
+                                  console.log('RSVP Debug:', {
+                                    name: `${rsvp.First_Name} ${rsvp.Last_Name}`,
+                                    raw_answer_summary: rsvp.Answer_Summary,
+                                    parsed_answers: answers,
+                                    form_fields: formFields.map(f => f.Field_Label)
+                                  });
+                                }
 
                                 return (
                                   <tr
@@ -2845,6 +3230,165 @@ export default function ProjectDetailPage({
           </div>
         </div>
       )}
+
+      {/* Carousel Management Dialog */}
+      <Dialog open={carouselDialogOpen} onOpenChange={setCarouselDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {carouselDialogMode === "create" ? "Create New Carousel" : `Add Events to "${carouselDialogName}"`}
+            </DialogTitle>
+            <DialogDescription>
+              {carouselDialogMode === "create"
+                ? "Enter a name for the carousel and select events to include"
+                : "Select additional events to add to this carousel"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Carousel Name Input - only for create mode */}
+            {carouselDialogMode === "create" && (
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">
+                  Carousel Name
+                </label>
+                <input
+                  type="text"
+                  value={carouselDialogName}
+                  onChange={(e) => setCarouselDialogName(e.target.value)}
+                  placeholder="e.g., Other Christmas Events"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                  disabled={isSavingCarousel}
+                />
+              </div>
+            )}
+
+            {/* Search Input */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2 block">
+                Search Events
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={carouselDialogSearchQuery}
+                  onChange={(e) => setCarouselDialogSearchQuery(e.target.value)}
+                  placeholder="Search by event title..."
+                  className="w-full pl-10 pr-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                  disabled={isSavingCarousel}
+                />
+              </div>
+            </div>
+
+            {/* Event List with Checkboxes */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2 block">
+                Select Events ({carouselDialogSelectedEvents.length} selected)
+              </label>
+              <div className="border border-border rounded-md max-h-96 overflow-y-auto">
+                {(() => {
+                  // Show loading state
+                  if (isLoadingCarouselEvents) {
+                    return (
+                      <div className="p-4 text-center text-muted-foreground">
+                        Loading events...
+                      </div>
+                    );
+                  }
+
+                  // Use the fetched events directly
+                  const allEvents = carouselAvailableEvents;
+
+                  // Filter by search query
+                  const filteredEvents = allEvents.filter(event =>
+                    event.Event_Title.toLowerCase().includes(carouselDialogSearchQuery.toLowerCase())
+                  );
+
+                  // Filter out events already in THIS carousel (for "add" mode)
+                  const availableEvents = carouselDialogMode === "add"
+                    ? filteredEvents.filter(event => event.RSVP_Carousel_Name !== carouselDialogName)
+                    : filteredEvents;
+
+                  if (availableEvents.length === 0) {
+                    return (
+                      <div className="p-4 text-center text-muted-foreground">
+                        {carouselDialogSearchQuery
+                          ? "No events match your search"
+                          : carouselDialogMode === "add"
+                          ? "All events are already in this carousel"
+                          : "No events available for this campus"}
+                      </div>
+                    );
+                  }
+
+                  return availableEvents.map((event) => (
+                    <div
+                      key={event.Event_ID}
+                      className="flex items-center gap-3 p-3 border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors"
+                    >
+                      <Checkbox
+                        checked={carouselDialogSelectedEvents.includes(event.Event_ID)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setCarouselDialogSelectedEvents([...carouselDialogSelectedEvents, event.Event_ID]);
+                          } else {
+                            setCarouselDialogSelectedEvents(carouselDialogSelectedEvents.filter(id => id !== event.Event_ID));
+                          }
+                        }}
+                        disabled={isSavingCarousel}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {event.Event_Title}
+                        </p>
+                        {event.Event_Start_Date && (
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(event.Event_Start_Date).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })}
+                          </p>
+                        )}
+                        {event.RSVP_Carousel_Name && event.RSVP_Carousel_Name !== carouselDialogName && (
+                          <p className="text-xs text-muted-foreground italic">
+                            Currently in: {event.RSVP_Carousel_Name}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <button
+              onClick={() => setCarouselDialogOpen(false)}
+              className="px-4 py-2 text-sm border border-border rounded-md text-foreground hover:bg-muted transition-colors"
+              disabled={isSavingCarousel}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSaveCarousel}
+              className="px-4 py-2 bg-[#61bc47] text-white rounded-md hover:bg-[#51a839] transition-colors flex items-center gap-2"
+              disabled={isSavingCarousel}
+            >
+              {isSavingCarousel ? (
+                <>Saving...</>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  {carouselDialogMode === "create" ? "Create Carousel" : "Add Events"}
+                </>
+              )}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

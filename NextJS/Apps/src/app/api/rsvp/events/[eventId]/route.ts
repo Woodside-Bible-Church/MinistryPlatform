@@ -3,7 +3,7 @@ import { MinistryPlatformClient } from "@/providers/MinistryPlatform/core/minist
 
 /**
  * PATCH /api/rsvp/events/[eventId]
- * Update event fields (Meeting_Instructions, RSVP_Capacity, RSVP_Capacity_Modifier)
+ * Update event fields (Meeting_Instructions, RSVP_Capacity, RSVP_Capacity_Modifier, RSVP_Carousel_Name)
  */
 export async function PATCH(
   request: NextRequest,
@@ -21,7 +21,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { Meeting_Instructions, RSVP_Capacity, RSVP_Capacity_Modifier } = body;
+    const { Meeting_Instructions, RSVP_Capacity, RSVP_Capacity_Modifier, RSVP_Carousel_Name } = body;
 
     // Build update payload with only provided fields
     // MUST include the Event_ID (primary key) in the payload
@@ -39,6 +39,10 @@ export async function PATCH(
 
     if (RSVP_Capacity_Modifier !== undefined) {
       updatePayload.RSVP_Capacity_Modifier = RSVP_Capacity_Modifier;
+    }
+
+    if (RSVP_Carousel_Name !== undefined) {
+      updatePayload.RSVP_Carousel_Name = RSVP_Carousel_Name;
     }
 
     if (Object.keys(updatePayload).length === 1) {
