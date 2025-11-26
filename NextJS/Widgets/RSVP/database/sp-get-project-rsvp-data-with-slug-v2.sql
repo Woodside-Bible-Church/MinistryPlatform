@@ -260,6 +260,7 @@ BEGIN
             FROM Form_Fields ff
             INNER JOIN Form_Field_Types fft ON ff.Field_Type_ID = fft.Form_Field_Type_ID
             WHERE ff.Form_ID = @FormID
+              AND ff.Is_Hidden = 0  -- Only show visible fields
             ORDER BY ff.Field_Order ASC
             FOR JSON PATH
         );
