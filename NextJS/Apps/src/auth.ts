@@ -160,56 +160,48 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.lastName = token.lastName as string
       session.email = token.email as string
       session.sub = token.sub as string
-      session.roles = (token.roles as string[]) || []
       session.contactId = token.userId as string
 
-      // Fetch ALL user groups for this user (not just security roles from OAuth)
+      // Fetch BOTH Security Roles and User Groups from MinistryPlatform via stored procedure
       try {
         const mp = new MPHelper()
 
-        // Get User_ID from User_GUID (sub)
-        const users = await mp.getTableRecords<{ User_ID: number; Contact_ID: number }>({
-          table: 'dp_Users',
-          select: 'User_ID, Contact_ID',
-          filter: `User_GUID='${session.sub}'`,
-          top: 1,
-        })
+        // Call stored procedure to get all roles (Security Roles + User Groups) in one efficient call
+        const result = await mp.executeProcedureWithBody(
+          'api_Custom_GetUserRolesAndGroups_JSON',
+          { '@UserGUID': session.sub }
+        ) as unknown as any[][]
 
-        if (users.length > 0) {
-          const userId = users[0].User_ID
+        // Extract roles from nested array structure
+        // Result format: [[{ JSON_F52E2B6118A111d1B10500805F49916B: '[{"Roles":"..."}]' }]]
+        if (result && result.length > 0 && Array.isArray(result[0]) && result[0].length > 0) {
+          const resultObject = result[0][0]
+          const jsonKey = Object.keys(resultObject)[0]
+          const jsonString = resultObject[jsonKey]
+          const roleObjects = JSON.parse(jsonString)
+          session.roles = roleObjects.map((r: { Roles: string }) => r.Roles)
+          console.log('Total roles fetched (Security Roles + User Groups):', session.roles.length)
+        } else {
+          session.roles = []
+          console.log('No roles found for user')
+        }
 
-          // Update contactId if it wasn't set from token
-          if (!session.contactId) {
-            session.contactId = String(users[0].Contact_ID)
-          }
-
-          // Fetch ALL user group IDs
-          const allUserGroupLinks = await mp.getTableRecords<{ User_Group_ID: number }>({
-            table: 'dp_User_User_Groups',
-            select: 'User_Group_ID',
-            filter: `User_ID=${userId}`,
+        // Also fetch Contact_ID if not already set
+        if (!session.contactId && session.sub) {
+          const users = await mp.getTableRecords<{ Contact_ID: number }>({
+            table: 'dp_Users',
+            select: 'Contact_ID',
+            filter: `User_GUID='${session.sub}'`,
+            top: 1,
           })
-
-          const groupIds = allUserGroupLinks.map(g => g.User_Group_ID).filter(Boolean)
-
-          if (groupIds.length > 0) {
-            // Fetch user group names using IN() clause
-            const groupIdList = groupIds.join(',')
-            const userGroups = await mp.getTableRecords<{ User_Group_ID: number; User_Group_Name: string }>({
-              table: 'dp_User_Groups',
-              select: 'User_Group_ID, User_Group_Name',
-              filter: `User_Group_ID IN (${groupIdList})`,
-            })
-
-            const allGroupNames = userGroups.map(g => g.User_Group_Name).filter(Boolean)
-
-            // Combine OAuth security roles with ALL user groups (removing duplicates)
-            session.roles = [...new Set([...session.roles, ...allGroupNames])]
-            console.log('User groups added to session. Total roles:', session.roles.length)
+          if (users.length > 0) {
+            session.contactId = String(users[0].Contact_ID)
           }
         }
       } catch (error) {
-        console.error('Error fetching all user groups:', error)
+        console.error('Error fetching roles from stored procedure:', error)
+        // On error, set empty roles array
+        session.roles = []
       }
 
       // Check for admin simulation
