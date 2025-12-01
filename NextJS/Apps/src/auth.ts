@@ -179,8 +179,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const jsonKey = Object.keys(resultObject)[0]
           const jsonString = resultObject[jsonKey]
           const roleObjects = JSON.parse(jsonString)
-          session.roles = roleObjects.map((r: { Roles: string }) => r.Roles)
-          console.log('Total roles fetched (Security Roles + User Groups):', session.roles.length)
+          const roles = roleObjects.map((r: { Roles: string }) => r.Roles)
+          session.roles = roles
+          console.log('Total roles fetched (Security Roles + User Groups):', roles.length)
         } else {
           session.roles = []
           console.log('No roles found for user')
