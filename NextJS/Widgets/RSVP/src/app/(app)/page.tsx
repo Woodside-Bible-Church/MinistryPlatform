@@ -270,8 +270,11 @@ export default function RSVPPage() {
         console.warn(`WordPress location_id ${wpLocationId} not found in available campuses`);
       }
 
-      // Priority 5: Default to first available campus
-      return availableCampuses[0].id;
+      // Priority 5: If only one campus, auto-select it. Otherwise, no default selection.
+      if (availableCampuses.length === 1) {
+        return availableCampuses[0].id;
+      }
+      return null; // Let user choose from dropdown
     };
   }, [availableCampuses, userCongregationId, widgetParams.CongregationID, slugToIdMap]);
 
@@ -1158,7 +1161,7 @@ export default function RSVPPage() {
                 </div>
 
                 {/* Campus Filter - Only show on services view and when not hardcoded via data-params */}
-                {currentView === "services" && !hideCampusDropdown && availableCampuses.length > 1 && selectedCampusId !== null && hasMounted && (
+                {currentView === "services" && !hideCampusDropdown && availableCampuses.length > 1 && hasMounted && (
                   <CampusSelector
                     campuses={availableCampuses}
                     selectedId={selectedCampusId}

@@ -12,7 +12,7 @@ interface Campus {
 
 interface CampusSelectorProps {
   campuses: Campus[];
-  selectedId: number;
+  selectedId: number | null;
   onSelect: (id: number) => void;
   backgroundColor: string;
   textColor: string;
@@ -80,8 +80,11 @@ export default function CampusSelector({
 
       {/* Native select overlay - invisible but functional */}
       <select
-        value={selectedId}
-        onChange={(e) => onSelect(parseInt(e.target.value))}
+        value={selectedId ?? ""}
+        onChange={(e) => {
+          const value = e.target.value;
+          if (value) onSelect(parseInt(value));
+        }}
         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer [&>option]:text-black [&>option]:bg-white"
         style={{
           // Critical for iOS: make select actually work
@@ -91,6 +94,7 @@ export default function CampusSelector({
           backgroundColor: '#ffffff',
         }}
       >
+        <option value="" disabled>Select a campus</option>
         {campuses.map((campus) => (
           <option key={campus.id} value={campus.id}>
             {campus.name}
