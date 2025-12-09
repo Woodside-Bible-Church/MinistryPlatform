@@ -53,7 +53,7 @@ export default function BudgetsPage() {
   const { projects, isLoading, error, refetch } = useProjects();
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedSeries, setExpandedSeries] = useState<Record<string, boolean>>({});
-  const [pinnedProjects, setPinnedProjects] = useState<Set<number>>(new Set());
+  const [pinnedProjects, setPinnedProjects] = useState<Set<string>>(new Set());
   const [selectedProjectByType, setSelectedProjectByType] = useState<Record<string, string>>({});
 
   // Filter projects based on search query
