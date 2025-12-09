@@ -145,25 +145,25 @@ BEGIN
             ISNULL(l.Location_Name, '') AS Campus_Location,
             -- Get capacity from RSVP_Capacity field (use 9999 to represent unlimited for JSON compatibility)
             ISNULL(e.RSVP_Capacity, 9999) AS Capacity,
-            -- Count current RSVPs for this event (using Event_Participants now)
+            -- Count current RSVPs for this event (number of Event_Participant records)
             (SELECT COUNT(*) FROM Event_Participants ep
              WHERE ep.Event_ID = e.Event_ID
              AND ep.Participation_Status_ID = 2) AS Current_RSVPs,
             -- Apply the capacity modifier from Events table
             ISNULL(e.RSVP_Capacity_Modifier, 0) AS RSVP_Capacity_Modifier,
-            -- Calculate adjusted RSVP count
-            (SELECT COUNT(*) FROM Event_Participants ep
+            -- Calculate adjusted attendee count (sum of party sizes + modifier)
+            (SELECT SUM(ISNULL(ep.RSVP_Party_Size, 1)) FROM Event_Participants ep
              WHERE ep.Event_ID = e.Event_ID
              AND ep.Participation_Status_ID = 2) + ISNULL(e.RSVP_Capacity_Modifier, 0) AS Adjusted_RSVP_Count,
             -- Calculate capacity percentage with modifier (NULL capacity = unlimited = 0%)
             CASE
                 WHEN e.RSVP_Capacity IS NULL THEN 0  -- Unlimited capacity shows as 0%
                 WHEN e.RSVP_Capacity = 0 THEN 0
-                ELSE CAST(
-                    ((SELECT COUNT(*) FROM Event_Participants ep
+                ELSE ROUND(
+                    ((SELECT SUM(ISNULL(ep.RSVP_Party_Size, 1)) FROM Event_Participants ep
                       WHERE ep.Event_ID = e.Event_ID
                       AND ep.Participation_Status_ID = 2) + ISNULL(e.RSVP_Capacity_Modifier, 0)) * 100.0
-                    / e.RSVP_Capacity AS INT
+                    / e.RSVP_Capacity, 0
                 )
             END AS Capacity_Percentage,
             -- Max_Capacity for frontend (use 9999 to represent unlimited for JSON compatibility)
@@ -172,7 +172,7 @@ BEGIN
             CASE
                 WHEN e.RSVP_Capacity IS NULL THEN CAST(1 AS BIT)  -- NULL = unlimited = always available
                 WHEN e.RSVP_Capacity = 0 THEN CAST(0 AS BIT)
-                WHEN ((SELECT COUNT(*) FROM Event_Participants ep
+                WHEN ((SELECT SUM(ISNULL(ep.RSVP_Party_Size, 1)) FROM Event_Participants ep
                        WHERE ep.Event_ID = e.Event_ID
                        AND ep.Participation_Status_ID = 2) + ISNULL(e.RSVP_Capacity_Modifier, 0)) >= e.RSVP_Capacity THEN CAST(0 AS BIT)
                 ELSE CAST(1 AS BIT)
