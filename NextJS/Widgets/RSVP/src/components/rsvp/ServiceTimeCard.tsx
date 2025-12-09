@@ -29,7 +29,12 @@ export default function ServiceTimeCard({
   textColor = '#E5E7EB',
 }: ServiceTimeCardProps) {
   const startDate = new Date(serviceTime.Event_Start_Date);
-  const capacityPercentage = Math.round(serviceTime.Capacity_Percentage);
+
+  // Calculate capacity percentage locally to handle edge cases
+  // Match the calculation logic from NextJS Apps
+  const capacityPercentage = serviceTime.Capacity && serviceTime.Capacity !== 9999
+    ? Math.round((serviceTime.Adjusted_RSVP_Count / serviceTime.Capacity) * 100)
+    : 0;
 
   return (
     <motion.button
