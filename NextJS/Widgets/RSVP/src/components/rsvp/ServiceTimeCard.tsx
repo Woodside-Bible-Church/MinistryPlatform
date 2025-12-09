@@ -32,9 +32,12 @@ export default function ServiceTimeCard({
 
   // Calculate capacity percentage locally to handle edge cases
   // Match the calculation logic from NextJS Apps
-  const capacityPercentage = serviceTime.Capacity && serviceTime.Capacity !== 9999
-    ? Math.round((serviceTime.Adjusted_RSVP_Count / serviceTime.Capacity) * 100)
-    : 0;
+  const capacityPercentage =
+    serviceTime.Capacity &&
+    serviceTime.Capacity !== 9999 &&
+    serviceTime.Adjusted_RSVP_Count != null
+      ? Math.round((serviceTime.Adjusted_RSVP_Count / serviceTime.Capacity) * 100)
+      : 0;
 
   return (
     <motion.button
