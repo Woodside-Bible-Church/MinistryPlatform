@@ -5,6 +5,12 @@ import { Activity, Loader2, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import * as LucideIcons from "lucide-react";
+import { usePinnedItems } from "@/hooks/usePinnedItems";
+import {
+  PinnedItemsGrid,
+  PinnedCardWrapper,
+  getPinnedCardComponent
+} from "@/components/PinnedItems";
 
 type Application = {
   Application_ID: number;
@@ -22,6 +28,7 @@ export default function Dashboard() {
   const [apps, setApps] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { pinnedItems, isLoading: pinnedLoading, unpinItem } = usePinnedItems();
 
   // Set page title
   useEffect(() => {
@@ -80,12 +87,29 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Header */}
-      <div className="pt-8 pb-6 text-center">
-        <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">Ministry Applications</h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto px-4">
-          Internal tools for Woodside Bible Church staff and volunteers
-        </p>
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px]">
+        {/* Pinned Items Section */}
+        <PinnedItemsGrid
+          items={pinnedItems}
+          isLoading={pinnedLoading}
+          onUnpin={unpinItem}
+          renderCard={(item, onUnpin) => {
+            const CardContent = getPinnedCardComponent(item.item_type);
+            return (
+              <PinnedCardWrapper item={item} onUnpin={onUnpin}>
+                <CardContent item={item} />
+              </PinnedCardWrapper>
+            );
+          }}
+        />
+
+        {/* Hero Header */}
+        <div className="pt-8 pb-6 text-center">
+          <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">Ministry Applications</h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto px-4">
+            Internal tools for Woodside Bible Church staff and volunteers
+          </p>
+        </div>
       </div>
 
       {/* Apps Grid */}
@@ -111,35 +135,39 @@ export default function Dashboard() {
             {apps.map((app) => {
               const Icon = getIcon(app.Icon);
               const route = app.Route || '#';
+
               return (
-                <Link key={app.Application_ID} href={route}>
-                  <div className="group relative overflow-hidden border border-border bg-card hover:border-primary/50 dark:hover:border-[#61bc47]/50 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col min-h-[180px]">
-                    <div className="p-6 space-y-3 flex-1 flex flex-col">
-                      {/* Icon and Title */}
-                      <div className="flex items-center gap-3">
-                        <div className="bg-[#61bc47]/10 group-hover:bg-[#61bc47] group-focus:bg-[#61bc47] w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-all duration-300">
-                          <Icon className="w-5 h-5 text-[#61bc47] group-hover:text-white group-focus:text-white transition-colors duration-300" />
-                        </div>
-                        <h3 className="text-lg uppercase font-extrabold tracking-tight text-foreground" style={{ letterSpacing: '-0.025em' }}>
-                          {app.Application_Name}
-                        </h3>
+                <Link
+                  key={app.Application_ID}
+                  href={route}
+                  prefetch={true}
+                  className="group relative overflow-hidden border border-border bg-card hover:border-primary/50 dark:hover:border-[#61bc47]/50 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col min-h-[180px]"
+                >
+                  <div className="p-6 space-y-3 flex-1 flex flex-col">
+                    {/* Icon and Title */}
+                    <div className="flex items-center gap-3">
+                      <div className="bg-[#61bc47]/10 group-hover:bg-[#61bc47] group-focus:bg-[#61bc47] w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-all duration-300">
+                        <Icon className="w-5 h-5 text-[#61bc47] group-hover:text-white group-focus:text-white transition-colors duration-300" />
                       </div>
-
-                      {/* Description */}
-                      <p className="text-sm text-muted-foreground leading-relaxed flex-1">
-                        {app.Description}
-                      </p>
-
-                      {/* Open App Link */}
-                      <div className="flex items-center justify-end gap-1 text-primary dark:text-muted-foreground dark:group-hover:text-[#61bc47] font-semibold text-sm transition-colors">
-                        <span>Open app</span>
-                        <span className="group-hover:translate-x-1 transition-transform">→</span>
-                      </div>
+                      <h3 className="text-lg uppercase font-extrabold tracking-tight text-foreground" style={{ letterSpacing: '-0.025em' }}>
+                        {app.Application_Name}
+                      </h3>
                     </div>
 
-                    {/* Hover gradient effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 dark:from-[#61bc47]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                    {/* Description */}
+                    <p className="text-sm text-muted-foreground leading-relaxed flex-1">
+                      {app.Description}
+                    </p>
+
+                    {/* Open App Link */}
+                    <div className="flex items-center justify-end gap-1 text-primary dark:text-muted-foreground dark:group-hover:text-[#61bc47] font-semibold text-sm transition-colors">
+                      <span>Open app</span>
+                      <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    </div>
                   </div>
+
+                  {/* Hover gradient effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/5 dark:from-[#61bc47]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                 </Link>
               );
             })}
