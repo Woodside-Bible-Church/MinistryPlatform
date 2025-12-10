@@ -54,7 +54,7 @@ export async function POST(
       table: 'Project_Budget_Income_Line_Items',
       select: 'Sort_Order',
       filter: `Project_ID=${projectId}`,
-      orderby: 'Sort_Order DESC',
+      orderBy: 'Sort_Order DESC',
       top: 1,
     });
 
