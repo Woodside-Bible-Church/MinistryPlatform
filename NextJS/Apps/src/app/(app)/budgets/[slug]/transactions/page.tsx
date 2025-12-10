@@ -13,6 +13,14 @@ import {
   Trash2,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Transaction {
   transactionId: number;
@@ -69,6 +77,31 @@ export default function TransactionsPage({
   const [typeFilter, setTypeFilter] = useState<"all" | "Expense" | "Income">("all");
   const [sortBy, setSortBy] = useState<"date" | "amount">("date");
 
+  // Add Transaction modal state
+  const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
+  const [newTransactionDate, setNewTransactionDate] = useState("");
+  const [newTransactionType, setNewTransactionType] = useState<"Expense" | "Income">("Expense");
+  const [newTransactionAmount, setNewTransactionAmount] = useState("");
+  const [newTransactionPayee, setNewTransactionPayee] = useState("");
+  const [newTransactionDescription, setNewTransactionDescription] = useState("");
+  const [newTransactionPaymentMethod, setNewTransactionPaymentMethod] = useState("");
+  const [newTransactionPaymentReference, setNewTransactionPaymentReference] = useState("");
+  const [newTransactionNotes, setNewTransactionNotes] = useState("");
+  const [isSavingTransaction, setIsSavingTransaction] = useState(false);
+
+  // Edit Transaction modal state
+  const [isEditTransactionOpen, setIsEditTransactionOpen] = useState(false);
+  const [editingTransactionId, setEditingTransactionId] = useState<number | null>(null);
+  const [editTransactionDate, setEditTransactionDate] = useState("");
+  const [editTransactionType, setEditTransactionType] = useState<"Expense" | "Income">("Expense");
+  const [editTransactionAmount, setEditTransactionAmount] = useState("");
+  const [editTransactionPayee, setEditTransactionPayee] = useState("");
+  const [editTransactionDescription, setEditTransactionDescription] = useState("");
+  const [editTransactionPaymentMethod, setEditTransactionPaymentMethod] = useState("");
+  const [editTransactionPaymentReference, setEditTransactionPaymentReference] = useState("");
+  const [editTransactionNotes, setEditTransactionNotes] = useState("");
+  const [isSavingEditTransaction, setIsSavingEditTransaction] = useState(false);
+
   useEffect(() => {
     async function fetchTransactions() {
       try {
@@ -93,6 +126,162 @@ export default function TransactionsPage({
 
     fetchTransactions();
   }, [slug]);
+
+  async function refetchTransactions() {
+    try {
+      const response = await fetch(`/api/projects/budgets/${encodeURIComponent(slug)}/transactions`);
+      if (response.ok) {
+        const transactionsData = await response.json();
+        setData(transactionsData);
+      }
+    } catch (err) {
+      console.error("Error refetching transactions:", err);
+    }
+  }
+
+  async function handleAddTransaction() {
+    if (!data) return;
+
+    const amount = parseFloat(newTransactionAmount);
+
+    if (!newTransactionDate || !amount) {
+      alert("Date and amount are required");
+      return;
+    }
+
+    setIsAddTransactionOpen(false);
+    setIsSavingTransaction(true);
+
+    try {
+      const response = await fetch(`/api/projects/${data.Project_ID}/transactions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          transactionDate: newTransactionDate,
+          transactionType: newTransactionType,
+          amount: amount,
+          payeeName: newTransactionPayee.trim() || null,
+          description: newTransactionDescription.trim() || null,
+          paymentMethodId: newTransactionPaymentMethod ? parseInt(newTransactionPaymentMethod, 10) : null,
+          paymentReference: newTransactionPaymentReference.trim() || null,
+          notes: newTransactionNotes.trim() || null,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create transaction");
+      }
+
+      // Refetch transactions to get updated data
+      await refetchTransactions();
+
+      // Reset form
+      setNewTransactionDate("");
+      setNewTransactionType("Expense");
+      setNewTransactionAmount("");
+      setNewTransactionPayee("");
+      setNewTransactionDescription("");
+      setNewTransactionPaymentMethod("");
+      setNewTransactionPaymentReference("");
+      setNewTransactionNotes("");
+    } catch (err) {
+      console.error("Error creating transaction:", err);
+      alert(err instanceof Error ? err.message : "Failed to create transaction");
+    } finally {
+      setIsSavingTransaction(false);
+    }
+  }
+
+  async function handleEditTransaction() {
+    if (!data || !editingTransactionId) return;
+
+    const amount = parseFloat(editTransactionAmount);
+
+    if (!editTransactionDate || !amount) {
+      alert("Date and amount are required");
+      return;
+    }
+
+    setIsEditTransactionOpen(false);
+    setIsSavingEditTransaction(true);
+
+    try {
+      const response = await fetch(`/api/projects/${data.Project_ID}/transactions`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          transactionId: editingTransactionId,
+          transactionDate: editTransactionDate,
+          transactionType: editTransactionType,
+          amount: amount,
+          payeeName: editTransactionPayee.trim() || null,
+          description: editTransactionDescription.trim() || null,
+          paymentMethodId: editTransactionPaymentMethod ? parseInt(editTransactionPaymentMethod, 10) : null,
+          paymentReference: editTransactionPaymentReference.trim() || null,
+          notes: editTransactionNotes.trim() || null,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update transaction");
+      }
+
+      // Refetch transactions to get updated data
+      await refetchTransactions();
+
+      // Reset form
+      setEditingTransactionId(null);
+      setEditTransactionDate("");
+      setEditTransactionType("Expense");
+      setEditTransactionAmount("");
+      setEditTransactionPayee("");
+      setEditTransactionDescription("");
+      setEditTransactionPaymentMethod("");
+      setEditTransactionPaymentReference("");
+      setEditTransactionNotes("");
+    } catch (err) {
+      console.error("Error updating transaction:", err);
+      alert(err instanceof Error ? err.message : "Failed to update transaction");
+    } finally {
+      setIsSavingEditTransaction(false);
+    }
+  }
+
+  async function handleDeleteTransaction(transactionId: number, description: string) {
+    if (!data) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete this transaction${description ? ` "${description}"` : ""}? This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(
+        `/api/projects/${data.Project_ID}/transactions?transactionId=${transactionId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete transaction");
+      }
+
+      // Refetch transactions to get updated data
+      await refetchTransactions();
+    } catch (err) {
+      console.error("Error deleting transaction:", err);
+      alert(err instanceof Error ? err.message : "Failed to delete transaction");
+    }
+  }
 
   // Filter and sort transactions
   const filteredTransactions = data?.transactions.filter((transaction) => {
@@ -180,6 +369,12 @@ export default function TransactionsPage({
 
           <div className="flex items-center gap-3">
             <button
+              onClick={() => {
+                // Set default date to today
+                const today = new Date().toISOString().split('T')[0];
+                setNewTransactionDate(today);
+                setIsAddTransactionOpen(true);
+              }}
               className="inline-flex items-center gap-2 px-4 py-2 bg-[#61bc47] hover:bg-[#52a03c] text-white rounded-lg transition-colors"
               title="Add new transaction"
             >
@@ -396,12 +591,23 @@ export default function TransactionsPage({
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <button
+                          onClick={() => {
+                            setEditingTransactionId(transaction.transactionId);
+                            setEditTransactionDate(transaction.date.split('T')[0]);
+                            setEditTransactionType(transaction.type);
+                            setEditTransactionAmount(Math.abs(transaction.amount).toString());
+                            setEditTransactionPayee(transaction.payee || "");
+                            setEditTransactionDescription(transaction.description || "");
+                            setEditTransactionPaymentMethod(transaction.paymentMethod || "");
+                            setIsEditTransactionOpen(true);
+                          }}
                           className="p-1.5 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded transition-colors"
                           title="Edit transaction"
                         >
                           <Edit className="w-4 h-4 text-muted-foreground" />
                         </button>
                         <button
+                          onClick={() => handleDeleteTransaction(transaction.transactionId, transaction.description)}
                           className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
                           title="Delete transaction"
                         >
@@ -416,6 +622,286 @@ export default function TransactionsPage({
           </table>
         </div>
       </div>
+
+      {/* Add Transaction Dialog */}
+      <Dialog open={isAddTransactionOpen} onOpenChange={setIsAddTransactionOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add Transaction</DialogTitle>
+            <DialogDescription>
+              Create a new expense or income transaction.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="new-transaction-date" className="block text-sm font-medium mb-2">
+                  Date *
+                </label>
+                <input
+                  id="new-transaction-date"
+                  type="date"
+                  value={newTransactionDate}
+                  onChange={(e) => setNewTransactionDate(e.target.value)}
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                />
+              </div>
+              <div>
+                <label htmlFor="new-transaction-type" className="block text-sm font-medium mb-2">
+                  Type *
+                </label>
+                <select
+                  id="new-transaction-type"
+                  value={newTransactionType}
+                  onChange={(e) => setNewTransactionType(e.target.value as "Expense" | "Income")}
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                >
+                  <option value="Expense">Expense</option>
+                  <option value="Income">Income</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label htmlFor="new-transaction-amount" className="block text-sm font-medium mb-2">
+                Amount *
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  $
+                </span>
+                <input
+                  id="new-transaction-amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={newTransactionAmount}
+                  onChange={(e) => setNewTransactionAmount(e.target.value)}
+                  className="w-full pl-7 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="new-transaction-payee" className="block text-sm font-medium mb-2">
+                Payee (optional)
+              </label>
+              <input
+                id="new-transaction-payee"
+                type="text"
+                value={newTransactionPayee}
+                onChange={(e) => setNewTransactionPayee(e.target.value)}
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                placeholder="e.g., Vendor Name"
+              />
+            </div>
+            <div>
+              <label htmlFor="new-transaction-description" className="block text-sm font-medium mb-2">
+                Description (optional)
+              </label>
+              <textarea
+                id="new-transaction-description"
+                value={newTransactionDescription}
+                onChange={(e) => setNewTransactionDescription(e.target.value)}
+                rows={3}
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground resize-none"
+                placeholder="Brief description of this transaction"
+              />
+            </div>
+            <div>
+              <label htmlFor="new-transaction-payment-reference" className="block text-sm font-medium mb-2">
+                Payment Reference (optional)
+              </label>
+              <input
+                id="new-transaction-payment-reference"
+                type="text"
+                value={newTransactionPaymentReference}
+                onChange={(e) => setNewTransactionPaymentReference(e.target.value)}
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                placeholder="e.g., Check #, Invoice #"
+              />
+            </div>
+            <div>
+              <label htmlFor="new-transaction-notes" className="block text-sm font-medium mb-2">
+                Notes (optional)
+              </label>
+              <textarea
+                id="new-transaction-notes"
+                value={newTransactionNotes}
+                onChange={(e) => setNewTransactionNotes(e.target.value)}
+                rows={2}
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground resize-none"
+                placeholder="Additional notes"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <button
+              onClick={() => {
+                setIsAddTransactionOpen(false);
+                setNewTransactionDate("");
+                setNewTransactionType("Expense");
+                setNewTransactionAmount("");
+                setNewTransactionPayee("");
+                setNewTransactionDescription("");
+                setNewTransactionPaymentMethod("");
+                setNewTransactionPaymentReference("");
+                setNewTransactionNotes("");
+              }}
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAddTransaction}
+              disabled={!newTransactionDate || !newTransactionAmount || isSavingTransaction}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[#61bc47] hover:bg-[#52a03c] text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Plus className="w-4 h-4" />
+              Add Transaction
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Transaction Dialog */}
+      <Dialog open={isEditTransactionOpen} onOpenChange={setIsEditTransactionOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Transaction</DialogTitle>
+            <DialogDescription>
+              Update the details for this transaction.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="edit-transaction-date" className="block text-sm font-medium mb-2">
+                  Date *
+                </label>
+                <input
+                  id="edit-transaction-date"
+                  type="date"
+                  value={editTransactionDate}
+                  onChange={(e) => setEditTransactionDate(e.target.value)}
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                />
+              </div>
+              <div>
+                <label htmlFor="edit-transaction-type" className="block text-sm font-medium mb-2">
+                  Type *
+                </label>
+                <select
+                  id="edit-transaction-type"
+                  value={editTransactionType}
+                  onChange={(e) => setEditTransactionType(e.target.value as "Expense" | "Income")}
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                >
+                  <option value="Expense">Expense</option>
+                  <option value="Income">Income</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label htmlFor="edit-transaction-amount" className="block text-sm font-medium mb-2">
+                Amount *
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  $
+                </span>
+                <input
+                  id="edit-transaction-amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={editTransactionAmount}
+                  onChange={(e) => setEditTransactionAmount(e.target.value)}
+                  className="w-full pl-7 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="edit-transaction-payee" className="block text-sm font-medium mb-2">
+                Payee (optional)
+              </label>
+              <input
+                id="edit-transaction-payee"
+                type="text"
+                value={editTransactionPayee}
+                onChange={(e) => setEditTransactionPayee(e.target.value)}
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                placeholder="e.g., Vendor Name"
+              />
+            </div>
+            <div>
+              <label htmlFor="edit-transaction-description" className="block text-sm font-medium mb-2">
+                Description (optional)
+              </label>
+              <textarea
+                id="edit-transaction-description"
+                value={editTransactionDescription}
+                onChange={(e) => setEditTransactionDescription(e.target.value)}
+                rows={3}
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground resize-none"
+                placeholder="Brief description of this transaction"
+              />
+            </div>
+            <div>
+              <label htmlFor="edit-transaction-payment-reference" className="block text-sm font-medium mb-2">
+                Payment Reference (optional)
+              </label>
+              <input
+                id="edit-transaction-payment-reference"
+                type="text"
+                value={editTransactionPaymentReference}
+                onChange={(e) => setEditTransactionPaymentReference(e.target.value)}
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                placeholder="e.g., Check #, Invoice #"
+              />
+            </div>
+            <div>
+              <label htmlFor="edit-transaction-notes" className="block text-sm font-medium mb-2">
+                Notes (optional)
+              </label>
+              <textarea
+                id="edit-transaction-notes"
+                value={editTransactionNotes}
+                onChange={(e) => setEditTransactionNotes(e.target.value)}
+                rows={2}
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground resize-none"
+                placeholder="Additional notes"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <button
+              onClick={() => {
+                setIsEditTransactionOpen(false);
+                setEditingTransactionId(null);
+                setEditTransactionDate("");
+                setEditTransactionType("Expense");
+                setEditTransactionAmount("");
+                setEditTransactionPayee("");
+                setEditTransactionDescription("");
+                setEditTransactionPaymentMethod("");
+                setEditTransactionPaymentReference("");
+                setEditTransactionNotes("");
+              }}
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleEditTransaction}
+              disabled={!editTransactionDate || !editTransactionAmount || isSavingEditTransaction}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[#61bc47] hover:bg-[#52a03c] text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Save Changes
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
