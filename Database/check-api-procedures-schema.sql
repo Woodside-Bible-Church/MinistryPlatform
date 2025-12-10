@@ -1,0 +1,17 @@
+-- Check the schema of dp_API_Procedures
+SELECT
+    COLUMN_NAME,
+    DATA_TYPE,
+    CHARACTER_MAXIMUM_LENGTH,
+    IS_NULLABLE,
+    COLUMN_DEFAULT
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'dp_API_Procedures'
+ORDER BY ORDINAL_POSITION;
+
+GO
+
+-- Also show sample data
+SELECT TOP 3 * FROM dp_API_Procedures;
+
+GO

@@ -1,0 +1,77 @@
+-- Check schema for Project-related tables
+
+-- Projects table
+SELECT
+    TABLE_NAME,
+    COLUMN_NAME,
+    DATA_TYPE,
+    CHARACTER_MAXIMUM_LENGTH,
+    IS_NULLABLE,
+    COLUMN_DEFAULT
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'Projects'
+ORDER BY ORDINAL_POSITION;
+
+GO
+
+-- Project_Types table
+SELECT
+    TABLE_NAME,
+    COLUMN_NAME,
+    DATA_TYPE,
+    CHARACTER_MAXIMUM_LENGTH,
+    IS_NULLABLE,
+    COLUMN_DEFAULT
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'Project_Types'
+ORDER BY ORDINAL_POSITION;
+
+GO
+
+-- Project_Budgets table
+SELECT
+    TABLE_NAME,
+    COLUMN_NAME,
+    DATA_TYPE,
+    CHARACTER_MAXIMUM_LENGTH,
+    IS_NULLABLE,
+    COLUMN_DEFAULT
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'Project_Budgets'
+ORDER BY ORDINAL_POSITION;
+
+GO
+
+-- Project_Category_Types table
+SELECT
+    TABLE_NAME,
+    COLUMN_NAME,
+    DATA_TYPE,
+    CHARACTER_MAXIMUM_LENGTH,
+    IS_NULLABLE,
+    COLUMN_DEFAULT
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'Project_Category_Types'
+ORDER BY ORDINAL_POSITION;
+
+GO
+
+-- Sample data from Projects
+SELECT TOP 5 * FROM Projects ORDER BY Project_ID DESC;
+
+GO
+
+-- Sample data from Project_Types
+SELECT * FROM Project_Types;
+
+GO
+
+-- Sample data from Project_Budgets
+SELECT TOP 10 * FROM Project_Budgets ORDER BY Project_Budget_ID DESC;
+
+GO
+
+-- Sample data from Project_Category_Types
+SELECT * FROM Project_Category_Types;
+
+GO
