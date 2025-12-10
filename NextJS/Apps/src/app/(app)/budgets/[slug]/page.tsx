@@ -2,6 +2,8 @@
 
 import { use, useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useProjects } from "@/hooks/useProjects";
 import {
   ArrowLeft,
   Calendar,
@@ -437,10 +439,21 @@ export default function BudgetDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
+  const router = useRouter();
+  const { projects: allProjects } = useProjects(); // Fetch all projects for dropdown
+
   const [project, setProject] = useState<ProjectBudgetDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"expenses" | "income">("expenses");
+
+  // Find projects of the same type for dropdown
+  const currentProject = allProjects.find(p => p.slug === slug);
+  const projectsOfSameType = currentProject?.typeId && currentProject.typeId !== 0
+    ? allProjects.filter(p => p.typeId === currentProject.typeId).sort((a, b) =>
+        new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+      )
+    : [];
 
   // Edit Expected Registration Revenue modal state
   const [isEditRevenueOpen, setIsEditRevenueOpen] = useState(false);
@@ -1445,9 +1458,34 @@ export default function BudgetDetailPage({
 
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">
-              {project?.Project_Title}
-            </h1>
+            {/* Title with dropdown for projects of the same type */}
+            {projectsOfSameType.length > 1 ? (
+              <div className="relative mb-2">
+                <div className="flex items-center gap-3">
+                  <h1 className="text-4xl font-bold text-primary dark:text-foreground">
+                    {project?.Project_Title}
+                  </h1>
+                  <ChevronDown className="w-6 h-6 text-foreground flex-shrink-0" />
+                </div>
+                <select
+                  value={slug}
+                  onChange={(e) => {
+                    router.push(`/budgets/${e.target.value}`);
+                  }}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                >
+                  {projectsOfSameType.map((typeProject) => (
+                    <option key={typeProject.id} value={typeProject.slug}>
+                      {typeProject.title} ({typeProject.status})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">
+                {project?.Project_Title}
+              </h1>
+            )}
             <div className="flex items-center gap-4 text-sm text-gray-400 dark:text-gray-400">
               {project?.Coordinator_Display_Name && (
                 <div className="flex items-center gap-2">

@@ -1,6 +1,5 @@
 "use client";
 
-import { mockProjects, mockProjectSeries, getProjectsBySeries, type Project } from "@/data/mockProjects";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import {
@@ -14,8 +13,12 @@ import {
   ChevronDown,
   Search,
   ChevronUp,
+  AlertCircle,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useProjects } from "@/hooks/useProjects";
+import type { Project } from "@/types/projects";
+import { getProjectUrl } from "@/types/projects";
 
 function getBudgetStatusColor(status: Project["budgetStatus"]) {
   switch (status) {
@@ -99,7 +102,7 @@ function ProjectCard({ project }: { project: Project }) {
 
   return (
     <Link
-      href={`/projects/${project.id}`}
+      href={getProjectUrl(project)}
       className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-xl hover:border-primary/50 dark:hover:border-[#61bc47]/50 transition-all group"
     >
       {/* Header */}
@@ -221,26 +224,12 @@ function ProjectCard({ project }: { project: Project }) {
 }
 
 export default function ProjectsPage() {
-  const [isLoading, setIsLoading] = useState(true);
+  const { projects, isLoading, error, refetch } = useProjects();
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedSeries, setExpandedSeries] = useState<Record<string, boolean>>({});
 
-  // Simulate loading for better UX
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-      // Expand all series by default
-      const defaultExpanded: Record<string, boolean> = {};
-      mockProjectSeries.forEach((series) => {
-        defaultExpanded[series.id] = true;
-      });
-      setExpandedSeries(defaultExpanded);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, []);
-
   // Filter projects based on search query
-  const filteredProjects = mockProjects.filter((project) => {
+  const filteredProjects = projects.filter((project) => {
     if (!searchQuery) return true;
 
     const query = searchQuery.toLowerCase();
@@ -251,24 +240,35 @@ export default function ProjectsPage() {
     );
   });
 
-  // Group projects by series
-  const projectsBySeries: Record<string, Project[]> = {};
+  // Group projects by Project_Type_ID
+  // Projects without a type (typeId = 0) are kept as standalone
+  const projectsByType: Record<string, Project[]> = {};
   const standaloneProjects: Project[] = [];
 
   filteredProjects.forEach((project) => {
-    if (project.seriesId) {
-      if (!projectsBySeries[project.seriesId]) {
-        projectsBySeries[project.seriesId] = [];
-      }
-      projectsBySeries[project.seriesId].push(project);
-    } else {
+    if (project.typeId === 0 || !project.typeId) {
+      // Projects without a type are shown as standalone cards
       standaloneProjects.push(project);
+    } else {
+      // Projects with a type are grouped
+      const typeKey = project.typeId.toString();
+      if (!projectsByType[typeKey]) {
+        projectsByType[typeKey] = [];
+      }
+      projectsByType[typeKey].push(project);
     }
   });
 
-  // Sort projects within each series by year descending
-  Object.keys(projectsBySeries).forEach((seriesId) => {
-    projectsBySeries[seriesId].sort((a, b) => (b.year || 0) - (a.year || 0));
+  // Sort projects within each type by startDate descending (newest first)
+  Object.keys(projectsByType).forEach((typeId) => {
+    projectsByType[typeId].sort((a, b) => {
+      return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+    });
+  });
+
+  // Sort standalone projects by startDate descending
+  standaloneProjects.sort((a, b) => {
+    return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
   });
 
   const toggleSeries = (seriesId: string) => {
@@ -298,18 +298,44 @@ export default function ProjectsPage() {
           <Skeleton className="h-12 w-full" />
         </div>
 
-        {/* Series Skeletons */}
-        <div className="space-y-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-card border border-border rounded-lg p-6">
-              <Skeleton className="h-8 w-64 mb-4" />
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                {[1, 2, 3].map((j) => (
-                  <Skeleton key={j} className="h-64" />
-                ))}
-              </div>
-            </div>
+        {/* Project Cards Skeletons */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Skeleton key={i} className="h-96" />
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-primary dark:text-foreground">
+              Project Budgets
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Manage budgets for large events and ministry projects.
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-8 text-center">
+          <AlertCircle className="w-12 h-12 text-red-600 dark:text-red-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-red-900 dark:text-red-200 mb-2">
+            Failed to Load Projects
+          </h3>
+          <p className="text-red-700 dark:text-red-300 mb-4">
+            {error.message || "An error occurred while fetching projects."}
+          </p>
+          <button
+            onClick={refetch}
+            className="bg-[#61BC47] hover:bg-[#4fa037] text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm hover:shadow-md"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
@@ -393,83 +419,84 @@ export default function ProjectsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {/* Series Sections */}
-          {mockProjectSeries.map((series) => {
-            const seriesProjects = projectsBySeries[series.id] || [];
-            if (seriesProjects.length === 0) return null;
+          {/* Projects grouped by type */}
+          {Object.entries(projectsByType).map(([typeId, typeProjects]) => {
+            // Safety check: ensure typeProjects is an array with at least one item
+            if (!Array.isArray(typeProjects) || typeProjects.length === 0) {
+              return null;
+            }
 
-            // Get most recent project (already sorted by year descending)
-            const mostRecentProject = seriesProjects[0];
+            // Show the newest project (first in array after sorting)
+            const newestProject = typeProjects[0];
 
             return (
-              <div key={series.id} className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all">
-                <Link href={`/projects/${mostRecentProject.id}`} className="block">
-                  <div className="p-6">
-                    {/* Title with integrated series dropdown */}
-                    {seriesProjects.length > 1 ? (
-                      <div className="relative inline-block mb-3 group">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <h2 className="text-2xl font-bold text-foreground group-hover:text-[#61BC47] transition-colors">
-                            {mostRecentProject.title}
-                          </h2>
-                          <ChevronDown className="w-5 h-5 text-foreground group-hover:text-[#61BC47] transition-colors" />
-                          <select
-                            value={mostRecentProject.id}
-                            onChange={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              window.location.href = `/projects/${e.target.value}`;
-                            }}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                            }}
-                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                          >
-                            {seriesProjects.map((seriesProject) => (
-                              <option key={seriesProject.id} value={seriesProject.id}>
-                                {seriesProject.title} ({seriesProject.status})
-                              </option>
-                            ))}
-                          </select>
-                        </label>
+              <div key={typeId} className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all">
+                <div className="p-6">
+                  {/* Title with integrated dropdown for multiple projects of same type */}
+                  {typeProjects.length > 1 ? (
+                    <div className="relative mb-3">
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-2xl font-bold text-foreground">
+                          {newestProject.title}
+                        </h2>
+                        <ChevronDown className="w-5 h-5 text-foreground" />
                       </div>
-                    ) : (
-                      <h2 className="text-2xl font-bold text-foreground mb-3">
-                        {mostRecentProject.title}
-                      </h2>
-                    )}
-
-                    {/* Status Badges */}
-                    <div className="mb-4 flex gap-2 flex-wrap">
-                      <span
-                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                          mostRecentProject.status
-                        )}`}
+                      <select
+                        value={newestProject.slug}
+                        onChange={(e) => {
+                          const selectedProject = typeProjects.find(p => p.slug === e.target.value);
+                          if (selectedProject) {
+                            window.location.href = getProjectUrl(selectedProject);
+                          }
+                        }}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full"
                       >
-                        {mostRecentProject.status.replace("-", " ")}
-                      </span>
-                      <span
-                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold border ${getBudgetStatusColor(
-                          mostRecentProject.budgetStatus
-                        )}`}
-                      >
-                        {getBudgetStatusIcon(mostRecentProject.budgetStatus)}
-                        {getBudgetStatusText(mostRecentProject.budgetStatus)}
-                      </span>
+                        {typeProjects.map((typeProject) => (
+                          <option key={typeProject.id} value={typeProject.slug}>
+                            {typeProject.title} ({typeProject.status})
+                          </option>
+                        ))}
+                      </select>
                     </div>
+                  ) : (
+                    <Link href={getProjectUrl(newestProject)}>
+                      <h2 className="text-2xl font-bold text-foreground mb-3 hover:text-[#61BC47] transition-colors cursor-pointer">
+                        {newestProject.title}
+                      </h2>
+                    </Link>
+                  )}
 
-                    {/* Project Details */}
-                    <div className="space-y-3 mb-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  {/* Status Badges */}
+                  <div className="mb-4 flex gap-2 flex-wrap">
+                    <span
+                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                        newestProject.status
+                      )}`}
+                    >
+                      {newestProject.status.replace("-", " ")}
+                    </span>
+                    <span
+                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold border ${getBudgetStatusColor(
+                        newestProject.budgetStatus
+                      )}`}
+                    >
+                      {getBudgetStatusIcon(newestProject.budgetStatus)}
+                      {getBudgetStatusText(newestProject.budgetStatus)}
+                    </span>
+                  </div>
+
+                  {/* Project Details - Clickable Link */}
+                  <Link href={getProjectUrl(newestProject)} className="block space-y-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                         <User className="w-4 h-4" />
-                        <span>{mostRecentProject.coordinator.displayName}</span>
+                        <span>{newestProject.coordinator.displayName}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                         <Calendar className="w-4 h-4" />
                         <span>
-                          {formatDate(mostRecentProject.startDate)} -{" "}
-                          {formatDate(mostRecentProject.endDate)}
+                          {formatDate(newestProject.startDate)} -{" "}
+                          {formatDate(newestProject.endDate)}
                         </span>
                       </div>
                     </div>
@@ -480,13 +507,13 @@ export default function ProjectsPage() {
                         <div>
                           <div className="text-xs text-muted-foreground mb-1">Budget</div>
                           <div className="text-lg font-bold text-foreground">
-                            {formatCurrency(mostRecentProject.totalEstimated)}
+                            {formatCurrency(newestProject.totalEstimated)}
                           </div>
                         </div>
                         <div>
                           <div className="text-xs text-muted-foreground mb-1">Actual</div>
                           <div className="text-lg font-bold text-foreground">
-                            {formatCurrency(mostRecentProject.totalActual)}
+                            {formatCurrency(newestProject.totalActual)}
                           </div>
                         </div>
                       </div>
@@ -495,77 +522,79 @@ export default function ProjectsPage() {
                       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all ${
-                            calculateBudgetUtilization(mostRecentProject) < 90
+                            calculateBudgetUtilization(newestProject) < 90
                               ? "bg-[#61bc47]"
-                              : calculateBudgetUtilization(mostRecentProject) < 100
+                              : calculateBudgetUtilization(newestProject) < 100
                                 ? "bg-yellow-500"
                                 : "bg-red-500"
                           }`}
                           style={{
-                            width: `${Math.min(calculateBudgetUtilization(mostRecentProject), 100)}%`,
+                            width: `${Math.min(calculateBudgetUtilization(newestProject), 100)}%`,
                           }}
                         />
                       </div>
                       <div className="flex justify-between items-center mt-2">
                         <span className="text-xs text-muted-foreground">
-                          {calculateBudgetUtilization(mostRecentProject).toFixed(1)}% utilized
+                          {calculateBudgetUtilization(newestProject).toFixed(1)}% utilized
                         </span>
                         <span
                           className={`text-xs font-semibold ${
-                            mostRecentProject.totalActual - mostRecentProject.totalEstimated < 0
+                            newestProject.totalActual - newestProject.totalEstimated < 0
                               ? "text-green-600 dark:text-green-400"
-                              : mostRecentProject.totalActual - mostRecentProject.totalEstimated > 0
+                              : newestProject.totalActual - newestProject.totalEstimated > 0
                                 ? "text-red-600 dark:text-red-400"
                                 : "text-muted-foreground"
                           }`}
                         >
-                          {mostRecentProject.totalActual - mostRecentProject.totalEstimated >= 0 ? "+" : ""}
-                          {formatCurrency(mostRecentProject.totalActual - mostRecentProject.totalEstimated)}
+                          {newestProject.totalActual - newestProject.totalEstimated >= 0 ? "+" : ""}
+                          {formatCurrency(newestProject.totalActual - newestProject.totalEstimated)}
                         </span>
                       </div>
                     </div>
-                  </div>
-                </Link>
+                  </Link>
+                </div>
               </div>
             );
           })}
 
-          {/* Standalone Projects (shown as individual cards without dropdown) */}
+          {/* Standalone projects (no type) - shown as individual cards */}
           {standaloneProjects.map((project) => (
             <div key={project.id} className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all">
-              <Link href={`/projects/${project.id}`} className="block">
-                <div className="p-6">
-                  {/* Title without dropdown */}
-                  <h2 className="text-2xl font-bold text-foreground mb-3 hover:text-[#61BC47] transition-colors">
+              <div className="p-6">
+                {/* Title - clickable link */}
+                <Link href={getProjectUrl(project)}>
+                  <h2 className="text-2xl font-bold text-foreground mb-3 hover:text-[#61BC47] transition-colors cursor-pointer">
                     {project.title}
                   </h2>
+                </Link>
 
-                  {/* Status Badges */}
-                  <div className="mb-4 flex gap-2 flex-wrap">
-                    <span
-                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                        project.status
-                      )}`}
-                    >
-                      {project.status.replace("-", " ")}
-                    </span>
-                    <span
-                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold border ${getBudgetStatusColor(
-                        project.budgetStatus
-                      )}`}
-                    >
-                      {getBudgetStatusIcon(project.budgetStatus)}
-                      {getBudgetStatusText(project.budgetStatus)}
-                    </span>
-                  </div>
+                {/* Status Badges */}
+                <div className="mb-4 flex gap-2 flex-wrap">
+                  <span
+                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                      project.status
+                    )}`}
+                  >
+                    {project.status.replace("-", " ")}
+                  </span>
+                  <span
+                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold border ${getBudgetStatusColor(
+                      project.budgetStatus
+                    )}`}
+                  >
+                    {getBudgetStatusIcon(project.budgetStatus)}
+                    {getBudgetStatusText(project.budgetStatus)}
+                  </span>
+                </div>
 
-                  {/* Project Details */}
-                  <div className="space-y-3 mb-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                {/* Project Details - Clickable Link */}
+                <Link href={getProjectUrl(project)} className="block space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                       <User className="w-4 h-4" />
                       <span>{project.coordinator.displayName}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                       <Calendar className="w-4 h-4" />
                       <span>
                         {formatDate(project.startDate)} -{" "}
@@ -624,8 +653,8 @@ export default function ProjectsPage() {
                       </span>
                     </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
+              </div>
             </div>
           ))}
         </div>
