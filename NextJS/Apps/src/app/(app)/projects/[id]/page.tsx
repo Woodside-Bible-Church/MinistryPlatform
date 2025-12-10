@@ -1,8 +1,9 @@
 "use client";
 
-import { mockProjects, getProjectsBySeries, getSeriesById, type BudgetCategory } from "@/data/mockProjects";
+import { type BudgetCategory } from "@/data/mockProjects";
 import { use } from "react";
 import Link from "next/link";
+import { useProjects } from "@/hooks/useProjects";
 import {
   ArrowLeft,
   TrendingUp,
@@ -27,6 +28,7 @@ import {
 } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, ResponsiveContainer, Label, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from "recharts";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -239,9 +241,19 @@ export default function ProjectDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const project = mockProjects.find((p) => p.id === id);
+  const router = useRouter();
+  const { projects, isLoading, error } = useProjects(); // Fetch all projects
 
-  const [isLoading, setIsLoading] = useState(true);
+  // Find the current project
+  const project = projects.find(p => p.slug === id);
+
+  // Find all projects with the same type
+  const projectsOfSameType = project?.typeId && project.typeId !== 0
+    ? projects.filter(p => p.typeId === project.typeId).sort((a, b) =>
+        new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+      )
+    : [];
+
   const [isAddLineItemOpen, setIsAddLineItemOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"expenses" | "income">("expenses");
   const [lineItemFormData, setLineItemFormData] = useState({
@@ -254,12 +266,6 @@ export default function ProjectDetailPage({
     vendor: "",
     status: "pending" as const,
   });
-
-  // Simulate loading for better UX
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 300);
-    return () => clearTimeout(timer);
-  }, []);
 
   if (isLoading) {
     return (
@@ -317,15 +323,15 @@ export default function ProjectDetailPage({
     );
   }
 
-  if (!project) {
+  if (error || (!isLoading && !project)) {
     return (
       <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold text-foreground mb-2">
-            Project Not Found
+            {error ? "Error Loading Project" : "Project Not Found"}
           </h2>
           <p className="text-muted-foreground mb-6">
-            The project you're looking for doesn't exist.
+            {error ? error.message : "The project you're looking for doesn't exist."}
           </p>
           <Link
             href="/projects"
@@ -339,27 +345,16 @@ export default function ProjectDetailPage({
     );
   }
 
-  const expenseCategories = project.categories.filter((c) => c.type === "expense");
-  const revenueCategories = project.categories.filter((c) => c.type === "revenue");
+  // TODO: Categories and line items will come from database later
+  // For now, use empty arrays as placeholders
+  const expenseCategories: BudgetCategory[] = [];
+  const revenueCategories: BudgetCategory[] = [];
 
-  // Get series info and related years if project is part of a series
-  const series = project.seriesId ? getSeriesById(project.seriesId) : undefined;
-  const seriesProjects = project.seriesId ? getProjectsBySeries(project.seriesId) : [];
+  const totalExpensesEstimated = project?.totalEstimated || 0;
+  const totalExpensesActual = project?.totalActual || 0;
 
-  const totalExpensesEstimated = expenseCategories.reduce(
-    (sum, c) => sum + c.estimated,
-    0
-  );
-  const totalExpensesActual = expenseCategories.reduce(
-    (sum, c) => sum + c.actual,
-    0
-  );
-
-  const totalRevenueEstimated = revenueCategories.reduce(
-    (sum, c) => sum + c.estimated,
-    0
-  );
-  const totalRevenueActual = revenueCategories.reduce((sum, c) => sum + c.actual, 0);
+  const totalRevenueEstimated = 0; // Will come from database later
+  const totalRevenueActual = 0; // Will come from database later
 
   const profitLossEstimated = totalRevenueEstimated - totalExpensesEstimated;
   const profitLossActual = totalRevenueActual - totalExpensesActual;
@@ -383,43 +378,43 @@ export default function ProjectDetailPage({
 
         <div className="flex justify-between items-start">
           <div>
-            {/* Title with integrated series dropdown */}
-            {series && seriesProjects.length > 1 ? (
-              <div className="relative inline-block mb-2 group">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <h1 className="text-4xl font-bold text-primary dark:text-foreground group-hover:text-[#61BC47] transition-colors">
-                    {project.title}
+            {/* Title with dropdown for projects of the same type */}
+            {projectsOfSameType.length > 1 ? (
+              <div className="relative mb-2">
+                <div className="flex items-center gap-3">
+                  <h1 className="text-4xl font-bold text-primary dark:text-foreground">
+                    {project?.title}
                   </h1>
-                  <ChevronDown className="w-6 h-6 text-primary dark:text-foreground group-hover:text-[#61BC47] transition-colors" />
-                  <select
-                    value={id}
-                    onChange={(e) => {
-                      window.location.href = `/projects/${e.target.value}`;
-                    }}
-                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                  >
-                    {seriesProjects.map((seriesProject) => (
-                      <option key={seriesProject.id} value={seriesProject.id}>
-                        {seriesProject.title} ({seriesProject.status})
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                  <ChevronDown className="w-6 h-6 text-foreground flex-shrink-0" />
+                </div>
+                <select
+                  value={project?.slug}
+                  onChange={(e) => {
+                    router.push(`/projects/${e.target.value}`);
+                  }}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                >
+                  {projectsOfSameType.map((typeProject) => (
+                    <option key={typeProject.id} value={typeProject.slug}>
+                      {typeProject.title} ({typeProject.status})
+                    </option>
+                  ))}
+                </select>
               </div>
             ) : (
               <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">
-                {project.title}
+                {project?.title}
               </h1>
             )}
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4" />
-                <span>{project.coordinator.displayName}</span>
+                <span>{project?.coordinator.displayName}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
                 <span>
-                  {formatDate(project.startDate)} - {formatDate(project.endDate)}
+                  {project && formatDate(project.startDate)} - {project && formatDate(project.endDate)}
                 </span>
               </div>
             </div>
@@ -797,23 +792,15 @@ export default function ProjectDetailPage({
         </>
       )}
 
-      {/* Expense Categories */}
-      {expenseCategories.length > 0 && viewMode === "expenses" && (
-        <div className="mb-8 space-y-4">
-          {expenseCategories.map((category) => (
-            <CategorySection key={category.id} category={category} projectId={id} />
-          ))}
-        </div>
-      )}
-
-      {/* Revenue Categories */}
-      {revenueCategories.length > 0 && viewMode === "income" && (
-        <div className="mb-8 space-y-4">
-          {revenueCategories.map((category) => (
-            <CategorySection key={category.id} category={category} projectId={id} />
-          ))}
-        </div>
-      )}
+      {/* Categories Coming Soon Message */}
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-8 text-center mb-8">
+        <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-200 mb-2">
+          Budget Categories Coming Soon
+        </h3>
+        <p className="text-blue-700 dark:text-blue-300">
+          Detailed budget categories and line items will be displayed here once we've migrated that data from the database.
+        </p>
+      </div>
 
       {/* Add Line Item Dialog */}
       <Dialog open={isAddLineItemOpen} onOpenChange={setIsAddLineItemOpen}>
@@ -858,7 +845,8 @@ export default function ProjectDetailPage({
                 className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
               >
                 <option value="">Select a category...</option>
-                {project.categories.map((cat) => (
+                {/* TODO: Categories will come from database */}
+                {[...expenseCategories, ...revenueCategories].map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.name} ({cat.type})
                   </option>
