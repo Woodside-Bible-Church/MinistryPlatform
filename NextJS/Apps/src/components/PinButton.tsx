@@ -3,13 +3,15 @@
 import { useState } from "react";
 import { Home } from "lucide-react";
 import { PinnedItemType, PinnedItemData } from "@/types/pinnedItems";
-import { usePinnedItems } from "@/hooks/usePinnedItems";
 
 interface PinButtonProps {
   itemType: PinnedItemType;
   itemId: string;
   itemData: PinnedItemData;
   route: string;
+  isPinned: boolean;
+  onPin: (itemType: PinnedItemType, itemId: string, itemData: PinnedItemData, route: string) => Promise<boolean>;
+  onUnpin: (itemType: PinnedItemType, itemId: string) => Promise<boolean>;
   className?: string;
 }
 
@@ -18,11 +20,12 @@ export default function PinButton({
   itemId,
   itemData,
   route,
+  isPinned,
+  onPin,
+  onUnpin,
   className = "",
 }: PinButtonProps) {
-  const { isPinned, pinItem, unpinItem } = usePinnedItems();
   const [isProcessing, setIsProcessing] = useState(false);
-  const pinned = isPinned(itemType, itemId);
 
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -32,10 +35,10 @@ export default function PinButton({
 
     setIsProcessing(true);
     try {
-      if (pinned) {
-        await unpinItem(itemType, itemId);
+      if (isPinned) {
+        await onUnpin(itemType, itemId);
       } else {
-        await pinItem(itemType, itemId, itemData, route);
+        await onPin(itemType, itemId, itemData, route);
       }
     } catch (error) {
       console.error("Failed to toggle pin:", error);
@@ -49,15 +52,15 @@ export default function PinButton({
       onClick={handleClick}
       disabled={isProcessing}
       className={`flex items-center gap-1 px-2 py-1 rounded border transition-colors ${
-        pinned
+        isPinned
           ? "bg-[#61bc47]/10 border-[#61bc47]/50 text-[#61bc47] hover:bg-[#61bc47]/20"
           : "bg-card border-border text-muted-foreground hover:border-[#61bc47]/50 hover:text-[#61bc47]"
       } ${isProcessing ? "opacity-50 cursor-not-allowed" : ""} ${className}`}
-      title={pinned ? "Remove from home" : "Add to home"}
+      title={isPinned ? "Remove from home" : "Add to home"}
     >
       <Home className="w-4 h-4" />
       <span className="text-xs font-medium">
-        {pinned ? "pinned" : "home"}
+        {isPinned ? "pinned" : "home"}
       </span>
     </button>
   );

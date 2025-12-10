@@ -19,8 +19,10 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProjects } from "@/hooks/useProjects";
+import { usePinnedItems } from "@/hooks/usePinnedItems";
 import type { Project } from "@/types/projects";
 import { getBudgetUrl } from "@/types/projects";
+import PinButton from "@/components/PinButton";
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-US", {
@@ -51,9 +53,9 @@ function calculateIncomePercentage(project: Project) {
 
 export default function BudgetsPage() {
   const { projects, isLoading, error, refetch } = useProjects();
+  const { isPinned, pinItem, unpinItem } = usePinnedItems();
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedSeries, setExpandedSeries] = useState<Record<string, boolean>>({});
-  const [pinnedProjects, setPinnedProjects] = useState<Set<string>>(new Set());
   const [selectedProjectByType, setSelectedProjectByType] = useState<Record<string, string>>({});
 
   // Filter projects based on search query
@@ -272,30 +274,32 @@ export default function BudgetsPage() {
                         </h2>
                         <ChevronDown className="w-5 h-5 text-foreground flex-shrink-0" />
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setPinnedProjects(prev => {
-                            const newSet = new Set(prev);
-                            if (newSet.has(displayedProject.id)) {
-                              newSet.delete(displayedProject.id);
-                            } else {
-                              newSet.add(displayedProject.id);
-                            }
-                            return newSet;
-                          });
+                      <PinButton
+                        itemType="budget-project"
+                        itemId={displayedProject.slug}
+                        route={getBudgetUrl(displayedProject)}
+                        itemData={{
+                          title: displayedProject.title,
+                          subtitle: displayedProject.coordinator.displayName,
+                          icon: "Calendar",
+                          stats: [
+                            {
+                              label: "Expenses",
+                              actual: formatCurrency(displayedProject.totalActual),
+                              expected: formatCurrency(displayedProject.totalEstimated),
+                            },
+                            {
+                              label: "Income",
+                              actual: formatCurrency(displayedProject.totalActualIncome),
+                              expected: formatCurrency(displayedProject.totalExpectedIncome),
+                            },
+                          ],
                         }}
-                        className={`relative z-20 px-2 py-1.5 rounded-md transition-all flex items-center gap-0.5 flex-shrink-0 border ${
-                          pinnedProjects.has(displayedProject.id)
-                            ? "bg-[#61BC47] text-white border-[#61BC47]"
-                            : "border-border text-muted-foreground hover:text-[#61BC47] hover:border-[#61BC47]"
-                        }`}
-                        title="Add to homescreen"
-                      >
-                        <Plus className="w-3 h-3" />
-                        <Home className="w-4 h-4" />
-                      </button>
+                        isPinned={isPinned("budget-project", displayedProject.slug)}
+                        onPin={pinItem}
+                        onUnpin={unpinItem}
+                        className="relative z-20 flex-shrink-0"
+                      />
                       <select
                         value={displayedProject.slug}
                         onChange={(e) => {
@@ -320,30 +324,32 @@ export default function BudgetsPage() {
                           {displayedProject.title}
                         </h2>
                       </Link>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setPinnedProjects(prev => {
-                            const newSet = new Set(prev);
-                            if (newSet.has(displayedProject.id)) {
-                              newSet.delete(displayedProject.id);
-                            } else {
-                              newSet.add(displayedProject.id);
-                            }
-                            return newSet;
-                          });
+                      <PinButton
+                        itemType="budget-project"
+                        itemId={displayedProject.slug}
+                        route={getBudgetUrl(displayedProject)}
+                        itemData={{
+                          title: displayedProject.title,
+                          subtitle: displayedProject.coordinator.displayName,
+                          icon: "Calendar",
+                          stats: [
+                            {
+                              label: "Expenses",
+                              actual: formatCurrency(displayedProject.totalActual),
+                              expected: formatCurrency(displayedProject.totalEstimated),
+                            },
+                            {
+                              label: "Income",
+                              actual: formatCurrency(displayedProject.totalActualIncome),
+                              expected: formatCurrency(displayedProject.totalExpectedIncome),
+                            },
+                          ],
                         }}
-                        className={`px-2 py-1.5 rounded-md transition-all flex items-center gap-0.5 flex-shrink-0 border ${
-                          pinnedProjects.has(displayedProject.id)
-                            ? "bg-[#61BC47] text-white border-[#61BC47]"
-                            : "border-border text-muted-foreground hover:text-[#61BC47] hover:border-[#61BC47]"
-                        }`}
-                        title="Add to homescreen"
-                      >
-                        <Plus className="w-3 h-3" />
-                        <Home className="w-4 h-4" />
-                      </button>
+                        isPinned={isPinned("budget-project", displayedProject.slug)}
+                        onPin={pinItem}
+                        onUnpin={unpinItem}
+                        className="flex-shrink-0"
+                      />
                     </div>
                   )}
 
@@ -450,30 +456,32 @@ export default function BudgetsPage() {
                       {project.title}
                     </h2>
                   </Link>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setPinnedProjects(prev => {
-                        const newSet = new Set(prev);
-                        if (newSet.has(project.id)) {
-                          newSet.delete(project.id);
-                        } else {
-                          newSet.add(project.id);
-                        }
-                        return newSet;
-                      });
+                  <PinButton
+                    itemType="budget-project"
+                    itemId={project.slug}
+                    route={getBudgetUrl(project)}
+                    itemData={{
+                      title: project.title,
+                      subtitle: project.coordinator.displayName,
+                      icon: "Calendar",
+                      stats: [
+                        {
+                          label: "Expenses",
+                          actual: formatCurrency(project.totalActual),
+                          expected: formatCurrency(project.totalEstimated),
+                        },
+                        {
+                          label: "Income",
+                          actual: formatCurrency(project.totalActualIncome),
+                          expected: formatCurrency(project.totalExpectedIncome),
+                        },
+                      ],
                     }}
-                    className={`px-2 py-1.5 rounded-md transition-all flex items-center gap-0.5 flex-shrink-0 border ${
-                      pinnedProjects.has(project.id)
-                        ? "bg-[#61BC47] text-white border-[#61BC47]"
-                        : "border-border text-muted-foreground hover:text-[#61BC47] hover:border-[#61BC47]"
-                    }`}
-                    title="Add to homescreen"
-                  >
-                    <Plus className="w-3 h-3" />
-                    <Home className="w-4 h-4" />
-                  </button>
+                    isPinned={isPinned("budget-project", project.slug)}
+                    onPin={pinItem}
+                    onUnpin={unpinItem}
+                    className="flex-shrink-0"
+                  />
                 </div>
 
                 {/* Project Details - Clickable Link */}
