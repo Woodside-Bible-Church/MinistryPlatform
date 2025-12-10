@@ -111,7 +111,12 @@ export async function POST(
       );
     }
 
-    const created = createdCategories[0];
+    const created = createdCategories[0] as unknown as {
+      Project_Budget_Category_ID: number;
+      Project_Category_Type: string;
+      Budgeted_Amount: number;
+      Sort_Order: number;
+    };
 
     // Return in the format expected by the frontend
     return NextResponse.json({

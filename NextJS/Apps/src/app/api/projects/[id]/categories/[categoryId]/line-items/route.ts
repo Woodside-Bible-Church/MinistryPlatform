@@ -90,7 +90,15 @@ export async function POST(
       );
     }
 
-    const created = createdLineItems[0];
+    const created = createdLineItems[0] as unknown as {
+      Project_Budget_Expense_Line_Item_ID: number;
+      Item_Name: string;
+      Vendor_Name: string | null;
+      Estimated_Amount: number;
+      Status: string;
+      Item_Description: string | null;
+      Sort_Order: number;
+    };
 
     // Return in the format expected by the frontend
     return NextResponse.json({

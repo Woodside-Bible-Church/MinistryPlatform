@@ -87,7 +87,13 @@ export async function POST(
       );
     }
 
-    const created = createdLineItems[0];
+    const created = createdLineItems[0] as unknown as {
+      Project_Budget_Income_Line_Item_ID: number;
+      Income_Source_Name: string;
+      Description: string | null;
+      Expected_Amount: number;
+      Sort_Order: number;
+    };
 
     // Return in the format expected by the frontend
     // Income line items ARE categories in the frontend
