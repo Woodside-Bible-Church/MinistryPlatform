@@ -86,6 +86,19 @@ BEGIN
                         pbt.Project_Budget_Expense_Line_Item_ID AS expenseLineItemId,
                         pbt.Project_Budget_Income_Line_Item_ID AS incomeLineItemId,
 
+                        -- Purchase Request info (for expense transactions only)
+                        pbt.Purchase_Request_ID AS purchaseRequestId,
+                        (
+                            SELECT pr.Requisition_GUID
+                            FROM Project_Budget_Purchase_Requests pr
+                            WHERE pr.Purchase_Request_ID = pbt.Purchase_Request_ID
+                        ) AS requisitionGuid,
+                        (
+                            SELECT pr.Approval_Status
+                            FROM Project_Budget_Purchase_Requests pr
+                            WHERE pr.Purchase_Request_ID = pbt.Purchase_Request_ID
+                        ) AS purchaseRequestStatus,
+
                         -- Category/Line Item info
                         CASE
                             WHEN pbt.Project_Budget_Expense_Line_Item_ID IS NOT NULL THEN
