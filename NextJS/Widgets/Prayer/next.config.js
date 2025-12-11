@@ -19,6 +19,9 @@ const withPWA = require('next-pwa')({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Enable Turbopack (default in Next.js 16)
+  turbopack: {},
+
   // Enable CORS for widget embedding
   async headers() {
     return [
