@@ -20,6 +20,8 @@ import {
   Trash2,
   MoreVertical,
   CheckCircle2,
+  XCircle,
+  Clock,
   Loader2,
 } from "lucide-react";
 import {
@@ -115,6 +117,7 @@ function CategorySection({
   onEditLineItem,
   onDeleteLineItem,
   onAddLineItem,
+  onApproveLineItem,
 }: {
   category: BudgetCategory;
   projectSlug: string;
@@ -129,8 +132,10 @@ function CategorySection({
   onEditLineItem?: (lineItemId: string) => void;
   onDeleteLineItem?: (lineItemId: string, lineItemName: string) => void;
   onAddLineItem?: () => void;
+  onApproveLineItem?: (lineItemId: string, currentStatus: string) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [openStatusDropdown, setOpenStatusDropdown] = useState<string | null>(null);
   const variance = category.actual - category.estimated;
   const variancePercent =
     category.estimated > 0 ? (variance / category.estimated) * 100 : 0;
@@ -146,17 +151,15 @@ function CategorySection({
     }`}>
       {/* Category Header */}
       <div
-        className={`w-full px-6 py-4 border-b transition-colors ${
+        onClick={() => setIsExpanded(!isExpanded)}
+        className={`w-full px-6 py-4 border-b transition-colors cursor-pointer ${
           isSimplifiedView
             ? "bg-blue-50/50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30 hover:bg-blue-100/50 dark:hover:bg-blue-950/30"
             : "bg-zinc-300 dark:bg-black border-border hover:bg-zinc-400 dark:hover:bg-zinc-900"
         }`}
       >
         <div className="flex items-center justify-between">
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-3"
-          >
+          <div className="flex items-center gap-3">
             {isExpanded ? (
               <ChevronDown className="w-5 h-5 text-muted-foreground" />
             ) : (
@@ -170,7 +173,7 @@ function CategorySection({
                 </span>
               )}
             </h3>
-          </button>
+          </div>
           <div className="flex items-center gap-6">
             <div className="text-right">
               <div className="text-xs text-muted-foreground">Total</div>
@@ -208,14 +211,20 @@ function CategorySection({
             {!isSimplifiedView ? (
               <div className="flex items-center gap-1">
                 <button
-                  onClick={onEditCategory}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditCategory?.();
+                  }}
                   className="p-1.5 hover:bg-zinc-400 dark:hover:bg-zinc-700 rounded transition-colors"
                   title="Edit category"
                 >
                   <Edit className="w-4 h-4 text-muted-foreground" />
                 </button>
                 <button
-                  onClick={onDeleteCategory}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteCategory?.();
+                  }}
                   className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
                   title="Delete category"
                 >
@@ -236,7 +245,10 @@ function CategorySection({
                       </div>
                     ) : (
                       <button
-                        onClick={onEditExpectedRevenue}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditExpectedRevenue();
+                        }}
                         className="p-1.5 hover:bg-zinc-400 dark:hover:bg-zinc-700 rounded transition-colors"
                         title="Edit expected registration revenue"
                       >
@@ -257,7 +269,10 @@ function CategorySection({
                       </div>
                     ) : (
                       <button
-                        onClick={onEditDiscountsBudget}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditDiscountsBudget();
+                        }}
                         className="p-1.5 hover:bg-zinc-400 dark:hover:bg-zinc-700 rounded transition-colors"
                         title="Edit expected discounts budget"
                       >
@@ -391,6 +406,62 @@ function CategorySection({
                     {!isSimplifiedView && (
                       <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-1">
+                          <div className="relative" data-status-dropdown>
+                            <button
+                              onClick={() => setOpenStatusDropdown(openStatusDropdown === item.lineItemId ? null : item.lineItemId)}
+                              className={`p-1.5 rounded transition-colors ${
+                                item.status?.toLowerCase() === "approved"
+                                  ? "hover:bg-green-100 dark:hover:bg-green-900/30"
+                                  : item.status?.toLowerCase() === "rejected"
+                                  ? "hover:bg-red-100 dark:hover:bg-red-900/30"
+                                  : "hover:bg-zinc-300 dark:hover:bg-zinc-600"
+                              }`}
+                              title="Change status"
+                            >
+                              {item.status?.toLowerCase() === "approved" ? (
+                                <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                              ) : item.status?.toLowerCase() === "rejected" ? (
+                                <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                              ) : (
+                                <Clock className="w-4 h-4 text-gray-400 dark:text-gray-600" />
+                              )}
+                            </button>
+
+                            {openStatusDropdown === item.lineItemId && (
+                              <div className="absolute left-0 top-full mt-1 z-10 bg-white dark:bg-zinc-800 border border-border rounded-lg shadow-lg py-1 min-w-[140px]">
+                                <button
+                                  onClick={() => {
+                                    onApproveLineItem?.(item.lineItemId, "Approved");
+                                    setOpenStatusDropdown(null);
+                                  }}
+                                  className="w-full px-3 py-2 text-left hover:bg-green-50 dark:hover:bg-green-900/20 flex items-center gap-2 text-sm"
+                                >
+                                  <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                                  <span>Approved</span>
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    onApproveLineItem?.(item.lineItemId, "Rejected");
+                                    setOpenStatusDropdown(null);
+                                  }}
+                                  className="w-full px-3 py-2 text-left hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 text-sm"
+                                >
+                                  <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                                  <span>Rejected</span>
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    onApproveLineItem?.(item.lineItemId, "Pending");
+                                    setOpenStatusDropdown(null);
+                                  }}
+                                  className="w-full px-3 py-2 text-left hover:bg-zinc-50 dark:hover:bg-zinc-700 flex items-center gap-2 text-sm"
+                                >
+                                  <Clock className="w-4 h-4 text-gray-400 dark:text-gray-600" />
+                                  <span>Pending</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
                           <button
                             onClick={() => onEditLineItem?.(item.lineItemId)}
                             className="p-1.5 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded transition-colors"
@@ -1354,6 +1425,77 @@ export default function BudgetDetailPage({
     }
   }
 
+  async function handleApproveLineItem(lineItemId: string, newStatus: string) {
+    if (!project) return;
+
+    // Find the category and line item
+    const category = project.expenseCategories.find(cat =>
+      cat.lineItems.some(item => item.lineItemId === lineItemId)
+    );
+
+    if (!category) return;
+
+    const lineItem = category.lineItems.find(item => item.lineItemId === lineItemId);
+    if (!lineItem) return;
+
+    // Store old status for rollback
+    const oldStatus = lineItem.status;
+
+    // Optimistically update UI immediately
+    const updatedProject = { ...project };
+    updatedProject.expenseCategories = project.expenseCategories.map(cat =>
+      cat.categoryId === category.categoryId
+        ? {
+            ...cat,
+            lineItems: cat.lineItems.map(item =>
+              item.lineItemId === lineItemId
+                ? { ...item, status: newStatus }
+                : item
+            ),
+          }
+        : cat
+    );
+    setProject(updatedProject);
+
+    try {
+      // Update line item status via API
+      const response = await fetch(
+        `/api/projects/${project.Project_ID}/categories/${category.categoryId}/line-items/${lineItemId}/approve`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            status: newStatus,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update approval status");
+      }
+    } catch (err) {
+      // Revert optimistic update on error
+      const revertedProject = { ...project };
+      revertedProject.expenseCategories = project.expenseCategories.map(cat =>
+        cat.categoryId === category.categoryId
+          ? {
+              ...cat,
+              lineItems: cat.lineItems.map(item =>
+                item.lineItemId === lineItemId
+                  ? { ...item, status: oldStatus }
+                  : item
+              ),
+            }
+          : cat
+      );
+      setProject(revertedProject);
+
+      alert(err instanceof Error ? err.message : "Failed to update approval status");
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
@@ -1886,6 +2028,11 @@ export default function BudgetDetailPage({
                         }
                       : undefined
                   }
+                  onApproveLineItem={
+                    category.categoryId !== 'registration-discounts'
+                      ? handleApproveLineItem
+                      : undefined
+                  }
                 />
               ))
           : revenueCategories
@@ -1948,6 +2095,7 @@ export default function BudgetDetailPage({
                       ? (lineItemId, lineItemName) => handleDeleteLineItem(category.categoryId, lineItemId, lineItemName)
                       : undefined
                   }
+                  onApproveLineItem={undefined}
                 />
               ))}
 

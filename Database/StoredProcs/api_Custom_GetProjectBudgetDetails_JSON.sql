@@ -113,7 +113,11 @@ BEGIN
                                     FROM Project_Budget_Transactions pbt
                                     WHERE pbt.Project_Budget_Expense_Line_Item_ID = pbeli.Project_Budget_Expense_Line_Item_ID
                                 ) AS actual,
-                                pbeli.Status AS status,
+                                CASE
+                                    WHEN pbeli.Approved = 1 THEN 'Approved'
+                                    WHEN pbeli.Approved = 0 THEN 'Rejected'
+                                    ELSE 'Pending'
+                                END AS status,
                                 NULL AS description,
                                 pbeli.Sort_Order AS sortOrder
                             FROM Project_Budget_Expense_Line_Items pbeli

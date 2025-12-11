@@ -63,23 +63,48 @@ export async function POST(
       ? (existingLineItems[0].Sort_Order || 0) + 1
       : 1;
 
+    // Convert status string to bit value (default to NULL/Pending if not provided)
+    let approvedValue: boolean | null = null;
+    if (status) {
+      switch (status.toLowerCase()) {
+        case 'approved':
+          approvedValue = true;
+          break;
+        case 'rejected':
+          approvedValue = false;
+          break;
+        case 'pending':
+          approvedValue = null;
+          break;
+        default:
+          return NextResponse.json(
+            { error: `Invalid status: ${status}. Must be Approved, Rejected, or Pending` },
+            { status: 400 }
+          );
+      }
+    }
+
     // Create the line item
-    const newLineItem = {
+    const newLineItem: any = {
       Project_Budget_Category_ID: budgetCategoryId,
       Item_Name: name,
       Item_Description: description || null,
       Vendor_Name: vendor || null,
       Estimated_Amount: estimatedAmount || 0,
-      Status: status || 'pending',
       Sort_Order: nextSortOrder,
     };
+
+    if (approvedValue !== null) {
+      newLineItem.Approved = approvedValue;
+    }
+    // If approvedValue is null, we don't set it (defaults to NULL)
 
     const createdLineItems = await mp.createTableRecords(
       'Project_Budget_Expense_Line_Items',
       [newLineItem],
       {
         $userId: userId,
-        $select: 'Project_Budget_Expense_Line_Item_ID,Item_Name,Vendor_Name,Estimated_Amount,Status,Item_Description,Sort_Order',
+        $select: 'Project_Budget_Expense_Line_Item_ID,Item_Name,Vendor_Name,Estimated_Amount,Approved,Item_Description,Sort_Order',
       }
     );
 
@@ -95,10 +120,15 @@ export async function POST(
       Item_Name: string;
       Vendor_Name: string | null;
       Estimated_Amount: number;
-      Status: string;
+      Approved: boolean | null;
       Item_Description: string | null;
       Sort_Order: number;
     };
+
+    // Convert Approved bit to status string
+    const statusString = created.Approved === true ? 'Approved'
+                       : created.Approved === false ? 'Rejected'
+                       : 'Pending';
 
     // Return in the format expected by the frontend
     return NextResponse.json({
@@ -107,7 +137,7 @@ export async function POST(
       vendor: created.Vendor_Name,
       estimated: created.Estimated_Amount || 0,
       actual: 0,
-      status: created.Status,
+      status: statusString,
       description: created.Item_Description,
       sortOrder: created.Sort_Order,
     });
@@ -179,7 +209,28 @@ export async function PATCH(
     if (vendor !== undefined) updateData.Vendor_Name = vendor;
     if (estimatedAmount !== undefined) updateData.Estimated_Amount = estimatedAmount;
     if (description !== undefined) updateData.Item_Description = description;
-    if (status !== undefined) updateData.Status = status;
+
+    // If status is being updated, convert to bit value
+    if (status !== undefined) {
+      let approvedValue: boolean | null;
+      switch (status.toLowerCase()) {
+        case 'approved':
+          approvedValue = true;
+          break;
+        case 'rejected':
+          approvedValue = false;
+          break;
+        case 'pending':
+          approvedValue = null;
+          break;
+        default:
+          return NextResponse.json(
+            { error: `Invalid status: ${status}. Must be Approved, Rejected, or Pending` },
+            { status: 400 }
+          );
+      }
+      updateData.Approved = approvedValue;
+    }
 
     // Update the line item
     const updatedLineItems = await mp.updateTableRecords(
@@ -187,7 +238,7 @@ export async function PATCH(
       [updateData],
       {
         $userId: userId,
-        $select: 'Project_Budget_Expense_Line_Item_ID,Item_Name,Vendor_Name,Estimated_Amount,Status,Item_Description',
+        $select: 'Project_Budget_Expense_Line_Item_ID,Item_Name,Vendor_Name,Estimated_Amount,Approved,Item_Description',
       }
     );
 
@@ -198,7 +249,19 @@ export async function PATCH(
       );
     }
 
-    const updated = updatedLineItems[0];
+    const updated = updatedLineItems[0] as unknown as {
+      Project_Budget_Expense_Line_Item_ID: number;
+      Item_Name: string;
+      Vendor_Name: string | null;
+      Estimated_Amount: number;
+      Approved: boolean | null;
+      Item_Description: string | null;
+    };
+
+    // Convert Approved bit to status string
+    const statusString = updated.Approved === true ? 'Approved'
+                       : updated.Approved === false ? 'Rejected'
+                       : 'Pending';
 
     // Return in the format expected by the frontend
     return NextResponse.json({
@@ -206,7 +269,7 @@ export async function PATCH(
       name: updated.Item_Name,
       vendor: updated.Vendor_Name,
       estimated: updated.Estimated_Amount,
-      status: updated.Status,
+      status: statusString,
       description: updated.Item_Description,
     });
   } catch (error) {
