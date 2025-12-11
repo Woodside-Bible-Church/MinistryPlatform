@@ -82,6 +82,10 @@ BEGIN
                         CAST(pbt.Payment_Method_ID AS NVARCHAR) AS paymentMethod,
                         pbt.Payee_Name AS payee,
 
+                        -- Line Item IDs for editing
+                        pbt.Project_Budget_Expense_Line_Item_ID AS expenseLineItemId,
+                        pbt.Project_Budget_Income_Line_Item_ID AS incomeLineItemId,
+
                         -- Category/Line Item info
                         CASE
                             WHEN pbt.Project_Budget_Expense_Line_Item_ID IS NOT NULL THEN

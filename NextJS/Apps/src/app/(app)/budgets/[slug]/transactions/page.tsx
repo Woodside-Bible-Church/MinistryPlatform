@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   Receipt,
   DollarSign,
-  Download,
   Search,
   Plus,
   Edit,
@@ -31,6 +30,8 @@ interface Transaction {
   paymentMethod: string | null;
   payee: string | null;
   categoryItem: string;
+  expenseLineItemId: number | null;
+  incomeLineItemId: number | null;
 }
 
 interface ProjectTransactions {
@@ -43,6 +44,29 @@ interface ProjectTransactions {
   Expense_Transaction_Count: number;
   Income_Transaction_Count: number;
   transactions: Transaction[];
+}
+
+interface LineItem {
+  lineItemId: string;
+  name: string;
+  estimated: number;
+  actual: number;
+}
+
+interface BudgetCategory {
+  categoryId: string;
+  name: string;
+  type: "expense" | "revenue";
+  estimated: number;
+  actual: number;
+  sortOrder: number;
+  lineItems: LineItem[];
+}
+
+interface ProjectBudget {
+  Project_ID: number;
+  expenseCategories: BudgetCategory[];
+  incomeLineItemsCategories: BudgetCategory[];
 }
 
 function formatCurrency(amount: number) {
@@ -69,6 +93,7 @@ export default function TransactionsPage({
 }) {
   const { slug } = use(params);
   const [data, setData] = useState<ProjectTransactions | null>(null);
+  const [budgetData, setBudgetData] = useState<ProjectBudget | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,6 +106,7 @@ export default function TransactionsPage({
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
   const [newTransactionDate, setNewTransactionDate] = useState("");
   const [newTransactionType, setNewTransactionType] = useState<"Expense" | "Income">("Expense");
+  const [newTransactionLineItemId, setNewTransactionLineItemId] = useState<string>("");
   const [newTransactionAmount, setNewTransactionAmount] = useState("");
   const [newTransactionPayee, setNewTransactionPayee] = useState("");
   const [newTransactionDescription, setNewTransactionDescription] = useState("");
@@ -94,6 +120,7 @@ export default function TransactionsPage({
   const [editingTransactionId, setEditingTransactionId] = useState<number | null>(null);
   const [editTransactionDate, setEditTransactionDate] = useState("");
   const [editTransactionType, setEditTransactionType] = useState<"Expense" | "Income">("Expense");
+  const [editTransactionLineItemId, setEditTransactionLineItemId] = useState<string>("");
   const [editTransactionAmount, setEditTransactionAmount] = useState("");
   const [editTransactionPayee, setEditTransactionPayee] = useState("");
   const [editTransactionDescription, setEditTransactionDescription] = useState("");
@@ -103,20 +130,34 @@ export default function TransactionsPage({
   const [isSavingEditTransaction, setIsSavingEditTransaction] = useState(false);
 
   useEffect(() => {
-    async function fetchTransactions() {
+    async function fetchData() {
       try {
         setIsLoading(true);
         setError(null);
 
-        const response = await fetch(`/api/projects/budgets/${encodeURIComponent(slug)}/transactions`);
+        // Fetch both transactions and budget data in parallel
+        const [transactionsResponse, budgetResponse] = await Promise.all([
+          fetch(`/api/projects/budgets/${encodeURIComponent(slug)}/transactions`),
+          fetch(`/api/projects/budgets/${encodeURIComponent(slug)}`),
+        ]);
 
-        if (!response.ok) {
-          const errorData = await response.json();
+        if (!transactionsResponse.ok) {
+          const errorData = await transactionsResponse.json();
           throw new Error(errorData.error || "Failed to fetch transactions");
         }
 
-        const transactionsData = await response.json();
+        if (!budgetResponse.ok) {
+          const errorData = await budgetResponse.json();
+          throw new Error(errorData.error || "Failed to fetch budget data");
+        }
+
+        const [transactionsData, budgetDataResponse] = await Promise.all([
+          transactionsResponse.json(),
+          budgetResponse.json(),
+        ]);
+
         setData(transactionsData);
+        setBudgetData(budgetDataResponse);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
@@ -124,7 +165,7 @@ export default function TransactionsPage({
       }
     }
 
-    fetchTransactions();
+    fetchData();
   }, [slug]);
 
   async function refetchTransactions() {
@@ -162,6 +203,7 @@ export default function TransactionsPage({
           transactionDate: newTransactionDate,
           transactionType: newTransactionType,
           amount: amount,
+          lineItemId: newTransactionLineItemId ? (newTransactionType === "Expense" ? parseInt(newTransactionLineItemId, 10) : newTransactionLineItemId) : null,
           payeeName: newTransactionPayee.trim() || null,
           description: newTransactionDescription.trim() || null,
           paymentMethodId: newTransactionPaymentMethod ? parseInt(newTransactionPaymentMethod, 10) : null,
@@ -181,6 +223,7 @@ export default function TransactionsPage({
       // Reset form
       setNewTransactionDate("");
       setNewTransactionType("Expense");
+      setNewTransactionLineItemId("");
       setNewTransactionAmount("");
       setNewTransactionPayee("");
       setNewTransactionDescription("");
@@ -219,6 +262,7 @@ export default function TransactionsPage({
           transactionDate: editTransactionDate,
           transactionType: editTransactionType,
           amount: amount,
+          lineItemId: editTransactionLineItemId ? (editTransactionType === "Expense" ? parseInt(editTransactionLineItemId, 10) : editTransactionLineItemId) : null,
           payeeName: editTransactionPayee.trim() || null,
           description: editTransactionDescription.trim() || null,
           paymentMethodId: editTransactionPaymentMethod ? parseInt(editTransactionPaymentMethod, 10) : null,
@@ -239,6 +283,7 @@ export default function TransactionsPage({
       setEditingTransactionId(null);
       setEditTransactionDate("");
       setEditTransactionType("Expense");
+      setEditTransactionLineItemId("");
       setEditTransactionAmount("");
       setEditTransactionPayee("");
       setEditTransactionDescription("");
@@ -367,31 +412,19 @@ export default function TransactionsPage({
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => {
-                // Set default date to today
-                const today = new Date().toISOString().split('T')[0];
-                setNewTransactionDate(today);
-                setIsAddTransactionOpen(true);
-              }}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#61bc47] hover:bg-[#52a03c] text-white rounded-lg transition-colors"
-              title="Add new transaction"
-            >
-              <Plus className="w-4 h-4" />
-              Add Transaction
-            </button>
-            <button
-              onClick={() => {
-                // Export functionality can be added later
-                alert("Export functionality coming soon!");
-              }}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 dark:bg-zinc-700 text-white rounded-lg hover:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              Export
-            </button>
-          </div>
+          <button
+            onClick={() => {
+              // Set default date to today
+              const today = new Date().toISOString().split('T')[0];
+              setNewTransactionDate(today);
+              setIsAddTransactionOpen(true);
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#61bc47] hover:bg-[#52a03c] text-white rounded-lg transition-colors"
+            title="Add new transaction"
+          >
+            <Plus className="w-4 h-4" />
+            Add Transaction
+          </button>
         </div>
       </div>
 
@@ -599,6 +632,16 @@ export default function TransactionsPage({
                             setEditTransactionPayee(transaction.payee || "");
                             setEditTransactionDescription(transaction.description || "");
                             setEditTransactionPaymentMethod(transaction.paymentMethod || "");
+
+                            // Set line item ID based on transaction type
+                            if (transaction.type === "Expense" && transaction.expenseLineItemId) {
+                              setEditTransactionLineItemId(transaction.expenseLineItemId.toString());
+                            } else if (transaction.type === "Income" && transaction.incomeLineItemId) {
+                              setEditTransactionLineItemId(`income-line-${transaction.incomeLineItemId}`);
+                            } else {
+                              setEditTransactionLineItemId("");
+                            }
+
                             setIsEditTransactionOpen(true);
                           }}
                           className="p-1.5 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded transition-colors"
@@ -660,6 +703,35 @@ export default function TransactionsPage({
                   <option value="Income">Income</option>
                 </select>
               </div>
+            </div>
+            <div>
+              <label htmlFor="new-transaction-line-item" className="block text-sm font-medium mb-2">
+                Category / Line Item (optional)
+              </label>
+              <select
+                id="new-transaction-line-item"
+                value={newTransactionLineItemId}
+                onChange={(e) => setNewTransactionLineItemId(e.target.value)}
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+              >
+                <option value="">-- Select Line Item --</option>
+                {newTransactionType === "Expense" && budgetData?.expenseCategories.map((category) => (
+                  <optgroup key={category.categoryId} label={category.name}>
+                    {category.lineItems.map((item) => (
+                      <option key={item.lineItemId} value={item.lineItemId}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+                {newTransactionType === "Income" && budgetData?.incomeLineItemsCategories.map((category) => (
+                  category.lineItems.map((item) => (
+                    <option key={item.lineItemId} value={item.lineItemId}>
+                      {item.name}
+                    </option>
+                  ))
+                ))}
+              </select>
             </div>
             <div>
               <label htmlFor="new-transaction-amount" className="block text-sm font-medium mb-2">
@@ -800,6 +872,35 @@ export default function TransactionsPage({
                   <option value="Income">Income</option>
                 </select>
               </div>
+            </div>
+            <div>
+              <label htmlFor="edit-transaction-line-item" className="block text-sm font-medium mb-2">
+                Category / Line Item (optional)
+              </label>
+              <select
+                id="edit-transaction-line-item"
+                value={editTransactionLineItemId}
+                onChange={(e) => setEditTransactionLineItemId(e.target.value)}
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+              >
+                <option value="">-- Select Line Item --</option>
+                {editTransactionType === "Expense" && budgetData?.expenseCategories.map((category) => (
+                  <optgroup key={category.categoryId} label={category.name}>
+                    {category.lineItems.map((item) => (
+                      <option key={item.lineItemId} value={item.lineItemId}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+                {editTransactionType === "Income" && budgetData?.incomeLineItemsCategories.map((category) => (
+                  category.lineItems.map((item) => (
+                    <option key={item.lineItemId} value={item.lineItemId}>
+                      {item.name}
+                    </option>
+                  ))
+                ))}
+              </select>
             </div>
             <div>
               <label htmlFor="edit-transaction-amount" className="block text-sm font-medium mb-2">
