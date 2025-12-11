@@ -117,7 +117,6 @@ function CategorySection({
   onEditLineItem,
   onDeleteLineItem,
   onAddLineItem,
-  onApproveLineItem,
 }: {
   category: BudgetCategory;
   projectSlug: string;
@@ -132,10 +131,8 @@ function CategorySection({
   onEditLineItem?: (lineItemId: string) => void;
   onDeleteLineItem?: (lineItemId: string, lineItemName: string) => void;
   onAddLineItem?: () => void;
-  onApproveLineItem?: (lineItemId: string, currentStatus: string) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [openStatusDropdown, setOpenStatusDropdown] = useState<string | null>(null);
   const variance = category.actual - category.estimated;
   const variancePercent =
     category.estimated > 0 ? (variance / category.estimated) * 100 : 0;
@@ -406,62 +403,6 @@ function CategorySection({
                     {!isSimplifiedView && (
                       <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-1">
-                          <div className="relative" data-status-dropdown>
-                            <button
-                              onClick={() => setOpenStatusDropdown(openStatusDropdown === item.lineItemId ? null : item.lineItemId)}
-                              className={`p-1.5 rounded transition-colors ${
-                                item.status?.toLowerCase() === "approved"
-                                  ? "hover:bg-green-100 dark:hover:bg-green-900/30"
-                                  : item.status?.toLowerCase() === "rejected"
-                                  ? "hover:bg-red-100 dark:hover:bg-red-900/30"
-                                  : "hover:bg-zinc-300 dark:hover:bg-zinc-600"
-                              }`}
-                              title="Change status"
-                            >
-                              {item.status?.toLowerCase() === "approved" ? (
-                                <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
-                              ) : item.status?.toLowerCase() === "rejected" ? (
-                                <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
-                              ) : (
-                                <Clock className="w-4 h-4 text-gray-400 dark:text-gray-600" />
-                              )}
-                            </button>
-
-                            {openStatusDropdown === item.lineItemId && (
-                              <div className="absolute left-0 top-full mt-1 z-10 bg-white dark:bg-zinc-800 border border-border rounded-lg shadow-lg py-1 min-w-[140px]">
-                                <button
-                                  onClick={() => {
-                                    onApproveLineItem?.(item.lineItemId, "Approved");
-                                    setOpenStatusDropdown(null);
-                                  }}
-                                  className="w-full px-3 py-2 text-left hover:bg-green-50 dark:hover:bg-green-900/20 flex items-center gap-2 text-sm"
-                                >
-                                  <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
-                                  <span>Approved</span>
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    onApproveLineItem?.(item.lineItemId, "Rejected");
-                                    setOpenStatusDropdown(null);
-                                  }}
-                                  className="w-full px-3 py-2 text-left hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 text-sm"
-                                >
-                                  <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
-                                  <span>Rejected</span>
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    onApproveLineItem?.(item.lineItemId, "Pending");
-                                    setOpenStatusDropdown(null);
-                                  }}
-                                  className="w-full px-3 py-2 text-left hover:bg-zinc-50 dark:hover:bg-zinc-700 flex items-center gap-2 text-sm"
-                                >
-                                  <Clock className="w-4 h-4 text-gray-400 dark:text-gray-600" />
-                                  <span>Pending</span>
-                                </button>
-                              </div>
-                            )}
-                          </div>
                           <button
                             onClick={() => onEditLineItem?.(item.lineItemId)}
                             className="p-1.5 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded transition-colors"
@@ -567,7 +508,6 @@ export default function BudgetDetailPage({
   const [editLineItemVendor, setEditLineItemVendor] = useState<string>("");
   const [editLineItemEstimated, setEditLineItemEstimated] = useState<string>("");
   const [editLineItemDescription, setEditLineItemDescription] = useState<string>("");
-  const [editLineItemStatus, setEditLineItemStatus] = useState<string>("pending");
   const [isSavingEditLineItem, setIsSavingEditLineItem] = useState(false);
 
   // Add Line Item modal state
@@ -577,7 +517,6 @@ export default function BudgetDetailPage({
   const [newLineItemVendor, setNewLineItemVendor] = useState<string>("");
   const [newLineItemEstimated, setNewLineItemEstimated] = useState<string>("");
   const [newLineItemDescription, setNewLineItemDescription] = useState<string>("");
-  const [newLineItemStatus, setNewLineItemStatus] = useState<string>("pending");
   const [isSavingLineItem, setIsSavingLineItem] = useState(false);
 
   useEffect(() => {
@@ -609,7 +548,7 @@ export default function BudgetDetailPage({
   // Fetch category types when modal opens (only for expense categories)
   useEffect(() => {
     async function fetchCategoryTypes() {
-      if (!isAddCategoryOpen || newCategoryType === 'revenue') return;
+      if (!isAddCategoryOpen || newCategoryType === 'revenue' || !project) return;
 
       try {
         setIsLoadingCategoryTypes(true);
@@ -620,7 +559,18 @@ export default function BudgetDetailPage({
         }
 
         const types = await response.json();
-        setAvailableCategoryTypes(types);
+
+        // Filter out category types that are already in use for this project
+        const existingCategoryNames = new Set(
+          project.expenseCategories.map(cat => cat.name)
+        );
+
+        const filteredTypes = types.filter(
+          (type: { Project_Category_Type: string }) =>
+            !existingCategoryNames.has(type.Project_Category_Type)
+        );
+
+        setAvailableCategoryTypes(filteredTypes);
       } catch (err) {
         console.error("Error fetching category types:", err);
       } finally {
@@ -629,7 +579,7 @@ export default function BudgetDetailPage({
     }
 
     fetchCategoryTypes();
-  }, [isAddCategoryOpen, newCategoryType]);
+  }, [isAddCategoryOpen, newCategoryType, project]);
 
   async function handleSaveExpectedRevenue() {
     if (!project) return;
@@ -760,7 +710,10 @@ export default function BudgetDetailPage({
   async function handleAddCategory() {
     if (!project) return;
 
-    if (!newCategoryName.trim()) {
+    // Determine the actual category name to use
+    const categoryName = newCategoryName === "__NEW__" ? newCategoryDescription.trim() : newCategoryName.trim();
+
+    if (!categoryName) {
       alert("Please enter a category name");
       return;
     }
@@ -772,9 +725,9 @@ export default function BudgetDetailPage({
     // Create temporary category for optimistic update
     const tempCategory: BudgetCategory = {
       categoryId: `temp-${Date.now()}`,
-      name: newCategoryName,
+      name: categoryName,
       type: newCategoryType,
-      description: newCategoryDescription || undefined,
+      description: newCategoryName === "__NEW__" ? undefined : (newCategoryDescription || undefined),
       estimated: newCategoryType === "revenue" ? (parseFloat(newCategoryExpectedAmount) || 0) : 0,
       actual: 0,
       sortOrder: 999,
@@ -803,9 +756,9 @@ export default function BudgetDetailPage({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            name: newCategoryName,
+            name: categoryName,
             type: newCategoryType,
-            description: newCategoryDescription || null,
+            description: newCategoryName === "__NEW__" ? null : (newCategoryDescription || null),
           }),
         });
 
@@ -1108,7 +1061,6 @@ export default function BudgetDetailPage({
                       vendor: editLineItemVendor.trim() || null,
                       estimated: newEstimated,
                       description: editLineItemDescription.trim() || null,
-                      status: editLineItemStatus,
                     }
                   : item
               ),
@@ -1161,7 +1113,6 @@ export default function BudgetDetailPage({
             vendor: editLineItemVendor.trim() || null,
             estimatedAmount: newEstimated,
             description: editLineItemDescription.trim() || null,
-            status: editLineItemStatus,
           }),
         });
       } else {
@@ -1194,7 +1145,6 @@ export default function BudgetDetailPage({
       setEditLineItemVendor("");
       setEditLineItemEstimated("");
       setEditLineItemDescription("");
-      setEditLineItemStatus("pending");
     } catch (err) {
       console.error("Error updating line item:", err);
 
@@ -1337,7 +1287,6 @@ export default function BudgetDetailPage({
       vendor: newLineItemVendor.trim() || null,
       estimated: newEstimated,
       actual: 0,
-      status: newLineItemStatus,
       description: newLineItemDescription.trim() || null,
       sortOrder: 999,
     };
@@ -1369,7 +1318,6 @@ export default function BudgetDetailPage({
           vendor: newLineItemVendor.trim() || null,
           estimatedAmount: newEstimated,
           description: newLineItemDescription.trim() || null,
-          status: newLineItemStatus,
         }),
       });
 
@@ -1402,7 +1350,6 @@ export default function BudgetDetailPage({
       setNewLineItemVendor("");
       setNewLineItemEstimated("");
       setNewLineItemDescription("");
-      setNewLineItemStatus("pending");
     } catch (err) {
       console.error("Error creating line item:", err);
 
@@ -1425,76 +1372,6 @@ export default function BudgetDetailPage({
     }
   }
 
-  async function handleApproveLineItem(lineItemId: string, newStatus: string) {
-    if (!project) return;
-
-    // Find the category and line item
-    const category = project.expenseCategories.find(cat =>
-      cat.lineItems.some(item => item.lineItemId === lineItemId)
-    );
-
-    if (!category) return;
-
-    const lineItem = category.lineItems.find(item => item.lineItemId === lineItemId);
-    if (!lineItem) return;
-
-    // Store old status for rollback
-    const oldStatus = lineItem.status;
-
-    // Optimistically update UI immediately
-    const updatedProject = { ...project };
-    updatedProject.expenseCategories = project.expenseCategories.map(cat =>
-      cat.categoryId === category.categoryId
-        ? {
-            ...cat,
-            lineItems: cat.lineItems.map(item =>
-              item.lineItemId === lineItemId
-                ? { ...item, status: newStatus }
-                : item
-            ),
-          }
-        : cat
-    );
-    setProject(updatedProject);
-
-    try {
-      // Update line item status via API
-      const response = await fetch(
-        `/api/projects/${project.Project_ID}/categories/${category.categoryId}/line-items/${lineItemId}/approve`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            status: newStatus,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to update approval status");
-      }
-    } catch (err) {
-      // Revert optimistic update on error
-      const revertedProject = { ...project };
-      revertedProject.expenseCategories = project.expenseCategories.map(cat =>
-        cat.categoryId === category.categoryId
-          ? {
-              ...cat,
-              lineItems: cat.lineItems.map(item =>
-                item.lineItemId === lineItemId
-                  ? { ...item, status: oldStatus }
-                  : item
-              ),
-            }
-          : cat
-      );
-      setProject(revertedProject);
-
-      alert(err instanceof Error ? err.message : "Failed to update approval status");
-    }
-  }
 
   if (isLoading) {
     return (
@@ -2009,7 +1886,6 @@ export default function BudgetDetailPage({
                             setEditLineItemVendor(lineItem.vendor || "");
                             setEditLineItemEstimated(lineItem.estimated.toString());
                             setEditLineItemDescription(lineItem.description || "");
-                            setEditLineItemStatus(lineItem.status);
                             setIsEditLineItemOpen(true);
                           }
                         }
@@ -2026,11 +1902,6 @@ export default function BudgetDetailPage({
                           setAddLineItemCategoryId(category.categoryId);
                           setIsAddLineItemOpen(true);
                         }
-                      : undefined
-                  }
-                  onApproveLineItem={
-                    category.categoryId !== 'registration-discounts'
-                      ? handleApproveLineItem
                       : undefined
                   }
                 />
@@ -2084,7 +1955,6 @@ export default function BudgetDetailPage({
                             setEditLineItemVendor(lineItem.vendor || "");
                             setEditLineItemEstimated(lineItem.estimated.toString());
                             setEditLineItemDescription(lineItem.description || "");
-                            setEditLineItemStatus(lineItem.status);
                             setIsEditLineItemOpen(true);
                           }
                         }
@@ -2095,7 +1965,6 @@ export default function BudgetDetailPage({
                       ? (lineItemId, lineItemName) => handleDeleteLineItem(category.categoryId, lineItemId, lineItemName)
                       : undefined
                   }
-                  onApproveLineItem={undefined}
                 />
               ))}
 
@@ -2228,6 +2097,27 @@ export default function BudgetDetailPage({
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="w-6 h-6 animate-spin text-[#61bc47]" />
                   </div>
+                ) : newCategoryName === "__NEW__" ? (
+                  <div className="space-y-2">
+                    <input
+                      id="new-category-type-name"
+                      type="text"
+                      value={newCategoryDescription}
+                      onChange={(e) => setNewCategoryDescription(e.target.value)}
+                      className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                      placeholder="Enter new category type name"
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => {
+                        setNewCategoryName("");
+                        setNewCategoryDescription("");
+                      }}
+                      className="text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      ← Back to selection
+                    </button>
+                  </div>
                 ) : (
                   <select
                     id="category-type"
@@ -2241,6 +2131,7 @@ export default function BudgetDetailPage({
                         {type.Project_Category_Type}
                       </option>
                     ))}
+                    <option value="__NEW__">+ Add New Category Type...</option>
                   </select>
                 )
               ) : (
@@ -2441,23 +2332,6 @@ export default function BudgetDetailPage({
               </div>
             </div>
             <div>
-              <label htmlFor="edit-line-item-status" className="block text-sm font-medium mb-2">
-                Status
-              </label>
-              <select
-                id="edit-line-item-status"
-                value={editLineItemStatus}
-                onChange={(e) => setEditLineItemStatus(e.target.value)}
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
-              >
-                <option value="pending">Pending</option>
-                <option value="ordered">Ordered</option>
-                <option value="paid">Paid</option>
-                <option value="received">Received</option>
-                <option value="applied">Applied</option>
-              </select>
-            </div>
-            <div>
               <label htmlFor="edit-line-item-description" className="block text-sm font-medium mb-2">
                 Description (optional)
               </label>
@@ -2552,23 +2426,6 @@ export default function BudgetDetailPage({
                   placeholder="0.00"
                 />
               </div>
-            </div>
-            <div>
-              <label htmlFor="new-line-item-status" className="block text-sm font-medium mb-2">
-                Status
-              </label>
-              <select
-                id="new-line-item-status"
-                value={newLineItemStatus}
-                onChange={(e) => setNewLineItemStatus(e.target.value)}
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
-              >
-                <option value="pending">Pending</option>
-                <option value="ordered">Ordered</option>
-                <option value="paid">Paid</option>
-                <option value="received">Received</option>
-                <option value="applied">Applied</option>
-              </select>
             </div>
             <div>
               <label htmlFor="new-line-item-description" className="block text-sm font-medium mb-2">
