@@ -47,7 +47,6 @@ interface BudgetLineItem {
   vendor: string | null;
   estimated: number;
   actual: number;
-  status: string;
   description: string | null;
   sortOrder: number;
 }
