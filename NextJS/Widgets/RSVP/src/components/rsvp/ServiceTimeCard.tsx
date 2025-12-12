@@ -61,22 +61,22 @@ export default function ServiceTimeCard({
     >
       <div className="px-5 py-5" style={{ color: textColor }}>
         {/* Service Time Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
+        <div className="flex items-start justify-between mb-4 gap-2">
+          <div className="flex-shrink min-w-0">
             {/* Time */}
-            <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5" style={{ color: textColor }} />
-              <span className="text-3xl font-bold" style={{ color: textColor }}>
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" style={{ color: textColor }} />
+              <span className="text-2xl md:text-3xl font-bold whitespace-nowrap" style={{ color: textColor }}>
                 {formatServiceTime(startDate)}
               </span>
             </div>
           </div>
 
           {/* Right Side - Amenities and Selected Indicator */}
-          <div className="flex items-start gap-2">
+          <div className="flex items-start gap-1.5 flex-shrink-0">
             {/* Amenities Badges */}
             {serviceTime.Amenities && serviceTime.Amenities.length > 0 && (
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
                 {serviceTime.Amenities.map(amenity => (
                   <AmenityBadge
                     key={amenity.Amenity_ID}
