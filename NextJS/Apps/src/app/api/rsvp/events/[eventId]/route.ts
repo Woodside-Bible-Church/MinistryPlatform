@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MinistryPlatformClient } from "@/providers/MinistryPlatform/core/ministryPlatformClient";
+import { getUserIdFromSession } from "@/utils/auth";
 
 /**
  * PATCH /api/rsvp/events/[eventId]
@@ -18,6 +19,14 @@ export async function PATCH(
         { error: "Invalid event ID" },
         { status: 400 }
       );
+    }
+
+    // Get User_ID for auditing (optional for now to avoid breaking existing functionality)
+    const userId = await getUserIdFromSession();
+    console.log(`PATCH /api/rsvp/events/${eventId} - User_ID for auditing:`, userId);
+
+    if (!userId) {
+      console.warn(`Event update without user session - Event ID: ${eventId}`);
     }
 
     const body = await request.json();
@@ -57,9 +66,14 @@ export async function PATCH(
     await mp.ensureValidToken();
 
     // Update the event - MinistryPlatform expects an array with primary key included
-    await mp.put(`/tables/Events`, [updatePayload]);
+    // Pass $userID for MP auditing
+    const queryParams = userId ? { $userID: userId } : {};
+    console.log(`Calling MP API with queryParams:`, queryParams);
+    console.log(`Update payload:`, updatePayload);
 
-    console.log(`Successfully updated event ${eventId}:`, updatePayload);
+    await mp.put(`/tables/Events`, [updatePayload], queryParams);
+
+    console.log(`Successfully updated event ${eventId}`);
 
     return NextResponse.json({ success: true });
   } catch (error) {

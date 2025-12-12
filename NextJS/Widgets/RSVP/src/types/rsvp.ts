@@ -128,6 +128,7 @@ export interface EventAmenity {
   Amenity_Description: string | null;
   Icon_Name: string; // Lucide icon component name (e.g., 'Baby', 'Heart', 'Languages')
   Icon_Color: string | null; // Hex color code (e.g., '#3B82F6')
+  Icon_URL: string | null; // From dp_Files: icon.svg
   Display_Order: number;
 }
 

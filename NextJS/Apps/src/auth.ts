@@ -43,6 +43,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         // Fetch user groups during initial sign-in
         let allRoles: string[] = (profile as any).roles || []
+        let userId: number | undefined = undefined
 
         try {
           const mp = new MPHelper()
@@ -54,7 +55,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           })
 
           if (users.length > 0) {
-            const userId = users[0].User_ID
+            userId = users[0].User_ID
+            console.log('JWT Callback - User_ID found:', userId)
             const allUserGroupLinks = await mp.getTableRecords<{ User_Group_ID: number }>({
               table: 'dp_User_User_Groups',
               select: 'User_Group_ID',
@@ -86,7 +88,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           refreshToken: account.refresh_token,
           expiresAt: account.expires_at,
           sub: profile.sub,
-          userId: profile.user_id,
+          userId: userId ? String(userId) : undefined,
           email: profile.email,
           name: profile.name,
           firstName: profile.given_name,
@@ -151,6 +153,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   async session({ session, token }) {
     console.log('Session Callback - token exists:', !!token)
     console.log('Token sub:', token?.sub)
+    console.log('Token userId (User_ID for auditing):', token?.userId)
     console.log('Token roles:', token?.roles)
 
     if (token && session.user) {
@@ -161,6 +164,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.email = token.email as string
       session.sub = token.sub as string
       session.userId = token.userId as string // Integer User_ID for database operations
+      console.log('Session userId set to:', session.userId)
       // Note: token.userId is User_ID, not Contact_ID - we'll fetch Contact_ID below
       session.contactId = undefined
 
@@ -189,16 +193,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           console.log('No roles found for user')
         }
 
-        // Also fetch Contact_ID if not already set
-        if (!session.contactId && session.sub) {
-          const users = await mp.getTableRecords<{ Contact_ID: number }>({
+        // Also fetch Contact_ID and User_ID if not already set
+        // (fallback for sessions created before User_ID was added to JWT)
+        if ((!session.contactId || !session.userId) && session.sub) {
+          const users = await mp.getTableRecords<{ Contact_ID: number; User_ID: number }>({
             table: 'dp_Users',
-            select: 'Contact_ID',
+            select: 'Contact_ID, User_ID',
             filter: `User_GUID='${session.sub}'`,
             top: 1,
           })
           if (users.length > 0) {
-            session.contactId = String(users[0].Contact_ID)
+            if (!session.contactId) {
+              session.contactId = String(users[0].Contact_ID)
+            }
+            if (!session.userId) {
+              session.userId = String(users[0].User_ID)
+              console.log('Session userId fetched from dp_Users (fallback):', session.userId)
+            }
           }
         }
       } catch (error) {

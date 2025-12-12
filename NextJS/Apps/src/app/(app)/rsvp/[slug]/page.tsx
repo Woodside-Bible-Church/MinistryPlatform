@@ -50,6 +50,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Checkbox } from "@/components/ui/checkbox";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Line } from "recharts";
 import { TemplateSelector } from "@/components/rsvp/TemplateSelector";
+import { AmenitiesEditor } from "@/components/rsvp/AmenitiesEditor";
 
 type Project = {
   Project_ID: number;
@@ -155,6 +156,16 @@ type ConfirmationCard = {
   Campus_Name: string | null;
   Is_Global: boolean;
   Configuration: string | null;
+};
+
+type EventAmenity = {
+  Amenity_ID: number;
+  Amenity_Name: string;
+  Amenity_Description: string | null;
+  Icon_Name: string | null;
+  Icon_Color: string | null;
+  Icon_URL: string | null; // From dp_Files: icon.svg
+  Display_Order: number;
 };
 
 function formatDate(dateString: string | null) {
@@ -317,6 +328,10 @@ export default function ProjectDetailPage({
   }>({ capacity: null, modifier: null });
   const [isSavingEventCapacity, setIsSavingEventCapacity] = useState(false);
 
+  // Amenities editing state
+  const [editingAmenities, setEditingAmenities] = useState<{ eventId: number; eventName: string } | null>(null);
+  const [eventAmenities, setEventAmenities] = useState<Record<number, EventAmenity[]>>({}); // Keyed by Event_ID
+
   const [editingConfirmationCard, setEditingConfirmationCard] = useState<{
     cardId: number;
     config: { title: string; bullets: Array<{ icon: string; text: string }> };
@@ -477,6 +492,42 @@ export default function ProjectDetailPage({
 
     loadData();
   }, [slug]);
+
+  // Fetch amenities for all events when campuses load
+  useEffect(() => {
+    const fetchAmenities = async () => {
+      if (campuses.length === 0) return;
+
+      const amenitiesMap: Record<number, EventAmenity[]> = {};
+
+      // Get all unique event IDs
+      const eventIds = new Set<number>();
+      campuses.forEach(campus => {
+        campus.Events?.forEach(event => {
+          eventIds.add(event.Event_ID);
+        });
+      });
+
+      // Fetch amenities for each event
+      await Promise.all(
+        Array.from(eventIds).map(async (eventId) => {
+          try {
+            const response = await fetch(`/api/rsvp/events/${eventId}/amenities`);
+            if (response.ok) {
+              const amenities = await response.json();
+              amenitiesMap[eventId] = amenities;
+            }
+          } catch (error) {
+            console.error(`Error fetching amenities for event ${eventId}:`, error);
+          }
+        })
+      );
+
+      setEventAmenities(amenitiesMap);
+    };
+
+    fetchAmenities();
+  }, [campuses]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -855,6 +906,38 @@ export default function ProjectDetailPage({
       alert("Failed to update confirmation card. Please try again.");
     } finally {
       setIsSavingConfirmationCard(false);
+    }
+  };
+
+  // Handler for saving amenities
+  const handleSaveAmenities = async (amenityIds: number[]) => {
+    if (!editingAmenities) return;
+
+    try {
+      const response = await fetch(`/api/rsvp/events/${editingAmenities.eventId}/amenities`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amenityIds }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update amenities");
+      }
+
+      // Fetch updated amenities for this event
+      const amenitiesResponse = await fetch(`/api/rsvp/events/${editingAmenities.eventId}/amenities`);
+      if (amenitiesResponse.ok) {
+        const updatedAmenities = await amenitiesResponse.json();
+        setEventAmenities(prev => ({
+          ...prev,
+          [editingAmenities.eventId]: updatedAmenities
+        }));
+      }
+
+      alert("Amenities updated successfully!");
+    } catch (error) {
+      console.error("Error updating amenities:", error);
+      alert("Failed to update amenities. Please try again.");
     }
   };
 
@@ -2270,6 +2353,61 @@ export default function ProjectDetailPage({
                             </p>
                           )}
                         </div>
+
+                        {/* Amenities Section */}
+                        <div className="mt-4 pt-4 border-t border-border">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                              Amenities
+                            </span>
+                            <button
+                              className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+                              onClick={() => {
+                                const eventName = `${event.Event_Start_Date
+                                  ? new Date(event.Event_Start_Date).toLocaleTimeString("en-US", {
+                                      hour: "numeric",
+                                      minute: "2-digit",
+                                    })
+                                  : "Event"}`;
+                                setEditingAmenities({ eventId: event.Event_ID, eventName });
+                              }}
+                              title="Edit amenities"
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </button>
+                          </div>
+                          {eventAmenities[event.Event_ID] && eventAmenities[event.Event_ID].length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                              {eventAmenities[event.Event_ID].map((amenity) => {
+                                const IconComponent = getIconComponent(amenity.Icon_Name);
+                                return (
+                                  <div
+                                    key={amenity.Amenity_ID}
+                                    className="inline-flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md text-xs"
+                                    title={amenity.Amenity_Description || amenity.Amenity_Name}
+                                  >
+                                    {amenity.Icon_URL ? (
+                                      <img
+                                        src={amenity.Icon_URL}
+                                        alt={amenity.Amenity_Name}
+                                        className="w-3 h-3 flex-shrink-0"
+                                        style={{ color: amenity.Icon_Color || "#61bc47" }}
+                                      />
+                                    ) : (
+                                      <IconComponent
+                                        className="w-3 h-3 flex-shrink-0"
+                                        style={{ color: amenity.Icon_Color || "#61bc47" }}
+                                      />
+                                    )}
+                                    <span className="text-foreground">{amenity.Amenity_Name}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground italic">No amenities configured</p>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -3389,6 +3527,18 @@ export default function ProjectDetailPage({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Amenities Editor Dialog */}
+      {editingAmenities && (
+        <AmenitiesEditor
+          isOpen={!!editingAmenities}
+          onClose={() => setEditingAmenities(null)}
+          eventId={editingAmenities.eventId}
+          eventName={editingAmenities.eventName}
+          currentAmenities={eventAmenities[editingAmenities.eventId] || []}
+          onSave={handleSaveAmenities}
+        />
+      )}
     </div>
   );
 }

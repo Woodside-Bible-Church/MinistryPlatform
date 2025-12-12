@@ -190,9 +190,27 @@ BEGIN
                     a.Amenity_Description,
                     a.Icon_Name,
                     a.Icon_Color,
-                    a.Display_Order
+                    a.Display_Order,
+                    -- Build Icon_URL from dp_files
+                    Icon_URL = CASE
+                        WHEN AmenityIcon.File_ID IS NOT NULL AND CSAmenity.Value IS NOT NULL AND DAmenity.Domain_GUID IS NOT NULL
+                        THEN CONCAT(CSAmenity.Value, '?dn=', CONVERT(varchar(40), DAmenity.Domain_GUID), '&fn=', AmenityIcon.Unique_Name, '.', AmenityIcon.Extension)
+                        ELSE NULL
+                    END
                 FROM Event_Amenities ea
                 INNER JOIN Amenities a ON ea.Amenity_ID = a.Amenity_ID
+                -- Join to dp_files to get icon.svg file
+                LEFT OUTER JOIN dp_files AmenityIcon ON AmenityIcon.Record_ID = a.Amenity_ID
+                    AND AmenityIcon.Table_Name = 'Amenities'
+                    AND AmenityIcon.File_Name = 'icon.svg'
+                -- Join to get ImageURL configuration setting
+                LEFT OUTER JOIN dp_Configuration_Settings CSAmenity
+                    ON CSAmenity.Domain_ID = COALESCE(a.Domain_ID, 1)
+                    AND CSAmenity.Key_Name = 'ImageURL'
+                    AND CSAmenity.Application_Code = 'Common'
+                -- Join to get Domain GUID
+                LEFT OUTER JOIN dp_Domains DAmenity
+                    ON DAmenity.Domain_ID = COALESCE(a.Domain_ID, 1)
                 WHERE ea.Event_ID = e.Event_ID
                   AND a.Is_Active = 1
                 ORDER BY a.Display_Order

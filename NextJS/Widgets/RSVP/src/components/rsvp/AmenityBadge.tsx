@@ -53,13 +53,22 @@ export function AmenityBadge({ amenity, size = 'md', showTooltip = true, themeCo
         }}
         title={showTooltip ? (amenity.Amenity_Description || amenity.Amenity_Name) : undefined}
       >
-        {IconComponent ? (
+        {amenity.Icon_URL ? (
+          // Custom SVG from dp_Files (icon.svg)
+          <img
+            src={amenity.Icon_URL}
+            alt={amenity.Amenity_Name}
+            className={iconSizeClasses[size]}
+            style={{ color: badgeColor }}
+          />
+        ) : IconComponent ? (
+          // Fallback to Lucide icon
           <IconComponent
             className={iconSizeClasses[size]}
             style={{ color: badgeColor }}
           />
         ) : (
-          // Fallback if icon not found
+          // Final fallback if no icon found
           <span className={`text-xs font-bold`} style={{ color: badgeColor }}>
             {amenity.Amenity_Name.charAt(0)}
           </span>
