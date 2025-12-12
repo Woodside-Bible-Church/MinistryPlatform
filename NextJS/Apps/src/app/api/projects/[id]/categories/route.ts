@@ -58,7 +58,7 @@ export async function POST(
 
     // Look up the category type, create if it doesn't exist
     const isRevenue = type === "revenue" ? 1 : 0;
-    let categoryTypes = await mp.getTableRecords<{ Project_Category_Type_ID: number }>({
+    const categoryTypes = await mp.getTableRecords<{ Project_Category_Type_ID: number }>({
       table: 'Project_Category_Types',
       select: 'Project_Category_Type_ID',
       filter: `Project_Category_Type='${name.replace(/'/g, "''")}' AND Is_Revenue=${isRevenue}`,
@@ -82,7 +82,7 @@ export async function POST(
           $userId: userId,
           $select: 'Project_Category_Type_ID',
         }
-      );
+      ) as unknown as { Project_Category_Type_ID: number }[];
 
       if (createdTypes.length === 0) {
         return NextResponse.json(
