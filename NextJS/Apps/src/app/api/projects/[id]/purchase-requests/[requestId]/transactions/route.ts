@@ -78,7 +78,7 @@ export async function POST(
         Purchase_Request_ID: parseInt(requestId),
         Domain_ID: 1,
       }]
-    );
+    ) as unknown as Array<{ Project_Budget_Transaction_ID: number }>;
 
     if (!insertResult || insertResult.length === 0) {
       throw new Error("Failed to create transaction");
