@@ -86,9 +86,9 @@ export async function GET(request: NextRequest) {
     const rawData = JSON.parse(jsonResultRow.JsonResult);
 
     // Transform the data to match frontend expectations
-    // v2 stored procedure returns "Project" directly
+    // Stored procedure returns "Project_RSVP" object
     const data: ProjectRSVPDataResponse = {
-      Project: rawData.Project,
+      Project: rawData.Project_RSVP || rawData.Project,  // Support both field names
       Events: rawData.Events,
       Questions: rawData.Questions,
       Confirmation_Cards: rawData.Confirmation_Cards,

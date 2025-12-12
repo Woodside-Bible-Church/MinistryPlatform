@@ -13,14 +13,17 @@ interface AmenityBadgeProps {
 
 /**
  * Displays a single amenity badge with icon and tooltip
- * Icons come from Lucide React based on Icon_Name field
- * Colors from MinistryPlatform's dp_Color field (hex codes)
+ * PRIORITY: Custom SVG from Icon_URL (icon.svg from dp_Files), fallback to Lucide icon (Icon_Name)
+ * Colors from MinistryPlatform's Icon_Color field (hex codes)
  */
 export function AmenityBadge({ amenity, size = 'md', showTooltip = true, themeColor }: AmenityBadgeProps) {
   const [isHovered, setIsHovered] = useState(false);
 
-  // Get the icon component dynamically from Lucide
+  // Get the icon component dynamically from Lucide (used as fallback if no custom SVG)
   const IconComponent = LucideIcons[amenity.Icon_Name as keyof typeof LucideIcons] as React.ComponentType<{ className?: string; style?: React.CSSProperties }> | undefined;
+
+  // Check if we have a custom SVG icon from dp_Files
+  const hasCustomIcon = !!amenity.Icon_URL;
 
   // Size classes
   const sizeClasses = {
@@ -53,22 +56,22 @@ export function AmenityBadge({ amenity, size = 'md', showTooltip = true, themeCo
         }}
         title={showTooltip ? (amenity.Amenity_Description || amenity.Amenity_Name) : undefined}
       >
-        {amenity.Icon_URL ? (
-          // Custom SVG from dp_Files (icon.svg)
+        {hasCustomIcon ? (
+          // Priority 1: Custom SVG from dp_Files (icon.svg)
+          // NOTE: SVG is rendered as-is; color manipulation can be added later if needed
           <img
-            src={amenity.Icon_URL}
+            src={amenity.Icon_URL!}
             alt={amenity.Amenity_Name}
             className={iconSizeClasses[size]}
-            style={{ color: badgeColor }}
           />
         ) : IconComponent ? (
-          // Fallback to Lucide icon
+          // Priority 2: Lucide React icon (Icon_Name field)
           <IconComponent
             className={iconSizeClasses[size]}
             style={{ color: badgeColor }}
           />
         ) : (
-          // Final fallback if no icon found
+          // Final fallback: First letter of amenity name
           <span className={`text-xs font-bold`} style={{ color: badgeColor }}>
             {amenity.Amenity_Name.charAt(0)}
           </span>

@@ -192,9 +192,27 @@ BEGIN
                     a.Amenity_Description,
                     a.Icon_Name,
                     a.Icon_Color,
-                    a.Display_Order
+                    a.Display_Order,
+                    -- Build Icon_URL from dp_files if icon.svg is attached
+                    Icon_URL = CASE
+                        WHEN F_Icon.File_ID IS NOT NULL AND CS_Icon.Value IS NOT NULL AND D_Icon.Domain_GUID IS NOT NULL
+                        THEN CONCAT(CS_Icon.Value, '?dn=', CONVERT(varchar(40), D_Icon.Domain_GUID), '&fn=', F_Icon.Unique_Name, '.', F_Icon.Extension)
+                        ELSE NULL
+                    END
                 FROM Event_Amenities ea
                 INNER JOIN Amenities a ON ea.Amenity_ID = a.Amenity_ID
+                -- Join to dp_files to get icon.svg file
+                LEFT OUTER JOIN dp_files F_Icon ON F_Icon.Record_ID = a.Amenity_ID
+                    AND F_Icon.Table_Name = 'Amenities'
+                    AND F_Icon.File_Name = 'icon.svg'
+                -- Join to get ImageURL configuration setting for icon
+                LEFT OUTER JOIN dp_Configuration_Settings CS_Icon
+                    ON CS_Icon.Domain_ID = COALESCE(a.Domain_ID, 1)
+                    AND CS_Icon.Key_Name = 'ImageURL'
+                    AND CS_Icon.Application_Code = 'Common'
+                -- Join to get Domain GUID for icon
+                LEFT OUTER JOIN dp_Domains D_Icon
+                    ON D_Icon.Domain_ID = COALESCE(a.Domain_ID, 1)
                 WHERE ea.Event_ID = e.Event_ID
                   AND a.Is_Active = 1
                 ORDER BY a.Display_Order
