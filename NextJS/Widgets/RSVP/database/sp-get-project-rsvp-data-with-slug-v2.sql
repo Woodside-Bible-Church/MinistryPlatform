@@ -183,7 +183,23 @@ BEGIN
             ISNULL(a.[State/Region], '') AS Campus_State,
             ISNULL(a.Postal_Code, '') AS Campus_Zip,
             -- Minor Registration - allow parents to register children without email
-            ISNULL(e.Minor_Registration, 0) AS Minor_Registration
+            ISNULL(e.Minor_Registration, 0) AS Minor_Registration,
+            -- Event Amenities (childcare, ASL interpretation, etc.)
+            Amenities = (
+                SELECT
+                    a.Amenity_ID,
+                    a.Amenity_Name,
+                    a.Amenity_Description,
+                    a.Icon_Name,
+                    a.Icon_Color,
+                    a.Display_Order
+                FROM Event_Amenities ea
+                INNER JOIN Amenities a ON ea.Amenity_ID = a.Amenity_ID
+                WHERE ea.Event_ID = e.Event_ID
+                  AND a.Is_Active = 1
+                ORDER BY a.Display_Order
+                FOR JSON PATH
+            )
         FROM Events e
         LEFT JOIN Congregations c ON e.Congregation_ID = c.Congregation_ID
         LEFT JOIN Locations l ON c.Location_ID = l.Location_ID
