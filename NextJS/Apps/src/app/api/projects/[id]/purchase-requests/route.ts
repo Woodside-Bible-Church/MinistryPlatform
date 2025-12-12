@@ -29,7 +29,7 @@ export async function GET(
         "@ProjectID": parseInt(projectId),
         "@RequestedByContactID": filterByMe && contactId ? contactId : null,
       }
-    );
+    ) as unknown as Array<Array<{ JsonResult: string }>>;
 
     if (!result || result.length === 0) {
       return NextResponse.json([]);
@@ -128,7 +128,7 @@ export async function POST(
       {
         "@PurchaseRequestID": purchaseRequestId,
       }
-    );
+    ) as unknown as Array<Array<{ JsonResult: string }>>;
 
     if (!result || result.length === 0) {
       throw new Error("Failed to fetch created purchase request");

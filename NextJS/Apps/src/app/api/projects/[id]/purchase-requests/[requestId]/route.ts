@@ -80,7 +80,7 @@ export async function PATCH(
       {
         "@PurchaseRequestID": parseInt(requestId),
       }
-    );
+    ) as unknown as Array<Array<{ JsonResult: string }>>;
 
     if (!result || result.length === 0) {
       throw new Error("Failed to fetch updated purchase request");

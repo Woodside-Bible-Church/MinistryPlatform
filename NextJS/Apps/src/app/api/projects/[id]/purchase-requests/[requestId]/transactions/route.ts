@@ -39,7 +39,7 @@ export async function POST(
       {
         "@PurchaseRequestID": parseInt(requestId),
       }
-    );
+    ) as unknown as Array<Array<{ JsonResult: string }>>;
 
     if (!prResult || prResult.length === 0) {
       return NextResponse.json(
@@ -92,7 +92,7 @@ export async function POST(
       {
         "@PurchaseRequestID": parseInt(requestId),
       }
-    );
+    ) as unknown as Array<Array<{ JsonResult: string }>>;
 
     if (!updatedResult || updatedResult.length === 0) {
       throw new Error("Failed to fetch updated purchase request");
