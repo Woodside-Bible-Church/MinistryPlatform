@@ -8,6 +8,7 @@ import ServiceTimeCard from "@/components/rsvp/ServiceTimeCard";
 import RSVPForm from "@/components/rsvp/RSVPForm";
 import ConfirmationView from "@/components/rsvp/ConfirmationView";
 import InformationalEventCard from "@/components/rsvp/InformationalEventCard";
+import { AmenitiesLegend } from "@/components/rsvp/AmenitiesLegend";
 import {
   RSVPFormInput,
   RSVPConfirmation,
@@ -643,6 +644,21 @@ export default function RSVPPage() {
   }, [rsvpData, selectedCampusId]);
 
 
+  // Collect all unique amenities from filtered service times
+  const allAmenities = useMemo(() => {
+    const amenitiesMap = new Map();
+    filteredServiceTimes.forEach(service => {
+      if (service.Amenities && service.Amenities.length > 0) {
+        service.Amenities.forEach(amenity => {
+          if (!amenitiesMap.has(amenity.Amenity_ID)) {
+            amenitiesMap.set(amenity.Amenity_ID, amenity);
+          }
+        });
+      }
+    });
+    return Array.from(amenitiesMap.values());
+  }, [filteredServiceTimes]);
+
   // Group service times by date for display
   const groupedServiceTimes = useMemo(() => {
     const groups: Record<string, ServiceTimeResponse[]> = {};
@@ -986,9 +1002,9 @@ export default function RSVPPage() {
                 )}
               </div>
 
-              {/* RSVP Image - Mobile/Tablet (between blurb and instructions) */}
+              {/* RSVP Image - Mobile only (between blurb and instructions) */}
               {currentImageURL && (
-                <div className="xl:hidden my-2">
+                <div className="md:hidden my-2">
                   <img
                     src={currentImageURL}
                     alt={rsvpData?.Project?.RSVP_Title || "RSVP"}
@@ -1224,6 +1240,14 @@ export default function RSVPPage() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
+                    {/* Amenities Legend */}
+                    {allAmenities.length > 0 && (
+                      <AmenitiesLegend
+                        amenities={allAmenities}
+                        textColor={rsvpData?.Project?.RSVP_Primary_Color || '#FFFFFF'}
+                      />
+                    )}
+
                     {/* Service Times Grouped by Date */}
                     <div className="space-y-8">
                       {Object.entries(groupedServiceTimes).map(([dateHeading, services]) => (

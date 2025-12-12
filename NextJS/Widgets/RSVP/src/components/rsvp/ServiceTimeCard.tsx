@@ -82,6 +82,7 @@ export default function ServiceTimeCard({
                     key={amenity.Amenity_ID}
                     amenity={amenity}
                     size="sm"
+                    showTooltip={false}
                     themeColor={textColor}
                   />
                 ))}

@@ -66,15 +66,15 @@ export function AmenityBadge({ amenity, size = 'md', showTooltip = true, themeCo
         )}
       </div>
 
-      {/* Tooltip - Desktop only */}
+      {/* Tooltip - Desktop only, positioned to stay within viewport */}
       {showTooltip && isHovered && (
-        <div className="hidden md:block absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg pointer-events-none max-w-xs z-50">
-          <div className="whitespace-normal text-center">
+        <div className="hidden md:block absolute bottom-full mb-2 right-0 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg pointer-events-none w-64 z-50">
+          <div className="whitespace-normal text-left break-words">
             {amenity.Amenity_Description || amenity.Amenity_Name}
           </div>
-          {/* Arrow */}
+          {/* Arrow pointing up from tooltip to badge */}
           <div
-            className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"
+            className="absolute top-full right-3 border-4 border-transparent border-t-gray-900"
             style={{ marginTop: '-1px' }}
           ></div>
         </div>

@@ -27,13 +27,6 @@ export function AmenitiesLegend({
   return (
     <div className="mb-6 pb-4" style={{ borderBottom: `1px solid ${textColor}33` }}>
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-        <span
-          className="text-sm font-bold uppercase tracking-wide whitespace-nowrap"
-          style={{ color: `${textColor}E6` }}
-        >
-          Amenities:
-        </span>
-
         {uniqueAmenities.map(amenity => (
           <div
             key={amenity.Amenity_ID}
