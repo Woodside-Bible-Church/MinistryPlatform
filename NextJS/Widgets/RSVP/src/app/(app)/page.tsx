@@ -980,7 +980,7 @@ export default function RSVPPage() {
 
                 {/* Campus-specific meeting instructions */}
                 {currentCampusMeetingInstructions && (
-                  <p className="text-base md:text-xl leading-relaxed text-white opacity-90 mt-4">
+                  <p className="text-base md:text-xl leading-relaxed text-white opacity-90 mt-4 whitespace-pre-line">
                     {currentCampusMeetingInstructions}
                   </p>
                 )}
