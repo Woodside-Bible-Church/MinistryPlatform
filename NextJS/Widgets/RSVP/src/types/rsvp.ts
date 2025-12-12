@@ -118,6 +118,19 @@ export type ProjectRSVPConfig = ProjectConfig;
 // Events
 // ===================================================================
 
+/**
+ * Event amenity (childcare, ASL interpretation, etc.)
+ * From Amenities table via Event_Amenities junction
+ */
+export interface EventAmenity {
+  Amenity_ID: number;
+  Amenity_Name: string;
+  Amenity_Description: string | null;
+  Icon_Name: string; // Lucide icon component name (e.g., 'Baby', 'Heart', 'Languages')
+  Icon_Color: string | null; // Hex color code (e.g., '#3B82F6')
+  Display_Order: number;
+}
+
 export interface RSVPEvent {
   Event_ID: number;
   Event_Title: string;
@@ -141,6 +154,7 @@ export interface RSVPEvent {
   Campus_State: string | null;
   Campus_Zip: string | null;
   Minor_Registration: boolean; // Allow parents to register minors without email
+  Amenities?: EventAmenity[]; // Service amenities (optional, parsed from JSON)
 }
 
 // ===================================================================

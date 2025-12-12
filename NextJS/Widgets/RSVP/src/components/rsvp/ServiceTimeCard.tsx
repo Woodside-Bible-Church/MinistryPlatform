@@ -8,6 +8,7 @@ import {
   getCapacityColorClass,
   getCapacityStatusText,
 } from "@/types/rsvp";
+import { AmenityBadge } from "./AmenityBadge";
 
 interface ServiceTimeCardProps {
   serviceTime: ServiceTimeResponse;
@@ -105,6 +106,15 @@ export default function ServiceTimeCard({
             />
           </div>
         </div>
+
+        {/* Amenities Badges */}
+        {serviceTime.Amenities && serviceTime.Amenities.length > 0 && (
+          <div className="flex gap-2 mt-4 pt-4" style={{ borderTop: `1px solid ${textColor}33` }}>
+            {serviceTime.Amenities.map(amenity => (
+              <AmenityBadge key={amenity.Amenity_ID} amenity={amenity} size="sm" />
+            ))}
+          </div>
+        )}
 
         {/* RSVP Call-to-Action */}
         {!selected && (
