@@ -17,7 +17,7 @@ DECLARE @AdminRoleID INT;
 SELECT @PageID_Events = Page_ID FROM dp_Pages WHERE Table_Name = 'Events';
 
 -- Get Administrator role ID
-SELECT @AdminRoleID = Security_Role_ID FROM dp_Security_Roles WHERE Role_Name = 'Administrators';
+SELECT @AdminRoleID = Role_ID FROM dp_Roles WHERE Role_Name = 'Administrators';
 
 -- =====================================================
 -- 1. Create Amenities Page (Main Lookup Table)
@@ -33,11 +33,12 @@ BEGIN
         Default_Field_List,
         Selected_Record_Expression,
         Filter_Clause,
-        Start_Page_ID,
-        End_Page_ID,
         Default_View,
         View_Order,
-        System_Name
+        System_Name,
+        Display_Copy,
+        Suppress_New_Button,
+        In_Global_Search
     )
     VALUES (
         'Amenities',
@@ -55,10 +56,11 @@ BEGIN
         'Amenities.Amenity_Name',
         'Amenities.Domain_ID = @DomainID',
         NULL,
-        NULL,
-        NULL,
         10,
-        'Amenities'
+        'Amenities',
+        0,
+        0,
+        1
     );
 
     SET @PageID_Amenities = SCOPE_IDENTITY();
@@ -138,11 +140,12 @@ BEGIN
         Default_Field_List,
         Selected_Record_Expression,
         Filter_Clause,
-        Start_Page_ID,
-        End_Page_ID,
         Default_View,
         View_Order,
-        System_Name
+        System_Name,
+        Display_Copy,
+        Suppress_New_Button,
+        In_Global_Search
     )
     VALUES (
         'Event Amenities',
@@ -151,16 +154,18 @@ BEGIN
         'Event_Amenities',
         'Event_Amenity_ID',
         'Event_Amenities.Event_Amenity_ID
+,Event_ID_Table.Event_Title
 ,Amenity_ID_Table.Amenity_Name
 ,Amenity_ID_Table.Icon_Name
 ,Amenity_ID_Table.Icon_Color',
         'Amenity_ID_Table.Amenity_Name',
-        'Event_Amenities.Event_ID = @EventID AND Event_Amenities.Domain_ID = @DomainID',
-        NULL,
-        NULL,
+        'Event_Amenities.Domain_ID = @DomainID',
         NULL,
         20,
-        'Event_Amenities'
+        'Event_Amenities',
+        0,
+        0,
+        0
     );
 
     SET @PageID_EventAmenities = SCOPE_IDENTITY();
@@ -196,27 +201,33 @@ PRINT 'Created page fields for Event_Amenities';
 -- =====================================================
 IF NOT EXISTS (
     SELECT 1 FROM dp_Sub_Pages
-    WHERE Page_ID = @PageID_Events
-    AND Display_Copy = 'Amenities'
+    WHERE Parent_Page_ID = @PageID_Events
+    AND Target_Page_ID = @PageID_EventAmenities
 )
 BEGIN
     INSERT INTO dp_Sub_Pages (
-        Page_ID,
-        Subpage_ID,
-        Link_To_Page_ID,
-        Link_From_Field_Name,
-        Display_Copy,
+        Display_Name,
+        View_Order,
+        Parent_Page_ID,
+        Parent_Filter_Key,
+        Target_Page_ID,
+        Target_Filter_Key,
         Default_Field_List,
-        Display_Location_ID
+        Display_Copy,
+        Messaging_Default,
+        On_Quick_Add
     )
     VALUES (
-        @PageID_Events,                    -- Parent page (Events)
-        @PageID_EventAmenities,            -- Subpage
-        NULL,                              -- No link page
-        'Event_ID',                        -- Link field
         'Amenities',                       -- Display name in Events UI
+        10,                                -- View order (tab position)
+        @PageID_Events,                    -- Parent page (Events)
+        'Event_ID',                        -- Parent filter key
+        @PageID_EventAmenities,            -- Target subpage
+        'Event_ID',                        -- Target filter key
         'Amenity_ID_Table.Amenity_Name, Amenity_ID_Table.Icon_Name',  -- Columns to show
-        1                                  -- Display location (1 = tab)
+        0,                                 -- Display copy (bit)
+        0,                                 -- Messaging default
+        0                                  -- On quick add
     );
 
     PRINT 'Created subpage: Amenities on Events page';
@@ -229,13 +240,37 @@ ELSE
 -- =====================================================
 -- Amenities page
 IF NOT EXISTS (
-    SELECT 1 FROM dp_Security_Role_Pages
-    WHERE Security_Role_ID = @AdminRoleID
+    SELECT 1 FROM dp_Role_Pages
+    WHERE Role_ID = @AdminRoleID
     AND Page_ID = @PageID_Amenities
 )
 BEGIN
-    INSERT INTO dp_Security_Role_Pages (Security_Role_ID, Page_ID, Access_Level, Domain_ID)
-    VALUES (@AdminRoleID, @PageID_Amenities, 3, 1); -- 3 = Full access
+    INSERT INTO dp_Role_Pages (
+        Role_ID,
+        Page_ID,
+        Access_Level,
+        Scope_All,
+        Approver,
+        File_Attacher,
+        Data_Importer,
+        Data_Exporter,
+        Secure_Records,
+        Allow_Comments,
+        Quick_Add
+    )
+    VALUES (
+        @AdminRoleID,
+        @PageID_Amenities,
+        3,  -- Access Level (3 = Full access)
+        1,  -- Scope All
+        0,  -- Approver
+        0,  -- File Attacher
+        0,  -- Data Importer
+        0,  -- Data Exporter
+        0,  -- Secure Records
+        0,  -- Allow Comments
+        0   -- Quick Add
+    );
 
     PRINT 'Granted Administrator access to Amenities page';
 END
@@ -244,13 +279,37 @@ ELSE
 
 -- Event_Amenities page
 IF NOT EXISTS (
-    SELECT 1 FROM dp_Security_Role_Pages
-    WHERE Security_Role_ID = @AdminRoleID
+    SELECT 1 FROM dp_Role_Pages
+    WHERE Role_ID = @AdminRoleID
     AND Page_ID = @PageID_EventAmenities
 )
 BEGIN
-    INSERT INTO dp_Security_Role_Pages (Security_Role_ID, Page_ID, Access_Level, Domain_ID)
-    VALUES (@AdminRoleID, @PageID_EventAmenities, 3, 1); -- 3 = Full access
+    INSERT INTO dp_Role_Pages (
+        Role_ID,
+        Page_ID,
+        Access_Level,
+        Scope_All,
+        Approver,
+        File_Attacher,
+        Data_Importer,
+        Data_Exporter,
+        Secure_Records,
+        Allow_Comments,
+        Quick_Add
+    )
+    VALUES (
+        @AdminRoleID,
+        @PageID_EventAmenities,
+        3,  -- Access Level (3 = Full access)
+        1,  -- Scope All
+        0,  -- Approver
+        0,  -- File Attacher
+        0,  -- Data Importer
+        0,  -- Data Exporter
+        0,  -- Secure Records
+        0,  -- Allow Comments
+        0   -- Quick Add
+    );
 
     PRINT 'Granted Administrator access to Event_Amenities page';
 END

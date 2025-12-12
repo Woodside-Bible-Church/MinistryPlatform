@@ -24,9 +24,6 @@ BEGIN
         [Is_Active] BIT NOT NULL DEFAULT 1,
         [Domain_ID] INT NOT NULL DEFAULT 1,
         [__ExternalID] NVARCHAR(50) NULL,
-        [_Approved] BIT NOT NULL DEFAULT 1,
-        [_Audit_User_ID] INT NULL,
-        [_Audit_Timestamp] DATETIME NOT NULL DEFAULT GETDATE(),
         CONSTRAINT [PK_Amenities] PRIMARY KEY CLUSTERED ([Amenity_ID] ASC),
         CONSTRAINT [FK_Amenities_Domain] FOREIGN KEY ([Domain_ID])
             REFERENCES [dbo].[dp_Domains]([Domain_ID])
@@ -50,9 +47,6 @@ BEGIN
         [Amenity_ID] INT NOT NULL,
         [Domain_ID] INT NOT NULL DEFAULT 1,
         [__ExternalID] NVARCHAR(50) NULL,
-        [_Approved] BIT NOT NULL DEFAULT 1,
-        [_Audit_User_ID] INT NULL,
-        [_Audit_Timestamp] DATETIME NOT NULL DEFAULT GETDATE(),
         CONSTRAINT [PK_Event_Amenities] PRIMARY KEY CLUSTERED ([Event_Amenity_ID] ASC),
         CONSTRAINT [FK_Event_Amenities_Event] FOREIGN KEY ([Event_ID])
             REFERENCES [dbo].[Events]([Event_ID]),

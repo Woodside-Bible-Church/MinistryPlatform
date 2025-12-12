@@ -188,7 +188,21 @@ BEGIN
             ISNULL(a.Address_Line_1, '') AS Campus_Address,
             ISNULL(a.City, '') AS Campus_City,
             ISNULL(a.[State/Region], '') AS Campus_State,
-            ISNULL(a.Postal_Code, '') AS Campus_Zip
+            ISNULL(a.Postal_Code, '') AS Campus_Zip,
+            -- **NEW: Event Amenities (childcare, ASL, etc.)**
+            (SELECT
+                am.Amenity_ID,
+                am.Amenity_Name,
+                am.Amenity_Description,
+                am.Icon_Name,
+                am.Icon_Color,
+                am.Display_Order
+            FROM Event_Amenities ea
+            INNER JOIN Amenities am ON ea.Amenity_ID = am.Amenity_ID
+            WHERE ea.Event_ID = e.Event_ID
+              AND am.Is_Active = 1
+            ORDER BY am.Display_Order
+            FOR JSON PATH) AS Amenities
         FROM Events e
         LEFT JOIN Congregations c ON e.Congregation_ID = c.Congregation_ID
         LEFT JOIN Locations l ON c.Location_ID = l.Location_ID
