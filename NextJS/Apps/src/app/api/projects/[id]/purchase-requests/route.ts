@@ -114,7 +114,7 @@ export async function POST(
       {
         $userId: userId,
       }
-    );
+    ) as unknown as Array<{ Purchase_Request_ID: number }>;
 
     if (!insertResult || insertResult.length === 0) {
       throw new Error("Failed to create purchase request");
