@@ -5,17 +5,15 @@ import { AmenityBadge } from './AmenityBadge';
 
 interface AmenitiesLegendProps {
   amenities: EventAmenity[];
-  backgroundColor?: string;
   textColor?: string;
 }
 
 /**
- * Displays a sticky legend of all available amenities
+ * Displays a legend of all available amenities
  * Shows unique amenities across all services with descriptions
  */
 export function AmenitiesLegend({
   amenities,
-  backgroundColor = '#1C2B39',
   textColor = '#FFFFFF',
 }: AmenitiesLegendProps) {
   // Get unique amenities (deduplicate by Amenity_ID)
@@ -27,19 +25,13 @@ export function AmenitiesLegend({
   if (uniqueAmenities.length === 0) return null;
 
   return (
-    <div
-      className="sticky top-0 z-10 backdrop-blur-sm border-b py-3 px-4 mb-6"
-      style={{
-        backgroundColor: `${backgroundColor}CC`, // Add transparency
-        borderBottomColor: `${textColor}33`,
-      }}
-    >
+    <div className="mb-6 pb-4" style={{ borderBottom: `1px solid ${textColor}33` }}>
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
         <span
-          className="text-sm font-semibold whitespace-nowrap"
-          style={{ color: `${textColor}BF` }} // 75% opacity
+          className="text-sm font-bold uppercase tracking-wide whitespace-nowrap"
+          style={{ color: `${textColor}E6` }}
         >
-          Available at select services:
+          Amenities:
         </span>
 
         {uniqueAmenities.map(amenity => (
@@ -47,10 +39,10 @@ export function AmenitiesLegend({
             key={amenity.Amenity_ID}
             className="flex items-center gap-2"
           >
-            <AmenityBadge amenity={amenity} size="sm" showTooltip={false} />
+            <AmenityBadge amenity={amenity} size="sm" showTooltip={false} themeColor={textColor} />
             <span
-              className="text-sm hidden sm:inline"
-              style={{ color: `${textColor}E6` }} // 90% opacity
+              className="text-sm font-medium"
+              style={{ color: `${textColor}` }}
             >
               {amenity.Amenity_Name}
             </span>

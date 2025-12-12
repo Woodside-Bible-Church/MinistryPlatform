@@ -72,16 +72,33 @@ export default function ServiceTimeCard({
             </div>
           </div>
 
-          {/* Selected Indicator */}
-          {selected && (
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: "spring", stiffness: 200 }}
-            >
-              <CheckCircle2 className="w-7 h-7" style={{ color: accentColor }} />
-            </motion.div>
-          )}
+          {/* Right Side - Amenities and Selected Indicator */}
+          <div className="flex items-start gap-2">
+            {/* Amenities Badges */}
+            {serviceTime.Amenities && serviceTime.Amenities.length > 0 && (
+              <div className="flex gap-2">
+                {serviceTime.Amenities.map(amenity => (
+                  <AmenityBadge
+                    key={amenity.Amenity_ID}
+                    amenity={amenity}
+                    size="sm"
+                    themeColor={textColor}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Selected Indicator */}
+            {selected && (
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 200 }}
+              >
+                <CheckCircle2 className="w-7 h-7" style={{ color: accentColor }} />
+              </motion.div>
+            )}
+          </div>
         </div>
 
         {/* Capacity Bar */}
@@ -106,15 +123,6 @@ export default function ServiceTimeCard({
             />
           </div>
         </div>
-
-        {/* Amenities Badges */}
-        {serviceTime.Amenities && serviceTime.Amenities.length > 0 && (
-          <div className="flex gap-2 mt-4 pt-4" style={{ borderTop: `1px solid ${textColor}33` }}>
-            {serviceTime.Amenities.map(amenity => (
-              <AmenityBadge key={amenity.Amenity_ID} amenity={amenity} size="sm" />
-            ))}
-          </div>
-        )}
 
         {/* RSVP Call-to-Action */}
         {!selected && (
