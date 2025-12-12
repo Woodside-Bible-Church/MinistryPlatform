@@ -19,7 +19,7 @@ export function AmenityBadge({ amenity, size = 'md', showTooltip = true }: Ameni
   const [isHovered, setIsHovered] = useState(false);
 
   // Get the icon component dynamically from Lucide
-  const IconComponent = (LucideIcons as any)[amenity.Icon_Name];
+  const IconComponent = LucideIcons[amenity.Icon_Name as keyof typeof LucideIcons] as React.ComponentType<{ className?: string; style?: React.CSSProperties }> | undefined;
 
   // Size classes
   const sizeClasses = {
