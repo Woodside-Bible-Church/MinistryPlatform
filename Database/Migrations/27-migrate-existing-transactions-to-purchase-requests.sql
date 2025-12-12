@@ -28,19 +28,26 @@ INSERT INTO [dbo].[Project_Budget_Purchase_Requests] (
 SELECT
     t.Project_ID,
     t.Project_Budget_Expense_Line_Item_ID,
-    -- Use project coordinator as requester, default to Colton (228155) if null
-    ISNULL(p.Project_Coordinator, 228155) AS Requested_By_Contact_ID,
+    -- Use project coordinator as requester if valid, otherwise default to Contact_ID 1
+    CASE
+        WHEN coord.Contact_ID IS NOT NULL THEN p.Project_Coordinator
+        ELSE 1
+    END AS Requested_By_Contact_ID,
     t.Transaction_Date AS Requested_Date,
     t.Amount,
     t.Description,
-    t.Vendor_Name,
+    t.Payee_Name AS Vendor_Name,  -- Map Payee_Name to Vendor_Name
     'Approved' AS Approval_Status,
-    -- Use project coordinator as approver, default to Colton (228155) if null
-    ISNULL(p.Project_Coordinator, 228155) AS Approved_By_Contact_ID,
+    -- Use project coordinator as approver if valid, otherwise default to Contact_ID 1
+    CASE
+        WHEN coord.Contact_ID IS NOT NULL THEN p.Project_Coordinator
+        ELSE 1
+    END AS Approved_By_Contact_ID,
     t.Transaction_Date AS Approved_Date,
     t.Domain_ID
 FROM [dbo].[Project_Budget_Transactions] t
 INNER JOIN [dbo].[Projects] p ON t.Project_ID = p.Project_ID
+LEFT JOIN [dbo].[Contacts] coord ON p.Project_Coordinator = coord.Contact_ID
 WHERE t.Transaction_Type = 'Expense'
   AND t.Project_Budget_Expense_Line_Item_ID IS NOT NULL
   AND NOT EXISTS (

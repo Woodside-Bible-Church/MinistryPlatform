@@ -3,19 +3,11 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import {
-  TrendingUp,
-  TrendingDown,
-  Minus,
   Calendar,
-  DollarSign,
   User,
-  ChevronRight,
   ChevronDown,
   Search,
-  ChevronUp,
   AlertCircle,
-  Home,
-  Plus,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProjects } from "@/hooks/useProjects";
@@ -173,29 +165,13 @@ export default function BudgetsPage() {
 
   return (
     <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-primary dark:text-foreground">
-            budgets
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Manage budgets for large events and ministry projects.
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <Link
-            href="/budgets/overview"
-            className="border border-border bg-card hover:bg-gray-50 dark:hover:bg-gray-800 text-foreground px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm"
-          >
-            Overview
-          </Link>
-          <Link
-            href="/budgets/new"
-            className="bg-[#61BC47] hover:bg-[#4fa037] text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm hover:shadow-md"
-          >
-            + New Project
-          </Link>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-primary dark:text-foreground">
+          budgets
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          Manage budgets for large events and ministry projects.
+        </p>
       </div>
 
       {/* Search Bar */}

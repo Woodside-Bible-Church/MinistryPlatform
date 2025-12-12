@@ -10,6 +10,7 @@ declare module "next-auth" {
     lastName?: string
     email?: string
     sub?: string
+    userId?: string
     roles?: string[]
     contactId?: string
     simulation?: {

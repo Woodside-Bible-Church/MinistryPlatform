@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { mpHelper } from "@/providers/MinistryPlatform/mpHelper";
+import { MPHelper } from "@/providers/MinistryPlatform/mpHelper";
 
 // POST /api/projects/[id]/purchase-requests/[requestId]/transactions
 // Add a transaction to a purchase request
@@ -33,7 +33,8 @@ export async function POST(
     }
 
     // Get the purchase request to verify it's approved and get line item ID
-    const prResult = await mpHelper.executeProcedureWithBody(
+    const mp = new MPHelper();
+    const prResult = await mp.executeProcedureWithBody(
       "api_Custom_GetPurchaseRequestDetails_JSON",
       {
         "@PurchaseRequestID": parseInt(requestId),
@@ -63,30 +64,30 @@ export async function POST(
     }
 
     // Create transaction
-    const insertResult = await mpHelper.createRecord(
+    const insertResult = await mp.createTableRecords(
       "Project_Budget_Transactions",
-      {
+      [{
         Project_ID: parseInt(projectId),
         Transaction_Type: "Expense",
         Transaction_Date: transactionDate,
         Amount: parseFloat(amount),
         Description: description || null,
-        Vendor_Name: vendorName || purchaseRequest.vendorName || null,
+        Payee_Name: vendorName || purchaseRequest.vendorName || null,
         Payment_Method_ID: paymentMethodId ? parseInt(paymentMethodId) : null,
         Project_Budget_Expense_Line_Item_ID: purchaseRequest.lineItemId,
         Purchase_Request_ID: parseInt(requestId),
         Domain_ID: 1,
-      }
+      }]
     );
 
     if (!insertResult || insertResult.length === 0) {
       throw new Error("Failed to create transaction");
     }
 
-    const transactionId = insertResult[0];
+    const transactionId = insertResult[0].Project_Budget_Transaction_ID;
 
     // Fetch updated purchase request with new transaction
-    const updatedResult = await mpHelper.executeProcedureWithBody(
+    const updatedResult = await mp.executeProcedureWithBody(
       "api_Custom_GetPurchaseRequestDetails_JSON",
       {
         "@PurchaseRequestID": parseInt(requestId),

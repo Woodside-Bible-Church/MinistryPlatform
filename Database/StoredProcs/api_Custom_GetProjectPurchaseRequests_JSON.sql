@@ -65,12 +65,16 @@ BEGIN
             ON eli.Project_Budget_Category_ID = pbc.Project_Budget_Category_ID
         INNER JOIN Project_Category_Types pct
             ON pbc.Project_Category_Type_ID = pct.Project_Category_Type_ID
+        INNER JOIN dp_Users reqU
+            ON pr.Requested_By_User_ID = reqU.User_ID
         INNER JOIN Contacts reqC
-            ON pr.Requested_By_Contact_ID = reqC.Contact_ID
+            ON reqU.Contact_ID = reqC.Contact_ID
+        LEFT JOIN dp_Users appU
+            ON pr.Approved_By_User_ID = appU.User_ID
         LEFT JOIN Contacts appC
-            ON pr.Approved_By_Contact_ID = appC.Contact_ID
+            ON appU.Contact_ID = appC.Contact_ID
         WHERE pr.Project_ID = @ProjectID
-          AND (@RequestedByContactID IS NULL OR pr.Requested_By_Contact_ID = @RequestedByContactID)
+          AND (@RequestedByContactID IS NULL OR reqC.Contact_ID = @RequestedByContactID)
         ORDER BY
             CASE pr.Approval_Status
                 WHEN 'Pending' THEN 1

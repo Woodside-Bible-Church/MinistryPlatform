@@ -32,6 +32,10 @@ interface Transaction {
   categoryItem: string;
   expenseLineItemId: number | null;
   incomeLineItemId: number | null;
+  approvalStatus: "Approved" | "Rejected" | "Pending";
+  purchaseRequestId: number | null;
+  requisitionGuid: string | null;
+  purchaseRequestStatus: string | null;
 }
 
 interface ProjectTransactions {
@@ -86,6 +90,11 @@ function formatDate(dateString: string) {
   });
 }
 
+function formatGuid(guid: string) {
+  // Show first 8 characters of GUID
+  return guid.substring(0, 8).toUpperCase();
+}
+
 export default function TransactionsPage({
   params,
 }: {
@@ -107,6 +116,7 @@ export default function TransactionsPage({
   const [newTransactionDate, setNewTransactionDate] = useState("");
   const [newTransactionType, setNewTransactionType] = useState<"Expense" | "Income">("Expense");
   const [newTransactionLineItemId, setNewTransactionLineItemId] = useState<string>("");
+  const [newTransactionStatus, setNewTransactionStatus] = useState<"Approved" | "Rejected" | "Pending">("Pending");
   const [newTransactionAmount, setNewTransactionAmount] = useState("");
   const [newTransactionPayee, setNewTransactionPayee] = useState("");
   const [newTransactionDescription, setNewTransactionDescription] = useState("");
@@ -121,6 +131,7 @@ export default function TransactionsPage({
   const [editTransactionDate, setEditTransactionDate] = useState("");
   const [editTransactionType, setEditTransactionType] = useState<"Expense" | "Income">("Expense");
   const [editTransactionLineItemId, setEditTransactionLineItemId] = useState<string>("");
+  const [editTransactionStatus, setEditTransactionStatus] = useState<"Approved" | "Rejected" | "Pending">("Pending");
   const [editTransactionAmount, setEditTransactionAmount] = useState("");
   const [editTransactionPayee, setEditTransactionPayee] = useState("");
   const [editTransactionDescription, setEditTransactionDescription] = useState("");
@@ -204,6 +215,7 @@ export default function TransactionsPage({
           transactionType: newTransactionType,
           amount: amount,
           lineItemId: newTransactionLineItemId ? (newTransactionType === "Expense" ? parseInt(newTransactionLineItemId, 10) : newTransactionLineItemId) : null,
+          status: newTransactionStatus,
           payeeName: newTransactionPayee.trim() || null,
           description: newTransactionDescription.trim() || null,
           paymentMethodId: newTransactionPaymentMethod ? parseInt(newTransactionPaymentMethod, 10) : null,
@@ -224,6 +236,7 @@ export default function TransactionsPage({
       setNewTransactionDate("");
       setNewTransactionType("Expense");
       setNewTransactionLineItemId("");
+      setNewTransactionStatus("Pending");
       setNewTransactionAmount("");
       setNewTransactionPayee("");
       setNewTransactionDescription("");
@@ -263,6 +276,7 @@ export default function TransactionsPage({
           transactionType: editTransactionType,
           amount: amount,
           lineItemId: editTransactionLineItemId ? (editTransactionType === "Expense" ? parseInt(editTransactionLineItemId, 10) : editTransactionLineItemId) : null,
+          status: editTransactionStatus,
           payeeName: editTransactionPayee.trim() || null,
           description: editTransactionDescription.trim() || null,
           paymentMethodId: editTransactionPaymentMethod ? parseInt(editTransactionPaymentMethod, 10) : null,
@@ -284,6 +298,7 @@ export default function TransactionsPage({
       setEditTransactionDate("");
       setEditTransactionType("Expense");
       setEditTransactionLineItemId("");
+      setEditTransactionStatus("Pending");
       setEditTransactionAmount("");
       setEditTransactionPayee("");
       setEditTransactionDescription("");
@@ -548,6 +563,9 @@ export default function TransactionsPage({
                   Category / Item
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
+                  Purchase Request
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
                   Payee
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
@@ -555,6 +573,9 @@ export default function TransactionsPage({
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
                   Payment Method
+                </th>
+                <th className="px-6 py-3 text-center text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
+                  Status
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
                   Amount
@@ -567,7 +588,7 @@ export default function TransactionsPage({
             <tbody className="divide-y divide-border">
               {filteredTransactions.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={10} className="px-6 py-12 text-center text-muted-foreground">
                     No transactions found
                   </td>
                 </tr>
@@ -594,6 +615,26 @@ export default function TransactionsPage({
                     <td className="px-6 py-4 text-sm text-foreground">
                       <div className="font-medium">{transaction.categoryItem}</div>
                     </td>
+                    <td className="px-6 py-4 text-sm text-foreground">
+                      {transaction.purchaseRequestId && transaction.requisitionGuid ? (
+                        <Link
+                          href={`/budgets/${slug}/purchase-requests`}
+                          className="inline-flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:underline font-mono text-xs"
+                          title={`View Purchase Request ${transaction.requisitionGuid}`}
+                        >
+                          {formatGuid(transaction.requisitionGuid)}
+                          <span className={`ml-1 px-1.5 py-0.5 text-xs rounded ${
+                            transaction.purchaseRequestStatus === "Approved"
+                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                              : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                          }`}>
+                            {transaction.purchaseRequestStatus}
+                          </span>
+                        </Link>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">-</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
                       {transaction.payee || "-"}
                     </td>
@@ -608,6 +649,19 @@ export default function TransactionsPage({
                       ) : (
                         "-"
                       )}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span
+                        className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
+                          transaction.approvalStatus === "Approved"
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                            : transaction.approvalStatus === "Rejected"
+                            ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                            : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                        }`}
+                      >
+                        {transaction.approvalStatus}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <span
@@ -641,6 +695,9 @@ export default function TransactionsPage({
                             } else {
                               setEditTransactionLineItemId("");
                             }
+
+                            // Set approval status
+                            setEditTransactionStatus(transaction.approvalStatus);
 
                             setIsEditTransactionOpen(true);
                           }}
@@ -734,6 +791,21 @@ export default function TransactionsPage({
               </select>
             </div>
             <div>
+              <label htmlFor="new-transaction-status" className="block text-sm font-medium mb-2">
+                Approval Status
+              </label>
+              <select
+                id="new-transaction-status"
+                value={newTransactionStatus}
+                onChange={(e) => setNewTransactionStatus(e.target.value as "Approved" | "Rejected" | "Pending")}
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+              >
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+            <div>
               <label htmlFor="new-transaction-amount" className="block text-sm font-medium mb-2">
                 Amount *
               </label>
@@ -812,6 +884,8 @@ export default function TransactionsPage({
                 setIsAddTransactionOpen(false);
                 setNewTransactionDate("");
                 setNewTransactionType("Expense");
+                setNewTransactionLineItemId("");
+                setNewTransactionStatus("Pending");
                 setNewTransactionAmount("");
                 setNewTransactionPayee("");
                 setNewTransactionDescription("");
@@ -903,6 +977,21 @@ export default function TransactionsPage({
               </select>
             </div>
             <div>
+              <label htmlFor="edit-transaction-status" className="block text-sm font-medium mb-2">
+                Approval Status
+              </label>
+              <select
+                id="edit-transaction-status"
+                value={editTransactionStatus}
+                onChange={(e) => setEditTransactionStatus(e.target.value as "Approved" | "Rejected" | "Pending")}
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+              >
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+            <div>
               <label htmlFor="edit-transaction-amount" className="block text-sm font-medium mb-2">
                 Amount *
               </label>
@@ -982,6 +1071,8 @@ export default function TransactionsPage({
                 setEditingTransactionId(null);
                 setEditTransactionDate("");
                 setEditTransactionType("Expense");
+                setEditTransactionLineItemId("");
+                setEditTransactionStatus("Pending");
                 setEditTransactionAmount("");
                 setEditTransactionPayee("");
                 setEditTransactionDescription("");

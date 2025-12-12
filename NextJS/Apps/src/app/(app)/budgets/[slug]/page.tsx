@@ -23,6 +23,8 @@ import {
   XCircle,
   Clock,
   Loader2,
+  FileText,
+  ShoppingCart,
 } from "lucide-react";
 import {
   ChartConfig,
@@ -105,6 +107,7 @@ function formatDate(dateString: string) {
 function CategorySection({
   category,
   projectSlug,
+  projectId,
   onEditExpectedRevenue,
   isEditingRevenue,
   revenueJustSaved,
@@ -116,9 +119,11 @@ function CategorySection({
   onEditLineItem,
   onDeleteLineItem,
   onAddLineItem,
+  onCreatePurchaseRequest,
 }: {
   category: BudgetCategory;
   projectSlug: string;
+  projectId: number;
   onEditExpectedRevenue?: () => void;
   isEditingRevenue?: boolean;
   revenueJustSaved?: boolean;
@@ -130,6 +135,7 @@ function CategorySection({
   onEditLineItem?: (lineItemId: string) => void;
   onDeleteLineItem?: (lineItemId: string, lineItemName: string) => void;
   onAddLineItem?: () => void;
+  onCreatePurchaseRequest?: (lineItemId: string, lineItemName: string, estimated: number, vendor: string | null) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const variance = category.actual - category.estimated;
@@ -384,6 +390,15 @@ function CategorySection({
                     {!isSimplifiedView && (
                       <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-1">
+                          {category.type === "expense" && onCreatePurchaseRequest && (
+                            <button
+                              onClick={() => onCreatePurchaseRequest(item.lineItemId, item.name, item.estimated, item.vendor)}
+                              className="p-1.5 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded transition-colors"
+                              title="Create purchase request"
+                            >
+                              <ShoppingCart className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                            </button>
+                          )}
                           <button
                             onClick={() => onEditLineItem?.(item.lineItemId)}
                             className="p-1.5 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded transition-colors"
@@ -499,6 +514,15 @@ export default function BudgetDetailPage({
   const [newLineItemEstimated, setNewLineItemEstimated] = useState<string>("");
   const [newLineItemDescription, setNewLineItemDescription] = useState<string>("");
   const [isSavingLineItem, setIsSavingLineItem] = useState(false);
+
+  // Create Purchase Request modal state
+  const [isCreatePurchaseRequestOpen, setIsCreatePurchaseRequestOpen] = useState(false);
+  const [createPRLineItemId, setCreatePRLineItemId] = useState<string>("");
+  const [createPRLineItemName, setCreatePRLineItemName] = useState<string>("");
+  const [createPRAmount, setCreatePRAmount] = useState<string>("");
+  const [createPRDescription, setCreatePRDescription] = useState<string>("");
+  const [createPRVendorName, setCreatePRVendorName] = useState<string>("");
+  const [isSavingPurchaseRequest, setIsSavingPurchaseRequest] = useState(false);
 
   useEffect(() => {
     async function fetchProjectDetails() {
@@ -1351,6 +1375,63 @@ export default function BudgetDetailPage({
     }
   }
 
+  async function handleCreatePurchaseRequest() {
+    if (!project) return;
+
+    const amount = parseFloat(createPRAmount) || 0;
+
+    if (!createPRLineItemId) {
+      alert("Line item is required");
+      return;
+    }
+
+    if (amount <= 0) {
+      alert("Amount must be greater than 0");
+      return;
+    }
+
+    // Close modal immediately
+    setIsCreatePurchaseRequestOpen(false);
+    setIsSavingPurchaseRequest(true);
+
+    try {
+      const response = await fetch(`/api/projects/${project.Project_ID}/purchase-requests`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          lineItemId: createPRLineItemId,
+          amount: amount,
+          description: createPRDescription.trim() || null,
+          vendorName: createPRVendorName.trim() || null,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create purchase request");
+      }
+
+      await response.json();
+
+      setIsSavingPurchaseRequest(false);
+
+      // Reset form
+      setCreatePRLineItemId("");
+      setCreatePRLineItemName("");
+      setCreatePRAmount("");
+      setCreatePRDescription("");
+      setCreatePRVendorName("");
+
+      alert("Purchase request created successfully! You can view it in the Purchase Requests tab.");
+    } catch (err) {
+      console.error("Error creating purchase request:", err);
+      setIsSavingPurchaseRequest(false);
+      alert(err instanceof Error ? err.message : "Failed to create purchase request");
+    }
+  }
+
 
   if (isLoading) {
     return (
@@ -1514,6 +1595,13 @@ export default function BudgetDetailPage({
             >
               <List className="w-4 h-4" />
               Transactions
+            </Link>
+            <Link
+              href={`/budgets/${slug}/purchase-requests`}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              Purchase Requests
             </Link>
           </div>
         </div>
@@ -1829,6 +1917,7 @@ export default function BudgetDetailPage({
                   key={category.categoryId}
                   category={category}
                   projectSlug={slug}
+                  projectId={project?.Project_ID || 0}
                   onEditDiscountsBudget={
                     category.categoryId === 'registration-discounts'
                       ? () => {
@@ -1883,6 +1972,17 @@ export default function BudgetDetailPage({
                         }
                       : undefined
                   }
+                  onCreatePurchaseRequest={
+                    category.categoryId !== 'registration-discounts'
+                      ? (lineItemId, lineItemName, estimated, vendor) => {
+                          setCreatePRLineItemId(lineItemId);
+                          setCreatePRLineItemName(lineItemName);
+                          setCreatePRAmount(estimated.toString());
+                          setCreatePRVendorName(vendor || "");
+                          setIsCreatePurchaseRequestOpen(true);
+                        }
+                      : undefined
+                  }
                 />
               ))
           : revenueCategories
@@ -1898,6 +1998,7 @@ export default function BudgetDetailPage({
                   key={category.categoryId}
                   category={category}
                   projectSlug={slug}
+                  projectId={project?.Project_ID || 0}
                   onEditExpectedRevenue={
                     category.categoryId === 'registration-income'
                       ? () => {
@@ -2440,6 +2541,94 @@ export default function BudgetDetailPage({
             >
               <Plus className="w-4 h-4" />
               Add Line Item
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Purchase Request Dialog */}
+      <Dialog open={isCreatePurchaseRequestOpen} onOpenChange={setIsCreatePurchaseRequestOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Purchase Request</DialogTitle>
+            <DialogDescription>
+              Request approval for a purchase from this line item. The request must be approved before you can add transactions.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Line Item (read-only) */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Line Item
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 bg-muted text-muted-foreground border border-border rounded-md"
+                value={createPRLineItemName}
+                disabled
+              />
+            </div>
+
+            {/* Amount */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Requested Amount *
+              </label>
+              <input
+                type="number"
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                value={createPRAmount}
+                onChange={(e) => setCreatePRAmount(e.target.value)}
+                placeholder="0.00"
+                step="0.01"
+              />
+            </div>
+
+            {/* Vendor */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Vendor
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                value={createPRVendorName}
+                onChange={(e) => setCreatePRVendorName(e.target.value)}
+                placeholder="Enter vendor name"
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Description
+              </label>
+              <textarea
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                value={createPRDescription}
+                onChange={(e) => setCreatePRDescription(e.target.value)}
+                placeholder="Describe what you need to purchase"
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <button
+              onClick={() => setIsCreatePurchaseRequestOpen(false)}
+              className="px-4 py-2 text-foreground border border-border rounded-md hover:bg-accent transition-colors"
+              disabled={isSavingPurchaseRequest}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCreatePurchaseRequest}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSavingPurchaseRequest}
+            >
+              <ShoppingCart className="w-4 h-4" />
+              Create Request
             </button>
           </DialogFooter>
         </DialogContent>

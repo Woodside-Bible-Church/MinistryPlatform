@@ -33,6 +33,7 @@ export async function POST(
       paymentMethodId,
       paymentReference,
       notes,
+      status,
     } = body;
 
     if (!transactionDate || !transactionType || amount === undefined) {
@@ -80,6 +81,30 @@ export async function POST(
       Notes: notes || null,
     };
 
+    // Handle approval status (convert string to bit value)
+    if (status !== undefined) {
+      let approvedValue: boolean | null;
+      switch (status.toLowerCase()) {
+        case 'approved':
+          approvedValue = true;
+          break;
+        case 'rejected':
+          approvedValue = false;
+          break;
+        case 'pending':
+          approvedValue = null;
+          break;
+        default:
+          return NextResponse.json(
+            { error: `Invalid status: ${status}. Must be Approved, Rejected, or Pending` },
+            { status: 400 }
+          );
+      }
+      if (approvedValue !== null) {
+        newTransaction.Approved = approvedValue;
+      }
+    }
+
     // Handle category/line item linking based on type
     if (transactionType === "Expense") {
       // For expense transactions
@@ -120,7 +145,7 @@ export async function POST(
       [newTransaction],
       {
         $userId: userId,
-        $select: 'Project_Budget_Transaction_ID,Transaction_Date,Transaction_Type,Payee_Name,Description,Amount,Payment_Method_ID,Payment_Reference,Notes,Project_Budget_Category_ID,Project_Budget_Expense_Line_Item_ID,Project_Budget_Income_Line_Item_ID',
+        $select: 'Project_Budget_Transaction_ID,Transaction_Date,Transaction_Type,Payee_Name,Description,Amount,Payment_Method_ID,Payment_Reference,Notes,Project_Budget_Category_ID,Project_Budget_Expense_Line_Item_ID,Project_Budget_Income_Line_Item_ID,Approved',
       }
     );
 
@@ -176,6 +201,7 @@ export async function PATCH(
       paymentMethodId,
       paymentReference,
       notes,
+      status,
     } = body;
 
     if (!transactionId) {
@@ -217,6 +243,28 @@ export async function PATCH(
     if (paymentReference !== undefined) updateData.Payment_Reference = paymentReference;
     if (notes !== undefined) updateData.Notes = notes;
 
+    // Handle approval status
+    if (status !== undefined) {
+      let approvedValue: boolean | null;
+      switch (status.toLowerCase()) {
+        case 'approved':
+          approvedValue = true;
+          break;
+        case 'rejected':
+          approvedValue = false;
+          break;
+        case 'pending':
+          approvedValue = null;
+          break;
+        default:
+          return NextResponse.json(
+            { error: `Invalid status: ${status}. Must be Approved, Rejected, or Pending` },
+            { status: 400 }
+          );
+      }
+      updateData.Approved = approvedValue;
+    }
+
     // Handle category/line item linking
     if (categoryId !== undefined) updateData.Project_Budget_Category_ID = categoryId;
     if (lineItemId !== undefined) {
@@ -236,7 +284,7 @@ export async function PATCH(
       [updateData],
       {
         $userId: userId,
-        $select: 'Project_Budget_Transaction_ID,Transaction_Date,Transaction_Type,Payee_Name,Description,Amount,Payment_Method_ID,Payment_Reference,Notes',
+        $select: 'Project_Budget_Transaction_ID,Transaction_Date,Transaction_Type,Payee_Name,Description,Amount,Payment_Method_ID,Payment_Reference,Notes,Approved',
       }
     );
 

@@ -1,4 +1,4 @@
-export type PinnedItemType = 'budget-project' | 'event' | 'custom';
+export type PinnedItemType = 'budget-project' | 'purchase-requests-approval' | 'event' | 'custom';
 
 export interface PinnedItemData {
   title: string;

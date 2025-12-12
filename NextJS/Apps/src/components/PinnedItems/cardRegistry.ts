@@ -1,5 +1,6 @@
 import { PinnedItemType, PinnedItem } from '@/types/pinnedItems';
 import { BudgetPinnedCard } from './cards/BudgetPinnedCard';
+import { PurchaseRequestsApprovalPinnedCard } from './cards/PurchaseRequestsApprovalPinnedCard';
 import { DefaultPinnedCard } from './cards/DefaultPinnedCard';
 
 /**
@@ -16,6 +17,7 @@ export type PinnedCardComponent = React.ComponentType<{ item: PinnedItem }>;
  */
 const CARD_COMPONENTS: Partial<Record<PinnedItemType, PinnedCardComponent>> = {
   'budget-project': BudgetPinnedCard,
+  'purchase-requests-approval': PurchaseRequestsApprovalPinnedCard,
   // Add more card types here as they're implemented:
   // 'event': EventPinnedCard,
   // 'custom': CustomPinnedCard,

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { mpHelper } from "@/providers/MinistryPlatform/mpHelper";
+import { MPHelper } from "@/providers/MinistryPlatform/mpHelper";
 
 // GET /api/projects/[id]/purchase-requests
 // Get all purchase requests for a project
@@ -19,14 +19,15 @@ export async function GET(
     const filterByMe = searchParams.get("filterByMe") === "true";
 
     // Get current user's contact ID
-    const contactId = session.user.contactId;
+    const contactId = session.contactId ? parseInt(session.contactId) : null;
 
     // Get purchase requests
-    const result = await mpHelper.executeProcedureWithBody(
+    const mp = new MPHelper();
+    const result = await mp.executeProcedureWithBody(
       "api_Custom_GetProjectPurchaseRequests_JSON",
       {
         "@ProjectID": parseInt(projectId),
-        "@RequestedByContactID": filterByMe ? contactId : null,
+        "@RequestedByContactID": filterByMe && contactId ? contactId : null,
       }
     );
 
@@ -79,21 +80,39 @@ export async function POST(
       );
     }
 
-    // Get current user's contact ID
-    const contactId = session.user.contactId;
+    // Get User_ID for audit logging and data
+    const mp = new MPHelper();
+    const users = await mp.getTableRecords<{ User_ID: number }>({
+      table: 'dp_Users',
+      select: 'User_ID',
+      filter: `User_GUID='${session.sub}'`,
+      top: 1,
+    });
+
+    if (users.length === 0) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    const userId = users[0].User_ID;
 
     // Create purchase request in database
-    const insertResult = await mpHelper.createRecord(
+    const insertResult = await mp.createTableRecords(
       "Project_Budget_Purchase_Requests",
-      {
+      [{
         Project_ID: parseInt(projectId),
         Project_Budget_Expense_Line_Item_ID: parseInt(lineItemId),
-        Requested_By_Contact_ID: contactId,
+        Requested_By_User_ID: userId,
         Amount: parseFloat(amount),
         Description: description || null,
         Vendor_Name: vendorName || null,
         Approval_Status: "Pending",
         Domain_ID: 1,
+      }],
+      {
+        $userId: userId,
       }
     );
 
@@ -101,10 +120,10 @@ export async function POST(
       throw new Error("Failed to create purchase request");
     }
 
-    const purchaseRequestId = insertResult[0];
+    const purchaseRequestId = insertResult[0].Purchase_Request_ID;
 
     // Fetch the newly created purchase request
-    const result = await mpHelper.executeProcedureWithBody(
+    const result = await mp.executeProcedureWithBody(
       "api_Custom_GetPurchaseRequestDetails_JSON",
       {
         "@PurchaseRequestID": purchaseRequestId,

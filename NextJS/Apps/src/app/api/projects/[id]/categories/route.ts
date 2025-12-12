@@ -56,23 +56,45 @@ export async function POST(
 
     const userId = users[0].User_ID;
 
-    // Look up the category type - must exist already
+    // Look up the category type, create if it doesn't exist
     const isRevenue = type === "revenue" ? 1 : 0;
-    const categoryTypes = await mp.getTableRecords<{ Project_Category_Type_ID: number }>({
+    let categoryTypes = await mp.getTableRecords<{ Project_Category_Type_ID: number }>({
       table: 'Project_Category_Types',
       select: 'Project_Category_Type_ID',
       filter: `Project_Category_Type='${name.replace(/'/g, "''")}' AND Is_Revenue=${isRevenue}`,
       top: 1,
     });
 
-    if (categoryTypes.length === 0) {
-      return NextResponse.json(
-        { error: `Category type '${name}' not found. Please use an existing category type.` },
-        { status: 400 }
-      );
-    }
+    let categoryTypeId: number;
 
-    const categoryTypeId = categoryTypes[0].Project_Category_Type_ID;
+    if (categoryTypes.length === 0) {
+      // Category type doesn't exist, create it
+      const newCategoryType = {
+        Project_Category_Type: name,
+        Is_Revenue: isRevenue === 1,
+        Description: description || null,
+      };
+
+      const createdTypes = await mp.createTableRecords(
+        'Project_Category_Types',
+        [newCategoryType],
+        {
+          $userId: userId,
+          $select: 'Project_Category_Type_ID',
+        }
+      );
+
+      if (createdTypes.length === 0) {
+        return NextResponse.json(
+          { error: "Failed to create category type" },
+          { status: 500 }
+        );
+      }
+
+      categoryTypeId = createdTypes[0].Project_Category_Type_ID;
+    } else {
+      categoryTypeId = categoryTypes[0].Project_Category_Type_ID;
+    }
 
     // Get the max sort order for the project
     const existingCategories = await mp.getTableRecords<{ Sort_Order: number }>({

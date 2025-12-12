@@ -52,8 +52,8 @@ BEGIN
                     t.Transaction_Date AS transactionDate,
                     t.Amount AS amount,
                     t.Description AS description,
-                    t.Vendor_Name AS vendorName,
-                    pm.Payment_Method AS paymentMethod,
+                    t.Payee_Name AS vendorName,
+                    pm.Payment_Method_Name AS paymentMethod,
                     pm.Payment_Method_ID AS paymentMethodId
                 FROM Project_Budget_Transactions t
                 LEFT JOIN Project_Budget_Payment_Methods pm
@@ -89,10 +89,14 @@ BEGIN
             ON eli.Project_Budget_Category_ID = pbc.Project_Budget_Category_ID
         INNER JOIN Project_Category_Types pct
             ON pbc.Project_Category_Type_ID = pct.Project_Category_Type_ID
+        INNER JOIN dp_Users reqU
+            ON pr.Requested_By_User_ID = reqU.User_ID
         INNER JOIN Contacts reqC
-            ON pr.Requested_By_Contact_ID = reqC.Contact_ID
+            ON reqU.Contact_ID = reqC.Contact_ID
+        LEFT JOIN dp_Users appU
+            ON pr.Approved_By_User_ID = appU.User_ID
         LEFT JOIN Contacts appC
-            ON pr.Approved_By_Contact_ID = appC.Contact_ID
+            ON appU.Contact_ID = appC.Contact_ID
         WHERE pr.Purchase_Request_ID = @PurchaseRequestID
         FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
     );

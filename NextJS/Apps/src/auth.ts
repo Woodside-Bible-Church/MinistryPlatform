@@ -154,13 +154,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     console.log('Token roles:', token?.roles)
 
     if (token && session.user) {
-      session.user.id = token.sub as string // Use sub as the user ID
+      session.user.id = token.sub as string // Use sub as the user ID (User_GUID)
       session.accessToken = token.accessToken as string
       session.firstName = token.firstName as string
       session.lastName = token.lastName as string
       session.email = token.email as string
       session.sub = token.sub as string
-      session.contactId = token.userId as string
+      session.userId = token.userId as string // Integer User_ID for database operations
+      // Note: token.userId is User_ID, not Contact_ID - we'll fetch Contact_ID below
+      session.contactId = undefined
 
       // Fetch BOTH Security Roles and User Groups from MinistryPlatform via stored procedure
       try {

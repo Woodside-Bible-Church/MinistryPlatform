@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { mpHelper } from "@/providers/MinistryPlatform/mpHelper";
+import { MPHelper } from "@/providers/MinistryPlatform/mpHelper";
 
 // PATCH /api/projects/[id]/purchase-requests/[requestId]
 // Update a purchase request (approve/reject)
@@ -26,38 +26,56 @@ export async function PATCH(
       );
     }
 
-    // Get current user's contact ID
-    const contactId = session.user.contactId;
+    // Get User_ID for audit logging and data
+    const mp = new MPHelper();
+    const users = await mp.getTableRecords<{ User_ID: number }>({
+      table: 'dp_Users',
+      select: 'User_ID',
+      filter: `User_GUID='${session.sub}'`,
+      top: 1,
+    });
+
+    if (users.length === 0) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    const userId = users[0].User_ID;
 
     // Build update object
     const updateData: any = {
+      Purchase_Request_ID: parseInt(requestId),
       Approval_Status: approvalStatus,
     };
 
     if (approvalStatus === "Approved") {
-      updateData.Approved_By_Contact_ID = contactId;
+      updateData.Approved_By_User_ID = userId;
       updateData.Approved_Date = new Date().toISOString();
       updateData.Rejection_Reason = null;
     } else if (approvalStatus === "Rejected") {
-      updateData.Approved_By_Contact_ID = contactId;
+      updateData.Approved_By_User_ID = userId;
       updateData.Approved_Date = new Date().toISOString();
       updateData.Rejection_Reason = rejectionReason || null;
     } else if (approvalStatus === "Pending") {
       // Reset approval
-      updateData.Approved_By_Contact_ID = null;
+      updateData.Approved_By_User_ID = null;
       updateData.Approved_Date = null;
       updateData.Rejection_Reason = null;
     }
 
     // Update purchase request
-    await mpHelper.updateRecord(
+    await mp.updateTableRecords(
       "Project_Budget_Purchase_Requests",
-      parseInt(requestId),
-      updateData
+      [updateData],
+      {
+        $userId: userId,
+      }
     );
 
     // Fetch the updated purchase request
-    const result = await mpHelper.executeProcedureWithBody(
+    const result = await mp.executeProcedureWithBody(
       "api_Custom_GetPurchaseRequestDetails_JSON",
       {
         "@PurchaseRequestID": parseInt(requestId),
@@ -99,7 +117,9 @@ export async function DELETE(
     const { requestId } = await params;
 
     // Check if there are any transactions linked to this purchase request
-    const transactions = await mpHelper.getRecords("Project_Budget_Transactions", {
+    const mp = new MPHelper();
+    const transactions = await mp.getTableRecords({
+      table: "Project_Budget_Transactions",
       filter: `Purchase_Request_ID=${requestId}`,
     });
 
@@ -111,9 +131,9 @@ export async function DELETE(
     }
 
     // Delete the purchase request
-    await mpHelper.deleteRecord(
+    await mp.deleteTableRecords(
       "Project_Budget_Purchase_Requests",
-      parseInt(requestId)
+      [parseInt(requestId)]
     );
 
     return NextResponse.json({ success: true });
