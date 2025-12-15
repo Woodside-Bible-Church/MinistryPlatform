@@ -33,9 +33,9 @@ export default function ServiceTimeCard({
 
   // Calculate capacity percentage locally to handle edge cases
   // Match the calculation logic from NextJS Apps
-  // Use Current_RSVPs + modifier since Adjusted_RSVP_Count can be null
-  const modifier = serviceTime.RSVP_Capacity_Modifier ?? 0;
-  const effectiveAttendees = (serviceTime.Current_RSVPs ?? 0) + modifier;
+  // Use Adjusted_RSVP_Count which is Total_Attendees (sum of party sizes) + modifier
+  // This matches the app's calculation: ((Total_Attendees + modifier) * 100) / Capacity
+  const effectiveAttendees = serviceTime.Adjusted_RSVP_Count ?? 0;
   const capacityPercentage =
     serviceTime.Capacity && serviceTime.Capacity !== 9999
       ? Math.round((effectiveAttendees / serviceTime.Capacity) * 100)
