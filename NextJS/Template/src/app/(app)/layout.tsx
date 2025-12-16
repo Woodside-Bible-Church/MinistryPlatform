@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import AuthWrapper from "@/components/AuthWrapper";
 import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
+import { Toaster } from "sonner";
 
 export default async function AppLayout({
   children,
@@ -9,6 +10,7 @@ export default async function AppLayout({
 }>) {
   return (
     <div className="flex flex-col">
+      <Toaster position="top-right" richColors />
       <AuthWrapper>
         <Header />
 

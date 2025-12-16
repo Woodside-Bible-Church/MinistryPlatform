@@ -37,6 +37,7 @@
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "react-hook-form": "^7.56.4",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.0",
     "tsx": "^4.19.4",
     "vaul": "^1.1.2",
