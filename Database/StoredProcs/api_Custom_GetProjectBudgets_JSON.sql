@@ -84,12 +84,13 @@ BEGIN
                     AND e.Include_Registrations_In_Project_Budgets = 1
             ) AS Total_Actual_Income,
 
-            -- Calculate expected income from Expected_Registration_Revenue + Income Line Items
+            -- Calculate expected income from Expected_Registration_Revenue + Revenue Line Items (consolidated table)
             ISNULL(p.Expected_Registration_Revenue, 0) +
             (
-                SELECT ISNULL(SUM(pbili.Expected_Amount), 0)
-                FROM Project_Budget_Income_Line_Items pbili
-                WHERE pbili.Project_ID = p.Project_ID
+                SELECT ISNULL(SUM(li.Estimated_Amount), 0)
+                FROM Project_Budget_Line_Items li
+                INNER JOIN Project_Budget_Categories c ON li.Category_ID = c.Project_Budget_Category_ID
+                WHERE c.Project_ID = p.Project_ID AND c.Budget_Category_Type = 'revenue'
             ) AS Total_Expected_Income,
 
             -- Note: Categories and budgets will be fetched separately via API if needed

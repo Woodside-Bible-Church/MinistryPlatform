@@ -122,7 +122,7 @@ export async function POST(
       [newCategory],
       {
         $userId: userId,
-        $select: 'Project_Budget_Category_ID,Project_Category_Type_ID_Table.Project_Category_Type,Budgeted_Amount,Sort_Order',
+        $select: 'Project_Budget_Category_ID,Project_Category_Type_ID_Table.Project_Category_Type,Budgeted_Amount',
       }
     );
 
@@ -137,7 +137,6 @@ export async function POST(
       Project_Budget_Category_ID: number;
       Project_Category_Type: string;
       Budgeted_Amount: number;
-      Sort_Order: number;
     };
 
     // Return in the format expected by the frontend
@@ -146,7 +145,7 @@ export async function POST(
       name: created.Project_Category_Type,
       type: type,
       description: description || undefined,
-      sortOrder: created.Sort_Order,
+      sortOrder: nextSortOrder,
       estimated: created.Budgeted_Amount || 0,
       actual: 0,
       lineItems: [],

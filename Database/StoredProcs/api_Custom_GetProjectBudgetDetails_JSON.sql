@@ -78,12 +78,13 @@ BEGIN
                         AND e.Include_Registrations_In_Project_Budgets = 1
                 ) AS Total_Actual_Income,
 
-                -- Expected income
+                -- Expected income (registration revenue + revenue line items from consolidated table)
                 ISNULL(p.Expected_Registration_Revenue, 0) +
                 (
-                    SELECT ISNULL(SUM(pbili.Expected_Amount), 0)
-                    FROM Project_Budget_Income_Line_Items pbili
-                    WHERE pbili.Project_ID = p.Project_ID
+                    SELECT ISNULL(SUM(li.Estimated_Amount), 0)
+                    FROM Project_Budget_Line_Items li
+                    INNER JOIN Project_Budget_Categories c ON li.Category_ID = c.Project_Budget_Category_ID
+                    WHERE c.Project_ID = p.Project_ID AND c.Budget_Category_Type = 'revenue'
                 ) AS Total_Expected_Income,
 
                 -- Expense categories with line items
@@ -104,20 +105,20 @@ BEGIN
                         -- Line items for this category
                         (
                             SELECT
-                                pbeli.Project_Budget_Expense_Line_Item_ID AS lineItemId,
-                                pbeli.Item_Name AS name,
-                                pbeli.Vendor_Name AS vendor,
-                                pbeli.Estimated_Amount AS estimated,
+                                li.Project_Budget_Line_Item_ID AS lineItemId,
+                                li.Line_Item_Name AS name,
+                                li.Vendor_Name AS vendor,
+                                li.Estimated_Amount AS estimated,
                                 (
                                     SELECT ISNULL(SUM(pbt.Amount), 0)
                                     FROM Project_Budget_Transactions pbt
-                                    WHERE pbt.Project_Budget_Expense_Line_Item_ID = pbeli.Project_Budget_Expense_Line_Item_ID
+                                    WHERE pbt.Project_Budget_Expense_Line_Item_ID = li.Project_Budget_Line_Item_ID
                                 ) AS actual,
-                                NULL AS description,
-                                pbeli.Sort_Order AS sortOrder
-                            FROM Project_Budget_Expense_Line_Items pbeli
-                            WHERE pbeli.Project_Budget_Category_ID = pbc.Project_Budget_Category_ID
-                            ORDER BY pbeli.Sort_Order
+                                li.Line_Item_Description AS description,
+                                li.Sort_Order AS sortOrder
+                            FROM Project_Budget_Line_Items li
+                            WHERE li.Category_ID = pbc.Project_Budget_Category_ID
+                            ORDER BY li.Sort_Order
                             FOR JSON PATH
                         ) AS lineItems
                     FROM Project_Budget_Categories pbc
@@ -170,43 +171,44 @@ BEGIN
                     FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
                 ) AS registrationDiscountsCategory,
 
-                -- Income line items (non-registration income)
+                -- Revenue categories with line items (from consolidated table)
                 (
                     SELECT
-                        'income-' + CAST(pbili.Project_Budget_Income_Line_Item_ID AS NVARCHAR) AS categoryId,
-                        pbili.Income_Source_Name AS name,
+                        pbc.Project_Budget_Category_ID AS categoryId,
+                        pbc.Budget_Category_Name AS name,
                         'revenue' AS type,
-                        pbili.Expected_Amount AS estimated,
+                        pbc.Budgeted_Amount AS estimated,
                         (
                             SELECT ISNULL(SUM(pbt.Amount), 0)
                             FROM Project_Budget_Transactions pbt
-                            WHERE pbt.Project_Budget_Income_Line_Item_ID = pbili.Project_Budget_Income_Line_Item_ID
+                            WHERE pbt.Project_Budget_Category_ID = pbc.Project_Budget_Category_ID
                                 AND pbt.Transaction_Type = 'Income'
                         ) AS actual,
-                        pbili.Description AS description,
-                        pbili.Sort_Order AS sortOrder,
+                        pbc.Sort_Order AS sortOrder,
 
-                        -- Create line items array with single item for UI consistency
+                        -- Line items for this revenue category
                         (
                             SELECT
-                                'income-line-' + CAST(pbili.Project_Budget_Income_Line_Item_ID AS NVARCHAR) AS lineItemId,
-                                pbili.Income_Source_Name AS name,
-                                pbili.Description AS description,
-                                pbili.Expected_Amount AS estimated,
+                                li.Project_Budget_Line_Item_ID AS lineItemId,
+                                li.Line_Item_Name AS name,
+                                li.Line_Item_Description AS description,
+                                li.Estimated_Amount AS estimated,
                                 (
                                     SELECT ISNULL(SUM(pbt.Amount), 0)
                                     FROM Project_Budget_Transactions pbt
-                                    WHERE pbt.Project_Budget_Income_Line_Item_ID = pbili.Project_Budget_Income_Line_Item_ID
-                                        AND pbt.Transaction_Type = 'Income'
+                                    WHERE pbt.Project_Budget_Income_Line_Item_ID = li.Project_Budget_Line_Item_ID
                                 ) AS actual,
-                                NULL AS vendor,
-                                'received' AS status,
-                                pbili.Sort_Order AS sortOrder
+                                li.Vendor_Name AS vendor,
+                                li.Sort_Order AS sortOrder
+                            FROM Project_Budget_Line_Items li
+                            WHERE li.Category_ID = pbc.Project_Budget_Category_ID
+                            ORDER BY li.Sort_Order
                             FOR JSON PATH
                         ) AS lineItems
-                    FROM Project_Budget_Income_Line_Items pbili
-                    WHERE pbili.Project_ID = p.Project_ID
-                    ORDER BY pbili.Sort_Order
+                    FROM Project_Budget_Categories pbc
+                    WHERE pbc.Project_ID = p.Project_ID
+                        AND pbc.Budget_Category_Type = 'revenue'  -- Revenue categories only
+                    ORDER BY pbc.Sort_Order
                     FOR JSON PATH
                 ) AS incomeLineItemsCategories,
 

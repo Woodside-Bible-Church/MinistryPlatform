@@ -3,6 +3,7 @@
 import { use, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { useProjects } from "@/hooks/useProjects";
 import {
   ArrowLeft,
@@ -82,7 +83,7 @@ interface ProjectBudgetDetails {
   Total_Actual_Income: number;
   Total_Expected_Income: number;
   expenseCategories: BudgetCategory[];
-  incomeLineItemsCategories: BudgetCategory[];
+  incomeCategories: BudgetCategory[];
   registrationIncomeCategory: BudgetCategory;
   registrationDiscountsCategory: BudgetCategory;
 }
@@ -137,6 +138,7 @@ function CategorySection({
   onAddLineItem?: () => void;
   onCreatePurchaseRequest?: (lineItemId: string, lineItemName: string, estimated: number, vendor: string | null) => void;
 }) {
+  const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
   const variance = category.actual - category.estimated;
   const variancePercent =
@@ -331,11 +333,15 @@ function CategorySection({
                   item.estimated > 0 ? (itemVariance / item.estimated) * 100 : 0;
 
                 return (
-                  <tr key={item.lineItemId} className={`transition-colors ${
-                    isSimplifiedView
-                      ? "bg-blue-50/20 dark:bg-blue-950/10 hover:bg-blue-50/40 dark:hover:bg-blue-950/20"
-                      : "bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-                  }`}>
+                  <tr
+                    key={item.lineItemId}
+                    onClick={() => router.push(`/budgets/${projectSlug}/line-items/${item.lineItemId}`)}
+                    className={`transition-colors cursor-pointer ${
+                      isSimplifiedView
+                        ? "bg-blue-50/20 dark:bg-blue-950/10 hover:bg-blue-50/40 dark:hover:bg-blue-950/20"
+                        : "bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                    }`}
+                  >
                     <td className="px-6 py-4">
                       <div>
                         <div className="font-medium text-foreground">
@@ -392,7 +398,10 @@ function CategorySection({
                         <div className="flex items-center justify-center gap-1">
                           {category.type === "expense" && onCreatePurchaseRequest && (
                             <button
-                              onClick={() => onCreatePurchaseRequest(item.lineItemId, item.name, item.estimated, item.vendor)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onCreatePurchaseRequest(item.lineItemId, item.name, item.estimated, item.vendor);
+                              }}
                               className="p-1.5 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded transition-colors"
                               title="Create purchase request"
                             >
@@ -400,14 +409,20 @@ function CategorySection({
                             </button>
                           )}
                           <button
-                            onClick={() => onEditLineItem?.(item.lineItemId)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEditLineItem?.(item.lineItemId);
+                            }}
                             className="p-1.5 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded transition-colors"
                             title="Edit line item"
                           >
                             <Edit className="w-4 h-4 text-muted-foreground" />
                           </button>
                           <button
-                            onClick={() => onDeleteLineItem?.(item.lineItemId, item.name)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeleteLineItem?.(item.lineItemId, item.name);
+                            }}
                             className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
                             title="Delete line item"
                           >
@@ -719,13 +734,12 @@ export default function BudgetDetailPage({
     const categoryName = newCategoryName === "__NEW__" ? newCategoryDescription.trim() : newCategoryName.trim();
 
     if (!categoryName) {
-      alert("Please enter a category name");
+      toast.error("Please enter a category name");
       return;
     }
 
     // Close modal immediately
     setIsAddCategoryOpen(false);
-    setIsSavingCategory(true);
 
     // Create temporary category for optimistic update
     const tempCategory: BudgetCategory = {
@@ -744,100 +758,105 @@ export default function BudgetDetailPage({
     if (newCategoryType === "expense") {
       updatedProject.expenseCategories = [...project.expenseCategories, tempCategory];
     } else {
-      updatedProject.incomeLineItemsCategories = [...project.incomeLineItemsCategories, tempCategory];
+      updatedProject.incomeCategories = [...project.incomeCategories, tempCategory];
       // Update total expected income
       updatedProject.Total_Expected_Income = project.Total_Expected_Income + tempCategory.estimated;
     }
     setProject(updatedProject);
 
-    try {
-      let createdCategory;
+    // Use toast.promise for automatic loading/success/error states
+    toast.promise(
+      (async () => {
+        let createdCategory;
 
-      if (newCategoryType === "expense") {
-        // Expense categories use the categories endpoint
-        const response = await fetch(`/api/projects/${project.Project_ID}/categories`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: categoryName,
-            type: newCategoryType,
-            description: newCategoryName === "__NEW__" ? null : (newCategoryDescription || null),
-          }),
-        });
+        if (newCategoryType === "expense") {
+          // Expense categories use the categories endpoint
+          const response = await fetch(`/api/projects/${project.Project_ID}/categories`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name: categoryName,
+              type: newCategoryType,
+              description: newCategoryName === "__NEW__" ? null : (newCategoryDescription || null),
+            }),
+          });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to create category");
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to create category");
+          }
+
+          createdCategory = await response.json();
+        } else {
+          // Income categories are actually income line items
+          const response = await fetch(`/api/projects/${project.Project_ID}/income-line-items`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name: newCategoryName,
+              expectedAmount: parseFloat(newCategoryExpectedAmount) || 0,
+              description: null,
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to create income source");
+          }
+
+          createdCategory = await response.json();
         }
 
-        createdCategory = await response.json();
-      } else {
-        // Income categories are actually income line items
-        const response = await fetch(`/api/projects/${project.Project_ID}/income-line-items`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: newCategoryName,
-            expectedAmount: parseFloat(newCategoryExpectedAmount) || 0,
-            description: null,
-          }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to create income source");
+        // Update with real category data
+        const finalProject = { ...project };
+        if (newCategoryType === "expense") {
+          finalProject.expenseCategories = [
+            ...project.expenseCategories,
+            createdCategory,
+          ];
+        } else {
+          finalProject.incomeCategories = [
+            ...project.incomeCategories,
+            createdCategory,
+          ];
         }
+        setProject(finalProject);
 
-        createdCategory = await response.json();
+        // Reset form
+        setNewCategoryName("");
+        setNewCategoryDescription("");
+        setNewCategoryExpectedAmount("");
+        setNewCategoryType("expense");
+
+        return categoryName;
+      })(),
+      {
+        loading: `Creating ${newCategoryType} category...`,
+        success: (name) => `${name} created successfully`,
+        error: (err) => {
+          // Revert optimistic update on error
+          const revertedProject = { ...project };
+          if (newCategoryType === "expense") {
+            revertedProject.expenseCategories = project.expenseCategories.filter(
+              (cat) => cat.categoryId !== tempCategory.categoryId
+            );
+          } else {
+            revertedProject.incomeCategories = project.incomeCategories.filter(
+              (cat) => cat.categoryId !== tempCategory.categoryId
+            );
+            // Revert total expected income
+            revertedProject.Total_Expected_Income = project.Total_Expected_Income - tempCategory.estimated;
+          }
+          setProject(revertedProject);
+
+          return err instanceof Error ? err.message : "Failed to create category";
+        },
       }
-
-      // Update with real category data
-      const finalProject = { ...project };
-      if (newCategoryType === "expense") {
-        finalProject.expenseCategories = [
-          ...project.expenseCategories,
-          createdCategory,
-        ];
-      } else {
-        finalProject.incomeLineItemsCategories = [
-          ...project.incomeLineItemsCategories,
-          createdCategory,
-        ];
-      }
-      setProject(finalProject);
-
-      setIsSavingCategory(false);
-
-      // Reset form
-      setNewCategoryName("");
-      setNewCategoryDescription("");
-      setNewCategoryExpectedAmount("");
-      setNewCategoryType("expense");
-    } catch (err) {
-      console.error("Error creating category:", err);
-
-      // Revert optimistic update on error
-      const revertedProject = { ...project };
-      if (newCategoryType === "expense") {
-        revertedProject.expenseCategories = project.expenseCategories.filter(
-          (cat) => cat.categoryId !== tempCategory.categoryId
-        );
-      } else {
-        revertedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.filter(
-          (cat) => cat.categoryId !== tempCategory.categoryId
-        );
-        // Revert total expected income
-        revertedProject.Total_Expected_Income = project.Total_Expected_Income - tempCategory.estimated;
-      }
-      setProject(revertedProject);
-
-      setIsSavingCategory(false);
-      alert(err instanceof Error ? err.message : "Failed to create category");
-    }
+    );
   }
 
   async function handleEditCategory() {
@@ -846,7 +865,7 @@ export default function BudgetDetailPage({
     const newBudgetValue = parseFloat(editCategoryBudgetValue) || 0;
 
     // Find the category being edited to get previous values
-    const allCategories = [...project.expenseCategories, ...project.incomeLineItemsCategories];
+    const allCategories = [...project.expenseCategories, ...project.incomeCategories];
     const categoryToEdit = allCategories.find(cat => cat.categoryId === editingCategoryId);
 
     if (!categoryToEdit) return;
@@ -876,7 +895,7 @@ export default function BudgetDetailPage({
       // Update total budget
       updatedProject.Total_Budget = (project.Total_Budget - previousBudgetValue) + newBudgetValue;
     } else {
-      updatedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.map(cat =>
+      updatedProject.incomeCategories = project.incomeCategories.map(cat =>
         cat.categoryId === editingCategoryId
           ? { ...cat, name: newName, estimated: newBudgetValue }
           : cat
@@ -940,7 +959,7 @@ export default function BudgetDetailPage({
         );
         revertedProject.Total_Budget = (updatedProject.Total_Budget - newBudgetValue) + previousBudgetValue;
       } else {
-        revertedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.map(cat =>
+        revertedProject.incomeCategories = project.incomeCategories.map(cat =>
           cat.categoryId === editingCategoryId
             ? { ...cat, name: previousName, estimated: previousBudgetValue }
             : cat
@@ -964,7 +983,7 @@ export default function BudgetDetailPage({
     if (!confirmed) return;
 
     // Find the category to delete
-    const allCategories = [...project.expenseCategories, ...project.incomeLineItemsCategories];
+    const allCategories = [...project.expenseCategories, ...project.incomeCategories];
     const categoryToDelete = allCategories.find(cat => cat.categoryId === categoryId);
 
     if (!categoryToDelete) return;
@@ -978,7 +997,7 @@ export default function BudgetDetailPage({
       // Update total budget
       updatedProject.Total_Budget = project.Total_Budget - categoryToDelete.estimated;
     } else {
-      updatedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.filter(
+      updatedProject.incomeCategories = project.incomeCategories.filter(
         cat => cat.categoryId !== categoryId
       );
       // Update total expected income
@@ -1032,7 +1051,7 @@ export default function BudgetDetailPage({
     }
 
     // Find the category and line item being edited
-    const allCategories = [...project.expenseCategories, ...project.incomeLineItemsCategories];
+    const allCategories = [...project.expenseCategories, ...project.incomeCategories];
     const category = allCategories.find(cat => cat.categoryId === editingLineItemCategoryId);
 
     if (!category) return;
@@ -1076,7 +1095,7 @@ export default function BudgetDetailPage({
       updatedProject.Total_Budget = (project.Total_Budget - previousEstimated) + newEstimated;
     } else {
       // Income line items - update via income-line-items endpoint
-      updatedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.map(cat =>
+      updatedProject.incomeCategories = project.incomeCategories.map(cat =>
         cat.categoryId === editingLineItemCategoryId
           ? {
               ...cat,
@@ -1176,7 +1195,7 @@ export default function BudgetDetailPage({
         );
         revertedProject.Total_Budget = (updatedProject.Total_Budget - newEstimated) + previousEstimated;
       } else {
-        revertedProject.incomeLineItemsCategories = project.incomeLineItemsCategories;
+        revertedProject.incomeCategories = project.incomeCategories;
         revertedProject.Total_Expected_Income = (updatedProject.Total_Expected_Income - newEstimated) + previousEstimated;
       }
       setProject(revertedProject);
@@ -1196,7 +1215,7 @@ export default function BudgetDetailPage({
     if (!confirmed) return;
 
     // Find the category and line item to delete
-    const allCategories = [...project.expenseCategories, ...project.incomeLineItemsCategories];
+    const allCategories = [...project.expenseCategories, ...project.incomeCategories];
     const category = allCategories.find(cat => cat.categoryId === categoryId);
 
     if (!category) return;
@@ -1221,7 +1240,7 @@ export default function BudgetDetailPage({
       updatedProject.Total_Budget = project.Total_Budget - lineItem.estimated;
     } else {
       // Income line items - these are categories themselves, so delete the category
-      updatedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.filter(
+      updatedProject.incomeCategories = project.incomeCategories.filter(
         cat => cat.categoryId !== categoryId
       );
       // Update total expected income
@@ -1505,7 +1524,7 @@ export default function BudgetDetailPage({
   ];
   const revenueCategories = [
     ...(project?.registrationIncomeCategory ? [project.registrationIncomeCategory] : []),
-    ...(project?.incomeLineItemsCategories || []),
+    ...(project?.incomeCategories || []),
   ];
 
   const totalExpensesEstimated = project?.Total_Budget || 0;

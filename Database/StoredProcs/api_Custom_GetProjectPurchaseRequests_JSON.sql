@@ -24,9 +24,9 @@ BEGIN
             pr.Project_Budget_Expense_Line_Item_ID AS lineItemId,
 
             -- Line item info
-            eli.Item_Name AS lineItemName,
+            li.Line_Item_Name AS lineItemName,
             pbc.Project_Budget_Category_ID AS categoryId,
-            pct.Project_Category_Type AS categoryName,
+            pbc.Budget_Category_Name AS categoryName,
 
             -- Request details
             pr.Amount AS amount,
@@ -59,12 +59,10 @@ BEGIN
             ) AS transactionTotal
 
         FROM Project_Budget_Purchase_Requests pr
-        INNER JOIN Project_Budget_Expense_Line_Items eli
-            ON pr.Project_Budget_Expense_Line_Item_ID = eli.Project_Budget_Expense_Line_Item_ID
+        INNER JOIN Project_Budget_Line_Items li
+            ON pr.Project_Budget_Expense_Line_Item_ID = li.Project_Budget_Line_Item_ID
         INNER JOIN Project_Budget_Categories pbc
-            ON eli.Project_Budget_Category_ID = pbc.Project_Budget_Category_ID
-        INNER JOIN Project_Category_Types pct
-            ON pbc.Project_Category_Type_ID = pct.Project_Category_Type_ID
+            ON li.Category_ID = pbc.Project_Budget_Category_ID
         INNER JOIN dp_Users reqU
             ON pr.Requested_By_User_ID = reqU.User_ID
         INNER JOIN Contacts reqC
