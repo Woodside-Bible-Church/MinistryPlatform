@@ -52,9 +52,9 @@ export async function POST(
 
     // Get the max sort order for the category
     const existingLineItems = await mp.getTableRecords<{ Sort_Order: number }>({
-      table: 'Project_Budget_Expense_Line_Items',
+      table: 'Project_Budget_Line_Items',
       select: 'Sort_Order',
-      filter: `Project_Budget_Category_ID=${budgetCategoryId}`,
+      filter: `Category_ID=${budgetCategoryId}`,
       orderBy: 'Sort_Order DESC',
       top: 1,
     });
@@ -84,11 +84,11 @@ export async function POST(
       }
     }
 
-    // Create the line item
+    // Create the line item (using consolidated table)
     const newLineItem: any = {
-      Project_Budget_Category_ID: budgetCategoryId,
-      Item_Name: name,
-      Item_Description: description || null,
+      Category_ID: budgetCategoryId,
+      Line_Item_Name: name,
+      Line_Item_Description: description || null,
       Vendor_Name: vendor || null,
       Estimated_Amount: estimatedAmount || 0,
       Sort_Order: nextSortOrder,
@@ -100,11 +100,11 @@ export async function POST(
     // If approvedValue is null, we don't set it (defaults to NULL)
 
     const createdLineItems = await mp.createTableRecords(
-      'Project_Budget_Expense_Line_Items',
+      'Project_Budget_Line_Items',
       [newLineItem],
       {
         $userId: userId,
-        $select: 'Project_Budget_Expense_Line_Item_ID,Item_Name,Vendor_Name,Estimated_Amount,Approved,Item_Description,Sort_Order',
+        $select: 'Project_Budget_Line_Item_ID,Line_Item_Name,Vendor_Name,Estimated_Amount,Approved,Line_Item_Description,Sort_Order',
       }
     );
 
@@ -116,12 +116,12 @@ export async function POST(
     }
 
     const created = createdLineItems[0] as unknown as {
-      Project_Budget_Expense_Line_Item_ID: number;
-      Item_Name: string;
+      Project_Budget_Line_Item_ID: number;
+      Line_Item_Name: string;
       Vendor_Name: string | null;
       Estimated_Amount: number;
       Approved: boolean | null;
-      Item_Description: string | null;
+      Line_Item_Description: string | null;
       Sort_Order: number;
     };
 
@@ -132,13 +132,13 @@ export async function POST(
 
     // Return in the format expected by the frontend
     return NextResponse.json({
-      lineItemId: created.Project_Budget_Expense_Line_Item_ID,
-      name: created.Item_Name,
+      lineItemId: created.Project_Budget_Line_Item_ID,
+      name: created.Line_Item_Name,
       vendor: created.Vendor_Name,
       estimated: created.Estimated_Amount || 0,
       actual: 0,
       status: statusString,
-      description: created.Item_Description,
+      description: created.Line_Item_Description,
       sortOrder: created.Sort_Order,
     });
   } catch (error) {
@@ -202,13 +202,13 @@ export async function PATCH(
 
     // Build update object
     const updateData: any = {
-      Project_Budget_Expense_Line_Item_ID: parseInt(lineItemId, 10),
+      Project_Budget_Line_Item_ID: parseInt(lineItemId, 10),
     };
 
-    if (name !== undefined) updateData.Item_Name = name;
+    if (name !== undefined) updateData.Line_Item_Name = name;
     if (vendor !== undefined) updateData.Vendor_Name = vendor;
     if (estimatedAmount !== undefined) updateData.Estimated_Amount = estimatedAmount;
-    if (description !== undefined) updateData.Item_Description = description;
+    if (description !== undefined) updateData.Line_Item_Description = description;
 
     // If status is being updated, convert to bit value
     if (status !== undefined) {
@@ -234,11 +234,11 @@ export async function PATCH(
 
     // Update the line item
     const updatedLineItems = await mp.updateTableRecords(
-      'Project_Budget_Expense_Line_Items',
+      'Project_Budget_Line_Items',
       [updateData],
       {
         $userId: userId,
-        $select: 'Project_Budget_Expense_Line_Item_ID,Item_Name,Vendor_Name,Estimated_Amount,Approved,Item_Description',
+        $select: 'Project_Budget_Line_Item_ID,Line_Item_Name,Vendor_Name,Estimated_Amount,Approved,Line_Item_Description',
       }
     );
 
@@ -250,12 +250,12 @@ export async function PATCH(
     }
 
     const updated = updatedLineItems[0] as unknown as {
-      Project_Budget_Expense_Line_Item_ID: number;
-      Item_Name: string;
+      Project_Budget_Line_Item_ID: number;
+      Line_Item_Name: string;
       Vendor_Name: string | null;
       Estimated_Amount: number;
       Approved: boolean | null;
-      Item_Description: string | null;
+      Line_Item_Description: string | null;
     };
 
     // Convert Approved bit to status string
@@ -265,12 +265,12 @@ export async function PATCH(
 
     // Return in the format expected by the frontend
     return NextResponse.json({
-      lineItemId: updated.Project_Budget_Expense_Line_Item_ID,
-      name: updated.Item_Name,
+      lineItemId: updated.Project_Budget_Line_Item_ID,
+      name: updated.Line_Item_Name,
       vendor: updated.Vendor_Name,
       estimated: updated.Estimated_Amount,
       status: statusString,
-      description: updated.Item_Description,
+      description: updated.Line_Item_Description,
     });
   } catch (error) {
     console.error("API route error:", error);
@@ -331,15 +331,22 @@ export async function DELETE(
 
     const userId = users[0].User_ID;
 
-    // Check if line item has transactions
-    const transactions = await mp.getTableRecords<{ Project_Budget_Transaction_ID: number }>({
+    // Check if line item has transactions (check both expense and income)
+    const expenseTransactions = await mp.getTableRecords<{ Project_Budget_Transaction_ID: number }>({
       table: 'Project_Budget_Transactions',
       select: 'Project_Budget_Transaction_ID',
       filter: `Project_Budget_Expense_Line_Item_ID=${lineItemId}`,
       top: 1,
     });
 
-    if (transactions.length > 0) {
+    const incomeTransactions = await mp.getTableRecords<{ Project_Budget_Transaction_ID: number }>({
+      table: 'Project_Budget_Transactions',
+      select: 'Project_Budget_Transaction_ID',
+      filter: `Project_Budget_Income_Line_Item_ID=${lineItemId}`,
+      top: 1,
+    });
+
+    if (expenseTransactions.length > 0 || incomeTransactions.length > 0) {
       return NextResponse.json(
         { error: "Cannot delete line item with transactions. Please delete all transactions first." },
         { status: 400 }
@@ -348,7 +355,7 @@ export async function DELETE(
 
     // Delete the line item
     await mp.deleteTableRecords(
-      'Project_Budget_Expense_Line_Items',
+      'Project_Budget_Line_Items',
       [parseInt(lineItemId, 10)],
       {
         $userId: userId,

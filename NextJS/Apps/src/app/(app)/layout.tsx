@@ -12,7 +12,7 @@ export default async function AppLayout({
   return (
     <div className="flex flex-col min-h-screen">
       <MPWidgetsLoader />
-      <Toaster position="top-right" richColors />
+      <Toaster position="top-right" richColors theme="system" />
 
       <AuthWrapper>
         <CampusProvider>

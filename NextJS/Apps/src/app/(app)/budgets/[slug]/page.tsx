@@ -117,6 +117,7 @@ function CategorySection({
   discountsJustSaved,
   onEditCategory,
   onDeleteCategory,
+  isDeleting,
   onEditLineItem,
   onDeleteLineItem,
   onAddLineItem,
@@ -133,6 +134,7 @@ function CategorySection({
   discountsJustSaved?: boolean;
   onEditCategory?: () => void;
   onDeleteCategory?: () => void;
+  isDeleting?: boolean;
   onEditLineItem?: (lineItemId: string) => void;
   onDeleteLineItem?: (lineItemId: string, lineItemName: string) => void;
   onAddLineItem?: () => void;
@@ -148,11 +150,11 @@ function CategorySection({
   const isSimplifiedView = category.categoryId === 'registration-discounts' || category.categoryId === 'registration-income';
 
   return (
-    <div className={`rounded-lg overflow-hidden ${
+    <div className={`rounded-lg overflow-hidden transition-opacity ${
       isSimplifiedView
         ? "bg-blue-50/30 dark:bg-blue-950/10 border-2 border-blue-100 dark:border-blue-900/30"
         : "bg-card border border-border"
-    }`}>
+    } ${isDeleting ? "opacity-50 pointer-events-none" : ""}`}>
       {/* Category Header */}
       <div
         onClick={() => setIsExpanded(!isExpanded)}
@@ -331,12 +333,13 @@ function CategorySection({
                 const itemVariance = item.actual - item.estimated;
                 const itemVariancePercent =
                   item.estimated > 0 ? (itemVariance / item.estimated) * 100 : 0;
+                const isLoading = String(item.lineItemId).startsWith('temp-');
 
                 return (
                   <tr
                     key={item.lineItemId}
-                    onClick={() => router.push(`/budgets/${projectSlug}/line-items/${item.lineItemId}`)}
-                    className={`transition-colors cursor-pointer ${
+                    onClick={() => !isLoading && router.push(`/budgets/${projectSlug}/line-items/${item.lineItemId}`)}
+                    className={`transition-colors ${isLoading ? 'cursor-wait animate-pulse opacity-60' : 'cursor-pointer'} ${
                       isSimplifiedView
                         ? "bg-blue-50/20 dark:bg-blue-950/10 hover:bg-blue-50/40 dark:hover:bg-blue-950/20"
                         : "bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700"
@@ -344,8 +347,9 @@ function CategorySection({
                   >
                     <td className="px-6 py-4">
                       <div>
-                        <div className="font-medium text-foreground">
+                        <div className="font-medium text-foreground flex items-center gap-2">
                           {item.name}
+                          {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                         </div>
                         {item.description && (
                           <div className="text-sm text-muted-foreground mt-1">
@@ -402,10 +406,11 @@ function CategorySection({
                                 e.stopPropagation();
                                 onCreatePurchaseRequest(item.lineItemId, item.name, item.estimated, item.vendor);
                               }}
-                              className="p-1.5 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded transition-colors"
+                              disabled={isLoading}
+                              className="p-1.5 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                               title="Create purchase request"
                             >
-                              <ShoppingCart className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                              <Plus className="w-4 h-4 text-[#61bc47] dark:text-[#61bc47]" />
                             </button>
                           )}
                           <button
@@ -413,7 +418,8 @@ function CategorySection({
                               e.stopPropagation();
                               onEditLineItem?.(item.lineItemId);
                             }}
-                            className="p-1.5 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded transition-colors"
+                            disabled={isLoading}
+                            className="p-1.5 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                             title="Edit line item"
                           >
                             <Edit className="w-4 h-4 text-muted-foreground" />
@@ -423,7 +429,8 @@ function CategorySection({
                               e.stopPropagation();
                               onDeleteLineItem?.(item.lineItemId, item.name);
                             }}
-                            className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                            disabled={isLoading}
+                            className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                             title="Delete line item"
                           >
                             <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
@@ -441,16 +448,14 @@ function CategorySection({
 
       {/* Add Line Item Button */}
       {isExpanded && !isSimplifiedView && (
-        <div className="px-6 py-4 border-t border-border">
-          <button
-            onClick={onAddLineItem}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#61bc47] hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-            title="Add new line item"
-          >
-            <Plus className="w-4 h-4" />
-            Add Line Item
-          </button>
-        </div>
+        <button
+          onClick={onAddLineItem}
+          className="w-full py-3 border-t border-border hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors flex items-center justify-center gap-2 text-[#61bc47] hover:text-[#52a03c] cursor-pointer"
+          title="Add new line item"
+        >
+          <Plus className="w-4 h-4" />
+          <span className="font-medium text-sm">Add Line Item</span>
+        </button>
       )}
     </div>
   );
@@ -510,6 +515,7 @@ export default function BudgetDetailPage({
   const [editCategoryName, setEditCategoryName] = useState<string>("");
   const [editCategoryBudgetValue, setEditCategoryBudgetValue] = useState<string>("");
   const [isSavingEditCategory, setIsSavingEditCategory] = useState(false);
+  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
 
   // Edit Line Item modal state
   const [isEditLineItemOpen, setIsEditLineItemOpen] = useState(false);
@@ -742,12 +748,13 @@ export default function BudgetDetailPage({
     setIsAddCategoryOpen(false);
 
     // Create temporary category for optimistic update
+    const budgetedAmount = parseFloat(newCategoryExpectedAmount) || 0;
     const tempCategory: BudgetCategory = {
       categoryId: `temp-${Date.now()}`,
       name: categoryName,
       type: newCategoryType,
       description: newCategoryName === "__NEW__" ? undefined : (newCategoryDescription || undefined),
-      estimated: newCategoryType === "revenue" ? (parseFloat(newCategoryExpectedAmount) || 0) : 0,
+      estimated: budgetedAmount,
       actual: 0,
       sortOrder: 999,
       lineItems: [],
@@ -757,6 +764,8 @@ export default function BudgetDetailPage({
     const updatedProject = { ...project };
     if (newCategoryType === "expense") {
       updatedProject.expenseCategories = [...project.expenseCategories, tempCategory];
+      // Update total budget
+      updatedProject.Total_Budget = project.Total_Budget + budgetedAmount;
     } else {
       updatedProject.incomeCategories = [...project.incomeCategories, tempCategory];
       // Update total expected income
@@ -780,6 +789,7 @@ export default function BudgetDetailPage({
               name: categoryName,
               type: newCategoryType,
               description: newCategoryName === "__NEW__" ? null : (newCategoryDescription || null),
+              budgetedAmount: budgetedAmount,
             }),
           });
 
@@ -873,60 +883,52 @@ export default function BudgetDetailPage({
     // For income categories, validate name
     const newName = editCategoryName.trim();
     if (categoryToEdit.type === "revenue" && !newName) {
-      alert("Name is required");
+      toast.error("Name is required");
       return;
     }
 
     const previousBudgetValue = categoryToEdit.estimated;
     const previousName = categoryToEdit.name;
 
-    // Close modal immediately
-    setIsEditCategoryOpen(false);
+    // 1. Show loading state on modal
     setIsSavingEditCategory(true);
 
-    // Optimistically update UI immediately
-    const updatedProject = { ...project };
-    if (categoryToEdit.type === "expense") {
-      updatedProject.expenseCategories = project.expenseCategories.map(cat =>
-        cat.categoryId === editingCategoryId
-          ? { ...cat, name: newName, estimated: newBudgetValue }
-          : cat
-      );
-      // Update total budget
-      updatedProject.Total_Budget = (project.Total_Budget - previousBudgetValue) + newBudgetValue;
-    } else {
-      updatedProject.incomeCategories = project.incomeCategories.map(cat =>
-        cat.categoryId === editingCategoryId
-          ? { ...cat, name: newName, estimated: newBudgetValue }
-          : cat
-      );
-      // Update total expected income
-      updatedProject.Total_Expected_Income = (project.Total_Expected_Income - previousBudgetValue) + newBudgetValue;
-    }
-    setProject(updatedProject);
-
-    try {
-      let response;
-
+    // 2. Create the async operation
+    const updateOperation = (async () => {
+      // Optimistically update UI
+      const updatedProject = { ...project };
       if (categoryToEdit.type === "expense") {
-        // Update expense category - note: we can't change the name for expense categories (they're from lookup table)
+        updatedProject.expenseCategories = project.expenseCategories.map(cat =>
+          cat.categoryId === editingCategoryId
+            ? { ...cat, name: newName, estimated: newBudgetValue }
+            : cat
+        );
+        updatedProject.Total_Budget = (project.Total_Budget - previousBudgetValue) + newBudgetValue;
+      } else {
+        updatedProject.incomeCategories = project.incomeCategories.map(cat =>
+          cat.categoryId === editingCategoryId
+            ? { ...cat, name: newName, estimated: newBudgetValue }
+            : cat
+        );
+        updatedProject.Total_Expected_Income = (project.Total_Expected_Income - previousBudgetValue) + newBudgetValue;
+      }
+      setProject(updatedProject);
+
+      // Make API call
+      let response;
+      if (categoryToEdit.type === "expense") {
         response = await fetch(`/api/projects/${project.Project_ID}/categories`, {
           method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             categoryId: editingCategoryId,
             budgetedAmount: newBudgetValue,
           }),
         });
       } else {
-        // Update income line item (can change both name and amount)
         response = await fetch(`/api/projects/${project.Project_ID}/income-line-items`, {
           method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             lineItemId: editingCategoryId,
             name: newName,
@@ -937,40 +939,47 @@ export default function BudgetDetailPage({
 
       if (!response.ok) {
         const errorData = await response.json();
+
+        // Revert optimistic update on error
+        const revertedProject = { ...project };
+        if (categoryToEdit.type === "expense") {
+          revertedProject.expenseCategories = project.expenseCategories.map(cat =>
+            cat.categoryId === editingCategoryId
+              ? { ...cat, name: previousName, estimated: previousBudgetValue }
+              : cat
+          );
+          revertedProject.Total_Budget = (updatedProject.Total_Budget - newBudgetValue) + previousBudgetValue;
+        } else {
+          revertedProject.incomeCategories = project.incomeCategories.map(cat =>
+            cat.categoryId === editingCategoryId
+              ? { ...cat, name: previousName, estimated: previousBudgetValue }
+              : cat
+          );
+          revertedProject.Total_Expected_Income = (updatedProject.Total_Expected_Income - newBudgetValue) + previousBudgetValue;
+        }
+        setProject(revertedProject);
+
         throw new Error(errorData.error || "Failed to update category");
       }
 
-      setIsSavingEditCategory(false);
+      return categoryToEdit.name;
+    })();
 
-      // Reset form
+    // 3. Toast with async operation
+    toast.promise(updateOperation, {
+      loading: "Updating category...",
+      success: (name) => `${name} updated successfully`,
+      error: (err) => err.message || "Failed to update category",
+    });
+
+    // 4. Cleanup after operation completes
+    updateOperation.finally(() => {
+      setIsSavingEditCategory(false);
+      setIsEditCategoryOpen(false);
       setEditingCategoryId(null);
       setEditCategoryName("");
       setEditCategoryBudgetValue("");
-    } catch (err) {
-      console.error("Error updating category:", err);
-
-      // Revert optimistic update on error
-      const revertedProject = { ...project };
-      if (categoryToEdit.type === "expense") {
-        revertedProject.expenseCategories = project.expenseCategories.map(cat =>
-          cat.categoryId === editingCategoryId
-            ? { ...cat, name: previousName, estimated: previousBudgetValue }
-            : cat
-        );
-        revertedProject.Total_Budget = (updatedProject.Total_Budget - newBudgetValue) + previousBudgetValue;
-      } else {
-        revertedProject.incomeCategories = project.incomeCategories.map(cat =>
-          cat.categoryId === editingCategoryId
-            ? { ...cat, name: previousName, estimated: previousBudgetValue }
-            : cat
-        );
-        revertedProject.Total_Expected_Income = (updatedProject.Total_Expected_Income - newBudgetValue) + previousBudgetValue;
-      }
-      setProject(revertedProject);
-
-      setIsSavingEditCategory(false);
-      alert(err instanceof Error ? err.message : "Failed to update category");
-    }
+    });
   }
 
   async function handleDeleteCategory(categoryId: string, categoryName: string) {
@@ -988,24 +997,11 @@ export default function BudgetDetailPage({
 
     if (!categoryToDelete) return;
 
-    // Optimistically update UI immediately
-    const updatedProject = { ...project };
-    if (categoryToDelete.type === "expense") {
-      updatedProject.expenseCategories = project.expenseCategories.filter(
-        cat => cat.categoryId !== categoryId
-      );
-      // Update total budget
-      updatedProject.Total_Budget = project.Total_Budget - categoryToDelete.estimated;
-    } else {
-      updatedProject.incomeCategories = project.incomeCategories.filter(
-        cat => cat.categoryId !== categoryId
-      );
-      // Update total expected income
-      updatedProject.Total_Expected_Income = project.Total_Expected_Income - categoryToDelete.estimated;
-    }
-    setProject(updatedProject);
+    // 1. Micro-interaction - Show loading state on the category (gray it out, keep in DOM)
+    setDeletingCategoryId(categoryId);
 
-    try {
+    // 2. Create the async operation
+    const deleteOperation = (async () => {
       let response;
 
       if (categoryToDelete.type === "expense") {
@@ -1030,23 +1026,57 @@ export default function BudgetDetailPage({
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to delete category");
       }
-    } catch (err) {
-      console.error("Error deleting category:", err);
 
-      // Revert optimistic update on error
-      setProject(project);
-      alert(err instanceof Error ? err.message : "Failed to delete category");
-    }
+      // 3. Update UI after successful deletion (with small delay for toast to display)
+      setTimeout(() => {
+        setProject((prevProject) => {
+          if (!prevProject) return prevProject;
+
+          const updatedProject = { ...prevProject };
+          if (categoryToDelete.type === "expense") {
+            updatedProject.expenseCategories = prevProject.expenseCategories.filter(
+              cat => cat.categoryId !== categoryId
+            );
+            // Update total budget
+            updatedProject.Total_Budget = prevProject.Total_Budget - categoryToDelete.estimated;
+          } else {
+            updatedProject.incomeCategories = prevProject.incomeCategories.filter(
+              cat => cat.categoryId !== categoryId
+            );
+            // Update total expected income
+            updatedProject.Total_Expected_Income = prevProject.Total_Expected_Income - categoryToDelete.estimated;
+          }
+          return updatedProject;
+        });
+      }, 300); // Give toast time to render before removing from DOM
+
+      return categoryName;
+    })();
+
+    // 3. Toast confirmation with async operation
+    toast.promise(deleteOperation, {
+      loading: "Deleting category...",
+      success: (name) => `${name} deleted successfully`,
+      error: (err) => err.message || "Failed to delete category",
+    });
+
+    // 4. Clear loading state after operation completes (success or error)
+    deleteOperation.finally(() => {
+      setDeletingCategoryId(null);
+    });
   }
 
   async function handleEditLineItem() {
     if (!project || !editingLineItemId || !editingLineItemCategoryId) return;
 
+    // Capture values before closing modal
     const newEstimated = parseFloat(editLineItemEstimated) || 0;
     const newName = editLineItemName.trim();
+    const newVendor = editLineItemVendor.trim() || null;
+    const newDescription = editLineItemDescription.trim() || null;
 
     if (!newName) {
-      alert("Name is required");
+      toast.error("Name is required");
       return;
     }
 
@@ -1065,12 +1095,19 @@ export default function BudgetDetailPage({
     const previousVendor = lineItem.vendor;
     const previousDescription = lineItem.description;
 
-    // Close modal immediately
+    // Close modal immediately and reset form
     setIsEditLineItemOpen(false);
-    setIsSavingEditLineItem(true);
+    setEditingLineItemId(null);
+    setEditingLineItemCategoryId(null);
+    setEditLineItemName("");
+    setEditLineItemVendor("");
+    setEditLineItemEstimated("");
+    setEditLineItemDescription("");
 
-    // Optimistically update UI immediately
-    const updatedProject = { ...project };
+    // Create async operation with optimistic update
+    const updateOperation = (async () => {
+      // Optimistically update UI immediately
+      const updatedProject = { ...project };
     if (category.type === "expense") {
       updatedProject.expenseCategories = project.expenseCategories.map(cat =>
         cat.categoryId === editingLineItemCategoryId
@@ -1081,9 +1118,9 @@ export default function BudgetDetailPage({
                   ? {
                       ...item,
                       name: newName,
-                      vendor: editLineItemVendor.trim() || null,
+                      vendor: newVendor,
                       estimated: newEstimated,
-                      description: editLineItemDescription.trim() || null,
+                      description: newDescription,
                     }
                   : item
               ),
@@ -1101,14 +1138,14 @@ export default function BudgetDetailPage({
               ...cat,
               name: newName,
               estimated: newEstimated,
-              description: editLineItemDescription.trim() || undefined,
+              description: newDescription || undefined,
               lineItems: cat.lineItems.map(item =>
                 item.lineItemId === editingLineItemId
                   ? {
                       ...item,
                       name: newName,
                       estimated: newEstimated,
-                      description: editLineItemDescription.trim() || null,
+                      description: newDescription,
                     }
                   : item
               ),
@@ -1118,9 +1155,9 @@ export default function BudgetDetailPage({
       // Update total expected income
       updatedProject.Total_Expected_Income = (project.Total_Expected_Income - previousEstimated) + newEstimated;
     }
-    setProject(updatedProject);
+      setProject(updatedProject);
 
-    try {
+      // Make API call
       let response;
 
       if (category.type === "expense") {
@@ -1133,9 +1170,9 @@ export default function BudgetDetailPage({
           body: JSON.stringify({
             lineItemId: editingLineItemId,
             name: newName,
-            vendor: editLineItemVendor.trim() || null,
+            vendor: newVendor,
             estimatedAmount: newEstimated,
-            description: editLineItemDescription.trim() || null,
+            description: newDescription,
           }),
         });
       } else {
@@ -1149,60 +1186,60 @@ export default function BudgetDetailPage({
             lineItemId: editingLineItemCategoryId,
             name: newName,
             expectedAmount: newEstimated,
-            description: editLineItemDescription.trim() || null,
+            description: newDescription,
           }),
         });
       }
 
       if (!response.ok) {
         const errorData = await response.json();
+
+        // Revert optimistic update on error
+        const revertedProject = { ...project };
+        if (category.type === "expense") {
+          revertedProject.expenseCategories = project.expenseCategories.map(cat =>
+            cat.categoryId === editingLineItemCategoryId
+              ? {
+                  ...cat,
+                  lineItems: cat.lineItems.map(item =>
+                    item.lineItemId === editingLineItemId
+                      ? {
+                          ...item,
+                          name: previousName,
+                          vendor: previousVendor,
+                          estimated: previousEstimated,
+                          description: previousDescription,
+                        }
+                      : item
+                  ),
+                  estimated: cat.estimated - newEstimated + previousEstimated,
+                }
+              : cat
+          );
+          revertedProject.Total_Budget = (updatedProject.Total_Budget - newEstimated) + previousEstimated;
+        } else {
+          revertedProject.incomeCategories = project.incomeCategories;
+          revertedProject.Total_Expected_Income = (updatedProject.Total_Expected_Income - newEstimated) + previousEstimated;
+        }
+        setProject(revertedProject);
+
         throw new Error(errorData.error || "Failed to update line item");
       }
 
-      setIsSavingEditLineItem(false);
+      return newName;
+    })();
 
-      // Reset form
-      setEditingLineItemId(null);
-      setEditingLineItemCategoryId(null);
-      setEditLineItemName("");
-      setEditLineItemVendor("");
-      setEditLineItemEstimated("");
-      setEditLineItemDescription("");
-    } catch (err) {
-      console.error("Error updating line item:", err);
+    // Toast notifications
+    toast.promise(updateOperation, {
+      loading: "Updating line item...",
+      success: (name) => `${name} updated successfully`,
+      error: (err) => err.message || "Failed to update line item",
+    });
 
-      // Revert optimistic update on error
-      const revertedProject = { ...project };
-      if (category.type === "expense") {
-        revertedProject.expenseCategories = project.expenseCategories.map(cat =>
-          cat.categoryId === editingLineItemCategoryId
-            ? {
-                ...cat,
-                lineItems: cat.lineItems.map(item =>
-                  item.lineItemId === editingLineItemId
-                    ? {
-                        ...item,
-                        name: previousName,
-                        vendor: previousVendor,
-                        estimated: previousEstimated,
-                        description: previousDescription,
-                      }
-                    : item
-                ),
-                estimated: cat.estimated - newEstimated + previousEstimated,
-              }
-            : cat
-        );
-        revertedProject.Total_Budget = (updatedProject.Total_Budget - newEstimated) + previousEstimated;
-      } else {
-        revertedProject.incomeCategories = project.incomeCategories;
-        revertedProject.Total_Expected_Income = (updatedProject.Total_Expected_Income - newEstimated) + previousEstimated;
-      }
-      setProject(revertedProject);
-
-      setIsSavingEditLineItem(false);
-      alert(err instanceof Error ? err.message : "Failed to update line item");
-    }
+    // Cleanup - no state to reset since modal is already closed
+    updateOperation.finally(() => {
+      // Nothing to clean up
+    });
   }
 
   async function handleDeleteLineItem(categoryId: string, lineItemId: string, lineItemName: string) {
@@ -1224,31 +1261,33 @@ export default function BudgetDetailPage({
 
     if (!lineItem) return;
 
-    // Optimistically update UI immediately
-    const updatedProject = { ...project };
-    if (category.type === "expense") {
-      updatedProject.expenseCategories = project.expenseCategories.map(cat =>
-        cat.categoryId === categoryId
-          ? {
-              ...cat,
-              lineItems: cat.lineItems.filter(item => item.lineItemId !== lineItemId),
-              estimated: cat.estimated - lineItem.estimated,
-            }
-          : cat
-      );
-      // Update total budget
-      updatedProject.Total_Budget = project.Total_Budget - lineItem.estimated;
-    } else {
-      // Income line items - these are categories themselves, so delete the category
-      updatedProject.incomeCategories = project.incomeCategories.filter(
-        cat => cat.categoryId !== categoryId
-      );
-      // Update total expected income
-      updatedProject.Total_Expected_Income = project.Total_Expected_Income - lineItem.estimated;
-    }
-    setProject(updatedProject);
+    // Create async delete operation with optimistic update
+    const deleteOperation = (async () => {
+      // Optimistically update UI immediately
+      const updatedProject = { ...project };
+      if (category.type === "expense") {
+        updatedProject.expenseCategories = project.expenseCategories.map(cat =>
+          cat.categoryId === categoryId
+            ? {
+                ...cat,
+                lineItems: cat.lineItems.filter(item => item.lineItemId !== lineItemId),
+                estimated: cat.estimated - lineItem.estimated,
+              }
+            : cat
+        );
+        // Update total budget
+        updatedProject.Total_Budget = project.Total_Budget - lineItem.estimated;
+      } else {
+        // Income line items - these are categories themselves, so delete the category
+        updatedProject.incomeCategories = project.incomeCategories.filter(
+          cat => cat.categoryId !== categoryId
+        );
+        // Update total expected income
+        updatedProject.Total_Expected_Income = project.Total_Expected_Income - lineItem.estimated;
+      }
+      setProject(updatedProject);
 
-    try {
+      // Make API call
       let response;
 
       if (category.type === "expense") {
@@ -1271,25 +1310,40 @@ export default function BudgetDetailPage({
 
       if (!response.ok) {
         const errorData = await response.json();
+
+        // Revert optimistic update on error
+        setProject(project);
+
         throw new Error(errorData.error || "Failed to delete line item");
       }
-    } catch (err) {
-      console.error("Error deleting line item:", err);
 
-      // Revert optimistic update on error
-      setProject(project);
-      alert(err instanceof Error ? err.message : "Failed to delete line item");
-    }
+      return lineItemName;
+    })();
+
+    // Toast notifications
+    toast.promise(deleteOperation, {
+      loading: "Deleting line item...",
+      success: (name) => `${name} deleted successfully`,
+      error: (err) => err.message || "Failed to delete line item",
+    });
+
+    // No cleanup needed
+    deleteOperation.finally(() => {
+      // Nothing to clean up
+    });
   }
 
   async function handleAddLineItem() {
     if (!project || !addLineItemCategoryId) return;
 
+    // Capture form values before resetting
     const newEstimated = parseFloat(newLineItemEstimated) || 0;
     const newName = newLineItemName.trim();
+    const newVendor = newLineItemVendor.trim() || null;
+    const newDescription = newLineItemDescription.trim() || null;
 
     if (!newName) {
-      alert("Name is required");
+      toast.error("Name is required");
       return;
     }
 
@@ -1298,22 +1352,26 @@ export default function BudgetDetailPage({
 
     if (!category) return;
 
-    // Close modal immediately
-    setIsAddLineItemOpen(false);
-    setIsSavingLineItem(true);
-
-    // Create temporary line item for optimistic update
+    // Create temporary line item with loading state
+    const tempId = `temp-${Date.now()}`;
     const tempLineItem: BudgetLineItem = {
-      lineItemId: `temp-${Date.now()}`,
+      lineItemId: tempId,
       name: newName,
-      vendor: newLineItemVendor.trim() || null,
+      vendor: newVendor,
       estimated: newEstimated,
       actual: 0,
-      description: newLineItemDescription.trim() || null,
+      description: newDescription,
       sortOrder: 999,
     };
 
-    // Optimistically update UI immediately
+    // 1. Close modal immediately and reset form
+    setIsAddLineItemOpen(false);
+    setNewLineItemName("");
+    setNewLineItemVendor("");
+    setNewLineItemEstimated("");
+    setNewLineItemDescription("");
+
+    // 2. Add temp row with loading state (optimistic update)
     const updatedProject = { ...project };
     updatedProject.expenseCategories = project.expenseCategories.map(cat =>
       cat.categoryId === addLineItemCategoryId
@@ -1324,74 +1382,94 @@ export default function BudgetDetailPage({
           }
         : cat
     );
-    // Update total budget
     updatedProject.Total_Budget = project.Total_Budget + newEstimated;
     setProject(updatedProject);
 
-    try {
-      // Create expense line item
-      const response = await fetch(`/api/projects/${project.Project_ID}/categories/${addLineItemCategoryId}/line-items`, {
+    // 3. Make API call
+    const createOperation = (async () => {
+      const requestBody = {
+        name: newName,
+        vendor: newVendor,
+        estimatedAmount: newEstimated,
+        description: newDescription,
+      };
+
+      const url = `/api/projects/${project.Project_ID}/categories/${addLineItemCategoryId}/line-items`;
+
+      console.log("Creating line item:");
+      console.log("  URL:", url);
+      console.log("  Body:", requestBody);
+      console.log("  Project ID:", project.Project_ID);
+      console.log("  Category ID:", addLineItemCategoryId);
+
+      const response = await fetch(url, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: newName,
-          vendor: newLineItemVendor.trim() || null,
-          estimatedAmount: newEstimated,
-          description: newLineItemDescription.trim() || null,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create line item");
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+        }
+
+        console.error("API Error:", errorData);
+
+        // Revert optimistic update on error
+        setProject((prevProject) => {
+          const revertedProject = { ...prevProject };
+          revertedProject.expenseCategories = prevProject.expenseCategories.map(cat =>
+            cat.categoryId === addLineItemCategoryId
+              ? {
+                  ...cat,
+                  lineItems: cat.lineItems.filter(item => item.lineItemId !== tempId),
+                  estimated: cat.estimated - newEstimated,
+                }
+              : cat
+          );
+          revertedProject.Total_Budget = prevProject.Total_Budget - newEstimated;
+          return revertedProject;
+        });
+
+        throw new Error(errorData.error || errorData.details || "Failed to create line item");
       }
 
       const createdLineItem = await response.json();
+      console.log("Created line item:", createdLineItem);
 
-      // Update with real line item data
-      const finalProject = { ...project };
-      finalProject.expenseCategories = project.expenseCategories.map(cat =>
-        cat.categoryId === addLineItemCategoryId
-          ? {
-              ...cat,
-              lineItems: [...cat.lineItems, createdLineItem],
-              estimated: cat.estimated + newEstimated,
-            }
-          : cat
-      );
-      finalProject.Total_Budget = project.Total_Budget + newEstimated;
-      setProject(finalProject);
+      // Replace temp item with real data
+      setProject((prevProject) => {
+        const finalProject = { ...prevProject };
+        finalProject.expenseCategories = prevProject.expenseCategories.map(cat =>
+          cat.categoryId === addLineItemCategoryId
+            ? {
+                ...cat,
+                lineItems: cat.lineItems.map(item =>
+                  item.lineItemId === tempId ? createdLineItem : item
+                ),
+              }
+            : cat
+        );
+        return finalProject;
+      });
 
-      setIsSavingLineItem(false);
+      return newName;
+    })();
 
-      // Reset form
+    // 4. Toast notifications
+    toast.promise(createOperation, {
+      loading: "Adding line item...",
+      success: (name) => `${name} added successfully`,
+      error: (err) => err.message || "Failed to add line item",
+    });
+
+    // 5. Cleanup
+    createOperation.finally(() => {
       setAddLineItemCategoryId(null);
-      setNewLineItemName("");
-      setNewLineItemVendor("");
-      setNewLineItemEstimated("");
-      setNewLineItemDescription("");
-    } catch (err) {
-      console.error("Error creating line item:", err);
-
-      // Revert optimistic update on error
-      const revertedProject = { ...project };
-      revertedProject.expenseCategories = project.expenseCategories.map(cat =>
-        cat.categoryId === addLineItemCategoryId
-          ? {
-              ...cat,
-              lineItems: cat.lineItems.filter(item => item.lineItemId !== tempLineItem.lineItemId),
-              estimated: cat.estimated - newEstimated,
-            }
-          : cat
-      );
-      revertedProject.Total_Budget = project.Total_Budget - newEstimated;
-      setProject(revertedProject);
-
-      setIsSavingLineItem(false);
-      alert(err instanceof Error ? err.message : "Failed to create line item");
-    }
+    });
   }
 
   async function handleCreatePurchaseRequest() {
@@ -1962,6 +2040,7 @@ export default function BudgetDetailPage({
                       ? () => handleDeleteCategory(category.categoryId, category.name)
                       : undefined
                   }
+                  isDeleting={deletingCategoryId === category.categoryId}
                   onEditLineItem={
                     category.categoryId !== 'registration-discounts'
                       ? (lineItemId) => {
@@ -2043,6 +2122,7 @@ export default function BudgetDetailPage({
                       ? () => handleDeleteCategory(category.categoryId, category.name)
                       : undefined
                   }
+                  isDeleting={deletingCategoryId === category.categoryId}
                   onEditLineItem={
                     category.categoryId !== 'registration-income'
                       ? (lineItemId) => {
@@ -2267,19 +2347,41 @@ export default function BudgetDetailPage({
               </div>
             )}
             {newCategoryType === "expense" && (
-              <div>
-                <label htmlFor="category-description" className="block text-sm font-medium mb-2">
-                  Description (optional)
-                </label>
-                <textarea
-                  id="category-description"
-                  value={newCategoryDescription}
-                  onChange={(e) => setNewCategoryDescription(e.target.value)}
-                  rows={3}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground resize-none"
-                  placeholder="Brief description of this category"
-                />
-              </div>
+              <>
+                <div>
+                  <label htmlFor="category-budgeted-amount" className="block text-sm font-medium mb-2">
+                    Budgeted Amount
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      $
+                    </span>
+                    <input
+                      id="category-budgeted-amount"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={newCategoryExpectedAmount}
+                      onChange={(e) => setNewCategoryExpectedAmount(e.target.value)}
+                      className="w-full pl-7 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="category-description" className="block text-sm font-medium mb-2">
+                    Description (optional)
+                  </label>
+                  <textarea
+                    id="category-description"
+                    value={newCategoryDescription}
+                    onChange={(e) => setNewCategoryDescription(e.target.value)}
+                    rows={3}
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground resize-none"
+                    placeholder="Brief description of this category"
+                  />
+                </div>
+              </>
             )}
           </div>
           <DialogFooter>
@@ -2312,11 +2414,11 @@ export default function BudgetDetailPage({
           <DialogHeader>
             <DialogTitle>Edit Category</DialogTitle>
             <DialogDescription>
-              Update the {editingCategoryId?.startsWith('income-') ? 'name and expected amount' : 'budgeted amount'} for this category.
+              Update the {String(editingCategoryId)?.startsWith('income-') ? 'name and expected amount' : 'budgeted amount'} for this category.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            {editingCategoryId?.startsWith('income-') && (
+          <div className={`space-y-4 py-4 transition-opacity ${isSavingEditCategory ? 'opacity-50 pointer-events-none' : ''}`}>
+            {String(editingCategoryId)?.startsWith('income-') && (
               <div>
                 <label htmlFor="edit-category-name" className="block text-sm font-medium mb-2">
                   Income Source Name *
@@ -2326,14 +2428,15 @@ export default function BudgetDetailPage({
                   type="text"
                   value={editCategoryName}
                   onChange={(e) => setEditCategoryName(e.target.value)}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                  disabled={isSavingEditCategory}
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground disabled:opacity-50"
                   placeholder="e.g., Sponsorships, Donations"
                 />
               </div>
             )}
             <div>
               <label htmlFor="edit-category-budget" className="block text-sm font-medium mb-2">
-                {editingCategoryId?.startsWith('income-') ? 'Expected Amount *' : 'Budgeted Amount *'}
+                {String(editingCategoryId)?.startsWith('income-') ? 'Expected Amount *' : 'Budgeted Amount *'}
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -2346,7 +2449,8 @@ export default function BudgetDetailPage({
                   min="0"
                   value={editCategoryBudgetValue}
                   onChange={(e) => setEditCategoryBudgetValue(e.target.value)}
-                  className="w-full pl-7 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                  disabled={isSavingEditCategory}
+                  className="w-full pl-7 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground disabled:opacity-50"
                   placeholder="0.00"
                 />
               </div>
@@ -2360,15 +2464,20 @@ export default function BudgetDetailPage({
                 setEditCategoryName("");
                 setEditCategoryBudgetValue("");
               }}
-              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              disabled={isSavingEditCategory}
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               onClick={handleEditCategory}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[#61bc47] hover:bg-[#52a03c] text-white rounded-lg transition-all"
+              disabled={isSavingEditCategory}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[#61bc47] hover:bg-[#52a03c] text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save Changes
+              {isSavingEditCategory && (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              )}
+              {isSavingEditCategory ? 'Saving...' : 'Save Changes'}
             </button>
           </DialogFooter>
         </DialogContent>

@@ -22,7 +22,7 @@ export async function POST(
 
     // Parse request body
     const body = await request.json();
-    const { name, type, description } = body;
+    const { name, type, description, budgetedAmount } = body;
 
     if (!name || !type) {
       return NextResponse.json(
@@ -113,7 +113,7 @@ export async function POST(
     const newCategory = {
       Project_ID: projectId,
       Project_Category_Type_ID: categoryTypeId,
-      Budgeted_Amount: 0,
+      Budgeted_Amount: parseFloat(budgetedAmount?.toString() || '0') || 0,
       Sort_Order: nextSortOrder,
     };
 
@@ -301,11 +301,11 @@ export async function DELETE(
 
     const userId = users[0].User_ID;
 
-    // Check if category has expense line items
-    const lineItems = await mp.getTableRecords<{ Project_Budget_Expense_Line_Item_ID: number }>({
-      table: 'Project_Budget_Expense_Line_Items',
-      select: 'Project_Budget_Expense_Line_Item_ID',
-      filter: `Project_Budget_Category_ID=${categoryId}`,
+    // Check if category has line items (consolidated table)
+    const lineItems = await mp.getTableRecords<{ Project_Budget_Line_Item_ID: number }>({
+      table: 'Project_Budget_Line_Items',
+      select: 'Project_Budget_Line_Item_ID',
+      filter: `Category_ID=${categoryId}`,
       top: 1,
     });
 
