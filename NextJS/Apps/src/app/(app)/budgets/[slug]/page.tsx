@@ -1347,10 +1347,14 @@ export default function BudgetDetailPage({
       return;
     }
 
-    // Find the category to add the line item to
-    const category = project.expenseCategories.find(cat => cat.categoryId === addLineItemCategoryId);
+    // Find the category to add the line item to (check both expense and income)
+    const expenseCategory = project.expenseCategories.find(cat => cat.categoryId === addLineItemCategoryId);
+    const incomeCategory = project.incomeCategories.find(cat => cat.categoryId === addLineItemCategoryId);
+    const category = expenseCategory || incomeCategory;
 
     if (!category) return;
+
+    const isIncome = !!incomeCategory;
 
     // Create temporary line item with loading state
     const tempId = `temp-${Date.now()}`;
@@ -1373,16 +1377,29 @@ export default function BudgetDetailPage({
 
     // 2. Add temp row with loading state (optimistic update)
     const updatedProject = { ...project };
-    updatedProject.expenseCategories = project.expenseCategories.map(cat =>
-      cat.categoryId === addLineItemCategoryId
-        ? {
-            ...cat,
-            lineItems: [...cat.lineItems, tempLineItem],
-            estimated: cat.estimated + newEstimated,
-          }
-        : cat
-    );
-    updatedProject.Total_Budget = project.Total_Budget + newEstimated;
+    if (isIncome) {
+      updatedProject.incomeCategories = project.incomeCategories.map(cat =>
+        cat.categoryId === addLineItemCategoryId
+          ? {
+              ...cat,
+              lineItems: [...cat.lineItems, tempLineItem],
+              estimated: cat.estimated + newEstimated,
+            }
+          : cat
+      );
+      updatedProject.Total_Expected_Income = project.Total_Expected_Income + newEstimated;
+    } else {
+      updatedProject.expenseCategories = project.expenseCategories.map(cat =>
+        cat.categoryId === addLineItemCategoryId
+          ? {
+              ...cat,
+              lineItems: [...cat.lineItems, tempLineItem],
+              estimated: cat.estimated + newEstimated,
+            }
+          : cat
+      );
+      updatedProject.Total_Budget = project.Total_Budget + newEstimated;
+    }
     setProject(updatedProject);
 
     // 3. Make API call
@@ -1422,16 +1439,29 @@ export default function BudgetDetailPage({
         setProject((prevProject) => {
           if (!prevProject) return prevProject;
           const revertedProject = { ...prevProject };
-          revertedProject.expenseCategories = prevProject.expenseCategories.map(cat =>
-            cat.categoryId === addLineItemCategoryId
-              ? {
-                  ...cat,
-                  lineItems: cat.lineItems.filter(item => item.lineItemId !== tempId),
-                  estimated: cat.estimated - newEstimated,
-                }
-              : cat
-          );
-          revertedProject.Total_Budget = prevProject.Total_Budget - newEstimated;
+          if (isIncome) {
+            revertedProject.incomeCategories = prevProject.incomeCategories.map(cat =>
+              cat.categoryId === addLineItemCategoryId
+                ? {
+                    ...cat,
+                    lineItems: cat.lineItems.filter(item => item.lineItemId !== tempId),
+                    estimated: cat.estimated - newEstimated,
+                  }
+                : cat
+            );
+            revertedProject.Total_Expected_Income = prevProject.Total_Expected_Income - newEstimated;
+          } else {
+            revertedProject.expenseCategories = prevProject.expenseCategories.map(cat =>
+              cat.categoryId === addLineItemCategoryId
+                ? {
+                    ...cat,
+                    lineItems: cat.lineItems.filter(item => item.lineItemId !== tempId),
+                    estimated: cat.estimated - newEstimated,
+                  }
+                : cat
+            );
+            revertedProject.Total_Budget = prevProject.Total_Budget - newEstimated;
+          }
           return revertedProject;
         });
 
@@ -1445,16 +1475,29 @@ export default function BudgetDetailPage({
       setProject((prevProject) => {
         if (!prevProject) return prevProject;
         const finalProject = { ...prevProject };
-        finalProject.expenseCategories = prevProject.expenseCategories.map(cat =>
-          cat.categoryId === addLineItemCategoryId
-            ? {
-                ...cat,
-                lineItems: cat.lineItems.map(item =>
-                  item.lineItemId === tempId ? createdLineItem : item
-                ),
-              }
-            : cat
-        );
+        if (isIncome) {
+          finalProject.incomeCategories = prevProject.incomeCategories.map(cat =>
+            cat.categoryId === addLineItemCategoryId
+              ? {
+                  ...cat,
+                  lineItems: cat.lineItems.map(item =>
+                    item.lineItemId === tempId ? createdLineItem : item
+                  ),
+                }
+              : cat
+          );
+        } else {
+          finalProject.expenseCategories = prevProject.expenseCategories.map(cat =>
+            cat.categoryId === addLineItemCategoryId
+              ? {
+                  ...cat,
+                  lineItems: cat.lineItems.map(item =>
+                    item.lineItemId === tempId ? createdLineItem : item
+                  ),
+                }
+              : cat
+          );
+        }
         return finalProject;
       });
 
@@ -2144,6 +2187,14 @@ export default function BudgetDetailPage({
                   onDeleteLineItem={
                     category.categoryId !== 'registration-income'
                       ? (lineItemId, lineItemName) => handleDeleteLineItem(category.categoryId, lineItemId, lineItemName)
+                      : undefined
+                  }
+                  onAddLineItem={
+                    category.categoryId !== 'registration-income'
+                      ? () => {
+                          setAddLineItemCategoryId(category.categoryId);
+                          setIsAddLineItemOpen(true);
+                        }
                       : undefined
                   }
                 />
