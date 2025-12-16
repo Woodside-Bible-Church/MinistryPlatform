@@ -1133,24 +1133,23 @@ export default function BudgetDetailPage({
       // Update total budget
       updatedProject.Total_Budget = (project.Total_Budget - previousEstimated) + newEstimated;
     } else {
-      // Income line items - update via income-line-items endpoint
+      // Income line items
       updatedProject.incomeCategories = project.incomeCategories.map(cat =>
         cat.categoryId === categoryId
           ? {
               ...cat,
-              name: newName,
-              estimated: newEstimated,
-              description: newDescription || undefined,
               lineItems: cat.lineItems.map(item =>
                 item.lineItemId === lineItemId
                   ? {
                       ...item,
                       name: newName,
+                      vendor: newVendor,
                       estimated: newEstimated,
                       description: newDescription,
                     }
                   : item
               ),
+              estimated: cat.estimated - previousEstimated + newEstimated,
             }
           : cat
       );
@@ -1159,39 +1158,20 @@ export default function BudgetDetailPage({
     }
       setProject(updatedProject);
 
-      // Make API call
-      let response;
-
-      if (category.type === "expense") {
-        // Update expense line item
-        response = await fetch(`/api/projects/${project.Project_ID}/categories/${categoryId}/line-items`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            lineItemId: lineItemId,
-            name: newName,
-            vendor: newVendor,
-            estimatedAmount: newEstimated,
-            description: newDescription,
-          }),
-        });
-      } else {
-        // Update income line item (which is actually the income category itself)
-        response = await fetch(`/api/projects/${project.Project_ID}/income-line-items`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            lineItemId: categoryId,
-            name: newName,
-            expectedAmount: newEstimated,
-            description: newDescription,
-          }),
-        });
-      }
+      // Make API call - both expense and income use the same endpoint now
+      const response = await fetch(`/api/projects/${project.Project_ID}/categories/${categoryId}/line-items`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          lineItemId: lineItemId,
+          name: newName,
+          vendor: newVendor,
+          estimatedAmount: newEstimated,
+          description: newDescription,
+        }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -1224,19 +1204,18 @@ export default function BudgetDetailPage({
             cat.categoryId === categoryId
               ? {
                   ...cat,
-                  name: previousName,
-                  estimated: previousEstimated,
-                  description: previousDescription || undefined,
                   lineItems: cat.lineItems.map(item =>
                     item.lineItemId === lineItemId
                       ? {
                           ...item,
                           name: previousName,
+                          vendor: previousVendor,
                           estimated: previousEstimated,
                           description: previousDescription,
                         }
                       : item
                   ),
+                  estimated: cat.estimated - newEstimated + previousEstimated,
                 }
               : cat
           );
