@@ -508,6 +508,8 @@ export default function BudgetDetailPage({
     Is_Revenue: boolean;
   }>>([]);
   const [isLoadingCategoryTypes, setIsLoadingCategoryTypes] = useState(false);
+  const [isAddCategoryTypeOpen, setIsAddCategoryTypeOpen] = useState(false);
+  const [newCategoryTypeName, setNewCategoryTypeName] = useState("");
 
   // Edit Category modal state
   const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
@@ -571,39 +573,41 @@ export default function BudgetDetailPage({
     fetchProjectDetails();
   }, [slug]);
 
+  // Function to fetch category types
+  const fetchCategoryTypes = async () => {
+    if (!project) return;
+
+    try {
+      setIsLoadingCategoryTypes(true);
+      const response = await fetch(`/api/category-types?type=${newCategoryType}`);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch category types");
+      }
+
+      const types = await response.json();
+
+      // Filter out category types that are already in use for this project
+      const existingCategoryNames = new Set(
+        project.expenseCategories.map(cat => cat.name)
+      );
+
+      const filteredTypes = types.filter(
+        (type: { Project_Category_Type: string }) =>
+          !existingCategoryNames.has(type.Project_Category_Type)
+      );
+
+      setAvailableCategoryTypes(filteredTypes);
+    } catch (err) {
+      console.error("Error fetching category types:", err);
+    } finally {
+      setIsLoadingCategoryTypes(false);
+    }
+  };
+
   // Fetch category types when modal opens (only for expense categories)
   useEffect(() => {
-    async function fetchCategoryTypes() {
-      if (!isAddCategoryOpen || newCategoryType === 'revenue' || !project) return;
-
-      try {
-        setIsLoadingCategoryTypes(true);
-        const response = await fetch(`/api/category-types?type=${newCategoryType}`);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch category types");
-        }
-
-        const types = await response.json();
-
-        // Filter out category types that are already in use for this project
-        const existingCategoryNames = new Set(
-          project.expenseCategories.map(cat => cat.name)
-        );
-
-        const filteredTypes = types.filter(
-          (type: { Project_Category_Type: string }) =>
-            !existingCategoryNames.has(type.Project_Category_Type)
-        );
-
-        setAvailableCategoryTypes(filteredTypes);
-      } catch (err) {
-        console.error("Error fetching category types:", err);
-      } finally {
-        setIsLoadingCategoryTypes(false);
-      }
-    }
-
+    if (!isAddCategoryOpen || newCategoryType === 'revenue' || !project) return;
     fetchCategoryTypes();
   }, [isAddCategoryOpen, newCategoryType, project]);
 
@@ -733,11 +737,61 @@ export default function BudgetDetailPage({
     }
   }
 
+  async function handleAddCategoryType() {
+    if (!newCategoryTypeName.trim()) {
+      toast.error("Please enter a category type name");
+      return;
+    }
+
+    // Close modal immediately
+    setIsAddCategoryTypeOpen(false);
+
+    // Use toast.promise for automatic loading/success/error states
+    toast.promise(
+      (async () => {
+        // Create the new category type in MP
+        const response = await fetch(`/api/projects/${project?.Project_ID}/category-types`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: newCategoryTypeName.trim(),
+            isRevenue: newCategoryType === "revenue",
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to create category type");
+        }
+
+        const createdType = await response.json();
+
+        // Refresh the available category types
+        await fetchCategoryTypes();
+
+        // Pre-select the newly created category type
+        setNewCategoryName(createdType.Project_Category_Type);
+
+        // Reset form
+        setNewCategoryTypeName("");
+
+        return createdType.Project_Category_Type;
+      })(),
+      {
+        loading: "Creating category type...",
+        success: (name) => `${name} created successfully`,
+        error: (err) => err.message || "Failed to create category type",
+      }
+    );
+  }
+
   async function handleAddCategory() {
     if (!project) return;
 
-    // Determine the actual category name to use
-    const categoryName = newCategoryName === "__NEW__" ? newCategoryDescription.trim() : newCategoryName.trim();
+    // Use the selected category name directly
+    const categoryName = newCategoryName.trim();
 
     if (!categoryName) {
       toast.error("Please enter a category name");
@@ -753,7 +807,7 @@ export default function BudgetDetailPage({
       categoryId: `temp-${Date.now()}`,
       name: categoryName,
       type: newCategoryType,
-      description: newCategoryName === "__NEW__" ? undefined : (newCategoryDescription || undefined),
+      description: newCategoryDescription || undefined,
       estimated: budgetedAmount,
       actual: 0,
       sortOrder: 999,
@@ -785,7 +839,6 @@ export default function BudgetDetailPage({
           body: JSON.stringify({
             name: categoryName,
             type: newCategoryType === "expense" ? "expense" : "revenue",
-            description: newCategoryName === "__NEW__" ? null : (newCategoryDescription || null),
             budgetedAmount: budgetedAmount,
           }),
         });
@@ -814,6 +867,7 @@ export default function BudgetDetailPage({
 
         // Reset form
         setNewCategoryName("");
+        setNewCategoryTypeName("");
         setNewCategoryDescription("");
         setNewCategoryExpectedAmount("");
         setNewCategoryType("expense");
@@ -1316,14 +1370,23 @@ export default function BudgetDetailPage({
       return;
     }
 
-    // Find the category to add the line item to (check both expense and income)
+    // Find the category to add the line item to (check all categories including special ones)
     const expenseCategory = project.expenseCategories.find(cat => cat.categoryId === addLineItemCategoryId);
     const incomeCategory = project.incomeCategories.find(cat => cat.categoryId === addLineItemCategoryId);
-    const category = expenseCategory || incomeCategory;
+    const registrationIncomeCategory = project.registrationIncomeCategory?.categoryId === addLineItemCategoryId
+      ? project.registrationIncomeCategory
+      : null;
+    const registrationDiscountsCategory = project.registrationDiscountsCategory?.categoryId === addLineItemCategoryId
+      ? project.registrationDiscountsCategory
+      : null;
+
+    const category = expenseCategory || incomeCategory || registrationIncomeCategory || registrationDiscountsCategory;
 
     if (!category) return;
 
-    const isIncome = !!incomeCategory;
+    const isIncome = !!(incomeCategory || registrationIncomeCategory);
+    const isRegistrationIncome = !!registrationIncomeCategory;
+    const isRegistrationDiscounts = !!registrationDiscountsCategory;
 
     // Create temporary line item with loading state
     const tempId = `temp-${Date.now()}`;
@@ -1346,7 +1409,24 @@ export default function BudgetDetailPage({
 
     // 2. Add temp row with loading state (optimistic update)
     const updatedProject = { ...project };
-    if (isIncome) {
+    if (isRegistrationIncome && registrationIncomeCategory) {
+      // Update registration income category
+      updatedProject.registrationIncomeCategory = {
+        ...registrationIncomeCategory,
+        lineItems: [...(registrationIncomeCategory.lineItems || []), tempLineItem],
+        estimated: registrationIncomeCategory.estimated + newEstimated,
+      };
+      updatedProject.Total_Expected_Income = project.Total_Expected_Income + newEstimated;
+    } else if (isRegistrationDiscounts && registrationDiscountsCategory) {
+      // Update registration discounts category
+      updatedProject.registrationDiscountsCategory = {
+        ...registrationDiscountsCategory,
+        lineItems: [...(registrationDiscountsCategory.lineItems || []), tempLineItem],
+        estimated: registrationDiscountsCategory.estimated + newEstimated,
+      };
+      updatedProject.Total_Budget = project.Total_Budget + newEstimated;
+    } else if (isIncome) {
+      // Update regular income categories
       updatedProject.incomeCategories = project.incomeCategories.map(cat =>
         cat.categoryId === addLineItemCategoryId
           ? {
@@ -1358,6 +1438,7 @@ export default function BudgetDetailPage({
       );
       updatedProject.Total_Expected_Income = project.Total_Expected_Income + newEstimated;
     } else {
+      // Update regular expense categories
       updatedProject.expenseCategories = project.expenseCategories.map(cat =>
         cat.categoryId === addLineItemCategoryId
           ? {
@@ -1408,7 +1489,21 @@ export default function BudgetDetailPage({
         setProject((prevProject) => {
           if (!prevProject) return prevProject;
           const revertedProject = { ...prevProject };
-          if (isIncome) {
+          if (isRegistrationIncome && prevProject.registrationIncomeCategory) {
+            revertedProject.registrationIncomeCategory = {
+              ...prevProject.registrationIncomeCategory,
+              lineItems: prevProject.registrationIncomeCategory.lineItems.filter(item => item.lineItemId !== tempId),
+              estimated: prevProject.registrationIncomeCategory.estimated - newEstimated,
+            };
+            revertedProject.Total_Expected_Income = prevProject.Total_Expected_Income - newEstimated;
+          } else if (isRegistrationDiscounts && prevProject.registrationDiscountsCategory) {
+            revertedProject.registrationDiscountsCategory = {
+              ...prevProject.registrationDiscountsCategory,
+              lineItems: prevProject.registrationDiscountsCategory.lineItems.filter(item => item.lineItemId !== tempId),
+              estimated: prevProject.registrationDiscountsCategory.estimated - newEstimated,
+            };
+            revertedProject.Total_Budget = prevProject.Total_Budget - newEstimated;
+          } else if (isIncome) {
             revertedProject.incomeCategories = prevProject.incomeCategories.map(cat =>
               cat.categoryId === addLineItemCategoryId
                 ? {
@@ -1444,7 +1539,21 @@ export default function BudgetDetailPage({
       setProject((prevProject) => {
         if (!prevProject) return prevProject;
         const finalProject = { ...prevProject };
-        if (isIncome) {
+        if (isRegistrationIncome && prevProject.registrationIncomeCategory) {
+          finalProject.registrationIncomeCategory = {
+            ...prevProject.registrationIncomeCategory,
+            lineItems: prevProject.registrationIncomeCategory.lineItems.map(item =>
+              item.lineItemId === tempId ? createdLineItem : item
+            ),
+          };
+        } else if (isRegistrationDiscounts && prevProject.registrationDiscountsCategory) {
+          finalProject.registrationDiscountsCategory = {
+            ...prevProject.registrationDiscountsCategory,
+            lineItems: prevProject.registrationDiscountsCategory.lineItems.map(item =>
+              item.lineItemId === tempId ? createdLineItem : item
+            ),
+          };
+        } else if (isIncome) {
           finalProject.incomeCategories = prevProject.incomeCategories.map(cat =>
             cat.categoryId === addLineItemCategoryId
               ? {
@@ -2298,32 +2407,18 @@ export default function BudgetDetailPage({
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="w-6 h-6 animate-spin text-[#61bc47]" />
                   </div>
-                ) : newCategoryName === "__NEW__" ? (
-                  <div className="space-y-2">
-                    <input
-                      id="new-category-type-name"
-                      type="text"
-                      value={newCategoryDescription}
-                      onChange={(e) => setNewCategoryDescription(e.target.value)}
-                      className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
-                      placeholder="Enter new category type name"
-                      autoFocus
-                    />
-                    <button
-                      onClick={() => {
-                        setNewCategoryName("");
-                        setNewCategoryDescription("");
-                      }}
-                      className="text-sm text-muted-foreground hover:text-foreground"
-                    >
-                      ← Back to selection
-                    </button>
-                  </div>
                 ) : (
                   <select
                     id="category-type"
                     value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    onChange={(e) => {
+                      if (e.target.value === "__ADD_NEW__") {
+                        setIsAddCategoryTypeOpen(true);
+                        e.target.value = ""; // Reset dropdown
+                      } else {
+                        setNewCategoryName(e.target.value);
+                      }
+                    }}
                     className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
                   >
                     <option value="">Select a category type...</option>
@@ -2332,7 +2427,9 @@ export default function BudgetDetailPage({
                         {type.Project_Category_Type}
                       </option>
                     ))}
-                    <option value="__NEW__">+ Add New Category Type...</option>
+                    <option value="__ADD_NEW__" className="font-semibold text-[#61bc47]">
+                      + Add New Category Type...
+                    </option>
                   </select>
                 )
               ) : (
@@ -2425,6 +2522,51 @@ export default function BudgetDetailPage({
             >
               <Plus className="w-4 h-4" />
               Add Category
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add New Category Type Dialog */}
+      <Dialog open={isAddCategoryTypeOpen} onOpenChange={setIsAddCategoryTypeOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Category Type</DialogTitle>
+            <DialogDescription>
+              Create a new {newCategoryType === "expense" ? "expense" : "revenue"} category type that will be available for all projects.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <label htmlFor="new-category-type-name" className="block text-sm font-medium mb-2">
+              Category Type Name *
+            </label>
+            <input
+              id="new-category-type-name"
+              type="text"
+              value={newCategoryTypeName}
+              onChange={(e) => setNewCategoryTypeName(e.target.value)}
+              className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+              placeholder="e.g., Miscellaneous, Contractor, Facility Rental"
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <button
+              onClick={() => {
+                setIsAddCategoryTypeOpen(false);
+                setNewCategoryTypeName("");
+              }}
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAddCategoryType}
+              disabled={!newCategoryTypeName.trim()}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[#61bc47] hover:bg-[#52a03c] text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Plus className="w-4 h-4" />
+              Create Category Type
             </button>
           </DialogFooter>
         </DialogContent>

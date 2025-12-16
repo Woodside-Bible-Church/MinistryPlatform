@@ -22,7 +22,7 @@ export async function POST(
 
     // Parse request body
     const body = await request.json();
-    const { name, type, description, budgetedAmount } = body;
+    const { name, type, budgetedAmount } = body;
 
     if (!name || !type) {
       return NextResponse.json(
@@ -72,7 +72,6 @@ export async function POST(
       const newCategoryType = {
         Project_Category_Type: name,
         Is_Revenue: isRevenue === 1,
-        Description: description || null,
       };
 
       const createdTypes = await mp.createTableRecords(
@@ -122,7 +121,7 @@ export async function POST(
       [newCategory],
       {
         $userId: userId,
-        $select: 'Project_Budget_Category_ID,Project_Category_Type_ID_Table.Project_Category_Type,Budgeted_Amount',
+        $select: 'Project_Budget_Category_ID,Project_Category_Type_ID_Table.Project_Category_Type,Budgeted_Amount,Project_Budget_Categories.Sort_Order',
       }
     );
 
@@ -144,7 +143,6 @@ export async function POST(
       categoryId: created.Project_Budget_Category_ID,
       name: created.Project_Category_Type,
       type: type,
-      description: description || undefined,
       sortOrder: nextSortOrder,
       estimated: created.Budgeted_Amount || 0,
       actual: 0,
