@@ -1069,7 +1069,9 @@ export default function BudgetDetailPage({
   async function handleEditLineItem() {
     if (!project || !editingLineItemId || !editingLineItemCategoryId) return;
 
-    // Capture values before closing modal
+    // Capture values before closing modal (including IDs)
+    const lineItemId = editingLineItemId;
+    const categoryId = editingLineItemCategoryId;
     const newEstimated = parseFloat(editLineItemEstimated) || 0;
     const newName = editLineItemName.trim();
     const newVendor = editLineItemVendor.trim() || null;
@@ -1082,11 +1084,11 @@ export default function BudgetDetailPage({
 
     // Find the category and line item being edited
     const allCategories = [...project.expenseCategories, ...project.incomeCategories];
-    const category = allCategories.find(cat => cat.categoryId === editingLineItemCategoryId);
+    const category = allCategories.find(cat => cat.categoryId === categoryId);
 
     if (!category) return;
 
-    const lineItem = category.lineItems.find(item => item.lineItemId === editingLineItemId);
+    const lineItem = category.lineItems.find(item => item.lineItemId === lineItemId);
 
     if (!lineItem) return;
 
@@ -1110,11 +1112,11 @@ export default function BudgetDetailPage({
       const updatedProject = { ...project };
     if (category.type === "expense") {
       updatedProject.expenseCategories = project.expenseCategories.map(cat =>
-        cat.categoryId === editingLineItemCategoryId
+        cat.categoryId === categoryId
           ? {
               ...cat,
               lineItems: cat.lineItems.map(item =>
-                item.lineItemId === editingLineItemId
+                item.lineItemId === lineItemId
                   ? {
                       ...item,
                       name: newName,
@@ -1133,14 +1135,14 @@ export default function BudgetDetailPage({
     } else {
       // Income line items - update via income-line-items endpoint
       updatedProject.incomeCategories = project.incomeCategories.map(cat =>
-        cat.categoryId === editingLineItemCategoryId
+        cat.categoryId === categoryId
           ? {
               ...cat,
               name: newName,
               estimated: newEstimated,
               description: newDescription || undefined,
               lineItems: cat.lineItems.map(item =>
-                item.lineItemId === editingLineItemId
+                item.lineItemId === lineItemId
                   ? {
                       ...item,
                       name: newName,
@@ -1162,13 +1164,13 @@ export default function BudgetDetailPage({
 
       if (category.type === "expense") {
         // Update expense line item
-        response = await fetch(`/api/projects/${project.Project_ID}/categories/${editingLineItemCategoryId}/line-items`, {
+        response = await fetch(`/api/projects/${project.Project_ID}/categories/${categoryId}/line-items`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            lineItemId: editingLineItemId,
+            lineItemId: lineItemId,
             name: newName,
             vendor: newVendor,
             estimatedAmount: newEstimated,
@@ -1183,7 +1185,7 @@ export default function BudgetDetailPage({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            lineItemId: editingLineItemCategoryId,
+            lineItemId: categoryId,
             name: newName,
             expectedAmount: newEstimated,
             description: newDescription,
@@ -1198,11 +1200,11 @@ export default function BudgetDetailPage({
         const revertedProject = { ...project };
         if (category.type === "expense") {
           revertedProject.expenseCategories = project.expenseCategories.map(cat =>
-            cat.categoryId === editingLineItemCategoryId
+            cat.categoryId === categoryId
               ? {
                   ...cat,
                   lineItems: cat.lineItems.map(item =>
-                    item.lineItemId === editingLineItemId
+                    item.lineItemId === lineItemId
                       ? {
                           ...item,
                           name: previousName,
@@ -1218,7 +1220,26 @@ export default function BudgetDetailPage({
           );
           revertedProject.Total_Budget = (updatedProject.Total_Budget - newEstimated) + previousEstimated;
         } else {
-          revertedProject.incomeCategories = project.incomeCategories;
+          revertedProject.incomeCategories = project.incomeCategories.map(cat =>
+            cat.categoryId === categoryId
+              ? {
+                  ...cat,
+                  name: previousName,
+                  estimated: previousEstimated,
+                  description: previousDescription || undefined,
+                  lineItems: cat.lineItems.map(item =>
+                    item.lineItemId === lineItemId
+                      ? {
+                          ...item,
+                          name: previousName,
+                          estimated: previousEstimated,
+                          description: previousDescription,
+                        }
+                      : item
+                  ),
+                }
+              : cat
+          );
           revertedProject.Total_Expected_Income = (updatedProject.Total_Expected_Income - newEstimated) + previousEstimated;
         }
         setProject(revertedProject);
