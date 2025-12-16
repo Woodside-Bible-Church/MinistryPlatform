@@ -26,6 +26,8 @@ import {
   Loader2,
   FileText,
   ShoppingCart,
+  Search,
+  X,
 } from "lucide-react";
 import {
   ChartConfig,
@@ -122,6 +124,7 @@ function CategorySection({
   onDeleteLineItem,
   onAddLineItem,
   onCreatePurchaseRequest,
+  filteredLineItems,
 }: {
   category: BudgetCategory;
   projectSlug: string;
@@ -139,6 +142,7 @@ function CategorySection({
   onDeleteLineItem?: (lineItemId: string, lineItemName: string) => void;
   onAddLineItem?: () => void;
   onCreatePurchaseRequest?: (lineItemId: string, lineItemName: string, estimated: number, vendor: string | null) => void;
+  filteredLineItems?: BudgetCategory['lineItems'];
 }) {
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -148,6 +152,9 @@ function CategorySection({
 
   // Simplified view for registration discounts and revenue (no individual budgets per line item)
   const isSimplifiedView = category.categoryId === 'registration-discounts' || category.categoryId === 'registration-income';
+
+  // Use filtered line items if provided, otherwise use all line items
+  const displayLineItems = filteredLineItems || category.lineItems;
 
   return (
     <div className={`rounded-lg overflow-hidden transition-opacity ${
@@ -294,7 +301,7 @@ function CategorySection({
       </div>
 
       {/* Line Items Table */}
-      {isExpanded && category.lineItems && category.lineItems.length > 0 && (
+      {isExpanded && displayLineItems && displayLineItems.length > 0 && (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -329,7 +336,7 @@ function CategorySection({
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {category.lineItems.map((item) => {
+              {displayLineItems.map((item) => {
                 const itemVariance = item.actual - item.estimated;
                 const itemVariancePercent =
                   item.estimated > 0 ? (itemVariance / item.estimated) * 100 : 0;
@@ -474,6 +481,8 @@ export default function BudgetDetailPage({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"expenses" | "income">("expenses");
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
+  const [isViewDetailsOpen, setIsViewDetailsOpen] = useState(false);
 
   // Find projects of the same type for dropdown
   const currentProject = allProjects.find(p => p.slug === slug);
@@ -1728,6 +1737,45 @@ export default function BudgetDetailPage({
     ...(project?.incomeCategories || []),
   ];
 
+  // Filter categories based on search input
+  const filterCategories = (categories: typeof expenseCategories) => {
+    if (!categoryFilter.trim()) {
+      return categories.map(cat => ({ ...cat, filteredLineItems: cat.lineItems }));
+    }
+
+    const searchLower = categoryFilter.toLowerCase();
+    const filtered: Array<typeof categories[0] & { filteredLineItems: typeof categories[0]['lineItems'] }> = [];
+
+    categories.forEach(category => {
+      // Check if category name matches
+      const categoryNameMatches = category.name.toLowerCase().includes(searchLower);
+
+      if (categoryNameMatches) {
+        // Category name matches - show all line items
+        filtered.push({ ...category, filteredLineItems: category.lineItems });
+        return;
+      }
+
+      // Category name doesn't match - check line items
+      if (!category.lineItems || category.lineItems.length === 0) return;
+
+      const matchingLineItems = category.lineItems.filter(item =>
+        item.name.toLowerCase().includes(searchLower) ||
+        (item.description && item.description.toLowerCase().includes(searchLower))
+      );
+
+      if (matchingLineItems.length > 0) {
+        // Some line items match - show only matching line items
+        filtered.push({ ...category, filteredLineItems: matchingLineItems });
+      }
+    });
+
+    return filtered;
+  };
+
+  const filteredExpenseCategories = filterCategories(expenseCategories);
+  const filteredRevenueCategories = filterCategories(revenueCategories);
+
   const totalExpensesEstimated = project?.Total_Budget || 0;
   const totalExpensesActual = project?.Total_Actual_Expenses || 0;
   const totalRevenueEstimated = project?.Total_Expected_Income || 0;
@@ -1801,28 +1849,48 @@ export default function BudgetDetailPage({
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Link
-              href={`/budgets/${slug}/reports`}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 dark:bg-zinc-700 text-white rounded-lg hover:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors"
+          <div className="relative">
+            <button
+              onClick={() => setIsViewDetailsOpen(!isViewDetailsOpen)}
+              onBlur={(e) => {
+                // Close dropdown when clicking outside
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                  setTimeout(() => setIsViewDetailsOpen(false), 150);
+                }
+              }}
+              className="appearance-none inline-flex items-center gap-2 pl-4 pr-10 py-2 bg-zinc-800 dark:bg-zinc-700 text-white rounded-lg hover:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
             >
-              <BarChart3 className="w-4 h-4" />
-              Reports
-            </Link>
-            <Link
-              href={`/budgets/${slug}/transactions`}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 dark:bg-zinc-700 text-white rounded-lg hover:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors"
-            >
-              <List className="w-4 h-4" />
-              Transactions
-            </Link>
-            <Link
-              href={`/budgets/${slug}/purchase-requests`}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-            >
-              <ShoppingCart className="w-4 h-4" />
-              Purchase Requests
-            </Link>
+              View Details
+              <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white transition-transform ${isViewDetailsOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {isViewDetailsOpen && (
+              <div className="absolute top-full left-0 mt-1 bg-zinc-800 dark:bg-zinc-700 rounded-lg shadow-lg overflow-hidden z-10 min-w-[200px]">
+                <Link
+                  href={`/budgets/${slug}/reports`}
+                  className="flex items-center gap-2 px-4 py-2 text-white hover:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors whitespace-nowrap"
+                  onClick={() => setIsViewDetailsOpen(false)}
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  Reports
+                </Link>
+                <Link
+                  href={`/budgets/${slug}/transactions`}
+                  className="flex items-center gap-2 px-4 py-2 text-white hover:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors whitespace-nowrap"
+                  onClick={() => setIsViewDetailsOpen(false)}
+                >
+                  <List className="w-4 h-4" />
+                  Transactions
+                </Link>
+                <Link
+                  href={`/budgets/${slug}/purchase-requests`}
+                  className="flex items-center gap-2 px-4 py-2 text-white hover:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors whitespace-nowrap"
+                  onClick={() => setIsViewDetailsOpen(false)}
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  Purchase Requests
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -2121,10 +2189,38 @@ export default function BudgetDetailPage({
         </>
       )}
 
+      {/* Filter Input */}
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+          <input
+            type="text"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            placeholder="Filter categories and line items..."
+            className="w-full pl-10 pr-10 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+          />
+          {categoryFilter && (
+            <button
+              onClick={() => setCategoryFilter("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        {categoryFilter && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Showing {viewMode === "expenses" ? filteredExpenseCategories.length : filteredRevenueCategories.length} of{" "}
+            {viewMode === "expenses" ? expenseCategories.length : revenueCategories.length} categories
+          </p>
+        )}
+      </div>
+
       {/* Categories */}
       <div className="space-y-4">
         {viewMode === "expenses"
-          ? expenseCategories
+          ? filteredExpenseCategories
               .sort((a, b) => {
                 // Always put Registration Discounts first
                 if (a.categoryId === 'registration-discounts') return -1;
@@ -2204,9 +2300,10 @@ export default function BudgetDetailPage({
                         }
                       : undefined
                   }
+                  filteredLineItems={category.filteredLineItems}
                 />
               ))
-          : revenueCategories
+          : filteredRevenueCategories
               .sort((a, b) => {
                 // Always put Registration Revenue first
                 if (a.categoryId === 'registration-income') return -1;
@@ -2275,6 +2372,7 @@ export default function BudgetDetailPage({
                         }
                       : undefined
                   }
+                  filteredLineItems={category.filteredLineItems}
                 />
               ))}
 
