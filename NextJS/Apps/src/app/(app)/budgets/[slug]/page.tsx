@@ -1278,35 +1278,28 @@ export default function BudgetDetailPage({
         // Update total budget
         updatedProject.Total_Budget = project.Total_Budget - lineItem.estimated;
       } else {
-        // Income line items - these are categories themselves, so delete the category
-        updatedProject.incomeCategories = project.incomeCategories.filter(
-          cat => cat.categoryId !== categoryId
+        // Income line items - delete the line item from the category
+        updatedProject.incomeCategories = project.incomeCategories.map(cat =>
+          cat.categoryId === categoryId
+            ? {
+                ...cat,
+                lineItems: cat.lineItems.filter(item => item.lineItemId !== lineItemId),
+                estimated: cat.estimated - lineItem.estimated,
+              }
+            : cat
         );
         // Update total expected income
         updatedProject.Total_Expected_Income = project.Total_Expected_Income - lineItem.estimated;
       }
       setProject(updatedProject);
 
-      // Make API call
-      let response;
-
-      if (category.type === "expense") {
-        // Delete expense line item
-        response = await fetch(
-          `/api/projects/${project.Project_ID}/categories/${categoryId}/line-items?lineItemId=${lineItemId}`,
-          {
-            method: "DELETE",
-          }
-        );
-      } else {
-        // Delete income line item (delete the category)
-        response = await fetch(
-          `/api/projects/${project.Project_ID}/income-line-items?lineItemId=${categoryId}`,
-          {
-            method: "DELETE",
-          }
-        );
-      }
+      // Make API call - both expense and income use the same endpoint
+      const response = await fetch(
+        `/api/projects/${project.Project_ID}/categories/${categoryId}/line-items?lineItemId=${lineItemId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
