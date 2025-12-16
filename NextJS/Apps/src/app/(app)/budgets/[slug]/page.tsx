@@ -1420,6 +1420,7 @@ export default function BudgetDetailPage({
 
         // Revert optimistic update on error
         setProject((prevProject) => {
+          if (!prevProject) return prevProject;
           const revertedProject = { ...prevProject };
           revertedProject.expenseCategories = prevProject.expenseCategories.map(cat =>
             cat.categoryId === addLineItemCategoryId
@@ -1442,6 +1443,7 @@ export default function BudgetDetailPage({
 
       // Replace temp item with real data
       setProject((prevProject) => {
+        if (!prevProject) return prevProject;
         const finalProject = { ...prevProject };
         finalProject.expenseCategories = prevProject.expenseCategories.map(cat =>
           cat.categoryId === addLineItemCategoryId
