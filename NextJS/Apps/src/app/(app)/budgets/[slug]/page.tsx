@@ -776,50 +776,26 @@ export default function BudgetDetailPage({
     // Use toast.promise for automatic loading/success/error states
     toast.promise(
       (async () => {
-        let createdCategory;
+        // Both expense and income categories use the same endpoint now
+        const response = await fetch(`/api/projects/${project.Project_ID}/categories`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: categoryName,
+            type: newCategoryType === "expense" ? "expense" : "revenue",
+            description: newCategoryName === "__NEW__" ? null : (newCategoryDescription || null),
+            budgetedAmount: budgetedAmount,
+          }),
+        });
 
-        if (newCategoryType === "expense") {
-          // Expense categories use the categories endpoint
-          const response = await fetch(`/api/projects/${project.Project_ID}/categories`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              name: categoryName,
-              type: newCategoryType,
-              description: newCategoryName === "__NEW__" ? null : (newCategoryDescription || null),
-              budgetedAmount: budgetedAmount,
-            }),
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Failed to create category");
-          }
-
-          createdCategory = await response.json();
-        } else {
-          // Income categories are actually income line items
-          const response = await fetch(`/api/projects/${project.Project_ID}/income-line-items`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              name: newCategoryName,
-              expectedAmount: parseFloat(newCategoryExpectedAmount) || 0,
-              description: null,
-            }),
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Failed to create income source");
-          }
-
-          createdCategory = await response.json();
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to create category");
         }
+
+        const createdCategory = await response.json();
 
         // Update with real category data
         const finalProject = { ...project };
