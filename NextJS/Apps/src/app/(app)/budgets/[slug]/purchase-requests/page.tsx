@@ -1018,7 +1018,7 @@ export default function PurchaseRequestsPage({
               </div>
 
               {/* Details Row */}
-              <div className="pt-3 border-t border-border">
+              <div className="pt-3">
                 <div className="flex items-end justify-between gap-4">
                   <div className="flex-1 space-y-2.5">
                     {request.description && (
