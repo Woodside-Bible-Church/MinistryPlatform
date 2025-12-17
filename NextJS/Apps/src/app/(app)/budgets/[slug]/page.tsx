@@ -613,7 +613,7 @@ export default function BudgetDetailPage({
 
       // Filter out category types that are already in use for this project
       const existingCategoryNames = new Set(
-        project.expenseCategories.map(cat => cat.name)
+        (project.expenseCategories || []).map(cat => cat.name)
       );
 
       const filteredTypes = types.filter(
