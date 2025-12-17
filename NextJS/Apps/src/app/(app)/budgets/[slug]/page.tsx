@@ -762,6 +762,8 @@ export default function BudgetDetailPage({
   }
 
   async function handleAddCategoryType() {
+    if (!project) return;
+
     if (!newCategoryTypeName.trim()) {
       toast.error("Please enter a category type name");
       return;
