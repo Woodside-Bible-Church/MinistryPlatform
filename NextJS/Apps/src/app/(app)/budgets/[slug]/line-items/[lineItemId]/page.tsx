@@ -669,16 +669,14 @@ export default function LineItemDetailsPage({
             <div className="text-sm text-muted-foreground mb-1">Remaining</div>
             <div
               className={`text-2xl font-bold ${
-                lineItem.variance > 0
-                  ? "text-red-600"
-                  : lineItem.variance < 0
-                  ? "text-green-600"
+                lineItem.variance < 0
+                  ? "text-green-600 dark:text-green-400"
+                  : lineItem.variance > 0
+                  ? "text-red-600 dark:text-red-400"
                   : "text-muted-foreground"
               }`}
             >
-              {formatCurrency(Math.abs(lineItem.variance))}
-              {lineItem.variance > 0 && " over"}
-              {lineItem.variance < 0 && " under"}
+              {formatCurrency(-lineItem.variance)}
             </div>
           </div>
           {lineItem.vendorName && (
