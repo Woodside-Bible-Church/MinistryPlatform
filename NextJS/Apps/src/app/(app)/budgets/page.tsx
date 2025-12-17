@@ -9,6 +9,7 @@ import {
   ChevronDown,
   Search,
   AlertCircle,
+  ArrowRight,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProjects } from "@/hooks/useProjects";
@@ -260,7 +261,7 @@ export default function BudgetsPage() {
             return (
               <div
                 key={typeId}
-                className={`bg-card border border-border rounded-lg overflow-hidden hover:shadow-xl hover:border-[#61BC47]/50 transition-all cursor-pointer active:scale-[0.98] ${
+                className={`group bg-card border border-border rounded-lg overflow-hidden hover:shadow-xl hover:border-[#61BC47]/50 transition-all cursor-pointer active:scale-[0.98] ${
                   clickedCard === displayedProject.slug ? 'opacity-70' : ''
                 }`}
                 onClick={(e) => handleCardClick(displayedProject, e)}
@@ -445,6 +446,12 @@ export default function BudgetsPage() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Click indicator */}
+                    <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground mt-3 group-hover:text-[#61BC47] transition-colors">
+                      <span>View details</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -455,7 +462,7 @@ export default function BudgetsPage() {
           {standaloneProjects.map((project) => (
             <div
               key={project.id}
-              className={`bg-card border border-border rounded-lg overflow-hidden hover:shadow-xl hover:border-[#61BC47]/50 transition-all cursor-pointer active:scale-[0.98] ${
+              className={`group bg-card border border-border rounded-lg overflow-hidden hover:shadow-xl hover:border-[#61BC47]/50 transition-all cursor-pointer active:scale-[0.98] ${
                 clickedCard === project.slug ? 'opacity-70' : ''
               }`}
               onClick={(e) => handleCardClick(project, e)}
@@ -581,6 +588,12 @@ export default function BudgetsPage() {
                           </span>
                         </div>
                       </div>
+                    </div>
+
+                    {/* Click indicator */}
+                    <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground mt-3 group-hover:text-[#61BC47] transition-colors">
+                      <span>View details</span>
+                      <ArrowRight className="w-3 h-3" />
                     </div>
                   </div>
                 </div>
