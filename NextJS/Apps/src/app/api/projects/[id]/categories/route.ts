@@ -109,20 +109,13 @@ export async function POST(
       : 1;
 
     // Create the budget category
-    // Note: Budgeted_Amount is now a computed column (sum of line items)
-    // Only set it for revenue categories, which still have manual budgets
+    // Note: Budgeted_Amount is now a computed column (sum of line items) for ALL categories
+    // We don't set it manually - it auto-calculates from line items
     const newCategory: Record<string, any> = {
       Project_ID: projectId,
       Project_Category_Type_ID: categoryTypeId,
       Sort_Order: nextSortOrder,
     };
-
-    // Only include Budgeted_Amount for revenue categories
-    if (type === "revenue" && budgetedAmount !== undefined) {
-      newCategory.Budget_Category_Name = name;
-      newCategory.Budgeted_Amount = parseFloat(budgetedAmount?.toString() || '0') || 0;
-      newCategory.Budget_Category_Type = 'revenue';
-    }
 
     const createdCategories = await mp.createTableRecords(
       'Project_Budget_Categories',
@@ -215,10 +208,10 @@ export async function PATCH(
 
     const userId = users[0].User_ID;
 
-    // Note: Budgeted_Amount is now a computed column for expense categories
-    // Only revenue categories can have their budget updated manually
+    // Note: Budgeted_Amount is now a computed column for ALL categories
+    // No categories can have their budget updated manually - it's computed from line items
 
-    // Get the category to check its type
+    // Verify category exists
     const categories = await mp.getTableRecords<{ Budget_Category_Type: string }>({
       table: 'Project_Budget_Categories',
       select: 'Budget_Category_Type',
@@ -233,17 +226,12 @@ export async function PATCH(
       );
     }
 
-    const category = categories[0];
-
     // Build update object
     const updateData: any = {
       Project_Budget_Category_ID: parseInt(categoryId, 10),
     };
 
-    // Only allow updating Budgeted_Amount for revenue categories
-    if (budgetedAmount !== undefined && category.Budget_Category_Type === 'revenue') {
-      updateData.Budgeted_Amount = budgetedAmount;
-    }
+    // Budgeted_Amount is computed and cannot be updated manually for any category type
 
     // Update the category
     const updatedCategories = await mp.updateTableRecords(

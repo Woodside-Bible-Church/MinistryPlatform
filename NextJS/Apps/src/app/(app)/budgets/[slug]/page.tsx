@@ -879,14 +879,12 @@ export default function BudgetDetailPage({
     setIsAddCategoryOpen(false);
 
     // Create temporary category for optimistic update
-    // Note: For expense categories, estimated is computed from line items (will be 0 initially)
-    // For income categories, we use the expected amount entered by the user
-    const budgetedAmount = newCategoryType === "expense" ? 0 : (parseFloat(newCategoryExpectedAmount) || 0);
+    // Note: All categories (expense and income) have budgets computed from line items (will be 0 initially)
     const tempCategory: BudgetCategory = {
       categoryId: `temp-${Date.now()}`,
       name: categoryName,
       type: newCategoryType,
-      estimated: budgetedAmount,
+      estimated: 0, // All categories start at $0, computed from line items
       actual: 0,
       sortOrder: 999,
       lineItems: [],
@@ -896,18 +894,18 @@ export default function BudgetDetailPage({
     const updatedProject = { ...project };
     if (newCategoryType === "expense") {
       updatedProject.expenseCategories = [...(project.expenseCategories || []), tempCategory];
-      // Note: Total_Budget is now computed from categories, no manual update needed
+      // Note: Total_Budget is computed from categories, no manual update needed
     } else {
       updatedProject.incomeLineItemsCategories = [...(project.incomeLineItemsCategories || []), tempCategory];
-      // Update total expected income
-      updatedProject.Total_Expected_Income = (project.Total_Expected_Income || 0) + tempCategory.estimated;
+      // Note: Total_Expected_Income is computed from categories, no manual update needed
     }
     setProject(updatedProject);
 
     // Use toast.promise for automatic loading/success/error states
     toast.promise(
       (async () => {
-        // Both expense and income categories use the same endpoint now
+        // Both expense and income categories use the same endpoint
+        // Note: Budgeted amounts are computed from line items for ALL categories
         const response = await fetch(`/api/projects/${project.Project_ID}/categories`, {
           method: "POST",
           headers: {
@@ -916,8 +914,6 @@ export default function BudgetDetailPage({
           body: JSON.stringify({
             name: categoryName,
             type: newCategoryType === "expense" ? "expense" : "revenue",
-            // Only send budgetedAmount for revenue categories (expense categories are computed)
-            ...(newCategoryType === "revenue" && { budgetedAmount: budgetedAmount }),
           }),
         });
 
@@ -2609,28 +2605,6 @@ export default function BudgetDetailPage({
                 />
               )}
             </div>
-            {newCategoryType === "revenue" && (
-              <div>
-                <label htmlFor="category-expected-amount" className="block text-sm font-medium mb-2">
-                  Expected Amount
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                    $
-                  </span>
-                  <input
-                    id="category-expected-amount"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={newCategoryExpectedAmount}
-                    onChange={(e) => setNewCategoryExpectedAmount(e.target.value)}
-                    className="w-full pl-7 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
-                    placeholder="0.00"
-                  />
-                </div>
-              </div>
-            )}
           </div>
           <DialogFooter>
             <button
