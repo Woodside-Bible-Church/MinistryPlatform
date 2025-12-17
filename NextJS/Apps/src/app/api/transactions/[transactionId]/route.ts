@@ -14,7 +14,7 @@ export async function GET(
     const { transactionId } = await params;
     const baseUrl = process.env.MINISTRY_PLATFORM_BASE_URL;
 
-    // Get transaction details
+    // Use the stored procedure to get transaction details
     const mpUrl = `${baseUrl}/procs/api_Custom_GetTransactionDetails_JSON?@TransactionID=${transactionId}`;
 
     const response = await fetch(mpUrl, {
@@ -50,6 +50,45 @@ export async function GET(
       if (row.JsonResult) {
         try {
           const transaction = JSON.parse(row.JsonResult);
+
+          // Get files attached to this transaction
+          try {
+            const filesUrl = `${baseUrl}/tables/dp_Files?$filter=Record_ID=${transactionId} AND Page_ID=(SELECT Page_ID FROM dp_Pages WHERE Table_Name='Project_Budget_Transactions')&$select=File_ID,File_Name,File_Size,Unique_File_ID,Description,Last_Updated`;
+
+            const filesResponse = await fetch(filesUrl, {
+              headers: {
+                Authorization: `Bearer ${session.accessToken}`,
+                "Content-Type": "application/json",
+              },
+            });
+
+            if (filesResponse.ok) {
+              const filesData = await filesResponse.json();
+              // Add public URLs
+              transaction.files = filesData.map((file: {
+                File_ID: number;
+                File_Name: string;
+                File_Size: number;
+                Unique_File_ID: string;
+                Description: string;
+                Last_Updated: string;
+              }) => ({
+                FileId: file.File_ID,
+                FileName: file.File_Name,
+                FileSize: file.File_Size,
+                UniqueFileId: file.Unique_File_ID,
+                Description: file.Description,
+                LastUpdated: file.Last_Updated,
+                publicUrl: `${baseUrl}/ministryplatformapi/files/${file.Unique_File_ID}`,
+              }));
+            } else {
+              transaction.files = [];
+            }
+          } catch {
+            // No files attached, that's okay
+            transaction.files = [];
+          }
+
           return NextResponse.json(transaction);
         } catch (parseError) {
           console.error("JSON parse error:", parseError);

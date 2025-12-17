@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Receipt,
@@ -9,6 +10,8 @@ import {
   Plus,
   Edit,
   Trash2,
+  Copy,
+  Check,
 } from "lucide-react";
 import { BackButton } from "@/components/BackButton";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,7 +35,6 @@ interface Transaction {
   categoryItem: string;
   expenseLineItemId: number | null;
   incomeLineItemId: number | null;
-  approvalStatus: "Approved" | "Rejected" | "Pending";
   purchaseRequestId: number | null;
   requisitionGuid: string | null;
   purchaseRequestStatus: string | null;
@@ -101,10 +103,12 @@ export default function TransactionsPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
+  const router = useRouter();
   const [data, setData] = useState<ProjectTransactions | null>(null);
   const [budgetData, setBudgetData] = useState<ProjectBudget | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copiedGuid, setCopiedGuid] = useState<string | null>(null);
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
@@ -116,7 +120,6 @@ export default function TransactionsPage({
   const [newTransactionDate, setNewTransactionDate] = useState("");
   const [newTransactionType, setNewTransactionType] = useState<"Expense" | "Income">("Expense");
   const [newTransactionLineItemId, setNewTransactionLineItemId] = useState<string>("");
-  const [newTransactionStatus, setNewTransactionStatus] = useState<"Approved" | "Rejected" | "Pending">("Pending");
   const [newTransactionAmount, setNewTransactionAmount] = useState("");
   const [newTransactionPayee, setNewTransactionPayee] = useState("");
   const [newTransactionDescription, setNewTransactionDescription] = useState("");
@@ -131,7 +134,6 @@ export default function TransactionsPage({
   const [editTransactionDate, setEditTransactionDate] = useState("");
   const [editTransactionType, setEditTransactionType] = useState<"Expense" | "Income">("Expense");
   const [editTransactionLineItemId, setEditTransactionLineItemId] = useState<string>("");
-  const [editTransactionStatus, setEditTransactionStatus] = useState<"Approved" | "Rejected" | "Pending">("Pending");
   const [editTransactionAmount, setEditTransactionAmount] = useState("");
   const [editTransactionPayee, setEditTransactionPayee] = useState("");
   const [editTransactionDescription, setEditTransactionDescription] = useState("");
@@ -191,6 +193,16 @@ export default function TransactionsPage({
     }
   }
 
+  async function handleCopyGuid(guid: string) {
+    try {
+      await navigator.clipboard.writeText(guid);
+      setCopiedGuid(guid);
+      setTimeout(() => setCopiedGuid(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy GUID:", err);
+    }
+  }
+
   async function handleAddTransaction() {
     if (!data) return;
 
@@ -215,7 +227,6 @@ export default function TransactionsPage({
           transactionType: newTransactionType,
           amount: amount,
           lineItemId: newTransactionLineItemId ? (newTransactionType === "Expense" ? parseInt(newTransactionLineItemId, 10) : newTransactionLineItemId) : null,
-          status: newTransactionStatus,
           payeeName: newTransactionPayee.trim() || null,
           description: newTransactionDescription.trim() || null,
           paymentMethodId: newTransactionPaymentMethod ? parseInt(newTransactionPaymentMethod, 10) : null,
@@ -236,7 +247,6 @@ export default function TransactionsPage({
       setNewTransactionDate("");
       setNewTransactionType("Expense");
       setNewTransactionLineItemId("");
-      setNewTransactionStatus("Pending");
       setNewTransactionAmount("");
       setNewTransactionPayee("");
       setNewTransactionDescription("");
@@ -276,7 +286,6 @@ export default function TransactionsPage({
           transactionType: editTransactionType,
           amount: amount,
           lineItemId: editTransactionLineItemId ? (editTransactionType === "Expense" ? parseInt(editTransactionLineItemId, 10) : editTransactionLineItemId) : null,
-          status: editTransactionStatus,
           payeeName: editTransactionPayee.trim() || null,
           description: editTransactionDescription.trim() || null,
           paymentMethodId: editTransactionPaymentMethod ? parseInt(editTransactionPaymentMethod, 10) : null,
@@ -298,7 +307,6 @@ export default function TransactionsPage({
       setEditTransactionDate("");
       setEditTransactionType("Expense");
       setEditTransactionLineItemId("");
-      setEditTransactionStatus("Pending");
       setEditTransactionAmount("");
       setEditTransactionPayee("");
       setEditTransactionDescription("");
@@ -543,180 +551,175 @@ export default function TransactionsPage({
         </div>
       </div>
 
-      {/* Transactions Table */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-zinc-200 dark:bg-zinc-900 border-b border-border">
-                <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-                  Category / Item
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-                  Purchase Request
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-                  Payee
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-                  Description
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-                  Payment Method
-                </th>
-                <th className="px-6 py-3 text-center text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-6 py-3 text-center text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filteredTransactions.length === 0 ? (
-                <tr>
-                  <td colSpan={10} className="px-6 py-12 text-center text-muted-foreground">
-                    No transactions found
-                  </td>
-                </tr>
-              ) : (
-                filteredTransactions.map((transaction) => (
-                  <tr
-                    key={transaction.transactionId}
-                    className="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+      {/* Transactions List */}
+      <div className="space-y-4">
+        {filteredTransactions.length === 0 ? (
+          <div className="bg-card border border-border rounded-lg p-12 text-center">
+            <p className="text-muted-foreground">No transactions found</p>
+          </div>
+        ) : (
+          filteredTransactions.map((transaction) => (
+            <div
+              key={transaction.transactionId}
+              onClick={() => router.push(`/budgets/${slug}/transactions/${transaction.transactionId}`)}
+              className="bg-card border border-border rounded-lg p-6 hover:shadow-lg hover:border-[#61bc47]/30 transition-all cursor-pointer"
+            >
+              {/* Header Row */}
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div className="flex-1 min-w-0">
+                  {transaction.categoryItem.includes(" | ") ? (
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-muted-foreground uppercase tracking-wider leading-tight mb-0.5">
+                        {transaction.categoryItem.split(" | ")[0]}
+                      </span>
+                      <h3 className="text-xl font-bold text-foreground leading-tight">
+                        {transaction.categoryItem.split(" | ")[1]}
+                      </h3>
+                    </div>
+                  ) : (
+                    <h3 className="text-xl font-bold text-foreground">
+                      {transaction.categoryItem}
+                    </h3>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingTransactionId(transaction.transactionId);
+                      setEditTransactionDate(transaction.date.split('T')[0]);
+                      setEditTransactionType(transaction.type);
+                      setEditTransactionAmount(Math.abs(transaction.amount).toString());
+                      setEditTransactionPayee(transaction.payee || "");
+                      setEditTransactionDescription(transaction.description || "");
+                      setEditTransactionPaymentMethod(transaction.paymentMethod || "");
+
+                      // Set line item ID based on transaction type
+                      if (transaction.type === "Expense" && transaction.expenseLineItemId) {
+                        setEditTransactionLineItemId(transaction.expenseLineItemId.toString());
+                      } else if (transaction.type === "Income" && transaction.incomeLineItemId) {
+                        setEditTransactionLineItemId(`income-line-${transaction.incomeLineItemId}`);
+                      } else {
+                        setEditTransactionLineItemId("");
+                      }
+
+                      setIsEditTransactionOpen(true);
+                    }}
+                    className="p-2 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors"
+                    title="Edit transaction"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                      {formatDate(transaction.date)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
-                          transaction.type === "Expense"
-                            ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                            : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                        }`}
-                      >
-                        {transaction.type}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-foreground">
-                      <div className="font-medium">{transaction.categoryItem}</div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-foreground">
-                      {transaction.purchaseRequestId && transaction.requisitionGuid ? (
-                        <Link
-                          href={`/budgets/${slug}/purchase-requests`}
-                          className="inline-flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:underline font-mono text-xs"
-                          title={`View Purchase Request ${transaction.requisitionGuid}`}
-                        >
-                          {formatGuid(transaction.requisitionGuid)}
-                          <span className={`ml-1 px-1.5 py-0.5 text-xs rounded ${
-                            transaction.purchaseRequestStatus === "Approved"
-                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                              : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                          }`}>
-                            {transaction.purchaseRequestStatus}
-                          </span>
-                        </Link>
-                      ) : (
-                        <span className="text-muted-foreground text-xs">-</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {transaction.payee || "-"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground max-w-xs truncate">
-                      {transaction.description || "-"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {transaction.paymentMethod ? (
-                        <span className="inline-block px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 rounded">
-                          {transaction.paymentMethod}
+                    <Edit className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteTransaction(transaction.transactionId, transaction.description);
+                    }}
+                    className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                    title="Delete transaction"
+                  >
+                    <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Details Row */}
+              <div className="pt-3 border-t border-border">
+                <div className="flex items-end justify-between gap-4">
+                  <div className="flex-1 space-y-2.5">
+                    <div className="flex flex-wrap items-center gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">Date:</span>
+                        <span className="text-foreground font-medium">
+                          {formatDate(transaction.date)}
                         </span>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span
-                        className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
-                          transaction.approvalStatus === "Approved"
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                            : transaction.approvalStatus === "Rejected"
-                            ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                            : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                        }`}
-                      >
-                        {transaction.approvalStatus}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <span
-                        className={`font-semibold ${
-                          transaction.type === "Expense"
-                            ? "text-red-600 dark:text-red-400"
-                            : "text-green-600 dark:text-green-400"
-                        }`}
-                      >
-                        {transaction.type === "Expense" ? "-" : "+"}
-                        {formatCurrency(Math.abs(transaction.amount))}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <button
-                          onClick={() => {
-                            setEditingTransactionId(transaction.transactionId);
-                            setEditTransactionDate(transaction.date.split('T')[0]);
-                            setEditTransactionType(transaction.type);
-                            setEditTransactionAmount(Math.abs(transaction.amount).toString());
-                            setEditTransactionPayee(transaction.payee || "");
-                            setEditTransactionDescription(transaction.description || "");
-                            setEditTransactionPaymentMethod(transaction.paymentMethod || "");
-
-                            // Set line item ID based on transaction type
-                            if (transaction.type === "Expense" && transaction.expenseLineItemId) {
-                              setEditTransactionLineItemId(transaction.expenseLineItemId.toString());
-                            } else if (transaction.type === "Income" && transaction.incomeLineItemId) {
-                              setEditTransactionLineItemId(`income-line-${transaction.incomeLineItemId}`);
-                            } else {
-                              setEditTransactionLineItemId("");
-                            }
-
-                            // Set approval status
-                            setEditTransactionStatus(transaction.approvalStatus);
-
-                            setIsEditTransactionOpen(true);
-                          }}
-                          className="p-1.5 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded transition-colors"
-                          title="Edit transaction"
-                        >
-                          <Edit className="w-4 h-4 text-muted-foreground" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteTransaction(transaction.transactionId, transaction.description)}
-                          className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
-                          title="Delete transaction"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
-                        </button>
                       </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+
+                      {transaction.payee && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">Payee:</span>
+                          <span className="text-foreground font-medium">
+                            {transaction.payee}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {transaction.description && (
+                      <p className="text-sm text-muted-foreground italic">
+                        "{transaction.description}"
+                      </p>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-4 text-sm">
+                      {transaction.paymentMethod && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">Payment:</span>
+                          <span className="inline-block px-2.5 py-0.5 bg-zinc-200 dark:bg-zinc-700 rounded font-medium text-foreground">
+                            {transaction.paymentMethod}
+                          </span>
+                        </div>
+                      )}
+
+                      {transaction.purchaseRequestId && transaction.requisitionGuid && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">Purchase Request:</span>
+                          <div className="flex items-center gap-1.5">
+                            <Link
+                              href={`/budgets/${slug}/purchase-requests/${transaction.purchaseRequestId}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-foreground hover:text-[#61bc47] hover:underline font-mono transition-colors"
+                              title="View purchase request"
+                            >
+                              {transaction.requisitionGuid}
+                            </Link>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopyGuid(transaction.requisitionGuid!);
+                              }}
+                              className="p-1 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors"
+                              title="Copy GUID"
+                            >
+                              {copiedGuid === transaction.requisitionGuid ? (
+                                <Check className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-1.5">
+                    <span
+                      className={`text-sm font-medium ${
+                        transaction.type === "Expense"
+                          ? "text-red-600 dark:text-red-400"
+                          : "text-green-600 dark:text-green-400"
+                      }`}
+                    >
+                      {transaction.type}
+                    </span>
+                    <div
+                      className={`text-3xl font-bold whitespace-nowrap ${
+                        transaction.type === "Expense"
+                          ? "text-red-600 dark:text-red-400"
+                          : "text-green-600 dark:text-green-400"
+                      }`}
+                    >
+                      {transaction.type === "Expense" ? "-" : "+"}
+                      {formatCurrency(Math.abs(transaction.amount))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Add Transaction Dialog */}
@@ -784,21 +787,6 @@ export default function TransactionsPage({
                     </option>
                   ))
                 ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="new-transaction-status" className="block text-sm font-medium mb-2">
-                Approval Status
-              </label>
-              <select
-                id="new-transaction-status"
-                value={newTransactionStatus}
-                onChange={(e) => setNewTransactionStatus(e.target.value as "Approved" | "Rejected" | "Pending")}
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
-              >
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
               </select>
             </div>
             <div>
@@ -881,7 +869,6 @@ export default function TransactionsPage({
                 setNewTransactionDate("");
                 setNewTransactionType("Expense");
                 setNewTransactionLineItemId("");
-                setNewTransactionStatus("Pending");
                 setNewTransactionAmount("");
                 setNewTransactionPayee("");
                 setNewTransactionDescription("");
@@ -973,21 +960,6 @@ export default function TransactionsPage({
               </select>
             </div>
             <div>
-              <label htmlFor="edit-transaction-status" className="block text-sm font-medium mb-2">
-                Approval Status
-              </label>
-              <select
-                id="edit-transaction-status"
-                value={editTransactionStatus}
-                onChange={(e) => setEditTransactionStatus(e.target.value as "Approved" | "Rejected" | "Pending")}
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
-              >
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
-              </select>
-            </div>
-            <div>
               <label htmlFor="edit-transaction-amount" className="block text-sm font-medium mb-2">
                 Amount *
               </label>
@@ -1068,7 +1040,6 @@ export default function TransactionsPage({
                 setEditTransactionDate("");
                 setEditTransactionType("Expense");
                 setEditTransactionLineItemId("");
-                setEditTransactionStatus("Pending");
                 setEditTransactionAmount("");
                 setEditTransactionPayee("");
                 setEditTransactionDescription("");
