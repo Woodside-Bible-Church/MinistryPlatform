@@ -302,8 +302,20 @@ export default function PurchaseRequestDetailsPage({
 
     const previousState = { ...purchaseRequest };
 
+    // Create optimistic transaction entry
+    const optimisticTransaction: Transaction = {
+      transactionId: Date.now(), // Temporary ID
+      transactionDate: savedFormData.transactionDate,
+      amount: savedFormData.amount,
+      description: savedFormData.description,
+      vendorName: purchaseRequest.vendorName,
+      paymentMethod: savedFormData.paymentMethod,
+      paymentMethodId: 0,
+    };
+
     setPurchaseRequest({
       ...purchaseRequest,
+      transactions: [optimisticTransaction, ...(purchaseRequest.transactions || [])],
       transactionCount: purchaseRequest.transactionCount + 1,
       transactionTotal: purchaseRequest.transactionTotal + savedFormData.amount,
       remainingAmount: purchaseRequest.amount - (purchaseRequest.transactionTotal + savedFormData.amount),
