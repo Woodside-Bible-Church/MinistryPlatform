@@ -77,3 +77,50 @@ export async function GET(
     );
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ requestId: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session?.accessToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { requestId } = await params;
+    const baseUrl = process.env.MINISTRY_PLATFORM_BASE_URL;
+
+    // Delete purchase request via MinistryPlatform API
+    const mpUrl = `${baseUrl}/tables/Project_Budget_Purchase_Requests/${requestId}`;
+
+    const response = await fetch(mpUrl, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${session.accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("MP API error:", response.status, response.statusText);
+      console.error("Error response body:", errorText);
+      return NextResponse.json(
+        { error: "Failed to delete purchase request", details: errorText },
+        { status: response.status }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("API route error:", error);
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
+  }
+}

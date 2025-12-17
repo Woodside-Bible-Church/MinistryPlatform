@@ -105,7 +105,27 @@ BEGIN
             t.Submitted_By AS submittedByUserId,
             sc.Contact_ID AS submittedByContactId,
             sc.Display_Name AS submittedByName,
-            sc.Email_Address AS submittedByEmail
+            sc.Email_Address AS submittedByEmail,
+
+            -- Files - using ISNULL to prevent null JSON
+            ISNULL((
+                SELECT
+                    f.File_ID AS FileId,
+                    f.File_Name AS FileName,
+                    f.File_Size AS FileSize,
+                    f.Extension AS FileExtension,
+                    f.Image_Width AS ImageWidth,
+                    f.Image_Height AS ImageHeight,
+                    CAST(f.Unique_Name AS NVARCHAR(50)) AS UniqueFileId,
+                    f.Summary AS Description,
+                    f.UTC_Date_Added AS LastUpdated,
+                    'https://my.woodsidebible.org/ministryplatformapi/files/' + CAST(f.Unique_Name AS NVARCHAR(50)) AS publicUrl
+                FROM dp_Files f
+                WHERE f.Record_ID = t.Project_Budget_Transaction_ID
+                  AND f.Page_ID = (SELECT Page_ID FROM dp_Pages WHERE Table_Name = 'Project_Budget_Transactions')
+                ORDER BY f.UTC_Date_Added DESC
+                FOR JSON PATH
+            ), '[]') AS files
 
         FROM Project_Budget_Transactions t
         INNER JOIN Projects p ON t.Project_ID = p.Project_ID

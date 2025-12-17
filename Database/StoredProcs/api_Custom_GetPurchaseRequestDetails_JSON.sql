@@ -84,7 +84,27 @@ BEGIN
                 SELECT ISNULL(SUM(t.Amount), 0)
                 FROM Project_Budget_Transactions t
                 WHERE t.Purchase_Request_ID = pr.Purchase_Request_ID
-            ) AS remainingAmount
+            ) AS remainingAmount,
+
+            -- Files - using ISNULL to prevent null JSON
+            ISNULL((
+                SELECT
+                    f.File_ID AS FileId,
+                    f.File_Name AS FileName,
+                    f.File_Size AS FileSize,
+                    f.Extension AS FileExtension,
+                    f.Image_Width AS ImageWidth,
+                    f.Image_Height AS ImageHeight,
+                    CAST(f.Unique_Name AS NVARCHAR(50)) AS UniqueFileId,
+                    f.Summary AS Description,
+                    f.UTC_Date_Added AS LastUpdated,
+                    'https://my.woodsidebible.org/ministryplatformapi/files/' + CAST(f.Unique_Name AS NVARCHAR(50)) AS publicUrl
+                FROM dp_Files f
+                WHERE f.Record_ID = pr.Purchase_Request_ID
+                  AND f.Page_ID = (SELECT Page_ID FROM dp_Pages WHERE Table_Name = 'Project_Budget_Purchase_Requests')
+                ORDER BY f.UTC_Date_Added DESC
+                FOR JSON PATH
+            ), '[]') AS files
 
         FROM Project_Budget_Purchase_Requests pr
         INNER JOIN Project_Budget_Line_Items li

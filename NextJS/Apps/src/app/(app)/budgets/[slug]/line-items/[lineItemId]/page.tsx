@@ -6,19 +6,29 @@ import Link from "next/link";
 import {
   ArrowLeft,
   DollarSign,
-  FileText,
-  Upload,
-  Download,
-  Link2,
   CheckCircle,
   Clock,
   XCircle,
   Plus,
   Trash2,
+  Edit,
 } from "lucide-react";
+import { FileAttachments } from "@/components/FileAttachments";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 interface LineItemDetails {
   lineItemId: number;
@@ -51,6 +61,9 @@ interface PurchaseRequest {
   approvalStatus: "Pending" | "Approved" | "Rejected";
   requestedDate: string;
   approvedDate: string | null;
+  transactionCount: number;
+  transactionTotal: number;
+  remainingAmount: number;
 }
 
 interface Transaction {
@@ -65,6 +78,9 @@ interface FileAttachment {
   FileId: number;
   FileName: string;
   FileSize: number;
+  FileExtension: string;
+  ImageWidth: number | null;
+  ImageHeight: number | null;
   UniqueFileId: string;
   Description: string | null;
   LastUpdated: string;
@@ -88,12 +104,6 @@ function formatDate(dateString: string) {
   });
 }
 
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 export default function LineItemDetailsPage({
   params,
 }: {
@@ -104,7 +114,15 @@ export default function LineItemDetailsPage({
   const [lineItem, setLineItem] = useState<LineItemDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  // Edit form state
+  const [editForm, setEditForm] = useState({
+    lineItemName: "",
+    lineItemDescription: "",
+    vendorName: "",
+    estimatedAmount: "",
+  });
 
   useEffect(() => {
     fetchLineItemDetails();
@@ -131,42 +149,98 @@ export default function LineItemDetailsPage({
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0 || !lineItem) return;
+  const openEditDialog = () => {
+    if (!lineItem) return;
+    setEditForm({
+      lineItemName: lineItem.lineItemName,
+      lineItemDescription: lineItem.lineItemDescription || "",
+      vendorName: lineItem.vendorName || "",
+      estimatedAmount: lineItem.estimatedAmount.toString(),
+    });
+    setIsEditDialogOpen(true);
+  };
 
-    setIsUploading(true);
+  const handleSaveEdit = async () => {
+    if (!lineItem) return;
+
+    // Save form data and previous state before closing modal
+    const savedFormData = {
+      Line_Item_Name: editForm.lineItemName,
+      Line_Item_Description: editForm.lineItemDescription || null,
+      Vendor_Name: editForm.vendorName || null,
+      Estimated_Amount: parseFloat(editForm.estimatedAmount),
+    };
+
+    const previousLineItem = { ...lineItem };
+
+    // Close modal immediately
+    setIsEditDialogOpen(false);
+
+    // Update UI optimistically
+    setLineItem({
+      ...lineItem,
+      lineItemName: editForm.lineItemName,
+      lineItemDescription: editForm.lineItemDescription || null,
+      vendorName: editForm.vendorName || null,
+      estimatedAmount: parseFloat(editForm.estimatedAmount),
+      variance: lineItem.actualAmount - parseFloat(editForm.estimatedAmount),
+    });
+
+    // Show processing toast
+    const toastId = toast.loading("Saving changes...");
+
+    // Make API call in background
     try {
-      const formData = new FormData();
-      Array.from(files).forEach(file => {
-        formData.append("files", file);
+      const response = await fetch(`/api/line-items/${lineItem.lineItemId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(savedFormData),
       });
 
-      const response = await fetch(
-        `/api/projects/${lineItem.projectId}/line-items/${lineItem.lineItemId}/files`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
       if (!response.ok) {
-        throw new Error("Failed to upload files");
+        throw new Error("Failed to update line item");
       }
 
-      // Refresh line item details to show new files
+      // Show success toast
+      toast.success("Changes saved successfully", { id: toastId });
+
+      // Refresh data from server to ensure consistency
       await fetchLineItemDetails();
     } catch (err) {
-      console.error("Error uploading files:", err);
-      alert("Failed to upload files. Please try again.");
-    } finally {
-      setIsUploading(false);
+      console.error("Error updating line item:", err);
+
+      // Revert optimistic update
+      setLineItem(previousLineItem);
+
+      // Show error toast
+      toast.error("Failed to save changes. Please try again.", { id: toastId });
     }
   };
 
-  const copyPublicUrl = (url: string) => {
-    navigator.clipboard.writeText(url);
-    alert("Public URL copied to clipboard!");
+  const handleDelete = async () => {
+    if (!lineItem) return;
+
+    if (!confirm(`Are you sure you want to delete "${lineItem.lineItemName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/line-items/${lineItem.lineItemId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete line item");
+      }
+
+      // Navigate back to budget page
+      router.push(`/budgets/${resolvedParams.slug}`);
+    } catch (err) {
+      console.error("Error deleting line item:", err);
+      alert("Failed to delete line item. Please try again.");
+    }
   };
 
   if (isLoading) {
@@ -224,10 +298,11 @@ export default function LineItemDetailsPage({
           </div>
 
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={openEditDialog}>
+              <Edit className="w-4 h-4 mr-2" />
               Edit
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleDelete}>
               <Trash2 className="w-4 h-4" />
             </Button>
           </div>
@@ -283,77 +358,11 @@ export default function LineItemDetailsPage({
       </Card>
 
       {/* Files Section */}
-      <Card className="p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Attached Files
-          </h2>
-          <div>
-            <input
-              type="file"
-              multiple
-              onChange={handleFileUpload}
-              className="hidden"
-              id="file-upload"
-              disabled={isUploading}
-            />
-            <Button
-              onClick={() => document.getElementById("file-upload")?.click()}
-              disabled={isUploading}
-              size="sm"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              {isUploading ? "Uploading..." : "Upload Files"}
-            </Button>
-          </div>
-        </div>
-
-        {lineItem.files && lineItem.files.length > 0 ? (
-          <div className="space-y-2">
-            {lineItem.files.map((file) => (
-              <div
-                key={file.FileId}
-                className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <FileText className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <div className="font-medium text-foreground truncate">
-                      {file.FileName}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {formatFileSize(file.FileSize)} •{" "}
-                      {formatDate(file.LastUpdated)}
-                      {file.Description && ` • ${file.Description}`}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => window.open(file.publicUrl, "_blank")}
-                  >
-                    <Download className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => copyPublicUrl(file.publicUrl)}
-                  >
-                    <Link2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            No files attached yet. Upload files like quotes or receipts.
-          </div>
-        )}
-      </Card>
+      <FileAttachments
+        files={lineItem.files || []}
+        uploadEndpoint={`/api/projects/${lineItem.projectId}/line-items/${lineItem.lineItemId}/files`}
+        onFilesUploaded={fetchLineItemDetails}
+      />
 
       {/* Expense Line Item - Purchase Requests */}
       {isExpense && (
@@ -386,15 +395,96 @@ export default function LineItemDetailsPage({
                   }
                 >
                   <div className="flex items-center justify-between">
-                    <div>
+                    <div className="flex-1">
                       <div className="font-medium text-foreground">
                         {formatCurrency(request.amount)} - {request.vendorName}
                       </div>
                       <div className="text-sm text-muted-foreground mt-1">
                         {request.description}
                       </div>
+                      <div className="flex items-center gap-3 mt-2 text-xs">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-muted/50">
+                          <DollarSign className="w-3 h-3" />
+                          {request.transactionCount} {request.transactionCount === 1 ? 'transaction' : 'transactions'}
+                        </span>
+                        <span className={`font-medium ${
+                          request.remainingAmount < 0
+                            ? 'text-red-600 dark:text-red-400'
+                            : request.remainingAmount === 0
+                            ? 'text-muted-foreground'
+                            : 'text-green-600 dark:text-green-400'
+                        }`}>
+                          {formatCurrency(Math.abs(request.remainingAmount))} {request.remainingAmount < 0 ? 'over budget' : 'remaining'}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
+                      {/* Action Icons */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (request.approvalStatus === "Approved") {
+                              router.push(
+                                `/budgets/${resolvedParams.slug}/purchase-requests/${request.id}/add-transaction`
+                              );
+                            }
+                          }}
+                          disabled={request.approvalStatus !== "Approved"}
+                          className={`p-1.5 rounded-md transition-colors ${
+                            request.approvalStatus === "Approved"
+                              ? "hover:bg-green-100 dark:hover:bg-green-900/20 text-green-600 dark:text-green-400"
+                              : "text-muted-foreground/30 cursor-not-allowed"
+                          }`}
+                          title={
+                            request.approvalStatus === "Approved"
+                              ? "Add Transaction"
+                              : "Only available for approved requests"
+                          }
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(
+                              `/budgets/${resolvedParams.slug}/purchase-requests/${request.id}/edit`
+                            );
+                          }}
+                          className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-muted-foreground hover:text-foreground transition-colors"
+                          title="Edit Purchase Request"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (confirm("Are you sure you want to delete this purchase request? This action cannot be undone.")) {
+                              try {
+                                const response = await fetch(`/api/purchase-requests/${request.id}`, {
+                                  method: "DELETE",
+                                });
+
+                                if (!response.ok) {
+                                  throw new Error("Failed to delete purchase request");
+                                }
+
+                                // Refresh line item details
+                                await fetchLineItemDetails();
+                              } catch (err) {
+                                console.error("Error deleting purchase request:", err);
+                                alert("Failed to delete purchase request. Please try again.");
+                              }
+                            }
+                          }}
+                          className="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
+                          title="Delete Purchase Request"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Approval Status Badge */}
                       {request.approvalStatus === "Pending" && (
                         <span className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
                           <Clock className="w-3 h-3 inline mr-1" />
@@ -478,6 +568,81 @@ export default function LineItemDetailsPage({
           )}
         </Card>
       )}
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[525px]">
+          <DialogHeader>
+            <DialogTitle>Edit Line Item</DialogTitle>
+            <DialogDescription>
+              Make changes to the line item details below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="lineItemName">Line Item Name *</Label>
+              <Input
+                id="lineItemName"
+                value={editForm.lineItemName}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, lineItemName: e.target.value })
+                }
+                placeholder="Enter line item name"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="lineItemDescription">Description</Label>
+              <Textarea
+                id="lineItemDescription"
+                value={editForm.lineItemDescription}
+                onChange={(e) =>
+                  setEditForm({
+                    ...editForm,
+                    lineItemDescription: e.target.value,
+                  })
+                }
+                placeholder="Enter description (optional)"
+                rows={3}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="vendorName">Vendor Name</Label>
+              <Input
+                id="vendorName"
+                value={editForm.vendorName}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, vendorName: e.target.value })
+                }
+                placeholder="Enter vendor name (optional)"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="estimatedAmount">Estimated Amount *</Label>
+              <Input
+                id="estimatedAmount"
+                type="number"
+                step="0.01"
+                value={editForm.estimatedAmount}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, estimatedAmount: e.target.value })
+                }
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

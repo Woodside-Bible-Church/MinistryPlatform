@@ -14,6 +14,13 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  // Increase body size limit for file uploads (experimental feature)
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+  },
+
   // PWA configuration for app-like experience
   async headers() {
     return [

@@ -66,7 +66,19 @@ BEGIN
                     pr.Vendor_Name AS vendorName,
                     pr.Approval_Status AS approvalStatus,
                     pr.Requested_Date AS requestedDate,
-                    pr.Approved_Date AS approvedDate
+                    pr.Approved_Date AS approvedDate,
+                    -- Transaction count for this purchase request
+                    (SELECT COUNT(*)
+                     FROM Project_Budget_Transactions t
+                     WHERE t.Purchase_Request_ID = pr.Purchase_Request_ID) AS transactionCount,
+                    -- Transaction total for this purchase request
+                    (SELECT ISNULL(SUM(t.Amount), 0)
+                     FROM Project_Budget_Transactions t
+                     WHERE t.Purchase_Request_ID = pr.Purchase_Request_ID) AS transactionTotal,
+                    -- Remaining amount (request amount - transaction total)
+                    pr.Amount - (SELECT ISNULL(SUM(t.Amount), 0)
+                                 FROM Project_Budget_Transactions t
+                                 WHERE t.Purchase_Request_ID = pr.Purchase_Request_ID) AS remainingAmount
                 FROM Project_Budget_Purchase_Requests pr
                 WHERE pr.Project_Budget_Expense_Line_Item_ID = li.Project_Budget_Line_Item_ID
                 ORDER BY pr.Requested_Date DESC
@@ -107,7 +119,27 @@ BEGIN
             (SELECT COUNT(*)
              FROM Project_Budget_Transactions pbt
              WHERE (pbt.Project_Budget_Expense_Line_Item_ID = li.Project_Budget_Line_Item_ID
-                OR pbt.Project_Budget_Income_Line_Item_ID = li.Project_Budget_Line_Item_ID)) AS transactionCount
+                OR pbt.Project_Budget_Income_Line_Item_ID = li.Project_Budget_Line_Item_ID)) AS transactionCount,
+
+            -- Files - using ISNULL to prevent null JSON
+            ISNULL((
+                SELECT
+                    f.File_ID AS FileId,
+                    f.File_Name AS FileName,
+                    f.File_Size AS FileSize,
+                    f.Extension AS FileExtension,
+                    f.Image_Width AS ImageWidth,
+                    f.Image_Height AS ImageHeight,
+                    CAST(f.Unique_Name AS NVARCHAR(50)) AS UniqueFileId,
+                    f.Summary AS Description,
+                    f.UTC_Date_Added AS LastUpdated,
+                    'https://my.woodsidebible.org/ministryplatformapi/files/' + CAST(f.Unique_Name AS NVARCHAR(50)) AS publicUrl
+                FROM dp_Files f
+                WHERE f.Record_ID = li.Project_Budget_Line_Item_ID
+                  AND f.Page_ID = (SELECT Page_ID FROM dp_Pages WHERE Table_Name = 'Project_Budget_Line_Items')
+                ORDER BY f.UTC_Date_Added DESC
+                FOR JSON PATH
+            ), '[]') AS files
 
         FROM Project_Budget_Line_Items li
         INNER JOIN Project_Budget_Categories cat ON li.Category_ID = cat.Project_Budget_Category_ID

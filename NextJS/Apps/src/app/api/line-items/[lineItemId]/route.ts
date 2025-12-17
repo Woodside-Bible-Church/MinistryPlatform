@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { MPHelper } from "@/providers/MinistryPlatform/mpHelper";
 
 export async function GET(
   request: NextRequest,
@@ -12,9 +13,9 @@ export async function GET(
     }
 
     const { lineItemId } = await params;
-    const baseUrl = process.env.MINISTRY_PLATFORM_BASE_URL;
 
-    // Get line item details with category info, purchase requests, and transactions
+    // Get line item details with category info, purchase requests, transactions, and files
+    const baseUrl = process.env.MINISTRY_PLATFORM_BASE_URL;
     const mpUrl = `${baseUrl}/procs/api_Custom_GetLineItemDetails_JSON?@LineItemID=${lineItemId}`;
 
     const response = await fetch(mpUrl, {
@@ -50,38 +51,7 @@ export async function GET(
       if (row.JsonResult) {
         try {
           const lineItem = JSON.parse(row.JsonResult);
-
-          // Get files attached to this line item
-          try {
-            const filesUrl = `${baseUrl}/tables/dp_Files?$filter=Record_ID=${lineItemId} AND Page_ID=(SELECT Page_ID FROM dp_Pages WHERE Table_Name='Project_Budget_Line_Items')&$select=File_ID,File_Name,File_Size,Unique_File_ID,Description,Last_Updated`;
-
-            const filesResponse = await fetch(filesUrl, {
-              headers: {
-                Authorization: `Bearer ${session.accessToken}`,
-                "Content-Type": "application/json",
-              },
-            });
-
-            if (filesResponse.ok) {
-              const filesData = await filesResponse.json();
-              // Add public URLs
-              lineItem.files = filesData.map((file: any) => ({
-                FileId: file.File_ID,
-                FileName: file.File_Name,
-                FileSize: file.File_Size,
-                UniqueFileId: file.Unique_File_ID,
-                Description: file.Description,
-                LastUpdated: file.Last_Updated,
-                publicUrl: `${baseUrl}/ministryplatformapi/files/${file.Unique_File_ID}`
-              }));
-            } else {
-              lineItem.files = [];
-            }
-          } catch (error) {
-            // No files attached, that's okay
-            lineItem.files = [];
-          }
-
+          // Files are now included in the stored procedure response
           return NextResponse.json(lineItem);
         } catch (parseError) {
           console.error("JSON parse error:", parseError);
@@ -105,6 +75,104 @@ export async function GET(
         error: "Internal server error",
         details: error instanceof Error ? error.message : "Unknown error",
       },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ lineItemId: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { lineItemId } = await params;
+    const body = await request.json();
+
+    // Get User_ID for audit logging
+    const mp = new MPHelper();
+    const users = await mp.getTableRecords<{ User_ID: number }>({
+      table: 'dp_Users',
+      select: 'User_ID',
+      filter: `User_GUID='${session.sub}'`,
+      top: 1,
+    });
+
+    if (users.length === 0) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    const userId = users[0].User_ID;
+
+    // Build update object with Project_Budget_Line_Item_ID
+    const updateData = {
+      Project_Budget_Line_Item_ID: parseInt(lineItemId),
+      ...body
+    };
+
+    // Update line item using MPHelper
+    await mp.updateTableRecords(
+      "Project_Budget_Line_Items",
+      [updateData],
+      {
+        $userId: userId,
+      }
+    );
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error("Error updating line item:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to update line item" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ lineItemId: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { lineItemId } = await params;
+
+    // Check if there are any purchase requests or transactions linked
+    const mp = new MPHelper();
+    const purchaseRequests = await mp.getTableRecords({
+      table: "Project_Budget_Purchase_Requests",
+      filter: `Line_Item_ID=${lineItemId}`,
+    });
+
+    if (purchaseRequests && purchaseRequests.length > 0) {
+      return NextResponse.json(
+        { error: "Cannot delete line item with existing purchase requests" },
+        { status: 400 }
+      );
+    }
+
+    // Delete the line item using MPHelper
+    await mp.deleteTableRecords(
+      "Project_Budget_Line_Items",
+      [parseInt(lineItemId)]
+    );
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error("Error deleting line item:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to delete line item" },
       { status: 500 }
     );
   }
