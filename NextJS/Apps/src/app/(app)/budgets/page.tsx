@@ -399,13 +399,13 @@ export default function BudgetsPage() {
                         </div>
                         <div className="flex justify-between items-center">
                           <div className="flex flex-col">
-                            <span className="text-xs text-muted-foreground">actual</span>
+                            <span className="text-xs text-muted-foreground">spent</span>
                             <span className="text-sm font-bold text-foreground">
                               {formatCurrency(displayedProject.totalActual)}
                             </span>
                           </div>
                           <div className="flex flex-col text-right">
-                            <span className="text-xs text-muted-foreground">expected</span>
+                            <span className="text-xs text-muted-foreground">budgeted</span>
                             <span className="text-sm font-bold text-foreground">
                               {formatCurrency(displayedProject.totalEstimated)}
                             </span>
@@ -432,13 +432,13 @@ export default function BudgetsPage() {
                         </div>
                         <div className="flex justify-between items-center">
                           <div className="flex flex-col">
-                            <span className="text-xs text-muted-foreground">actual</span>
+                            <span className="text-xs text-muted-foreground">received</span>
                             <span className="text-sm font-bold text-foreground">
                               {formatCurrency(displayedProject.totalActualIncome)}
                             </span>
                           </div>
                           <div className="flex flex-col text-right">
-                            <span className="text-xs text-muted-foreground">expected</span>
+                            <span className="text-xs text-muted-foreground">goal</span>
                             <span className="text-sm font-bold text-foreground">
                               {formatCurrency(displayedProject.totalExpectedIncome)}
                             </span>
@@ -543,13 +543,13 @@ export default function BudgetsPage() {
                       </div>
                       <div className="flex justify-between items-center">
                         <div className="flex flex-col">
-                          <span className="text-xs text-muted-foreground">actual</span>
+                          <span className="text-xs text-muted-foreground">spent</span>
                           <span className="text-sm font-bold text-foreground">
                             {formatCurrency(project.totalActual)}
                           </span>
                         </div>
                         <div className="flex flex-col text-right">
-                          <span className="text-xs text-muted-foreground">expected</span>
+                          <span className="text-xs text-muted-foreground">budgeted</span>
                           <span className="text-sm font-bold text-foreground">
                             {formatCurrency(project.totalEstimated)}
                           </span>
@@ -576,13 +576,13 @@ export default function BudgetsPage() {
                       </div>
                       <div className="flex justify-between items-center">
                         <div className="flex flex-col">
-                          <span className="text-xs text-muted-foreground">actual</span>
+                          <span className="text-xs text-muted-foreground">received</span>
                           <span className="text-sm font-bold text-foreground">
                             {formatCurrency(project.totalActualIncome)}
                           </span>
                         </div>
                         <div className="flex flex-col text-right">
-                          <span className="text-xs text-muted-foreground">expected</span>
+                          <span className="text-xs text-muted-foreground">goal</span>
                           <span className="text-sm font-bold text-foreground">
                             {formatCurrency(project.totalExpectedIncome)}
                           </span>
