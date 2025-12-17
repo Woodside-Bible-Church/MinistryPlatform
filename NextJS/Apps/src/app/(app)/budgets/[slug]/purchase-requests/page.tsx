@@ -1070,7 +1070,13 @@ export default function PurchaseRequestsPage({
                   </div>
 
                   <div className="flex flex-col items-end gap-1.5">
-                    <div className="text-3xl font-bold text-foreground whitespace-nowrap">
+                    <div className={`text-3xl font-bold whitespace-nowrap ${
+                      request.approvalStatus === "Approved"
+                        ? "text-green-600 dark:text-green-400"
+                        : request.approvalStatus === "Rejected"
+                        ? "text-red-600 dark:text-red-400"
+                        : "text-yellow-600 dark:text-yellow-400"
+                    }`}>
                       {formatCurrency(request.amount)}
                     </div>
 
