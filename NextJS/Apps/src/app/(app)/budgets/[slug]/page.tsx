@@ -612,8 +612,12 @@ export default function BudgetDetailPage({
       const types = await response.json();
 
       // Filter out category types that are already in use for this project
+      const existingCategories = newCategoryType === 'expense'
+        ? (project.expenseCategories || [])
+        : (project.incomeLineItemsCategories || []);
+
       const existingCategoryNames = new Set(
-        (project.expenseCategories || []).map(cat => cat.name)
+        existingCategories.map(cat => cat.name)
       );
 
       const filteredTypes = types.filter(
@@ -629,9 +633,9 @@ export default function BudgetDetailPage({
     }
   };
 
-  // Fetch category types when modal opens (only for expense categories)
+  // Fetch category types when modal opens (for both expense and revenue categories)
   useEffect(() => {
-    if (!isAddCategoryOpen || newCategoryType === 'revenue' || !project) return;
+    if (!isAddCategoryOpen || !project) return;
     fetchCategoryTypes();
   }, [isAddCategoryOpen, newCategoryType, project]);
 
@@ -2554,55 +2558,42 @@ export default function BudgetDetailPage({
           <DialogHeader>
             <DialogTitle>Add {newCategoryType === "expense" ? "Expense" : "Income"} Category</DialogTitle>
             <DialogDescription>
-              {newCategoryType === "expense"
-                ? "Select a category type from the available options."
-                : "Enter a name and expected amount for this income source."}
+              Select a category type from the available options.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
               <label htmlFor="category-type" className="block text-sm font-medium mb-2">
-                {newCategoryType === "expense" ? "Category Type *" : "Income Source Name *"}
+                Category Type *
               </label>
-              {newCategoryType === "expense" ? (
-                isLoadingCategoryTypes ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-[#61bc47]" />
-                  </div>
-                ) : (
-                  <select
-                    id="category-type"
-                    value={newCategoryName}
-                    onChange={(e) => {
-                      if (e.target.value === "__ADD_NEW__") {
-                        setIsAddCategoryTypeOpen(true);
-                        e.target.value = ""; // Reset dropdown
-                      } else {
-                        setNewCategoryName(e.target.value);
-                      }
-                    }}
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
-                  >
-                    <option value="">Select a category type...</option>
-                    {availableCategoryTypes.map((type) => (
-                      <option key={type.Project_Category_Type_ID} value={type.Project_Category_Type}>
-                        {type.Project_Category_Type}
-                      </option>
-                    ))}
-                    <option value="__ADD_NEW__" className="font-semibold text-[#61bc47]">
-                      + Add New Category Type...
-                    </option>
-                  </select>
-                )
+              {isLoadingCategoryTypes ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#61bc47]" />
+                </div>
               ) : (
-                <input
+                <select
                   id="category-type"
-                  type="text"
                   value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  onChange={(e) => {
+                    if (e.target.value === "__ADD_NEW__") {
+                      setIsAddCategoryTypeOpen(true);
+                      e.target.value = ""; // Reset dropdown
+                    } else {
+                      setNewCategoryName(e.target.value);
+                    }
+                  }}
                   className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
-                  placeholder="e.g., Sponsorships, Donations, Merchandise Sales"
-                />
+                >
+                  <option value="">Select a category type...</option>
+                  {availableCategoryTypes.map((type) => (
+                    <option key={type.Project_Category_Type_ID} value={type.Project_Category_Type}>
+                      {type.Project_Category_Type}
+                    </option>
+                  ))}
+                  <option value="__ADD_NEW__" className="font-semibold text-[#61bc47]">
+                    + Add New Category Type...
+                  </option>
+                </select>
               )}
             </div>
           </div>
@@ -2619,7 +2610,7 @@ export default function BudgetDetailPage({
             </button>
             <button
               onClick={handleAddCategory}
-              disabled={!newCategoryName.trim() || (newCategoryType === "expense" && isLoadingCategoryTypes)}
+              disabled={!newCategoryName.trim() || isLoadingCategoryTypes}
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[#61bc47] hover:bg-[#52a03c] text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="w-4 h-4" />
