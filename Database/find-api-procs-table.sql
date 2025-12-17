@@ -1,6 +1,0 @@
--- Find tables related to API procedure registration
-SELECT
-    TABLE_NAME
-FROM INFORMATION_SCHEMA.TABLES
-WHERE TABLE_NAME LIKE '%API%' OR TABLE_NAME LIKE '%Proc%'
-ORDER BY TABLE_NAME;
