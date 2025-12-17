@@ -103,7 +103,7 @@ export async function POST(
       "Project_Budget_Purchase_Requests",
       [{
         Project_ID: parseInt(projectId),
-        Project_Budget_Expense_Line_Item_ID: parseInt(lineItemId),
+        Project_Budget_Line_Item_ID: parseInt(lineItemId),
         Requested_By_User_ID: userId,
         Amount: parseFloat(amount),
         Description: description || null,

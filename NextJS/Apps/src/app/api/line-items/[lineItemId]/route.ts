@@ -51,6 +51,15 @@ export async function GET(
       if (row.JsonResult) {
         try {
           const lineItem = JSON.parse(row.JsonResult);
+
+          // Validate that we got actual line item data
+          if (!lineItem || !lineItem.lineItemId) {
+            return NextResponse.json(
+              { error: "Line item not found" },
+              { status: 404 }
+            );
+          }
+
           // Files are now included in the stored procedure response
           return NextResponse.json(lineItem);
         } catch (parseError) {

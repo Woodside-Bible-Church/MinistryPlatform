@@ -97,7 +97,8 @@ BEGIN
                         (
                             SELECT ISNULL(SUM(pbt.Amount), 0)
                             FROM Project_Budget_Transactions pbt
-                            WHERE pbt.Project_Budget_Category_ID = pbc.Project_Budget_Category_ID
+                            INNER JOIN Project_Budget_Line_Items pbli ON pbt.Project_Budget_Line_Item_ID = pbli.Project_Budget_Line_Item_ID
+                            WHERE pbli.Category_ID = pbc.Project_Budget_Category_ID
                                 AND pbt.Transaction_Type = 'Expense'
                         ) AS actual,
                         pbc.Sort_Order AS sortOrder,
@@ -112,7 +113,7 @@ BEGIN
                                 (
                                     SELECT ISNULL(SUM(pbt.Amount), 0)
                                     FROM Project_Budget_Transactions pbt
-                                    WHERE pbt.Project_Budget_Expense_Line_Item_ID = li.Project_Budget_Line_Item_ID
+                                    WHERE pbt.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID
                                 ) AS actual,
                                 li.Line_Item_Description AS description,
                                 li.Sort_Order AS sortOrder
@@ -181,7 +182,8 @@ BEGIN
                         (
                             SELECT ISNULL(SUM(pbt.Amount), 0)
                             FROM Project_Budget_Transactions pbt
-                            WHERE pbt.Project_Budget_Category_ID = pbc.Project_Budget_Category_ID
+                            INNER JOIN Project_Budget_Line_Items pbli ON pbt.Project_Budget_Line_Item_ID = pbli.Project_Budget_Line_Item_ID
+                            WHERE pbli.Category_ID = pbc.Project_Budget_Category_ID
                                 AND pbt.Transaction_Type = 'Income'
                         ) AS actual,
                         pbc.Sort_Order AS sortOrder,
@@ -196,7 +198,7 @@ BEGIN
                                 (
                                     SELECT ISNULL(SUM(pbt.Amount), 0)
                                     FROM Project_Budget_Transactions pbt
-                                    WHERE pbt.Project_Budget_Income_Line_Item_ID = li.Project_Budget_Line_Item_ID
+                                    WHERE pbt.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID
                                 ) AS actual,
                                 li.Vendor_Name AS vendor,
                                 li.Sort_Order AS sortOrder

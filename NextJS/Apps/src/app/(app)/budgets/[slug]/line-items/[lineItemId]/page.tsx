@@ -10,6 +10,7 @@ import {
   Plus,
   Trash2,
   Edit,
+  ShoppingCart,
 } from "lucide-react";
 import { FileAttachments } from "@/components/FileAttachments";
 import { BackButton } from "@/components/BackButton";
@@ -122,6 +123,31 @@ export default function LineItemDetailsPage({
     vendorName: "",
     estimatedAmount: "",
   });
+
+  // Create Purchase Request modal state
+  const [isCreatePurchaseRequestOpen, setIsCreatePurchaseRequestOpen] = useState(false);
+  const [createPRAmount, setCreatePRAmount] = useState<string>("");
+  const [createPRDescription, setCreatePRDescription] = useState<string>("");
+  const [createPRVendorName, setCreatePRVendorName] = useState<string>("");
+  const [isSavingPurchaseRequest, setIsSavingPurchaseRequest] = useState(false);
+
+  // Edit Purchase Request modal state
+  const [isEditPurchaseRequestOpen, setIsEditPurchaseRequestOpen] = useState(false);
+  const [editingPurchaseRequest, setEditingPurchaseRequest] = useState<PurchaseRequest | null>(null);
+  const [editPRAmount, setEditPRAmount] = useState<string>("");
+  const [editPRDescription, setEditPRDescription] = useState<string>("");
+  const [editPRVendorName, setEditPRVendorName] = useState<string>("");
+
+  // Add Transaction modal state
+  const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
+  const [transactionPurchaseRequest, setTransactionPurchaseRequest] = useState<PurchaseRequest | null>(null);
+  const [transactionAmount, setTransactionAmount] = useState<string>("");
+  const [transactionDescription, setTransactionDescription] = useState<string>("");
+  const [transactionDate, setTransactionDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [transactionPaymentMethod, setTransactionPaymentMethod] = useState<string>("");
+
+  // Status dropdown state
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState<number | null>(null);
 
   useEffect(() => {
     fetchLineItemDetails();
@@ -242,6 +268,320 @@ export default function LineItemDetailsPage({
     }
   };
 
+  async function handleCreatePurchaseRequest() {
+    if (!lineItem) return;
+
+    const amount = parseFloat(createPRAmount) || 0;
+
+    if (amount <= 0) {
+      toast.error("Amount must be greater than 0");
+      return;
+    }
+
+    // Save form data before closing modal
+    const savedFormData = {
+      amount,
+      description: createPRDescription.trim() || "",
+      vendorName: createPRVendorName.trim() || "",
+    };
+
+    // Close modal immediately
+    setIsCreatePurchaseRequestOpen(false);
+
+    // Reset form
+    setCreatePRAmount("");
+    setCreatePRDescription("");
+    setCreatePRVendorName("");
+
+    // Create temporary optimistic purchase request
+    const tempId = Date.now();
+    const tempPurchaseRequest: PurchaseRequest = {
+      id: tempId,
+      amount: savedFormData.amount,
+      description: savedFormData.description || "New Purchase Request",
+      vendorName: savedFormData.vendorName || lineItem.vendorName || "TBD",
+      approvalStatus: "Pending",
+      requestedDate: new Date().toISOString(),
+      approvedDate: null,
+      transactionCount: 0,
+      transactionTotal: 0,
+      remainingAmount: savedFormData.amount,
+    };
+
+    // Store previous state for rollback
+    const previousLineItem = { ...lineItem };
+
+    // Update UI optimistically
+    setLineItem({
+      ...lineItem,
+      purchaseRequests: [tempPurchaseRequest, ...lineItem.purchaseRequests],
+      purchaseRequestCount: lineItem.purchaseRequestCount + 1,
+      pendingRequestCount: lineItem.pendingRequestCount + 1,
+    });
+
+    const toastId = toast.loading("Creating purchase request...");
+
+    try {
+      const response = await fetch(`/api/projects/${lineItem.projectId}/purchase-requests`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          lineItemId: lineItem.lineItemId,
+          amount: savedFormData.amount,
+          description: savedFormData.description || null,
+          vendorName: savedFormData.vendorName || null,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create purchase request");
+      }
+
+      // Refresh line item details to get real data from server
+      await fetchLineItemDetails();
+
+      toast.success("Purchase request created successfully", { id: toastId });
+    } catch (error) {
+      console.error("Error creating purchase request:", error);
+
+      // Revert optimistic update on error
+      setLineItem(previousLineItem);
+
+      toast.error(error instanceof Error ? error.message : "Failed to create purchase request", { id: toastId });
+    }
+  }
+
+  async function handleEditPurchaseRequest() {
+    if (!lineItem || !editingPurchaseRequest) return;
+
+    const amount = parseFloat(editPRAmount) || 0;
+
+    if (amount <= 0) {
+      toast.error("Amount must be greater than 0");
+      return;
+    }
+
+    // Save form data before closing modal
+    const savedFormData = {
+      amount,
+      description: editPRDescription.trim() || "",
+      vendorName: editPRVendorName.trim() || "",
+    };
+
+    // Close modal immediately
+    setIsEditPurchaseRequestOpen(false);
+
+    // Reset form
+    setEditPRAmount("");
+    setEditPRDescription("");
+    setEditPRVendorName("");
+    setEditingPurchaseRequest(null);
+
+    // Store previous state for rollback
+    const previousLineItem = { ...lineItem };
+
+    // Update UI optimistically
+    setLineItem({
+      ...lineItem,
+      purchaseRequests: lineItem.purchaseRequests.map(pr =>
+        pr.id === editingPurchaseRequest.id
+          ? {
+              ...pr,
+              amount: savedFormData.amount,
+              description: savedFormData.description,
+              vendorName: savedFormData.vendorName,
+              remainingAmount: savedFormData.amount - pr.transactionTotal,
+            }
+          : pr
+      ),
+    });
+
+    const toastId = toast.loading("Updating purchase request...");
+
+    try {
+      const response = await fetch(`/api/purchase-requests/${editingPurchaseRequest.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          Amount: savedFormData.amount,
+          Description: savedFormData.description || null,
+          Vendor_Name: savedFormData.vendorName || null,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update purchase request");
+      }
+
+      // Refresh line item details to get real data from server
+      await fetchLineItemDetails();
+
+      toast.success("Purchase request updated successfully", { id: toastId });
+    } catch (error) {
+      console.error("Error updating purchase request:", error);
+
+      // Revert optimistic update on error
+      setLineItem(previousLineItem);
+
+      toast.error(error instanceof Error ? error.message : "Failed to update purchase request", { id: toastId });
+    }
+  }
+
+  async function handleAddTransaction() {
+    if (!lineItem || !transactionPurchaseRequest) return;
+
+    const amount = parseFloat(transactionAmount) || 0;
+
+    if (amount <= 0) {
+      toast.error("Amount must be greater than 0");
+      return;
+    }
+
+    if (!transactionPaymentMethod.trim()) {
+      toast.error("Payment method is required");
+      return;
+    }
+
+    // Save form data before closing modal
+    const savedFormData = {
+      amount,
+      description: transactionDescription.trim() || "",
+      transactionDate,
+      paymentMethod: transactionPaymentMethod.trim(),
+    };
+
+    // Close modal immediately
+    setIsAddTransactionOpen(false);
+
+    // Reset form
+    setTransactionAmount("");
+    setTransactionDescription("");
+    setTransactionDate(new Date().toISOString().split('T')[0]);
+    setTransactionPaymentMethod("");
+    setTransactionPurchaseRequest(null);
+
+    // Store previous state for rollback
+    const previousLineItem = { ...lineItem };
+
+    // Update UI optimistically - update purchase request transaction count and totals
+    setLineItem({
+      ...lineItem,
+      actualAmount: lineItem.actualAmount + savedFormData.amount,
+      variance: lineItem.estimatedAmount - (lineItem.actualAmount + savedFormData.amount),
+      purchaseRequests: lineItem.purchaseRequests.map(pr =>
+        pr.id === transactionPurchaseRequest.id
+          ? {
+              ...pr,
+              transactionCount: pr.transactionCount + 1,
+              transactionTotal: pr.transactionTotal + savedFormData.amount,
+              remainingAmount: pr.amount - (pr.transactionTotal + savedFormData.amount),
+            }
+          : pr
+      ),
+    });
+
+    const toastId = toast.loading("Adding transaction...");
+
+    try {
+      const response = await fetch(`/api/purchase-requests/${transactionPurchaseRequest.id}/transactions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: savedFormData.amount,
+          description: savedFormData.description || null,
+          transactionDate: savedFormData.transactionDate,
+          paymentMethod: savedFormData.paymentMethod,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to add transaction");
+      }
+
+      // Refresh line item details to get real data from server
+      await fetchLineItemDetails();
+
+      toast.success("Transaction added successfully", { id: toastId });
+    } catch (error) {
+      console.error("Error adding transaction:", error);
+
+      // Revert optimistic update on error
+      setLineItem(previousLineItem);
+
+      toast.error(error instanceof Error ? error.message : "Failed to add transaction", { id: toastId });
+    }
+  }
+
+  async function handleStatusChange(purchaseRequest: PurchaseRequest, newStatus: "Pending" | "Approved" | "Rejected") {
+    if (!lineItem) return;
+
+    // Close dropdown immediately
+    setStatusDropdownOpen(null);
+
+    // Store previous state for rollback
+    const previousLineItem = { ...lineItem };
+
+    // Update UI optimistically
+    setLineItem({
+      ...lineItem,
+      purchaseRequests: lineItem.purchaseRequests.map(pr =>
+        pr.id === purchaseRequest.id
+          ? {
+              ...pr,
+              approvalStatus: newStatus,
+              approvedDate: newStatus === "Approved" ? new Date().toISOString() : null,
+            }
+          : pr
+      ),
+      pendingRequestCount: newStatus === "Pending"
+        ? lineItem.pendingRequestCount + (purchaseRequest.approvalStatus !== "Pending" ? 1 : 0)
+        : lineItem.pendingRequestCount - (purchaseRequest.approvalStatus === "Pending" ? 1 : 0),
+      approvedRequestCount: newStatus === "Approved"
+        ? lineItem.approvedRequestCount + (purchaseRequest.approvalStatus !== "Approved" ? 1 : 0)
+        : lineItem.approvedRequestCount - (purchaseRequest.approvalStatus === "Approved" ? 1 : 0),
+    });
+
+    const toastId = toast.loading("Updating status...");
+
+    try {
+      const response = await fetch(`/api/purchase-requests/${purchaseRequest.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          Approval_Status: newStatus,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update status");
+      }
+
+      // Refresh line item details to get real data from server
+      await fetchLineItemDetails();
+
+      toast.success(`Purchase request ${newStatus.toLowerCase()}`, { id: toastId });
+    } catch (error) {
+      console.error("Error updating status:", error);
+
+      // Revert optimistic update on error
+      setLineItem(previousLineItem);
+
+      toast.error(error instanceof Error ? error.message : "Failed to update status", { id: toastId });
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
@@ -252,15 +592,20 @@ export default function LineItemDetailsPage({
   }
 
   if (error || !lineItem) {
+    const isNotFound = error?.includes("not found") || error?.includes("404");
     return (
       <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-8 text-center">
           <h3 className="text-xl font-semibold text-red-900 dark:text-red-200 mb-2">
-            Error Loading Line Item
+            {isNotFound ? "Line Item Not Found" : "Error Loading Line Item"}
           </h3>
-          <p className="text-red-700 dark:text-red-300 mb-4">{error}</p>
+          <p className="text-red-700 dark:text-red-300 mb-4">
+            {isNotFound
+              ? "This line item may have been deleted or does not exist."
+              : error || "An error occurred while loading the line item."}
+          </p>
           <Button
-            onClick={() => router.back()}
+            onClick={() => router.push(`/budgets/${resolvedParams.slug}`)}
             variant="outline"
           >
             Go Back
@@ -309,19 +654,19 @@ export default function LineItemDetailsPage({
       <Card className="p-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div>
-            <div className="text-sm text-muted-foreground mb-1">Estimated</div>
+            <div className="text-sm text-muted-foreground mb-1">Budget</div>
             <div className="text-2xl font-bold text-foreground">
               {formatCurrency(lineItem.estimatedAmount)}
             </div>
           </div>
           <div>
-            <div className="text-sm text-muted-foreground mb-1">Actual</div>
+            <div className="text-sm text-muted-foreground mb-1">Spent</div>
             <div className="text-2xl font-bold text-foreground">
               {formatCurrency(lineItem.actualAmount)}
             </div>
           </div>
           <div>
-            <div className="text-sm text-muted-foreground mb-1">Variance</div>
+            <div className="text-sm text-muted-foreground mb-1">Remaining</div>
             <div
               className={`text-2xl font-bold ${
                 lineItem.variance > 0
@@ -369,7 +714,14 @@ export default function LineItemDetailsPage({
             <h2 className="text-xl font-semibold text-foreground">
               Purchase Requests
             </h2>
-            <Button size="sm">
+            <Button
+              size="sm"
+              onClick={() => {
+                setCreatePRAmount(lineItem.estimatedAmount.toString());
+                setCreatePRVendorName(lineItem.vendorName || "");
+                setIsCreatePurchaseRequestOpen(true);
+              }}
+            >
               <Plus className="w-4 h-4 mr-2" />
               New Request
             </Button>
@@ -423,9 +775,12 @@ export default function LineItemDetailsPage({
                           onClick={(e) => {
                             e.stopPropagation();
                             if (request.approvalStatus === "Approved") {
-                              router.push(
-                                `/budgets/${resolvedParams.slug}/purchase-requests/${request.id}/add-transaction`
-                              );
+                              setTransactionPurchaseRequest(request);
+                              setTransactionAmount(request.remainingAmount.toString());
+                              setTransactionDescription("");
+                              setTransactionDate(new Date().toISOString().split('T')[0]);
+                              setTransactionPaymentMethod("");
+                              setIsAddTransactionOpen(true);
                             }
                           }}
                           disabled={request.approvalStatus !== "Approved"}
@@ -445,9 +800,11 @@ export default function LineItemDetailsPage({
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            router.push(
-                              `/budgets/${resolvedParams.slug}/purchase-requests/${request.id}/edit`
-                            );
+                            setEditingPurchaseRequest(request);
+                            setEditPRAmount(request.amount.toString());
+                            setEditPRDescription(request.description);
+                            setEditPRVendorName(request.vendorName);
+                            setIsEditPurchaseRequestOpen(true);
                           }}
                           className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-muted-foreground hover:text-foreground transition-colors"
                           title="Edit Purchase Request"
@@ -482,25 +839,63 @@ export default function LineItemDetailsPage({
                         </button>
                       </div>
 
-                      {/* Approval Status Badge */}
-                      {request.approvalStatus === "Pending" && (
-                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-                          <Clock className="w-3 h-3 inline mr-1" />
-                          Pending
-                        </span>
-                      )}
-                      {request.approvalStatus === "Approved" && (
-                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                          <CheckCircle className="w-3 h-3 inline mr-1" />
-                          Approved
-                        </span>
-                      )}
-                      {request.approvalStatus === "Rejected" && (
-                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
-                          <XCircle className="w-3 h-3 inline mr-1" />
-                          Rejected
-                        </span>
-                      )}
+                      {/* Approval Status Icon with Dropdown */}
+                      <div className="relative">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setStatusDropdownOpen(statusDropdownOpen === request.id ? null : request.id);
+                          }}
+                          className={`p-2 rounded-md transition-colors ${
+                            request.approvalStatus === "Approved"
+                              ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50"
+                              : request.approvalStatus === "Rejected"
+                              ? "bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50"
+                              : "bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:hover:bg-yellow-900/50"
+                          }`}
+                          title={`Status: ${request.approvalStatus}`}
+                        >
+                          {request.approvalStatus === "Approved" && (
+                            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                          )}
+                          {request.approvalStatus === "Rejected" && (
+                            <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                          )}
+                          {request.approvalStatus === "Pending" && (
+                            <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                          )}
+                        </button>
+
+                        {/* Status Dropdown */}
+                        {statusDropdownOpen === request.id && (
+                          <div
+                            className="absolute right-0 top-full mt-1 w-48 bg-background border border-border rounded-lg shadow-lg z-50"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              onClick={() => handleStatusChange(request, "Approved")}
+                              className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
+                            >
+                              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                              <span className="text-sm font-medium text-foreground">APPROVE</span>
+                            </button>
+                            <button
+                              onClick={() => handleStatusChange(request, "Rejected")}
+                              className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
+                            >
+                              <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                              <span className="text-sm font-medium text-foreground">REJECT</span>
+                            </button>
+                            <button
+                              onClick={() => handleStatusChange(request, "Pending")}
+                              className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
+                            >
+                              <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                              <span className="text-sm font-medium text-foreground">PENDING</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -521,7 +916,14 @@ export default function LineItemDetailsPage({
             <h2 className="text-xl font-semibold text-foreground">
               Transactions
             </h2>
-            <Button size="sm">
+            <Button
+              size="sm"
+              onClick={() =>
+                router.push(
+                  `/budgets/${resolvedParams.slug}/transactions?lineItemId=${lineItem.lineItemId}&type=Income`
+                )
+              }
+            >
               <Plus className="w-4 h-4 mr-2" />
               Add Transaction
             </Button>
@@ -615,7 +1017,7 @@ export default function LineItemDetailsPage({
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="estimatedAmount">Estimated Amount *</Label>
+              <Label htmlFor="estimatedAmount">Budget Amount *</Label>
               <Input
                 id="estimatedAmount"
                 type="number"
@@ -638,6 +1040,266 @@ export default function LineItemDetailsPage({
             <Button onClick={handleSaveEdit}>
               Save Changes
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Purchase Request Dialog */}
+      <Dialog open={isCreatePurchaseRequestOpen} onOpenChange={setIsCreatePurchaseRequestOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Purchase Request</DialogTitle>
+            <DialogDescription>
+              Request approval for a purchase from this line item. The request must be approved before you can add transactions.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Line Item (read-only) */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Line Item
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 bg-muted text-muted-foreground border border-border rounded-md"
+                value={lineItem?.lineItemName || ""}
+                disabled
+              />
+            </div>
+
+            {/* Amount */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Requested Amount *
+              </label>
+              <input
+                type="number"
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                value={createPRAmount}
+                onChange={(e) => setCreatePRAmount(e.target.value)}
+                placeholder="0.00"
+                step="0.01"
+              />
+            </div>
+
+            {/* Vendor */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Vendor
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                value={createPRVendorName}
+                onChange={(e) => setCreatePRVendorName(e.target.value)}
+                placeholder="Enter vendor name"
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Description
+              </label>
+              <textarea
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                value={createPRDescription}
+                onChange={(e) => setCreatePRDescription(e.target.value)}
+                placeholder="Describe what you need to purchase"
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <button
+              onClick={() => setIsCreatePurchaseRequestOpen(false)}
+              className="px-4 py-2 text-foreground border border-border rounded-md hover:bg-accent transition-colors"
+              disabled={isSavingPurchaseRequest}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCreatePurchaseRequest}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#61bc47] hover:bg-[#52a038] text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSavingPurchaseRequest}
+            >
+              <ShoppingCart className="w-4 h-4" />
+              Create Request
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Purchase Request Dialog */}
+      <Dialog open={isEditPurchaseRequestOpen} onOpenChange={setIsEditPurchaseRequestOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Purchase Request</DialogTitle>
+            <DialogDescription>
+              Update the purchase request details below.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Amount */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Requested Amount *
+              </label>
+              <input
+                type="number"
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                value={editPRAmount}
+                onChange={(e) => setEditPRAmount(e.target.value)}
+                placeholder="0.00"
+                step="0.01"
+              />
+            </div>
+
+            {/* Vendor */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Vendor
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                value={editPRVendorName}
+                onChange={(e) => setEditPRVendorName(e.target.value)}
+                placeholder="Enter vendor name"
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Description
+              </label>
+              <textarea
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                value={editPRDescription}
+                onChange={(e) => setEditPRDescription(e.target.value)}
+                placeholder="Describe what you need to purchase"
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <button
+              onClick={() => setIsEditPurchaseRequestOpen(false)}
+              className="px-4 py-2 text-foreground border border-border rounded-md hover:bg-accent transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleEditPurchaseRequest}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#61bc47] hover:bg-[#52a038] text-white rounded-md transition-colors"
+            >
+              <Edit className="w-4 h-4" />
+              Update Request
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Transaction Dialog */}
+      <Dialog open={isAddTransactionOpen} onOpenChange={setIsAddTransactionOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Transaction</DialogTitle>
+            <DialogDescription>
+              Add a transaction to the approved purchase request.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Purchase Request (read-only) */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Purchase Request
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 bg-muted text-muted-foreground border border-border rounded-md"
+                value={transactionPurchaseRequest ? `${formatCurrency(transactionPurchaseRequest.amount)} - ${transactionPurchaseRequest.vendorName}` : ""}
+                disabled
+              />
+            </div>
+
+            {/* Amount */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Amount *
+              </label>
+              <input
+                type="number"
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                value={transactionAmount}
+                onChange={(e) => setTransactionAmount(e.target.value)}
+                placeholder="0.00"
+                step="0.01"
+              />
+            </div>
+
+            {/* Transaction Date */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Transaction Date *
+              </label>
+              <input
+                type="date"
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                value={transactionDate}
+                onChange={(e) => setTransactionDate(e.target.value)}
+              />
+            </div>
+
+            {/* Payment Method */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Payment Method *
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                value={transactionPaymentMethod}
+                onChange={(e) => setTransactionPaymentMethod(e.target.value)}
+                placeholder="e.g., Credit Card, Check, Cash"
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Description
+              </label>
+              <textarea
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                value={transactionDescription}
+                onChange={(e) => setTransactionDescription(e.target.value)}
+                placeholder="Additional notes about this transaction"
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <button
+              onClick={() => setIsAddTransactionOpen(false)}
+              className="px-4 py-2 text-foreground border border-border rounded-md hover:bg-accent transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAddTransaction}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#61bc47] hover:bg-[#52a038] text-white rounded-md transition-colors"
+            >
+              <DollarSign className="w-4 h-4" />
+              Add Transaction
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

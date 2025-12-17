@@ -70,9 +70,11 @@ BEGIN
                 ) AS Total_Actual_Income,
 
                 (
-                    SELECT ISNULL(SUM(pbili.Expected_Amount), 0)
-                    FROM Project_Budget_Income_Line_Items pbili
-                    WHERE pbili.Project_ID = p.Project_ID
+                    SELECT ISNULL(SUM(pbli.Estimated_Amount), 0)
+                    FROM Project_Budget_Line_Items pbli
+                    INNER JOIN Project_Budget_Categories pbc ON pbli.Category_ID = pbc.Project_Budget_Category_ID
+                    WHERE pbc.Project_ID = p.Project_ID
+                        AND pbc.Budget_Category_Type = 'revenue'
                 ) + ISNULL(p.Expected_Registration_Revenue, 0) AS Total_Expected_Income
 
             FROM Projects p

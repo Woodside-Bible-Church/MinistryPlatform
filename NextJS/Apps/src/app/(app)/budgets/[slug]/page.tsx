@@ -85,7 +85,7 @@ interface ProjectBudgetDetails {
   Total_Actual_Income: number;
   Total_Expected_Income: number;
   expenseCategories: BudgetCategory[];
-  incomeCategories: BudgetCategory[];
+  incomeLineItemsCategories: BudgetCategory[];
   registrationIncomeCategory: BudgetCategory;
   registrationDiscountsCategory: BudgetCategory;
 }
@@ -124,6 +124,7 @@ function CategorySection({
   onDeleteLineItem,
   onAddLineItem,
   onCreatePurchaseRequest,
+  onCreateTransaction,
   filteredLineItems,
 }: {
   category: BudgetCategory;
@@ -142,6 +143,7 @@ function CategorySection({
   onDeleteLineItem?: (lineItemId: string, lineItemName: string) => void;
   onAddLineItem?: () => void;
   onCreatePurchaseRequest?: (lineItemId: string, lineItemName: string, estimated: number, vendor: string | null) => void;
+  onCreateTransaction?: (lineItemId: string, lineItemName: string) => void;
   filteredLineItems?: BudgetCategory['lineItems'];
 }) {
   const router = useRouter();
@@ -346,6 +348,7 @@ function CategorySection({
                   <tr
                     key={item.lineItemId}
                     onClick={() => !isLoading && router.push(`/budgets/${projectSlug}/line-items/${item.lineItemId}`)}
+                    onMouseEnter={() => !isLoading && router.prefetch(`/budgets/${projectSlug}/line-items/${item.lineItemId}`)}
                     className={`transition-colors ${isLoading ? 'cursor-wait animate-pulse opacity-60' : 'cursor-pointer'} ${
                       isSimplifiedView
                         ? "bg-blue-50/20 dark:bg-blue-950/10 hover:bg-blue-50/40 dark:hover:bg-blue-950/20"
@@ -416,6 +419,19 @@ function CategorySection({
                               disabled={isLoading}
                               className="p-1.5 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                               title="Create purchase request"
+                            >
+                              <Plus className="w-4 h-4 text-[#61bc47] dark:text-[#61bc47]" />
+                            </button>
+                          )}
+                          {category.type === "revenue" && onCreateTransaction && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onCreateTransaction(item.lineItemId, item.name);
+                              }}
+                              disabled={isLoading}
+                              className="p-1.5 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                              title="Create income transaction"
                             >
                               <Plus className="w-4 h-4 text-[#61bc47] dark:text-[#61bc47]" />
                             </button>
@@ -507,7 +523,6 @@ export default function BudgetDetailPage({
   // Add Category modal state
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [newCategoryDescription, setNewCategoryDescription] = useState("");
   const [newCategoryExpectedAmount, setNewCategoryExpectedAmount] = useState<string>("");
   const [newCategoryType, setNewCategoryType] = useState<"expense" | "revenue">("expense");
   const [isSavingCategory, setIsSavingCategory] = useState(false);
@@ -816,7 +831,6 @@ export default function BudgetDetailPage({
       categoryId: `temp-${Date.now()}`,
       name: categoryName,
       type: newCategoryType,
-      description: newCategoryDescription || undefined,
       estimated: budgetedAmount,
       actual: 0,
       sortOrder: 999,
@@ -830,7 +844,7 @@ export default function BudgetDetailPage({
       // Update total budget
       updatedProject.Total_Budget = project.Total_Budget + budgetedAmount;
     } else {
-      updatedProject.incomeCategories = [...project.incomeCategories, tempCategory];
+      updatedProject.incomeLineItemsCategories = [...project.incomeLineItemsCategories, tempCategory];
       // Update total expected income
       updatedProject.Total_Expected_Income = project.Total_Expected_Income + tempCategory.estimated;
     }
@@ -867,8 +881,8 @@ export default function BudgetDetailPage({
             createdCategory,
           ];
         } else {
-          finalProject.incomeCategories = [
-            ...project.incomeCategories,
+          finalProject.incomeLineItemsCategories = [
+            ...project.incomeLineItemsCategories,
             createdCategory,
           ];
         }
@@ -877,7 +891,6 @@ export default function BudgetDetailPage({
         // Reset form
         setNewCategoryName("");
         setNewCategoryTypeName("");
-        setNewCategoryDescription("");
         setNewCategoryExpectedAmount("");
         setNewCategoryType("expense");
 
@@ -894,7 +907,7 @@ export default function BudgetDetailPage({
               (cat) => cat.categoryId !== tempCategory.categoryId
             );
           } else {
-            revertedProject.incomeCategories = project.incomeCategories.filter(
+            revertedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.filter(
               (cat) => cat.categoryId !== tempCategory.categoryId
             );
             // Revert total expected income
@@ -914,7 +927,7 @@ export default function BudgetDetailPage({
     const newBudgetValue = parseFloat(editCategoryBudgetValue) || 0;
 
     // Find the category being edited to get previous values
-    const allCategories = [...project.expenseCategories, ...project.incomeCategories];
+    const allCategories = [...project.expenseCategories, ...project.incomeLineItemsCategories];
     const categoryToEdit = allCategories.find(cat => cat.categoryId === editingCategoryId);
 
     if (!categoryToEdit) return;
@@ -944,7 +957,7 @@ export default function BudgetDetailPage({
         );
         updatedProject.Total_Budget = (project.Total_Budget - previousBudgetValue) + newBudgetValue;
       } else {
-        updatedProject.incomeCategories = project.incomeCategories.map(cat =>
+        updatedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.map(cat =>
           cat.categoryId === editingCategoryId
             ? { ...cat, name: newName, estimated: newBudgetValue }
             : cat
@@ -989,7 +1002,7 @@ export default function BudgetDetailPage({
           );
           revertedProject.Total_Budget = (updatedProject.Total_Budget - newBudgetValue) + previousBudgetValue;
         } else {
-          revertedProject.incomeCategories = project.incomeCategories.map(cat =>
+          revertedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.map(cat =>
             cat.categoryId === editingCategoryId
               ? { ...cat, name: previousName, estimated: previousBudgetValue }
               : cat
@@ -1031,7 +1044,7 @@ export default function BudgetDetailPage({
     if (!confirmed) return;
 
     // Find the category to delete
-    const allCategories = [...project.expenseCategories, ...project.incomeCategories];
+    const allCategories = [...project.expenseCategories, ...project.incomeLineItemsCategories];
     const categoryToDelete = allCategories.find(cat => cat.categoryId === categoryId);
 
     if (!categoryToDelete) return;
@@ -1079,7 +1092,7 @@ export default function BudgetDetailPage({
             // Update total budget
             updatedProject.Total_Budget = prevProject.Total_Budget - categoryToDelete.estimated;
           } else {
-            updatedProject.incomeCategories = prevProject.incomeCategories.filter(
+            updatedProject.incomeLineItemsCategories = prevProject.incomeLineItemsCategories.filter(
               cat => cat.categoryId !== categoryId
             );
             // Update total expected income
@@ -1122,7 +1135,7 @@ export default function BudgetDetailPage({
     }
 
     // Find the category and line item being edited
-    const allCategories = [...project.expenseCategories, ...project.incomeCategories];
+    const allCategories = [...project.expenseCategories, ...project.incomeLineItemsCategories];
     const category = allCategories.find(cat => cat.categoryId === categoryId);
 
     if (!category) return;
@@ -1173,7 +1186,7 @@ export default function BudgetDetailPage({
       updatedProject.Total_Budget = (project.Total_Budget - previousEstimated) + newEstimated;
     } else {
       // Income line items
-      updatedProject.incomeCategories = project.incomeCategories.map(cat =>
+      updatedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.map(cat =>
         cat.categoryId === categoryId
           ? {
               ...cat,
@@ -1239,7 +1252,7 @@ export default function BudgetDetailPage({
           );
           revertedProject.Total_Budget = (updatedProject.Total_Budget - newEstimated) + previousEstimated;
         } else {
-          revertedProject.incomeCategories = project.incomeCategories.map(cat =>
+          revertedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.map(cat =>
             cat.categoryId === categoryId
               ? {
                   ...cat,
@@ -1291,7 +1304,7 @@ export default function BudgetDetailPage({
     if (!confirmed) return;
 
     // Find the category and line item to delete
-    const allCategories = [...project.expenseCategories, ...project.incomeCategories];
+    const allCategories = [...project.expenseCategories, ...project.incomeLineItemsCategories];
     const category = allCategories.find(cat => cat.categoryId === categoryId);
 
     if (!category) return;
@@ -1318,7 +1331,7 @@ export default function BudgetDetailPage({
         updatedProject.Total_Budget = project.Total_Budget - lineItem.estimated;
       } else {
         // Income line items - delete the line item from the category
-        updatedProject.incomeCategories = project.incomeCategories.map(cat =>
+        updatedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.map(cat =>
           cat.categoryId === categoryId
             ? {
                 ...cat,
@@ -1381,7 +1394,7 @@ export default function BudgetDetailPage({
 
     // Find the category to add the line item to (check all categories including special ones)
     const expenseCategory = project.expenseCategories.find(cat => cat.categoryId === addLineItemCategoryId);
-    const incomeCategory = project.incomeCategories.find(cat => cat.categoryId === addLineItemCategoryId);
+    const incomeCategory = project.incomeLineItemsCategories.find(cat => cat.categoryId === addLineItemCategoryId);
     const registrationIncomeCategory = project.registrationIncomeCategory?.categoryId === addLineItemCategoryId
       ? project.registrationIncomeCategory
       : null;
@@ -1436,7 +1449,7 @@ export default function BudgetDetailPage({
       updatedProject.Total_Budget = project.Total_Budget + newEstimated;
     } else if (isIncome) {
       // Update regular income categories
-      updatedProject.incomeCategories = project.incomeCategories.map(cat =>
+      updatedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.map(cat =>
         cat.categoryId === addLineItemCategoryId
           ? {
               ...cat,
@@ -1513,7 +1526,7 @@ export default function BudgetDetailPage({
             };
             revertedProject.Total_Budget = prevProject.Total_Budget - newEstimated;
           } else if (isIncome) {
-            revertedProject.incomeCategories = prevProject.incomeCategories.map(cat =>
+            revertedProject.incomeLineItemsCategories = prevProject.incomeLineItemsCategories.map(cat =>
               cat.categoryId === addLineItemCategoryId
                 ? {
                     ...cat,
@@ -1563,7 +1576,7 @@ export default function BudgetDetailPage({
             ),
           };
         } else if (isIncome) {
-          finalProject.incomeCategories = prevProject.incomeCategories.map(cat =>
+          finalProject.incomeLineItemsCategories = prevProject.incomeLineItemsCategories.map(cat =>
             cat.categoryId === addLineItemCategoryId
               ? {
                   ...cat,
@@ -1734,7 +1747,7 @@ export default function BudgetDetailPage({
   ];
   const revenueCategories = [
     ...(project?.registrationIncomeCategory ? [project.registrationIncomeCategory] : []),
-    ...(project?.incomeCategories || []),
+    ...(project?.incomeLineItemsCategories || []),
   ];
 
   // Filter categories based on search input
@@ -2585,19 +2598,6 @@ export default function BudgetDetailPage({
                     />
                   </div>
                 </div>
-                <div>
-                  <label htmlFor="category-description" className="block text-sm font-medium mb-2">
-                    Description (optional)
-                  </label>
-                  <textarea
-                    id="category-description"
-                    value={newCategoryDescription}
-                    onChange={(e) => setNewCategoryDescription(e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground resize-none"
-                    placeholder="Brief description of this category"
-                  />
-                </div>
               </>
             )}
           </div>
@@ -2606,7 +2606,6 @@ export default function BudgetDetailPage({
               onClick={() => {
                 setIsAddCategoryOpen(false);
                 setNewCategoryName("");
-                setNewCategoryDescription("");
                 setNewCategoryExpectedAmount("");
               }}
               className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"

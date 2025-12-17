@@ -331,22 +331,15 @@ export async function DELETE(
 
     const userId = users[0].User_ID;
 
-    // Check if line item has transactions (check both expense and income)
-    const expenseTransactions = await mp.getTableRecords<{ Project_Budget_Transaction_ID: number }>({
+    // Check if line item has transactions
+    const transactions = await mp.getTableRecords<{ Project_Budget_Transaction_ID: number }>({
       table: 'Project_Budget_Transactions',
       select: 'Project_Budget_Transaction_ID',
-      filter: `Project_Budget_Expense_Line_Item_ID=${lineItemId}`,
+      filter: `Project_Budget_Line_Item_ID=${lineItemId}`,
       top: 1,
     });
 
-    const incomeTransactions = await mp.getTableRecords<{ Project_Budget_Transaction_ID: number }>({
-      table: 'Project_Budget_Transactions',
-      select: 'Project_Budget_Transaction_ID',
-      filter: `Project_Budget_Income_Line_Item_ID=${lineItemId}`,
-      top: 1,
-    });
-
-    if (expenseTransactions.length > 0 || incomeTransactions.length > 0) {
+    if (transactions.length > 0) {
       return NextResponse.json(
         { error: "Cannot delete line item with transactions. Please delete all transactions first." },
         { status: 400 }

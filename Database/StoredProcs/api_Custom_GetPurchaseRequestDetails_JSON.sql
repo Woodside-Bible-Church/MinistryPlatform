@@ -20,7 +20,7 @@ BEGIN
             pr.Purchase_Request_ID AS purchaseRequestId,
             pr.Requisition_GUID AS requisitionGuid,
             pr.Project_ID AS projectId,
-            pr.Project_Budget_Expense_Line_Item_ID AS lineItemId,
+            pr.Project_Budget_Line_Item_ID AS lineItemId,
 
             -- Project info
             p.Project_Title AS projectName,
@@ -108,7 +108,7 @@ BEGIN
 
         FROM Project_Budget_Purchase_Requests pr
         INNER JOIN Project_Budget_Line_Items li
-            ON pr.Project_Budget_Expense_Line_Item_ID = li.Project_Budget_Line_Item_ID
+            ON pr.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID
         INNER JOIN Project_Budget_Categories pbc
             ON li.Category_ID = pbc.Project_Budget_Category_ID
         INNER JOIN Projects p

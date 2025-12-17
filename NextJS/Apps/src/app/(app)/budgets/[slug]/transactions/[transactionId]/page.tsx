@@ -7,12 +7,23 @@ import {
   Calendar,
   DollarSign,
   CreditCard,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FileAttachments } from "@/components/FileAttachments";
 import { BackButton } from "@/components/BackButton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface TransactionDetails {
   transactionId: number;
@@ -87,6 +98,18 @@ export default function TransactionDetailsPage({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Edit Transaction modal state
+  const [isEditTransactionOpen, setIsEditTransactionOpen] = useState(false);
+  const [editTransactionDate, setEditTransactionDate] = useState("");
+  const [editTransactionType, setEditTransactionType] = useState<"Expense" | "Income">("Expense");
+  const [editTransactionAmount, setEditTransactionAmount] = useState("");
+  const [editTransactionPayee, setEditTransactionPayee] = useState("");
+  const [editTransactionDescription, setEditTransactionDescription] = useState("");
+  const [editTransactionPaymentMethod, setEditTransactionPaymentMethod] = useState("");
+  const [editTransactionPaymentReference, setEditTransactionPaymentReference] = useState("");
+  const [editTransactionNotes, setEditTransactionNotes] = useState("");
+  const [isSavingEditTransaction, setIsSavingEditTransaction] = useState(false);
+
   useEffect(() => {
     fetchTransactionDetails();
   }, [resolvedParams.transactionId]);
@@ -112,6 +135,109 @@ export default function TransactionDetailsPage({
     }
   };
 
+  const handleOpenEdit = () => {
+    if (!transaction) return;
+
+    setEditTransactionDate(transaction.transactionDate.split('T')[0]);
+    setEditTransactionType(transaction.transactionType);
+    setEditTransactionAmount(Math.abs(transaction.amount).toString());
+    setEditTransactionPayee(transaction.payeeName || "");
+    setEditTransactionDescription(transaction.description || "");
+    setEditTransactionPaymentMethod(transaction.paymentMethodId?.toString() || "");
+    setEditTransactionPaymentReference(transaction.paymentReference || "");
+    setEditTransactionNotes(transaction.notes || "");
+    setIsEditTransactionOpen(true);
+  };
+
+  const handleEditTransaction = async () => {
+    if (!transaction) return;
+
+    const amount = parseFloat(editTransactionAmount);
+
+    if (!editTransactionDate || !amount) {
+      toast.error("Date and amount are required");
+      return;
+    }
+
+    // Close modal and show optimistic update
+    setIsEditTransactionOpen(false);
+    setIsSavingEditTransaction(true);
+
+    // Show loading toast
+    const toastId = toast.loading("Updating transaction...");
+
+    try {
+      const response = await fetch(`/api/projects/${transaction.projectId}/transactions`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          transactionId: transaction.transactionId,
+          transactionDate: editTransactionDate,
+          transactionType: editTransactionType,
+          amount: amount,
+          lineItemId: transaction.lineItemId, // Keep existing line item
+          payeeName: editTransactionPayee.trim() || null,
+          description: editTransactionDescription.trim() || null,
+          paymentMethodId: editTransactionPaymentMethod ? parseInt(editTransactionPaymentMethod, 10) : null,
+          paymentReference: editTransactionPaymentReference.trim() || null,
+          notes: editTransactionNotes.trim() || null,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update transaction");
+      }
+
+      // Refetch to get accurate server data
+      await fetchTransactionDetails();
+
+      toast.success("Transaction updated successfully", { id: toastId });
+    } catch (err) {
+      console.error("Error updating transaction:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to update transaction", { id: toastId });
+    } finally {
+      setIsSavingEditTransaction(false);
+    }
+  };
+
+  const handleDeleteTransaction = async () => {
+    if (!transaction) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete this transaction${transaction.description ? ` "${transaction.description}"` : ""}? This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    // Show loading toast
+    const toastId = toast.loading("Deleting transaction...");
+
+    try {
+      const response = await fetch(
+        `/api/projects/${transaction.projectId}/transactions?transactionId=${transaction.transactionId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete transaction");
+      }
+
+      toast.success("Transaction deleted successfully", { id: toastId });
+
+      // Navigate back to transactions list
+      router.push(`/budgets/${resolvedParams.slug}/transactions`);
+    } catch (err) {
+      console.error("Error deleting transaction:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to delete transaction", { id: toastId });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1200px]">
@@ -122,14 +248,22 @@ export default function TransactionDetailsPage({
   }
 
   if (error || !transaction) {
+    const isNotFound = error?.includes("not found") || error?.includes("404");
     return (
       <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1200px]">
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-8 text-center">
           <h3 className="text-xl font-semibold text-red-900 dark:text-red-200 mb-2">
-            Error Loading Transaction
+            {isNotFound ? "Transaction Not Found" : "Error Loading Transaction"}
           </h3>
-          <p className="text-red-700 dark:text-red-300 mb-4">{error}</p>
-          <Button onClick={() => router.back()} variant="outline">
+          <p className="text-red-700 dark:text-red-300 mb-4">
+            {isNotFound
+              ? "This transaction may have been deleted or does not exist."
+              : error || "An error occurred while loading the transaction."}
+          </p>
+          <Button
+            onClick={() => router.push(`/budgets/${resolvedParams.slug}/transactions`)}
+            variant="outline"
+          >
             Go Back
           </Button>
         </div>
@@ -156,9 +290,22 @@ export default function TransactionDetailsPage({
             </p>
           </div>
 
-          <Button variant="outline" size="sm">
-            Edit
-          </Button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleOpenEdit}
+              className="p-2 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors"
+              title="Edit transaction"
+            >
+              <Edit className="w-4 h-4 text-muted-foreground" />
+            </button>
+            <button
+              onClick={handleDeleteTransaction}
+              className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+              title="Delete transaction"
+            >
+              <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -230,6 +377,137 @@ export default function TransactionDetailsPage({
         uploadEndpoint={`/api/projects/${transaction.projectId}/transactions/${transaction.transactionId}/files`}
         onFilesUploaded={fetchTransactionDetails}
       />
+
+      {/* Edit Transaction Dialog */}
+      <Dialog open={isEditTransactionOpen} onOpenChange={setIsEditTransactionOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Transaction</DialogTitle>
+            <DialogDescription>
+              Update the details for this transaction.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="edit-transaction-date" className="block text-sm font-medium mb-2">
+                  Date *
+                </label>
+                <input
+                  id="edit-transaction-date"
+                  type="date"
+                  value={editTransactionDate}
+                  onChange={(e) => setEditTransactionDate(e.target.value)}
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                />
+              </div>
+              <div>
+                <label htmlFor="edit-transaction-type" className="block text-sm font-medium mb-2">
+                  Type *
+                </label>
+                <select
+                  id="edit-transaction-type"
+                  value={editTransactionType}
+                  onChange={(e) => setEditTransactionType(e.target.value as "Expense" | "Income")}
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                >
+                  <option value="Expense">Expense</option>
+                  <option value="Income">Income</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label htmlFor="edit-transaction-amount" className="block text-sm font-medium mb-2">
+                Amount *
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  $
+                </span>
+                <input
+                  id="edit-transaction-amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={editTransactionAmount}
+                  onChange={(e) => setEditTransactionAmount(e.target.value)}
+                  className="w-full pl-7 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="edit-transaction-payee" className="block text-sm font-medium mb-2">
+                Payee (optional)
+              </label>
+              <input
+                id="edit-transaction-payee"
+                type="text"
+                value={editTransactionPayee}
+                onChange={(e) => setEditTransactionPayee(e.target.value)}
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                placeholder="e.g., Vendor Name"
+              />
+            </div>
+            <div>
+              <label htmlFor="edit-transaction-description" className="block text-sm font-medium mb-2">
+                Description (optional)
+              </label>
+              <textarea
+                id="edit-transaction-description"
+                value={editTransactionDescription}
+                onChange={(e) => setEditTransactionDescription(e.target.value)}
+                rows={3}
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground resize-none"
+                placeholder="Brief description of this transaction"
+              />
+            </div>
+            <div>
+              <label htmlFor="edit-transaction-payment-reference" className="block text-sm font-medium mb-2">
+                Payment Reference (optional)
+              </label>
+              <input
+                id="edit-transaction-payment-reference"
+                type="text"
+                value={editTransactionPaymentReference}
+                onChange={(e) => setEditTransactionPaymentReference(e.target.value)}
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                placeholder="e.g., Check #, Invoice #"
+              />
+            </div>
+            <div>
+              <label htmlFor="edit-transaction-notes" className="block text-sm font-medium mb-2">
+                Notes (optional)
+              </label>
+              <textarea
+                id="edit-transaction-notes"
+                value={editTransactionNotes}
+                onChange={(e) => setEditTransactionNotes(e.target.value)}
+                rows={2}
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground resize-none"
+                placeholder="Additional notes"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <button
+              onClick={() => {
+                setIsEditTransactionOpen(false);
+              }}
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleEditTransaction}
+              disabled={!editTransactionDate || !editTransactionAmount || isSavingEditTransaction}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[#61bc47] hover:bg-[#52a03c] text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Save Changes
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

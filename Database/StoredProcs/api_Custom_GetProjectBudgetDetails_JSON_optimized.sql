@@ -98,7 +98,8 @@ BEGIN
                         (
                             SELECT ISNULL(SUM(pbt.Amount), 0)
                             FROM Project_Budget_Transactions pbt
-                            WHERE pbt.Project_Budget_Category_ID = pbc.Project_Budget_Category_ID
+                            INNER JOIN Project_Budget_Line_Items pbli ON pbt.Project_Budget_Line_Item_ID = pbli.Project_Budget_Line_Item_ID
+                            WHERE pbli.Category_ID = pbc.Project_Budget_Category_ID
                                 AND pbt.Transaction_Type = 'Expense'
                         ) AS actual,
                         pbc.Sort_Order AS sortOrder,

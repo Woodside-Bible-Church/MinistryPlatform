@@ -23,6 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface Transaction {
   transactionId: number;
@@ -33,8 +34,7 @@ interface Transaction {
   paymentMethod: string | null;
   payee: string | null;
   categoryItem: string;
-  expenseLineItemId: number | null;
-  incomeLineItemId: number | null;
+  lineItemId: number | null;
   purchaseRequestId: number | null;
   requisitionGuid: string | null;
   purchaseRequestStatus: string | null;
@@ -209,14 +209,70 @@ export default function TransactionsPage({
     const amount = parseFloat(newTransactionAmount);
 
     if (!newTransactionDate || !amount) {
-      alert("Date and amount are required");
+      toast.error("Date and amount are required");
       return;
     }
 
+    // Close modal and show optimistic update
     setIsAddTransactionOpen(false);
     setIsSavingTransaction(true);
 
+    // Show loading toast
+    const toastId = toast.loading("Creating transaction...");
+
+    // Store original data for rollback
+    const originalData = data;
+
     try {
+      // Find line item name for display
+      let categoryItemName = "Uncategorized";
+      if (newTransactionLineItemId && budgetData) {
+        if (newTransactionType === "Expense") {
+          for (const category of budgetData.expenseCategories) {
+            const item = category.lineItems.find(item => item.lineItemId === newTransactionLineItemId);
+            if (item) {
+              categoryItemName = `${category.name} | ${item.name}`;
+              break;
+            }
+          }
+        } else {
+          for (const category of budgetData.incomeLineItemsCategories) {
+            const item = category.lineItems.find(item => item.lineItemId === newTransactionLineItemId);
+            if (item) {
+              categoryItemName = item.name;
+              break;
+            }
+          }
+        }
+      }
+
+      // Create optimistic transaction
+      const optimisticTransaction: Transaction = {
+        transactionId: Date.now(), // Temporary ID
+        date: newTransactionDate,
+        type: newTransactionType,
+        amount: newTransactionType === "Expense" ? -Math.abs(amount) : Math.abs(amount),
+        description: newTransactionDescription.trim() || "",
+        paymentMethod: newTransactionPaymentMethod || null,
+        payee: newTransactionPayee.trim() || null,
+        categoryItem: categoryItemName,
+        lineItemId: newTransactionLineItemId ? parseInt(newTransactionLineItemId, 10) : null,
+        purchaseRequestId: null,
+        requisitionGuid: null,
+        purchaseRequestStatus: null,
+      };
+
+      // Optimistic UI update
+      setData({
+        ...data,
+        transactions: [optimisticTransaction, ...data.transactions],
+        Total_Transactions: data.Total_Transactions + 1,
+        Total_Expenses: newTransactionType === "Expense" ? data.Total_Expenses + amount : data.Total_Expenses,
+        Total_Income: newTransactionType === "Income" ? data.Total_Income + amount : data.Total_Income,
+        Expense_Transaction_Count: newTransactionType === "Expense" ? data.Expense_Transaction_Count + 1 : data.Expense_Transaction_Count,
+        Income_Transaction_Count: newTransactionType === "Income" ? data.Income_Transaction_Count + 1 : data.Income_Transaction_Count,
+      });
+
       const response = await fetch(`/api/projects/${data.Project_ID}/transactions`, {
         method: "POST",
         headers: {
@@ -226,7 +282,7 @@ export default function TransactionsPage({
           transactionDate: newTransactionDate,
           transactionType: newTransactionType,
           amount: amount,
-          lineItemId: newTransactionLineItemId ? (newTransactionType === "Expense" ? parseInt(newTransactionLineItemId, 10) : newTransactionLineItemId) : null,
+          lineItemId: newTransactionLineItemId ? parseInt(newTransactionLineItemId, 10) : null,
           payeeName: newTransactionPayee.trim() || null,
           description: newTransactionDescription.trim() || null,
           paymentMethodId: newTransactionPaymentMethod ? parseInt(newTransactionPaymentMethod, 10) : null,
@@ -240,7 +296,7 @@ export default function TransactionsPage({
         throw new Error(errorData.error || "Failed to create transaction");
       }
 
-      // Refetch transactions to get updated data
+      // Refetch to get accurate server data with real IDs
       await refetchTransactions();
 
       // Reset form
@@ -253,9 +309,13 @@ export default function TransactionsPage({
       setNewTransactionPaymentMethod("");
       setNewTransactionPaymentReference("");
       setNewTransactionNotes("");
+
+      toast.success("Transaction created successfully", { id: toastId });
     } catch (err) {
       console.error("Error creating transaction:", err);
-      alert(err instanceof Error ? err.message : "Failed to create transaction");
+      // Rollback optimistic update
+      setData(originalData);
+      toast.error(err instanceof Error ? err.message : "Failed to create transaction", { id: toastId });
     } finally {
       setIsSavingTransaction(false);
     }
@@ -267,14 +327,41 @@ export default function TransactionsPage({
     const amount = parseFloat(editTransactionAmount);
 
     if (!editTransactionDate || !amount) {
-      alert("Date and amount are required");
+      toast.error("Date and amount are required");
       return;
     }
 
+    // Close modal and show optimistic update
     setIsEditTransactionOpen(false);
     setIsSavingEditTransaction(true);
 
+    // Show loading toast
+    const toastId = toast.loading("Updating transaction...");
+
+    // Store original data for rollback
+    const originalData = data;
+
     try {
+      // Optimistic UI update
+      const updatedTransactions = data.transactions.map((t) =>
+        t.transactionId === editingTransactionId
+          ? {
+              ...t,
+              date: editTransactionDate,
+              type: editTransactionType,
+              amount: editTransactionType === "Expense" ? -Math.abs(amount) : Math.abs(amount),
+              payee: editTransactionPayee.trim() || null,
+              description: editTransactionDescription.trim() || "",
+              paymentMethod: editTransactionPaymentMethod || null,
+            }
+          : t
+      );
+
+      setData({
+        ...data,
+        transactions: updatedTransactions,
+      });
+
       const response = await fetch(`/api/projects/${data.Project_ID}/transactions`, {
         method: "PATCH",
         headers: {
@@ -285,7 +372,7 @@ export default function TransactionsPage({
           transactionDate: editTransactionDate,
           transactionType: editTransactionType,
           amount: amount,
-          lineItemId: editTransactionLineItemId ? (editTransactionType === "Expense" ? parseInt(editTransactionLineItemId, 10) : editTransactionLineItemId) : null,
+          lineItemId: editTransactionLineItemId ? parseInt(editTransactionLineItemId, 10) : null,
           payeeName: editTransactionPayee.trim() || null,
           description: editTransactionDescription.trim() || null,
           paymentMethodId: editTransactionPaymentMethod ? parseInt(editTransactionPaymentMethod, 10) : null,
@@ -299,7 +386,7 @@ export default function TransactionsPage({
         throw new Error(errorData.error || "Failed to update transaction");
       }
 
-      // Refetch transactions to get updated data
+      // Refetch to get accurate server data
       await refetchTransactions();
 
       // Reset form
@@ -313,9 +400,13 @@ export default function TransactionsPage({
       setEditTransactionPaymentMethod("");
       setEditTransactionPaymentReference("");
       setEditTransactionNotes("");
+
+      toast.success("Transaction updated successfully", { id: toastId });
     } catch (err) {
       console.error("Error updating transaction:", err);
-      alert(err instanceof Error ? err.message : "Failed to update transaction");
+      // Rollback optimistic update
+      setData(originalData);
+      toast.error(err instanceof Error ? err.message : "Failed to update transaction", { id: toastId });
     } finally {
       setIsSavingEditTransaction(false);
     }
@@ -330,7 +421,35 @@ export default function TransactionsPage({
 
     if (!confirmed) return;
 
+    // Show loading toast
+    const toastId = toast.loading("Deleting transaction...");
+
+    // Store original data for rollback
+    const originalData = data;
+
+    // Find the transaction being deleted to update totals
+    const transactionToDelete = data.transactions.find(t => t.transactionId === transactionId);
+
+    if (!transactionToDelete) {
+      toast.error("Transaction not found", { id: toastId });
+      return;
+    }
+
     try {
+      // Optimistic UI update - remove transaction from list
+      const updatedTransactions = data.transactions.filter(t => t.transactionId !== transactionId);
+      const transactionAmount = Math.abs(transactionToDelete.amount);
+
+      setData({
+        ...data,
+        transactions: updatedTransactions,
+        Total_Transactions: data.Total_Transactions - 1,
+        Total_Expenses: transactionToDelete.type === "Expense" ? data.Total_Expenses - transactionAmount : data.Total_Expenses,
+        Total_Income: transactionToDelete.type === "Income" ? data.Total_Income - transactionAmount : data.Total_Income,
+        Expense_Transaction_Count: transactionToDelete.type === "Expense" ? data.Expense_Transaction_Count - 1 : data.Expense_Transaction_Count,
+        Income_Transaction_Count: transactionToDelete.type === "Income" ? data.Income_Transaction_Count - 1 : data.Income_Transaction_Count,
+      });
+
       const response = await fetch(
         `/api/projects/${data.Project_ID}/transactions?transactionId=${transactionId}`,
         {
@@ -343,11 +462,15 @@ export default function TransactionsPage({
         throw new Error(errorData.error || "Failed to delete transaction");
       }
 
-      // Refetch transactions to get updated data
+      // Refetch to get accurate server data
       await refetchTransactions();
+
+      toast.success("Transaction deleted successfully", { id: toastId });
     } catch (err) {
       console.error("Error deleting transaction:", err);
-      alert(err instanceof Error ? err.message : "Failed to delete transaction");
+      // Rollback optimistic update
+      setData(originalData);
+      toast.error(err instanceof Error ? err.message : "Failed to delete transaction", { id: toastId });
     }
   }
 
@@ -560,10 +683,11 @@ export default function TransactionsPage({
           </div>
         ) : (
           filteredTransactions.map((transaction) => (
-            <div
+            <Link
               key={transaction.transactionId}
-              onClick={() => router.push(`/budgets/${slug}/transactions/${transaction.transactionId}`)}
-              className="bg-card border border-border rounded-lg p-6 hover:shadow-lg hover:border-[#61bc47]/30 transition-all cursor-pointer"
+              href={`/budgets/${slug}/transactions/${transaction.transactionId}`}
+              prefetch={true}
+              className="block bg-card border border-border rounded-lg p-6 hover:shadow-lg hover:border-[#61bc47]/30 transition-all"
             >
               {/* Header Row */}
               <div className="flex items-start justify-between gap-4 mb-4">
@@ -587,6 +711,7 @@ export default function TransactionsPage({
                 <div className="flex items-center gap-1">
                   <button
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       setEditingTransactionId(transaction.transactionId);
                       setEditTransactionDate(transaction.date.split('T')[0]);
@@ -596,11 +721,9 @@ export default function TransactionsPage({
                       setEditTransactionDescription(transaction.description || "");
                       setEditTransactionPaymentMethod(transaction.paymentMethod || "");
 
-                      // Set line item ID based on transaction type
-                      if (transaction.type === "Expense" && transaction.expenseLineItemId) {
-                        setEditTransactionLineItemId(transaction.expenseLineItemId.toString());
-                      } else if (transaction.type === "Income" && transaction.incomeLineItemId) {
-                        setEditTransactionLineItemId(`income-line-${transaction.incomeLineItemId}`);
+                      // Set line item ID from unified field
+                      if (transaction.lineItemId) {
+                        setEditTransactionLineItemId(transaction.lineItemId.toString());
                       } else {
                         setEditTransactionLineItemId("");
                       }
@@ -614,6 +737,7 @@ export default function TransactionsPage({
                   </button>
                   <button
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       handleDeleteTransaction(transaction.transactionId, transaction.description);
                     }}
@@ -648,16 +772,20 @@ export default function TransactionsPage({
                       {transaction.purchaseRequestId && transaction.requisitionGuid && (
                         <>
                           <div className="flex items-center gap-1.5">
-                            <Link
-                              href={`/budgets/${slug}/purchase-requests/${transaction.purchaseRequestId}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="font-mono hover:text-[#61bc47] transition-colors"
+                            <span
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                router.push(`/budgets/${slug}/purchase-requests/${transaction.purchaseRequestId}`);
+                              }}
+                              className="font-mono hover:text-[#61bc47] transition-colors cursor-pointer"
                               title="View purchase request"
                             >
                               {transaction.requisitionGuid.toUpperCase()}
-                            </Link>
+                            </span>
                             <button
                               onClick={(e) => {
+                                e.preventDefault();
                                 e.stopPropagation();
                                 handleCopyGuid(transaction.requisitionGuid!);
                               }}
@@ -707,7 +835,7 @@ export default function TransactionsPage({
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))
         )}
       </div>
@@ -770,12 +898,14 @@ export default function TransactionsPage({
                     ))}
                   </optgroup>
                 ))}
-                {newTransactionType === "Income" && budgetData?.incomeLineItemsCategories.map((category) => (
-                  category.lineItems.map((item) => (
-                    <option key={item.lineItemId} value={item.lineItemId}>
-                      {item.name}
-                    </option>
-                  ))
+                {newTransactionType === "Income" && budgetData?.incomeLineItemsCategories?.map((category) => (
+                  <optgroup key={category.categoryId} label={category.name}>
+                    {category.lineItems.map((item) => (
+                      <option key={item.lineItemId} value={item.lineItemId}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>
@@ -940,12 +1070,14 @@ export default function TransactionsPage({
                     ))}
                   </optgroup>
                 ))}
-                {editTransactionType === "Income" && budgetData?.incomeLineItemsCategories.map((category) => (
-                  category.lineItems.map((item) => (
-                    <option key={item.lineItemId} value={item.lineItemId}>
-                      {item.name}
-                    </option>
-                  ))
+                {editTransactionType === "Income" && budgetData?.incomeLineItemsCategories?.map((category) => (
+                  <optgroup key={category.categoryId} label={category.name}>
+                    {category.lineItems.map((item) => (
+                      <option key={item.lineItemId} value={item.lineItemId}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>

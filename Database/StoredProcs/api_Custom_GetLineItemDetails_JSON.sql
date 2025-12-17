@@ -35,16 +35,14 @@ BEGIN
             (
                 SELECT ISNULL(SUM(t.Amount), 0)
                 FROM Project_Budget_Transactions t
-                WHERE t.Project_Budget_Expense_Line_Item_ID = li.Project_Budget_Line_Item_ID
-                   OR t.Project_Budget_Income_Line_Item_ID = li.Project_Budget_Line_Item_ID
+                WHERE t.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID
             ) AS actualAmount,
 
             -- Variance (actual - estimated)
             (
                 SELECT ISNULL(SUM(t.Amount), 0)
                 FROM Project_Budget_Transactions t
-                WHERE t.Project_Budget_Expense_Line_Item_ID = li.Project_Budget_Line_Item_ID
-                   OR t.Project_Budget_Income_Line_Item_ID = li.Project_Budget_Line_Item_ID
+                WHERE t.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID
             ) - li.Estimated_Amount AS variance,
 
             -- Category info
@@ -80,23 +78,23 @@ BEGIN
                                  FROM Project_Budget_Transactions t
                                  WHERE t.Purchase_Request_ID = pr.Purchase_Request_ID) AS remainingAmount
                 FROM Project_Budget_Purchase_Requests pr
-                WHERE pr.Project_Budget_Expense_Line_Item_ID = li.Project_Budget_Line_Item_ID
+                WHERE pr.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID
                 ORDER BY pr.Requested_Date DESC
                 FOR JSON PATH
             ), '[]') AS purchaseRequests,
 
             (SELECT COUNT(*)
              FROM Project_Budget_Purchase_Requests pr
-             WHERE pr.Project_Budget_Expense_Line_Item_ID = li.Project_Budget_Line_Item_ID) AS purchaseRequestCount,
+             WHERE pr.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID) AS purchaseRequestCount,
 
             (SELECT COUNT(*)
              FROM Project_Budget_Purchase_Requests pr
-             WHERE pr.Project_Budget_Expense_Line_Item_ID = li.Project_Budget_Line_Item_ID
+             WHERE pr.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID
              AND pr.Approval_Status = 'Pending') AS pendingRequestCount,
 
             (SELECT COUNT(*)
              FROM Project_Budget_Purchase_Requests pr
-             WHERE pr.Project_Budget_Expense_Line_Item_ID = li.Project_Budget_Line_Item_ID
+             WHERE pr.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID
              AND pr.Approval_Status = 'Approved') AS approvedRequestCount,
 
             -- Transactions - using ISNULL to prevent null JSON
@@ -110,16 +108,14 @@ BEGIN
                 FROM Project_Budget_Transactions pbt
                 LEFT JOIN Project_Budget_Payment_Methods pmt
                     ON pbt.Payment_Method_ID = pmt.Payment_Method_ID
-                WHERE (pbt.Project_Budget_Expense_Line_Item_ID = li.Project_Budget_Line_Item_ID
-                   OR pbt.Project_Budget_Income_Line_Item_ID = li.Project_Budget_Line_Item_ID)
+                WHERE pbt.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID
                 ORDER BY pbt.Transaction_Date DESC
                 FOR JSON PATH
             ), '[]') AS transactions,
 
             (SELECT COUNT(*)
              FROM Project_Budget_Transactions pbt
-             WHERE (pbt.Project_Budget_Expense_Line_Item_ID = li.Project_Budget_Line_Item_ID
-                OR pbt.Project_Budget_Income_Line_Item_ID = li.Project_Budget_Line_Item_ID)) AS transactionCount,
+             WHERE pbt.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID) AS transactionCount,
 
             -- Files - using ISNULL to prevent null JSON
             ISNULL((

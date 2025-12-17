@@ -82,9 +82,8 @@ BEGIN
                         CAST(pbt.Payment_Method_ID AS NVARCHAR) AS paymentMethod,
                         pbt.Payee_Name AS payee,
 
-                        -- Line Item IDs for editing
-                        pbt.Project_Budget_Expense_Line_Item_ID AS expenseLineItemId,
-                        pbt.Project_Budget_Income_Line_Item_ID AS incomeLineItemId,
+                        -- Line Item ID (unified)
+                        pbt.Project_Budget_Line_Item_ID AS lineItemId,
 
                         -- Purchase Request info (for expense transactions only)
                         pbt.Purchase_Request_ID AS purchaseRequestId,
@@ -99,27 +98,14 @@ BEGIN
                             WHERE pr.Purchase_Request_ID = pbt.Purchase_Request_ID
                         ) AS purchaseRequestStatus,
 
-                        -- Category/Line Item info (using consolidated table)
+                        -- Category/Line Item info (derived from unified line items table)
                         CASE
-                            WHEN pbt.Project_Budget_Expense_Line_Item_ID IS NOT NULL THEN
+                            WHEN pbt.Project_Budget_Line_Item_ID IS NOT NULL THEN
                                 (
                                     SELECT pbc.Budget_Category_Name + ' | ' + li.Line_Item_Name
                                     FROM Project_Budget_Line_Items li
                                     INNER JOIN Project_Budget_Categories pbc ON li.Category_ID = pbc.Project_Budget_Category_ID
-                                    WHERE li.Project_Budget_Line_Item_ID = pbt.Project_Budget_Expense_Line_Item_ID
-                                )
-                            WHEN pbt.Project_Budget_Income_Line_Item_ID IS NOT NULL THEN
-                                (
-                                    SELECT pbc.Budget_Category_Name + ' | ' + li.Line_Item_Name
-                                    FROM Project_Budget_Line_Items li
-                                    INNER JOIN Project_Budget_Categories pbc ON li.Category_ID = pbc.Project_Budget_Category_ID
-                                    WHERE li.Project_Budget_Line_Item_ID = pbt.Project_Budget_Income_Line_Item_ID
-                                )
-                            WHEN pbt.Project_Budget_Category_ID IS NOT NULL THEN
-                                (
-                                    SELECT pbc.Budget_Category_Name
-                                    FROM Project_Budget_Categories pbc
-                                    WHERE pbc.Project_Budget_Category_ID = pbt.Project_Budget_Category_ID
+                                    WHERE li.Project_Budget_Line_Item_ID = pbt.Project_Budget_Line_Item_ID
                                 )
                             ELSE 'Uncategorized'
                         END AS categoryItem

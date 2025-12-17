@@ -1,7 +1,6 @@
 "use client";
 
 import { use, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   FileText,
@@ -105,7 +104,6 @@ export default function PurchaseRequestsPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
-  const router = useRouter();
   const { isPinned, pinItem, unpinItem } = usePinnedItems();
   const [requests, setRequests] = useState<PurchaseRequest[]>([]);
   const [projectId, setProjectId] = useState<number | null>(null);
@@ -651,10 +649,11 @@ export default function PurchaseRequestsPage({
               .filter(r => r.approvalStatus === "Pending")
               .slice(0, 5)
               .map((request) => (
-                <div
+                <Link
                   key={request.purchaseRequestId}
-                  onClick={() => router.push(`/budgets/${slug}/purchase-requests/${request.purchaseRequestId}`)}
-                  className="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4 flex items-center justify-between hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                  href={`/budgets/${slug}/purchase-requests/${request.purchaseRequestId}`}
+                  prefetch={true}
+                  className="flex items-center justify-between bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
                 >
                   <div className="flex-1 min-w-0 mr-4">
                     <div className="flex items-center gap-2 mb-1">
@@ -688,6 +687,7 @@ export default function PurchaseRequestsPage({
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button
                       onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         setApprovingRequest(request);
                         setApprovalAction("Approved");
@@ -701,6 +701,7 @@ export default function PurchaseRequestsPage({
                     </button>
                     <button
                       onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         setApprovingRequest(request);
                         setApprovalAction("Rejected");
@@ -713,7 +714,7 @@ export default function PurchaseRequestsPage({
                       Reject
                     </button>
                   </div>
-                </div>
+                </Link>
               ))}
           </div>
           {requests.filter(r => r.approvalStatus === "Pending").length > 5 && (
@@ -874,10 +875,11 @@ export default function PurchaseRequestsPage({
           </div>
         ) : (
           filteredRequests.map((request) => (
-            <div
+            <Link
               key={request.purchaseRequestId}
-              onClick={() => router.push(`/budgets/${slug}/purchase-requests/${request.purchaseRequestId}`)}
-              className="bg-card border border-border rounded-lg p-6 hover:shadow-lg hover:border-[#61bc47]/30 transition-all cursor-pointer"
+              href={`/budgets/${slug}/purchase-requests/${request.purchaseRequestId}`}
+              prefetch={true}
+              className="block bg-card border border-border rounded-lg p-6 hover:shadow-lg hover:border-[#61bc47]/30 transition-all"
             >
               {/* Header Row */}
               <div className="flex items-start justify-between gap-4 mb-4">
@@ -897,6 +899,7 @@ export default function PurchaseRequestsPage({
                   {request.approvalStatus === "Approved" && (
                     <button
                       onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         setTransactionRequest(request);
                         setTransactionDate(new Date().toISOString().split('T')[0]);
@@ -915,6 +918,7 @@ export default function PurchaseRequestsPage({
                   <div className="relative">
                     <button
                       onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         setEditingStatusId(
                           editingStatusId === request.purchaseRequestId ? null : request.purchaseRequestId
@@ -946,6 +950,7 @@ export default function PurchaseRequestsPage({
                       >
                         <button
                           onClick={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
                             setEditingStatusId(null);
                             setApprovingRequest(request);
@@ -959,6 +964,7 @@ export default function PurchaseRequestsPage({
                         </button>
                         <button
                           onClick={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
                             setEditingStatusId(null);
                             setApprovingRequest(request);
@@ -972,6 +978,7 @@ export default function PurchaseRequestsPage({
                         </button>
                         <button
                           onClick={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
                             handleStatusChange(request, "Pending");
                           }}
@@ -987,6 +994,7 @@ export default function PurchaseRequestsPage({
                   {/* Edit Button */}
                   <button
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       setEditingRequest(request);
                       setEditRequestLineItemId(request.lineItemId.toString());
@@ -1005,6 +1013,7 @@ export default function PurchaseRequestsPage({
                   {request.transactionCount === 0 && (
                     <button
                       onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         handleDeleteRequest(request);
                       }}
@@ -1043,6 +1052,7 @@ export default function PurchaseRequestsPage({
                         </span>
                         <button
                           onClick={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
                             handleCopyGuid(request.requisitionGuid);
                           }}
@@ -1088,7 +1098,7 @@ export default function PurchaseRequestsPage({
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))
         )}
       </div>

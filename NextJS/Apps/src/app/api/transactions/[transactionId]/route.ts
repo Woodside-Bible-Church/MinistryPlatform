@@ -51,9 +51,17 @@ export async function GET(
         try {
           const transaction = JSON.parse(row.JsonResult);
 
+          // Validate that we got actual transaction data
+          if (!transaction || !transaction.transactionId) {
+            return NextResponse.json(
+              { error: "Transaction not found" },
+              { status: 404 }
+            );
+          }
+
           // Get files attached to this transaction
           try {
-            const filesUrl = `${baseUrl}/tables/dp_Files?$filter=Record_ID=${transactionId} AND Page_ID=(SELECT Page_ID FROM dp_Pages WHERE Table_Name='Project_Budget_Transactions')&$select=File_ID,File_Name,File_Size,Unique_File_ID,Description,Last_Updated`;
+            const filesUrl = `${baseUrl}/tables/dp_Files?$filter=Record_ID=${transactionId} AND Page_ID=(SELECT Page_ID FROM dp_Pages WHERE Table_Name='Project_Budget_Transactions')&$select=File_ID,File_Name,File_Size,File_Extension,Image_Width,Image_Height,Unique_File_ID,Description,Last_Updated`;
 
             const filesResponse = await fetch(filesUrl, {
               headers: {
@@ -69,6 +77,9 @@ export async function GET(
                 File_ID: number;
                 File_Name: string;
                 File_Size: number;
+                File_Extension: string;
+                Image_Width: number | null;
+                Image_Height: number | null;
                 Unique_File_ID: string;
                 Description: string;
                 Last_Updated: string;
@@ -76,6 +87,9 @@ export async function GET(
                 FileId: file.File_ID,
                 FileName: file.File_Name,
                 FileSize: file.File_Size,
+                FileExtension: file.File_Extension,
+                ImageWidth: file.Image_Width,
+                ImageHeight: file.Image_Height,
                 UniqueFileId: file.Unique_File_ID,
                 Description: file.Description,
                 LastUpdated: file.Last_Updated,

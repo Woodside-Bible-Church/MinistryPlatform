@@ -43,56 +43,13 @@ BEGIN
             p.Project_Title AS projectName,
             p.Slug AS projectSlug,
 
-            -- Category info (if associated with category directly)
-            t.Project_Budget_Category_ID AS categoryId,
+            -- Line item info (unified)
+            t.Project_Budget_Line_Item_ID AS lineItemId,
+            li.Line_Item_Name AS lineItemName,
+
+            -- Category info (derived from line item)
+            cat.Project_Budget_Category_ID AS categoryId,
             cat.Budget_Category_Name AS categoryName,
-
-            -- Line item info (expense or income)
-            CASE
-                WHEN t.Project_Budget_Expense_Line_Item_ID IS NOT NULL THEN t.Project_Budget_Expense_Line_Item_ID
-                WHEN t.Project_Budget_Income_Line_Item_ID IS NOT NULL THEN t.Project_Budget_Income_Line_Item_ID
-                ELSE NULL
-            END AS lineItemId,
-
-            CASE
-                WHEN t.Project_Budget_Expense_Line_Item_ID IS NOT NULL THEN
-                    (SELECT li.Line_Item_Name
-                     FROM Project_Budget_Line_Items li
-                     WHERE li.Project_Budget_Line_Item_ID = t.Project_Budget_Expense_Line_Item_ID)
-                WHEN t.Project_Budget_Income_Line_Item_ID IS NOT NULL THEN
-                    (SELECT li.Line_Item_Name
-                     FROM Project_Budget_Line_Items li
-                     WHERE li.Project_Budget_Line_Item_ID = t.Project_Budget_Income_Line_Item_ID)
-                ELSE NULL
-            END AS lineItemName,
-
-            CASE
-                WHEN t.Project_Budget_Expense_Line_Item_ID IS NOT NULL THEN
-                    (SELECT c.Project_Budget_Category_ID
-                     FROM Project_Budget_Line_Items li
-                     INNER JOIN Project_Budget_Categories c ON li.Category_ID = c.Project_Budget_Category_ID
-                     WHERE li.Project_Budget_Line_Item_ID = t.Project_Budget_Expense_Line_Item_ID)
-                WHEN t.Project_Budget_Income_Line_Item_ID IS NOT NULL THEN
-                    (SELECT c.Project_Budget_Category_ID
-                     FROM Project_Budget_Line_Items li
-                     INNER JOIN Project_Budget_Categories c ON li.Category_ID = c.Project_Budget_Category_ID
-                     WHERE li.Project_Budget_Line_Item_ID = t.Project_Budget_Income_Line_Item_ID)
-                ELSE t.Project_Budget_Category_ID
-            END AS lineItemCategoryId,
-
-            CASE
-                WHEN t.Project_Budget_Expense_Line_Item_ID IS NOT NULL THEN
-                    (SELECT c.Budget_Category_Name
-                     FROM Project_Budget_Line_Items li
-                     INNER JOIN Project_Budget_Categories c ON li.Category_ID = c.Project_Budget_Category_ID
-                     WHERE li.Project_Budget_Line_Item_ID = t.Project_Budget_Expense_Line_Item_ID)
-                WHEN t.Project_Budget_Income_Line_Item_ID IS NOT NULL THEN
-                    (SELECT c.Budget_Category_Name
-                     FROM Project_Budget_Line_Items li
-                     INNER JOIN Project_Budget_Categories c ON li.Category_ID = c.Project_Budget_Category_ID
-                     WHERE li.Project_Budget_Line_Item_ID = t.Project_Budget_Income_Line_Item_ID)
-                ELSE cat.Budget_Category_Name
-            END AS lineItemCategoryName,
 
             -- Purchase request info (for expense transactions)
             t.Purchase_Request_ID AS purchaseRequestId,
@@ -130,7 +87,8 @@ BEGIN
         FROM Project_Budget_Transactions t
         INNER JOIN Projects p ON t.Project_ID = p.Project_ID
         LEFT JOIN Project_Budget_Payment_Methods pm ON t.Payment_Method_ID = pm.Payment_Method_ID
-        LEFT JOIN Project_Budget_Categories cat ON t.Project_Budget_Category_ID = cat.Project_Budget_Category_ID
+        LEFT JOIN Project_Budget_Line_Items li ON t.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID
+        LEFT JOIN Project_Budget_Categories cat ON li.Category_ID = cat.Project_Budget_Category_ID
         LEFT JOIN Project_Budget_Purchase_Requests pr ON t.Purchase_Request_ID = pr.Purchase_Request_ID
         LEFT JOIN dp_Users su ON t.Submitted_By = su.User_ID
         LEFT JOIN Contacts sc ON su.Contact_ID = sc.Contact_ID
