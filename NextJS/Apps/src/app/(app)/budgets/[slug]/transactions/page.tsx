@@ -364,7 +364,8 @@ export default function TransactionsPage({
       return (
         transaction.description?.toLowerCase().includes(query) ||
         transaction.payee?.toLowerCase().includes(query) ||
-        transaction.categoryItem?.toLowerCase().includes(query)
+        transaction.categoryItem?.toLowerCase().includes(query) ||
+        transaction.requisitionGuid?.toLowerCase().includes(query)
       );
     }
 
