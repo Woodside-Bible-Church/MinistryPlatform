@@ -57,6 +57,9 @@ interface FileAttachment {
   FileId: number;
   FileName: string;
   FileSize: number;
+  FileExtension: string;
+  ImageWidth: number | null;
+  ImageHeight: number | null;
   UniqueFileId: string;
   Description: string | null;
   LastUpdated: string;
