@@ -767,46 +767,97 @@ export default function BudgetDetailPage({
       return;
     }
 
-    // Close modal immediately
+    const categoryTypeName = newCategoryTypeName.trim();
+
+    // Close both modals immediately
     setIsAddCategoryTypeOpen(false);
+    setIsAddCategoryOpen(false);
+
+    // Create temporary category for optimistic update
+    const tempCategory: BudgetCategory = {
+      categoryId: `temp-${Date.now()}`,
+      name: categoryTypeName,
+      type: newCategoryType,
+      estimated: 0, // Expense categories start at $0, computed from line items
+      actual: 0,
+      sortOrder: 999,
+      lineItems: [],
+    };
+
+    // Optimistically update UI immediately
+    const updatedProject = { ...project };
+    if (newCategoryType === "expense") {
+      updatedProject.expenseCategories = [...project.expenseCategories, tempCategory];
+    } else {
+      updatedProject.incomeLineItemsCategories = [...project.incomeLineItemsCategories, tempCategory];
+    }
+    setProject(updatedProject);
 
     // Use toast.promise for automatic loading/success/error states
     toast.promise(
       (async () => {
-        // Create the new category type in MP
-        const response = await fetch(`/api/projects/${project?.Project_ID}/category-types`, {
+        // Create the category (which will create the type if it doesn't exist)
+        const response = await fetch(`/api/projects/${project?.Project_ID}/categories`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            name: newCategoryTypeName.trim(),
-            isRevenue: newCategoryType === "revenue",
+            name: categoryTypeName,
+            type: newCategoryType === "expense" ? "expense" : "revenue",
           }),
         });
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to create category type");
+          throw new Error(errorData.error || "Failed to create category");
         }
 
-        const createdType = await response.json();
+        const createdCategory = await response.json();
 
-        // Refresh the available category types
+        // Update with real category data
+        const finalProject = { ...project };
+        if (newCategoryType === "expense") {
+          finalProject.expenseCategories = [
+            ...project.expenseCategories,
+            createdCategory,
+          ];
+        } else {
+          finalProject.incomeLineItemsCategories = [
+            ...project.incomeLineItemsCategories,
+            createdCategory,
+          ];
+        }
+        setProject(finalProject);
+
+        // Refresh the available category types list for future use
         await fetchCategoryTypes();
-
-        // Pre-select the newly created category type
-        setNewCategoryName(createdType.Project_Category_Type);
 
         // Reset form
         setNewCategoryTypeName("");
+        setNewCategoryName("");
 
-        return createdType.Project_Category_Type;
+        return categoryTypeName;
       })(),
       {
-        loading: "Creating category type...",
+        loading: `Creating ${categoryTypeName}...`,
         success: (name) => `${name} created successfully`,
-        error: (err) => err.message || "Failed to create category type",
+        error: (err) => {
+          // Revert optimistic update on error
+          const revertedProject = { ...project };
+          if (newCategoryType === "expense") {
+            revertedProject.expenseCategories = project.expenseCategories.filter(
+              (cat) => cat.categoryId !== tempCategory.categoryId
+            );
+          } else {
+            revertedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.filter(
+              (cat) => cat.categoryId !== tempCategory.categoryId
+            );
+          }
+          setProject(revertedProject);
+
+          return err instanceof Error ? err.message : "Failed to create category";
+        },
       }
     );
   }
@@ -826,7 +877,9 @@ export default function BudgetDetailPage({
     setIsAddCategoryOpen(false);
 
     // Create temporary category for optimistic update
-    const budgetedAmount = parseFloat(newCategoryExpectedAmount) || 0;
+    // Note: For expense categories, estimated is computed from line items (will be 0 initially)
+    // For income categories, we use the expected amount entered by the user
+    const budgetedAmount = newCategoryType === "expense" ? 0 : (parseFloat(newCategoryExpectedAmount) || 0);
     const tempCategory: BudgetCategory = {
       categoryId: `temp-${Date.now()}`,
       name: categoryName,
@@ -841,8 +894,7 @@ export default function BudgetDetailPage({
     const updatedProject = { ...project };
     if (newCategoryType === "expense") {
       updatedProject.expenseCategories = [...project.expenseCategories, tempCategory];
-      // Update total budget
-      updatedProject.Total_Budget = project.Total_Budget + budgetedAmount;
+      // Note: Total_Budget is now computed from categories, no manual update needed
     } else {
       updatedProject.incomeLineItemsCategories = [...project.incomeLineItemsCategories, tempCategory];
       // Update total expected income
@@ -862,7 +914,8 @@ export default function BudgetDetailPage({
           body: JSON.stringify({
             name: categoryName,
             type: newCategoryType === "expense" ? "expense" : "revenue",
-            budgetedAmount: budgetedAmount,
+            // Only send budgetedAmount for revenue categories (expense categories are computed)
+            ...(newCategoryType === "revenue" && { budgetedAmount: budgetedAmount }),
           }),
         });
 
@@ -2575,30 +2628,6 @@ export default function BudgetDetailPage({
                   />
                 </div>
               </div>
-            )}
-            {newCategoryType === "expense" && (
-              <>
-                <div>
-                  <label htmlFor="category-budgeted-amount" className="block text-sm font-medium mb-2">
-                    Budgeted Amount
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      $
-                    </span>
-                    <input
-                      id="category-budgeted-amount"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={newCategoryExpectedAmount}
-                      onChange={(e) => setNewCategoryExpectedAmount(e.target.value)}
-                      className="w-full pl-7 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
-                      placeholder="0.00"
-                    />
-                  </div>
-                </div>
-              </>
             )}
           </div>
           <DialogFooter>

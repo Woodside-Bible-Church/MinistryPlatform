@@ -109,12 +109,20 @@ export async function POST(
       : 1;
 
     // Create the budget category
-    const newCategory = {
+    // Note: Budgeted_Amount is now a computed column (sum of line items)
+    // Only set it for revenue categories, which still have manual budgets
+    const newCategory: Record<string, any> = {
       Project_ID: projectId,
       Project_Category_Type_ID: categoryTypeId,
-      Budgeted_Amount: parseFloat(budgetedAmount?.toString() || '0') || 0,
       Sort_Order: nextSortOrder,
     };
+
+    // Only include Budgeted_Amount for revenue categories
+    if (type === "revenue" && budgetedAmount !== undefined) {
+      newCategory.Budget_Category_Name = name;
+      newCategory.Budgeted_Amount = parseFloat(budgetedAmount?.toString() || '0') || 0;
+      newCategory.Budget_Category_Type = 'revenue';
+    }
 
     const createdCategories = await mp.createTableRecords(
       'Project_Budget_Categories',
@@ -207,12 +215,33 @@ export async function PATCH(
 
     const userId = users[0].User_ID;
 
+    // Note: Budgeted_Amount is now a computed column for expense categories
+    // Only revenue categories can have their budget updated manually
+
+    // Get the category to check its type
+    const categories = await mp.getTableRecords<{ Budget_Category_Type: string }>({
+      table: 'Project_Budget_Categories',
+      select: 'Budget_Category_Type',
+      filter: `Project_Budget_Category_ID=${parseInt(categoryId, 10)}`,
+      top: 1,
+    });
+
+    if (categories.length === 0) {
+      return NextResponse.json(
+        { error: "Category not found" },
+        { status: 404 }
+      );
+    }
+
+    const category = categories[0];
+
     // Build update object
     const updateData: any = {
       Project_Budget_Category_ID: parseInt(categoryId, 10),
     };
 
-    if (budgetedAmount !== undefined) {
+    // Only allow updating Budgeted_Amount for revenue categories
+    if (budgetedAmount !== undefined && category.Budget_Category_Type === 'revenue') {
       updateData.Budgeted_Amount = budgetedAmount;
     }
 
@@ -228,8 +257,8 @@ export async function PATCH(
 
     if (updatedCategories.length === 0) {
       return NextResponse.json(
-        { error: "Category not found or update failed" },
-        { status: 404 }
+        { error: "Update failed" },
+        { status: 500 }
       );
     }
 
