@@ -789,9 +789,9 @@ export default function BudgetDetailPage({
     // Optimistically update UI immediately
     const updatedProject = { ...project };
     if (newCategoryType === "expense") {
-      updatedProject.expenseCategories = [...project.expenseCategories, tempCategory];
+      updatedProject.expenseCategories = [...(project.expenseCategories || []), tempCategory];
     } else {
-      updatedProject.incomeLineItemsCategories = [...project.incomeLineItemsCategories, tempCategory];
+      updatedProject.incomeLineItemsCategories = [...(project.incomeLineItemsCategories || []), tempCategory];
     }
     setProject(updatedProject);
 
@@ -821,12 +821,12 @@ export default function BudgetDetailPage({
         const finalProject = { ...project };
         if (newCategoryType === "expense") {
           finalProject.expenseCategories = [
-            ...project.expenseCategories,
+            ...(project.expenseCategories || []),
             createdCategory,
           ];
         } else {
           finalProject.incomeLineItemsCategories = [
-            ...project.incomeLineItemsCategories,
+            ...(project.incomeLineItemsCategories || []),
             createdCategory,
           ];
         }
@@ -848,11 +848,11 @@ export default function BudgetDetailPage({
           // Revert optimistic update on error
           const revertedProject = { ...project };
           if (newCategoryType === "expense") {
-            revertedProject.expenseCategories = project.expenseCategories.filter(
+            revertedProject.expenseCategories = (project.expenseCategories || []).filter(
               (cat) => cat.categoryId !== tempCategory.categoryId
             );
           } else {
-            revertedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.filter(
+            revertedProject.incomeLineItemsCategories = (project.incomeLineItemsCategories || []).filter(
               (cat) => cat.categoryId !== tempCategory.categoryId
             );
           }
@@ -895,12 +895,12 @@ export default function BudgetDetailPage({
     // Optimistically update UI immediately
     const updatedProject = { ...project };
     if (newCategoryType === "expense") {
-      updatedProject.expenseCategories = [...project.expenseCategories, tempCategory];
+      updatedProject.expenseCategories = [...(project.expenseCategories || []), tempCategory];
       // Note: Total_Budget is now computed from categories, no manual update needed
     } else {
-      updatedProject.incomeLineItemsCategories = [...project.incomeLineItemsCategories, tempCategory];
+      updatedProject.incomeLineItemsCategories = [...(project.incomeLineItemsCategories || []), tempCategory];
       // Update total expected income
-      updatedProject.Total_Expected_Income = project.Total_Expected_Income + tempCategory.estimated;
+      updatedProject.Total_Expected_Income = (project.Total_Expected_Income || 0) + tempCategory.estimated;
     }
     setProject(updatedProject);
 
@@ -932,12 +932,12 @@ export default function BudgetDetailPage({
         const finalProject = { ...project };
         if (newCategoryType === "expense") {
           finalProject.expenseCategories = [
-            ...project.expenseCategories,
+            ...(project.expenseCategories || []),
             createdCategory,
           ];
         } else {
           finalProject.incomeLineItemsCategories = [
-            ...project.incomeLineItemsCategories,
+            ...(project.incomeLineItemsCategories || []),
             createdCategory,
           ];
         }
@@ -958,11 +958,11 @@ export default function BudgetDetailPage({
           // Revert optimistic update on error
           const revertedProject = { ...project };
           if (newCategoryType === "expense") {
-            revertedProject.expenseCategories = project.expenseCategories.filter(
+            revertedProject.expenseCategories = (project.expenseCategories || []).filter(
               (cat) => cat.categoryId !== tempCategory.categoryId
             );
           } else {
-            revertedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.filter(
+            revertedProject.incomeLineItemsCategories = (project.incomeLineItemsCategories || []).filter(
               (cat) => cat.categoryId !== tempCategory.categoryId
             );
             // Revert total expected income
@@ -982,7 +982,7 @@ export default function BudgetDetailPage({
     const newBudgetValue = parseFloat(editCategoryBudgetValue) || 0;
 
     // Find the category being edited to get previous values
-    const allCategories = [...project.expenseCategories, ...project.incomeLineItemsCategories];
+    const allCategories = [...(project.expenseCategories || []), ...(project.incomeLineItemsCategories || [])];
     const categoryToEdit = allCategories.find(cat => cat.categoryId === editingCategoryId);
 
     if (!categoryToEdit) return;
@@ -1005,14 +1005,14 @@ export default function BudgetDetailPage({
       // Optimistically update UI
       const updatedProject = { ...project };
       if (categoryToEdit.type === "expense") {
-        updatedProject.expenseCategories = project.expenseCategories.map(cat =>
+        updatedProject.expenseCategories = (project.expenseCategories || []).map(cat =>
           cat.categoryId === editingCategoryId
             ? { ...cat, name: newName, estimated: newBudgetValue }
             : cat
         );
         updatedProject.Total_Budget = (project.Total_Budget - previousBudgetValue) + newBudgetValue;
       } else {
-        updatedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.map(cat =>
+        updatedProject.incomeLineItemsCategories = (project.incomeLineItemsCategories || []).map(cat =>
           cat.categoryId === editingCategoryId
             ? { ...cat, name: newName, estimated: newBudgetValue }
             : cat
@@ -1050,14 +1050,14 @@ export default function BudgetDetailPage({
         // Revert optimistic update on error
         const revertedProject = { ...project };
         if (categoryToEdit.type === "expense") {
-          revertedProject.expenseCategories = project.expenseCategories.map(cat =>
+          revertedProject.expenseCategories = (project.expenseCategories || []).map(cat =>
             cat.categoryId === editingCategoryId
               ? { ...cat, name: previousName, estimated: previousBudgetValue }
               : cat
           );
           revertedProject.Total_Budget = (updatedProject.Total_Budget - newBudgetValue) + previousBudgetValue;
         } else {
-          revertedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.map(cat =>
+          revertedProject.incomeLineItemsCategories = (project.incomeLineItemsCategories || []).map(cat =>
             cat.categoryId === editingCategoryId
               ? { ...cat, name: previousName, estimated: previousBudgetValue }
               : cat
@@ -1099,7 +1099,7 @@ export default function BudgetDetailPage({
     if (!confirmed) return;
 
     // Find the category to delete
-    const allCategories = [...project.expenseCategories, ...project.incomeLineItemsCategories];
+    const allCategories = [...(project.expenseCategories || []), ...(project.incomeLineItemsCategories || [])];
     const categoryToDelete = allCategories.find(cat => cat.categoryId === categoryId);
 
     if (!categoryToDelete) return;
@@ -1190,7 +1190,7 @@ export default function BudgetDetailPage({
     }
 
     // Find the category and line item being edited
-    const allCategories = [...project.expenseCategories, ...project.incomeLineItemsCategories];
+    const allCategories = [...(project.expenseCategories || []), ...(project.incomeLineItemsCategories || [])];
     const category = allCategories.find(cat => cat.categoryId === categoryId);
 
     if (!category) return;
@@ -1218,7 +1218,7 @@ export default function BudgetDetailPage({
       // Optimistically update UI immediately
       const updatedProject = { ...project };
     if (category.type === "expense") {
-      updatedProject.expenseCategories = project.expenseCategories.map(cat =>
+      updatedProject.expenseCategories = (project.expenseCategories || []).map(cat =>
         cat.categoryId === categoryId
           ? {
               ...cat,
@@ -1241,7 +1241,7 @@ export default function BudgetDetailPage({
       updatedProject.Total_Budget = (project.Total_Budget - previousEstimated) + newEstimated;
     } else {
       // Income line items
-      updatedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.map(cat =>
+      updatedProject.incomeLineItemsCategories = (project.incomeLineItemsCategories || []).map(cat =>
         cat.categoryId === categoryId
           ? {
               ...cat,
@@ -1286,7 +1286,7 @@ export default function BudgetDetailPage({
         // Revert optimistic update on error
         const revertedProject = { ...project };
         if (category.type === "expense") {
-          revertedProject.expenseCategories = project.expenseCategories.map(cat =>
+          revertedProject.expenseCategories = (project.expenseCategories || []).map(cat =>
             cat.categoryId === categoryId
               ? {
                   ...cat,
@@ -1307,7 +1307,7 @@ export default function BudgetDetailPage({
           );
           revertedProject.Total_Budget = (updatedProject.Total_Budget - newEstimated) + previousEstimated;
         } else {
-          revertedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.map(cat =>
+          revertedProject.incomeLineItemsCategories = (project.incomeLineItemsCategories || []).map(cat =>
             cat.categoryId === categoryId
               ? {
                   ...cat,
@@ -1359,7 +1359,7 @@ export default function BudgetDetailPage({
     if (!confirmed) return;
 
     // Find the category and line item to delete
-    const allCategories = [...project.expenseCategories, ...project.incomeLineItemsCategories];
+    const allCategories = [...(project.expenseCategories || []), ...(project.incomeLineItemsCategories || [])];
     const category = allCategories.find(cat => cat.categoryId === categoryId);
 
     if (!category) return;
@@ -1373,7 +1373,7 @@ export default function BudgetDetailPage({
       // Optimistically update UI immediately
       const updatedProject = { ...project };
       if (category.type === "expense") {
-        updatedProject.expenseCategories = project.expenseCategories.map(cat =>
+        updatedProject.expenseCategories = (project.expenseCategories || []).map(cat =>
           cat.categoryId === categoryId
             ? {
                 ...cat,
@@ -1386,7 +1386,7 @@ export default function BudgetDetailPage({
         updatedProject.Total_Budget = project.Total_Budget - lineItem.estimated;
       } else {
         // Income line items - delete the line item from the category
-        updatedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.map(cat =>
+        updatedProject.incomeLineItemsCategories = (project.incomeLineItemsCategories || []).map(cat =>
           cat.categoryId === categoryId
             ? {
                 ...cat,
@@ -1448,8 +1448,8 @@ export default function BudgetDetailPage({
     }
 
     // Find the category to add the line item to (check all categories including special ones)
-    const expenseCategory = project.expenseCategories.find(cat => cat.categoryId === addLineItemCategoryId);
-    const incomeCategory = project.incomeLineItemsCategories.find(cat => cat.categoryId === addLineItemCategoryId);
+    const expenseCategory = (project.expenseCategories || []).find(cat => cat.categoryId === addLineItemCategoryId);
+    const incomeCategory = (project.incomeLineItemsCategories || []).find(cat => cat.categoryId === addLineItemCategoryId);
     const registrationIncomeCategory = project.registrationIncomeCategory?.categoryId === addLineItemCategoryId
       ? project.registrationIncomeCategory
       : null;
@@ -1504,7 +1504,7 @@ export default function BudgetDetailPage({
       updatedProject.Total_Budget = project.Total_Budget + newEstimated;
     } else if (isIncome) {
       // Update regular income categories
-      updatedProject.incomeLineItemsCategories = project.incomeLineItemsCategories.map(cat =>
+      updatedProject.incomeLineItemsCategories = (project.incomeLineItemsCategories || []).map(cat =>
         cat.categoryId === addLineItemCategoryId
           ? {
               ...cat,
@@ -1516,7 +1516,7 @@ export default function BudgetDetailPage({
       updatedProject.Total_Expected_Income = project.Total_Expected_Income + newEstimated;
     } else {
       // Update regular expense categories
-      updatedProject.expenseCategories = project.expenseCategories.map(cat =>
+      updatedProject.expenseCategories = (project.expenseCategories || []).map(cat =>
         cat.categoryId === addLineItemCategoryId
           ? {
               ...cat,
