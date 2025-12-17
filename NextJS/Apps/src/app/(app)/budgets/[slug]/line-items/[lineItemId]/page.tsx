@@ -2,9 +2,7 @@
 
 import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
-  ArrowLeft,
   DollarSign,
   CheckCircle,
   Clock,
@@ -14,6 +12,7 @@ import {
   Edit,
 } from "lucide-react";
 import { FileAttachments } from "@/components/FileAttachments";
+import { BackButton } from "@/components/BackButton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -278,13 +277,10 @@ export default function LineItemDetailsPage({
     <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
       {/* Header */}
       <div className="mb-6">
-        <Link
-          href={`/budgets/${resolvedParams.slug}`}
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to {lineItem.projectName}
-        </Link>
+        <BackButton
+          fallbackUrl={`/budgets/${resolvedParams.slug}`}
+          label="Back"
+        />
 
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -358,11 +354,13 @@ export default function LineItemDetailsPage({
       </Card>
 
       {/* Files Section */}
-      <FileAttachments
-        files={lineItem.files || []}
-        uploadEndpoint={`/api/projects/${lineItem.projectId}/line-items/${lineItem.lineItemId}/files`}
-        onFilesUploaded={fetchLineItemDetails}
-      />
+      <div className="mb-6">
+        <FileAttachments
+          files={lineItem.files || []}
+          uploadEndpoint={`/api/projects/${lineItem.projectId}/line-items/${lineItem.lineItemId}/files`}
+          onFilesUploaded={fetchLineItemDetails}
+        />
+      </div>
 
       {/* Expense Line Item - Purchase Requests */}
       {isExpense && (

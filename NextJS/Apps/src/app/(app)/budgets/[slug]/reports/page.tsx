@@ -1,15 +1,14 @@
 "use client";
 
 import { use, useState, useEffect } from "react";
-import Link from "next/link";
 import {
-  ArrowLeft,
   Download,
   TrendingUp,
   TrendingDown,
   BarChart3,
   AlertCircle,
 } from "lucide-react";
+import { BackButton } from "@/components/BackButton";
 import {
   ChartConfig,
   ChartContainer,
@@ -165,13 +164,11 @@ export default function ReportsPage({
           <p className="text-muted-foreground mb-6">
             {error || "The budget you're looking for doesn't exist."}
           </p>
-          <Link
-            href="/budgets"
+          <BackButton
+            fallbackUrl="/budgets"
+            label="Back"
             className="inline-flex items-center gap-2 text-[#61bc47] hover:underline"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Budgets
-          </Link>
+          />
         </div>
       </div>
     );
@@ -267,13 +264,11 @@ export default function ReportsPage({
     <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
       {/* Header */}
       <div className="mb-8">
-        <Link
-          href={`/budgets/${slug}`}
+        <BackButton
+          fallbackUrl={`/budgets/${slug}`}
+          label="Back"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#61bc47] mb-4 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to {project?.Project_Title}
-        </Link>
+        />
 
         <div className="flex justify-between items-start">
           <div>

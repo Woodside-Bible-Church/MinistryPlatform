@@ -2,9 +2,7 @@
 
 import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
-  ArrowLeft,
   Calendar,
   DollarSign,
   CheckCircle,
@@ -15,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FileAttachments } from "@/components/FileAttachments";
+import { BackButton } from "@/components/BackButton";
 
 interface PurchaseRequestDetails {
   purchaseRequestId: number;
@@ -170,13 +169,10 @@ export default function PurchaseRequestDetailsPage({
     <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1200px]">
       {/* Header */}
       <div className="mb-6">
-        <Link
-          href={`/budgets/${resolvedParams.slug}/purchase-requests`}
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Purchase Requests
-        </Link>
+        <BackButton
+          fallbackUrl={`/budgets/${resolvedParams.slug}/purchase-requests`}
+          label="Back"
+        />
 
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -272,11 +268,13 @@ export default function PurchaseRequestDetailsPage({
       </Card>
 
       {/* Files Section */}
-      <FileAttachments
-        files={purchaseRequest.files || []}
-        uploadEndpoint={`/api/projects/${purchaseRequest.projectId}/purchase-requests/${purchaseRequest.purchaseRequestId}/files`}
-        onFilesUploaded={fetchPurchaseRequestDetails}
-      />
+      <div className="mb-6">
+        <FileAttachments
+          files={purchaseRequest.files || []}
+          uploadEndpoint={`/api/projects/${purchaseRequest.projectId}/purchase-requests/${purchaseRequest.purchaseRequestId}/files`}
+          onFilesUploaded={fetchPurchaseRequestDetails}
+        />
+      </div>
 
       {/* Transactions Section */}
       {purchaseRequest.transactionCount > 0 && (

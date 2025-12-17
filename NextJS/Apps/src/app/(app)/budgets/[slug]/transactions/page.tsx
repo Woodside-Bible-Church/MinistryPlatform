@@ -3,7 +3,6 @@
 import { use, useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  ArrowLeft,
   Receipt,
   DollarSign,
   Search,
@@ -11,6 +10,7 @@ import {
   Edit,
   Trash2,
 } from "lucide-react";
+import { BackButton } from "@/components/BackButton";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -393,13 +393,11 @@ export default function TransactionsPage({
           <p className="text-muted-foreground mb-6">
             {error || "The transactions you're looking for don't exist."}
           </p>
-          <Link
-            href={`/budgets/${slug}`}
+          <BackButton
+            fallbackUrl={`/budgets/${slug}`}
+            label="Back"
             className="inline-flex items-center gap-2 text-[#61bc47] hover:underline"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Budget
-          </Link>
+          />
         </div>
       </div>
     );
@@ -409,13 +407,11 @@ export default function TransactionsPage({
     <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
       {/* Header */}
       <div className="mb-8">
-        <Link
-          href={`/budgets/${slug}`}
+        <BackButton
+          fallbackUrl={`/budgets/${slug}`}
+          label="Back"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#61bc47] mb-4 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to {data.Project_Title}
-        </Link>
+        />
 
         <div className="flex justify-between items-start">
           <div>

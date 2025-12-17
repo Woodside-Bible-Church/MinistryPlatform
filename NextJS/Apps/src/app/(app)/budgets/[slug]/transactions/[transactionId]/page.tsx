@@ -2,9 +2,7 @@
 
 import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
-  ArrowLeft,
   FileText,
   Calendar,
   DollarSign,
@@ -14,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FileAttachments } from "@/components/FileAttachments";
+import { BackButton } from "@/components/BackButton";
 
 interface TransactionDetails {
   transactionId: number;
@@ -142,13 +141,10 @@ export default function TransactionDetailsPage({
     <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1200px]">
       {/* Header */}
       <div className="mb-6">
-        <Link
-          href={`/budgets/${resolvedParams.slug}/transactions`}
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Transactions
-        </Link>
+        <BackButton
+          fallbackUrl={`/budgets/${resolvedParams.slug}/transactions`}
+          label="Back"
+        />
 
         <div className="flex items-start justify-between gap-4">
           <div>
