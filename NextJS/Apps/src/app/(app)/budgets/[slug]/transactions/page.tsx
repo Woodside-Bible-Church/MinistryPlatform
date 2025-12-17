@@ -625,71 +625,60 @@ export default function TransactionsPage({
               </div>
 
               {/* Details Row */}
-              <div className="pt-3 border-t border-border">
+              <div className="pt-3">
                 <div className="flex items-end justify-between gap-4">
                   <div className="flex-1 space-y-2.5">
-                    <div className="flex flex-wrap items-center gap-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground">Date:</span>
-                        <span className="text-foreground font-medium">
-                          {formatDate(transaction.date)}
-                        </span>
-                      </div>
-
-                      {transaction.payee && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">Payee:</span>
-                          <span className="text-foreground font-medium">
-                            {transaction.payee}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
                     {transaction.description && (
                       <p className="text-sm text-muted-foreground italic">
                         "{transaction.description}"
                       </p>
                     )}
 
-                    <div className="flex flex-wrap items-center gap-4 text-sm">
-                      {transaction.paymentMethod && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">Payment:</span>
-                          <span className="inline-block px-2.5 py-0.5 bg-zinc-200 dark:bg-zinc-700 rounded font-medium text-foreground">
-                            {transaction.paymentMethod}
-                          </span>
-                        </div>
-                      )}
+                    {transaction.paymentMethod && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-muted-foreground">Payment:</span>
+                        <span className="inline-block px-2.5 py-0.5 bg-zinc-200 dark:bg-zinc-700 rounded font-medium text-foreground">
+                          {transaction.paymentMethod}
+                        </span>
+                      </div>
+                    )}
 
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground/70">
                       {transaction.purchaseRequestId && transaction.requisitionGuid && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">Purchase Request:</span>
+                        <>
                           <div className="flex items-center gap-1.5">
                             <Link
                               href={`/budgets/${slug}/purchase-requests/${transaction.purchaseRequestId}`}
                               onClick={(e) => e.stopPropagation()}
-                              className="text-foreground hover:text-[#61bc47] hover:underline font-mono transition-colors"
+                              className="font-mono hover:text-[#61bc47] transition-colors"
                               title="View purchase request"
                             >
-                              {transaction.requisitionGuid}
+                              {transaction.requisitionGuid.toUpperCase()}
                             </Link>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleCopyGuid(transaction.requisitionGuid!);
                               }}
-                              className="p-1 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors"
+                              className="p-0.5 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors"
                               title="Copy GUID"
                             >
                               {copiedGuid === transaction.requisitionGuid ? (
-                                <Check className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                                <Check className="w-3 h-3 text-green-600 dark:text-green-400" />
                               ) : (
-                                <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                                <Copy className="w-3 h-3 text-muted-foreground/70" />
                               )}
                             </button>
                           </div>
-                        </div>
+                          <span>•</span>
+                        </>
+                      )}
+                      <span>{formatDate(transaction.date)}</span>
+                      {transaction.payee && (
+                        <>
+                          <span>•</span>
+                          <span>{transaction.payee}</span>
+                        </>
                       )}
                     </div>
                   </div>
