@@ -49,13 +49,13 @@ export async function POST(
 
     const userId = users[0].User_ID;
 
-    // Get purchase request to find the Line_Item_ID and Project_ID
+    // Get purchase request to find the Project_Budget_Line_Item_ID and Project_ID
     const purchaseRequests = await mp.getTableRecords<{
-      Line_Item_ID: number;
+      Project_Budget_Line_Item_ID: number;
       Project_ID: number;
     }>({
       table: 'Project_Budget_Purchase_Requests',
-      select: 'Line_Item_ID, Project_ID',
+      select: 'Project_Budget_Line_Item_ID, Project_ID',
       filter: `Purchase_Request_ID=${requestId}`,
       top: 1,
     });
@@ -67,31 +67,31 @@ export async function POST(
       );
     }
 
-    const { Line_Item_ID, Project_ID } = purchaseRequests[0];
+    const { Project_Budget_Line_Item_ID, Project_ID } = purchaseRequests[0];
 
     // Create transaction in database
     const insertResult = await mp.createTableRecords(
       "Project_Budget_Transactions",
       [{
         Purchase_Request_ID: parseInt(requestId),
-        Line_Item_ID,
+        Project_Budget_Line_Item_ID,
         Project_ID,
         Transaction_Date: transactionDate,
-        Transaction_Amount: parseFloat(amount),
-        Transaction_Description: description || null,
-        Payment_Method: paymentMethod,
-        Domain_ID: 1,
+        Transaction_Type: "Expense",
+        Amount: parseFloat(amount),
+        Description: description || null,
+        Payment_Reference: paymentMethod, // Store payment method as reference for now
       }],
       {
         $userId: userId,
       }
-    ) as unknown as Array<{ Transaction_ID: number }>;
+    ) as unknown as Array<{ Project_Budget_Transaction_ID: number }>;
 
     if (!insertResult || insertResult.length === 0) {
       throw new Error("Failed to create transaction");
     }
 
-    const transactionId = insertResult[0].Transaction_ID;
+    const transactionId = insertResult[0].Project_Budget_Transaction_ID;
 
     return NextResponse.json({
       transactionId,
