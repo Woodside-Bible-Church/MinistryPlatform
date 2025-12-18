@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
+
+// Configure route for longer timeout (needed for PDF generation)
+export const maxDuration = 60; // 60 seconds
 
 export async function GET(
   request: NextRequest,
@@ -22,15 +26,22 @@ export async function GET(
     const host = request.headers.get("host") || "localhost:3000";
     const baseUrl = `${protocol}://${host}`;
 
-    // Launch Puppeteer
+    // Launch Puppeteer with serverless-compatible settings
+    const isProduction = process.env.NODE_ENV === 'production';
+
     browser = await puppeteer.launch({
+      args: isProduction
+        ? chromium.args
+        : [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+          ],
+      executablePath: isProduction
+        ? await chromium.executablePath()
+        : '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
       headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-      ],
     });
 
     const page = await browser.newPage();
