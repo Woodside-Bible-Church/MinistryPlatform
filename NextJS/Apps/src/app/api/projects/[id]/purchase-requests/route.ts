@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { MPHelper } from "@/providers/MinistryPlatform/mpHelper";
+import { checkBudgetPermissions } from "@/lib/serverPermissions";
 
 // GET /api/projects/[id]/purchase-requests
 // Get all purchase requests for a project
@@ -61,6 +62,15 @@ export async function POST(
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check permissions
+    const permissions = checkBudgetPermissions(session);
+    if (!permissions.canManagePurchaseRequests) {
+      return NextResponse.json(
+        { error: "Forbidden: You do not have permission to manage purchase requests" },
+        { status: 403 }
+      );
     }
 
     const { id: projectId } = await params;

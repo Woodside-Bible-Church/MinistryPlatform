@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { useBudgetPermissions } from "@/hooks/useBudgetPermissions";
 
 interface LineItemDetails {
   lineItemId: number;
@@ -111,6 +112,7 @@ export default function LineItemDetailsPage({
 }) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const permissions = useBudgetPermissions(); // Get user's budget permissions
   const [lineItem, setLineItem] = useState<LineItemDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -129,6 +131,7 @@ export default function LineItemDetailsPage({
   const [createPRAmount, setCreatePRAmount] = useState<string>("");
   const [createPRDescription, setCreatePRDescription] = useState<string>("");
   const [createPRVendorName, setCreatePRVendorName] = useState<string>("");
+  const [createPRFiles, setCreatePRFiles] = useState<File[]>([]);
   const [isSavingPurchaseRequest, setIsSavingPurchaseRequest] = useState(false);
 
   // Edit Purchase Request modal state
@@ -137,6 +140,7 @@ export default function LineItemDetailsPage({
   const [editPRAmount, setEditPRAmount] = useState<string>("");
   const [editPRDescription, setEditPRDescription] = useState<string>("");
   const [editPRVendorName, setEditPRVendorName] = useState<string>("");
+  const [editPRFiles, setEditPRFiles] = useState<File[]>([]);
 
   // Add Transaction modal state
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
@@ -145,6 +149,7 @@ export default function LineItemDetailsPage({
   const [transactionDescription, setTransactionDescription] = useState<string>("");
   const [transactionDate, setTransactionDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [transactionPaymentMethod, setTransactionPaymentMethod] = useState<string>("");
+  const [transactionFiles, setTransactionFiles] = useState<File[]>([]);
 
   // Status dropdown state
   const [statusDropdownOpen, setStatusDropdownOpen] = useState<number | null>(null);
@@ -285,6 +290,9 @@ export default function LineItemDetailsPage({
       vendorName: createPRVendorName.trim() || "",
     };
 
+    // Save files before closing modal
+    const savedFiles = [...createPRFiles];
+
     // Close modal immediately
     setIsCreatePurchaseRequestOpen(false);
 
@@ -292,6 +300,7 @@ export default function LineItemDetailsPage({
     setCreatePRAmount("");
     setCreatePRDescription("");
     setCreatePRVendorName("");
+    setCreatePRFiles([]);
 
     // Create temporary optimistic purchase request
     const tempId = Date.now();
@@ -340,6 +349,29 @@ export default function LineItemDetailsPage({
         throw new Error(errorData.error || "Failed to create purchase request");
       }
 
+      const createdPR = await response.json();
+
+      // Upload files if any were selected
+      if (savedFiles.length > 0 && createdPR.purchaseRequestId) {
+        try {
+          const formData = new FormData();
+          savedFiles.forEach((file) => {
+            formData.append('files', file);
+          });
+
+          const uploadResponse = await fetch(`/api/projects/${lineItem.projectId}/purchase-requests/${createdPR.purchaseRequestId}/files`, {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!uploadResponse.ok) {
+            console.error('Failed to upload files, but purchase request was created');
+          }
+        } catch (uploadError) {
+          console.error('Error uploading files:', uploadError);
+        }
+      }
+
       // Refresh line item details to get real data from server
       await fetchLineItemDetails();
 
@@ -364,12 +396,14 @@ export default function LineItemDetailsPage({
       return;
     }
 
-    // Save form data before closing modal
+    // Save form data and files before closing modal
     const savedFormData = {
       amount,
       description: editPRDescription.trim() || "",
       vendorName: editPRVendorName.trim() || "",
     };
+    const savedFiles = [...editPRFiles];
+    const savedPRId = editingPurchaseRequest.id;
 
     // Close modal immediately
     setIsEditPurchaseRequestOpen(false);
@@ -378,6 +412,7 @@ export default function LineItemDetailsPage({
     setEditPRAmount("");
     setEditPRDescription("");
     setEditPRVendorName("");
+    setEditPRFiles([]);
     setEditingPurchaseRequest(null);
 
     // Store previous state for rollback
@@ -419,6 +454,27 @@ export default function LineItemDetailsPage({
         throw new Error(errorData.error || "Failed to update purchase request");
       }
 
+      // Upload files if any were selected
+      if (savedFiles.length > 0) {
+        try {
+          const formData = new FormData();
+          savedFiles.forEach((file) => {
+            formData.append('files', file);
+          });
+
+          const uploadResponse = await fetch(`/api/projects/${lineItem.projectId}/purchase-requests/${savedPRId}/files`, {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!uploadResponse.ok) {
+            console.error('Failed to upload files, but purchase request was updated');
+          }
+        } catch (uploadError) {
+          console.error('Error uploading files:', uploadError);
+        }
+      }
+
       // Refresh line item details to get real data from server
       await fetchLineItemDetails();
 
@@ -448,13 +504,15 @@ export default function LineItemDetailsPage({
       return;
     }
 
-    // Save form data before closing modal
+    // Save form data and files before closing modal
     const savedFormData = {
       amount,
       description: transactionDescription.trim() || "",
       transactionDate,
       paymentMethod: transactionPaymentMethod.trim(),
     };
+    const savedFiles = [...transactionFiles];
+    const savedPRId = transactionPurchaseRequest.id;
 
     // Close modal immediately
     setIsAddTransactionOpen(false);
@@ -464,6 +522,7 @@ export default function LineItemDetailsPage({
     setTransactionDescription("");
     setTransactionDate(new Date().toISOString().split('T')[0]);
     setTransactionPaymentMethod("");
+    setTransactionFiles([]);
     setTransactionPurchaseRequest(null);
 
     // Store previous state for rollback
@@ -505,6 +564,29 @@ export default function LineItemDetailsPage({
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to add transaction");
+      }
+
+      const createdTransaction = await response.json();
+
+      // Upload files if any were selected
+      if (savedFiles.length > 0 && createdTransaction.transactionId) {
+        try {
+          const formData = new FormData();
+          savedFiles.forEach((file) => {
+            formData.append('files', file);
+          });
+
+          const uploadResponse = await fetch(`/api/projects/${lineItem.projectId}/transactions/${createdTransaction.transactionId}/files`, {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!uploadResponse.ok) {
+            console.error('Failed to upload files, but transaction was created');
+          }
+        } catch (uploadError) {
+          console.error('Error uploading files:', uploadError);
+        }
       }
 
       // Refresh line item details to get real data from server
@@ -638,15 +720,17 @@ export default function LineItemDetailsPage({
             </p>
           </div>
 
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={openEditDialog}>
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleDelete}>
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
+          {permissions.canManageLineItems && (
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={openEditDialog}>
+                <Edit className="w-4 h-4 mr-2" />
+                Edit
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleDelete}>
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -698,14 +782,16 @@ export default function LineItemDetailsPage({
         )}
       </Card>
 
-      {/* Files Section */}
-      <div className="mb-6">
-        <FileAttachments
-          files={lineItem.files || []}
-          uploadEndpoint={`/api/projects/${lineItem.projectId}/line-items/${lineItem.lineItemId}/files`}
-          onFilesUploaded={fetchLineItemDetails}
-        />
-      </div>
+      {/* Files Section - Only admins can manage files */}
+      {permissions.canManageLineItems && (
+        <div className="mb-6">
+          <FileAttachments
+            files={lineItem.files || []}
+            uploadEndpoint={`/api/projects/${lineItem.projectId}/line-items/${lineItem.lineItemId}/files`}
+            onFilesUploaded={fetchLineItemDetails}
+          />
+        </div>
+      )}
 
       {/* Expense Line Item - Purchase Requests */}
       {isExpense && (
@@ -771,128 +857,161 @@ export default function LineItemDetailsPage({
                     <div className="flex items-center gap-3">
                       {/* Action Icons */}
                       <div className="flex items-center gap-1">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (request.approvalStatus === "Approved") {
-                              setTransactionPurchaseRequest(request);
-                              setTransactionAmount(request.remainingAmount.toString());
-                              setTransactionDescription("");
-                              setTransactionDate(new Date().toISOString().split('T')[0]);
-                              setTransactionPaymentMethod("");
-                              setIsAddTransactionOpen(true);
-                            }
-                          }}
-                          disabled={request.approvalStatus !== "Approved"}
-                          className={`p-1.5 rounded-md transition-colors ${
-                            request.approvalStatus === "Approved"
-                              ? "hover:bg-green-100 dark:hover:bg-green-900/20 text-green-600 dark:text-green-400"
-                              : "text-muted-foreground/30 cursor-not-allowed"
-                          }`}
-                          title={
-                            request.approvalStatus === "Approved"
-                              ? "Add Transaction"
-                              : "Only available for approved requests"
-                          }
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingPurchaseRequest(request);
-                            setEditPRAmount(request.amount.toString());
-                            setEditPRDescription(request.description);
-                            setEditPRVendorName(request.vendorName);
-                            setIsEditPurchaseRequestOpen(true);
-                          }}
-                          className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-muted-foreground hover:text-foreground transition-colors"
-                          title="Edit Purchase Request"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            if (confirm("Are you sure you want to delete this purchase request? This action cannot be undone.")) {
-                              try {
-                                const response = await fetch(`/api/purchase-requests/${request.id}`, {
-                                  method: "DELETE",
-                                });
-
-                                if (!response.ok) {
-                                  throw new Error("Failed to delete purchase request");
-                                }
-
-                                // Refresh line item details
-                                await fetchLineItemDetails();
-                              } catch (err) {
-                                console.error("Error deleting purchase request:", err);
-                                alert("Failed to delete purchase request. Please try again.");
+                        {/* Add Transaction - available to edit and admin users */}
+                        {permissions.canManageTransactions && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (request.approvalStatus === "Approved") {
+                                setTransactionPurchaseRequest(request);
+                                setTransactionAmount(request.remainingAmount.toString());
+                                setTransactionDescription("");
+                                setTransactionDate(new Date().toISOString().split('T')[0]);
+                                setTransactionPaymentMethod("");
+                                setIsAddTransactionOpen(true);
                               }
+                            }}
+                            disabled={request.approvalStatus !== "Approved"}
+                            className={`p-1.5 rounded-md transition-colors ${
+                              request.approvalStatus === "Approved"
+                                ? "hover:bg-green-100 dark:hover:bg-green-900/20 text-green-600 dark:text-green-400"
+                                : "text-muted-foreground/30 cursor-not-allowed"
+                            }`}
+                            title={
+                              request.approvalStatus === "Approved"
+                                ? "Add Transaction"
+                                : "Only available for approved requests"
                             }
-                          }}
-                          className="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
-                          title="Delete Purchase Request"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        )}
+                        {/* Edit/Delete PR - available to edit and admin users */}
+                        {permissions.canManagePurchaseRequests && (
+                          <>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingPurchaseRequest(request);
+                                setEditPRAmount(request.amount.toString());
+                                setEditPRDescription(request.description);
+                                setEditPRVendorName(request.vendorName);
+                                setIsEditPurchaseRequestOpen(true);
+                              }}
+                              className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-muted-foreground hover:text-foreground transition-colors"
+                              title="Edit Purchase Request"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (confirm("Are you sure you want to delete this purchase request? This action cannot be undone.")) {
+                                  try {
+                                    const response = await fetch(`/api/purchase-requests/${request.id}`, {
+                                      method: "DELETE",
+                                    });
+
+                                    if (!response.ok) {
+                                      throw new Error("Failed to delete purchase request");
+                                    }
+
+                                    // Refresh line item details
+                                    await fetchLineItemDetails();
+                                  } catch (err) {
+                                    console.error("Error deleting purchase request:", err);
+                                    alert("Failed to delete purchase request. Please try again.");
+                                  }
+                                }
+                              }}
+                              className="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
+                              title="Delete Purchase Request"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
                       </div>
 
-                      {/* Approval Status Icon with Dropdown */}
+                      {/* Approval Status Icon with Dropdown - only for admins */}
                       <div className="relative">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setStatusDropdownOpen(statusDropdownOpen === request.id ? null : request.id);
-                          }}
-                          className={`p-2 rounded-md transition-colors ${
-                            request.approvalStatus === "Approved"
-                              ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50"
-                              : request.approvalStatus === "Rejected"
-                              ? "bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50"
-                              : "bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:hover:bg-yellow-900/50"
-                          }`}
-                          title={`Status: ${request.approvalStatus}`}
-                        >
-                          {request.approvalStatus === "Approved" && (
-                            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                          )}
-                          {request.approvalStatus === "Rejected" && (
-                            <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
-                          )}
-                          {request.approvalStatus === "Pending" && (
-                            <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-                          )}
-                        </button>
+                        {permissions.canApprovePurchaseRequests ? (
+                          <>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setStatusDropdownOpen(statusDropdownOpen === request.id ? null : request.id);
+                              }}
+                              className={`p-2 rounded-md transition-colors ${
+                                request.approvalStatus === "Approved"
+                                  ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50"
+                                  : request.approvalStatus === "Rejected"
+                                  ? "bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50"
+                                  : "bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:hover:bg-yellow-900/50"
+                              }`}
+                              title={`Status: ${request.approvalStatus}`}
+                            >
+                              {request.approvalStatus === "Approved" && (
+                                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                              )}
+                              {request.approvalStatus === "Rejected" && (
+                                <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                              )}
+                              {request.approvalStatus === "Pending" && (
+                                <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                              )}
+                            </button>
 
-                        {/* Status Dropdown */}
-                        {statusDropdownOpen === request.id && (
+                            {/* Status Dropdown */}
+                            {statusDropdownOpen === request.id && (
+                              <div
+                                className="absolute right-0 top-full mt-1 w-48 bg-background border border-border rounded-lg shadow-lg z-50"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <button
+                                  onClick={() => handleStatusChange(request, "Approved")}
+                                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
+                                >
+                                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                  <span className="text-sm font-medium text-foreground">APPROVE</span>
+                                </button>
+                                <button
+                                  onClick={() => handleStatusChange(request, "Rejected")}
+                                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
+                                >
+                                  <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                                  <span className="text-sm font-medium text-foreground">REJECT</span>
+                                </button>
+                                <button
+                                  onClick={() => handleStatusChange(request, "Pending")}
+                                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
+                                >
+                                  <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                                  <span className="text-sm font-medium text-foreground">PENDING</span>
+                                </button>
+                              </div>
+                            )}
+                          </>
+                        ) : (
                           <div
-                            className="absolute right-0 top-full mt-1 w-48 bg-background border border-border rounded-lg shadow-lg z-50"
-                            onClick={(e) => e.stopPropagation()}
+                            className={`p-2 rounded-md ${
+                              request.approvalStatus === "Approved"
+                                ? "bg-green-100 dark:bg-green-900/30"
+                                : request.approvalStatus === "Rejected"
+                                ? "bg-red-100 dark:bg-red-900/30"
+                                : "bg-yellow-100 dark:bg-yellow-900/30"
+                            }`}
+                            title={`Status: ${request.approvalStatus}`}
                           >
-                            <button
-                              onClick={() => handleStatusChange(request, "Approved")}
-                              className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
-                            >
+                            {request.approvalStatus === "Approved" && (
                               <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                              <span className="text-sm font-medium text-foreground">APPROVE</span>
-                            </button>
-                            <button
-                              onClick={() => handleStatusChange(request, "Rejected")}
-                              className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
-                            >
+                            )}
+                            {request.approvalStatus === "Rejected" && (
                               <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
-                              <span className="text-sm font-medium text-foreground">REJECT</span>
-                            </button>
-                            <button
-                              onClick={() => handleStatusChange(request, "Pending")}
-                              className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
-                            >
+                            )}
+                            {request.approvalStatus === "Pending" && (
                               <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-                              <span className="text-sm font-medium text-foreground">PENDING</span>
-                            </button>
+                            )}
                           </div>
                         )}
                       </div>
@@ -1110,6 +1229,24 @@ export default function LineItemDetailsPage({
                 rows={3}
               />
             </div>
+
+            {/* File Attachments */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Attach Files <span className="text-xs text-muted-foreground">(optional)</span>
+              </label>
+              <input
+                type="file"
+                multiple
+                onChange={(e) => setCreatePRFiles(Array.from(e.target.files || []))}
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#61bc47] file:text-white hover:file:bg-[#52a038]"
+              />
+              {createPRFiles.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {createPRFiles.length} file{createPRFiles.length > 1 ? 's' : ''} selected
+                </p>
+              )}
+            </div>
           </div>
 
           <DialogFooter>
@@ -1184,6 +1321,24 @@ export default function LineItemDetailsPage({
                 placeholder="Describe what you need to purchase"
                 rows={3}
               />
+            </div>
+
+            {/* File Attachments */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Attach Additional Files <span className="text-xs text-muted-foreground">(optional)</span>
+              </label>
+              <input
+                type="file"
+                multiple
+                onChange={(e) => setEditPRFiles(Array.from(e.target.files || []))}
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#61bc47] file:text-white hover:file:bg-[#52a038]"
+              />
+              {editPRFiles.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {editPRFiles.length} file{editPRFiles.length > 1 ? 's' : ''} selected
+                </p>
+              )}
             </div>
           </div>
 
@@ -1283,6 +1438,24 @@ export default function LineItemDetailsPage({
                 placeholder="Additional notes about this transaction"
                 rows={3}
               />
+            </div>
+
+            {/* File Attachments */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Attach Files <span className="text-xs text-muted-foreground">(optional)</span>
+              </label>
+              <input
+                type="file"
+                multiple
+                onChange={(e) => setTransactionFiles(Array.from(e.target.files || []))}
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#61bc47] file:text-white hover:file:bg-[#52a038]"
+              />
+              {transactionFiles.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {transactionFiles.length} file{transactionFiles.length > 1 ? 's' : ''} selected
+                </p>
+              )}
             </div>
           </div>
 

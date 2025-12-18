@@ -141,6 +141,7 @@ export default function PurchaseRequestsPage({
   const [transactionDescription, setTransactionDescription] = useState("");
   const [transactionVendorName, setTransactionVendorName] = useState("");
   const [transactionPaymentMethodId, setTransactionPaymentMethodId] = useState("");
+  const [transactionFiles, setTransactionFiles] = useState<File[]>([]);
   const [isSavingTransaction, setIsSavingTransaction] = useState(false);
 
   // Copy and status editing state
@@ -385,6 +386,9 @@ export default function PurchaseRequestsPage({
       return;
     }
 
+    // Save files before closing modal
+    const savedFiles = [...transactionFiles];
+
     setIsAddTransactionOpen(false);
     setIsSavingTransaction(true);
 
@@ -411,6 +415,29 @@ export default function PurchaseRequestsPage({
         throw new Error(errorData.error || "Failed to add transaction");
       }
 
+      const createdTransaction = await response.json();
+
+      // Upload files if any were selected
+      if (savedFiles.length > 0 && createdTransaction.transactionId) {
+        try {
+          const formData = new FormData();
+          savedFiles.forEach((file) => {
+            formData.append('files', file);
+          });
+
+          const uploadResponse = await fetch(`/api/projects/${projectId}/transactions/${createdTransaction.transactionId}/files`, {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!uploadResponse.ok) {
+            console.error('Failed to upload files, but transaction was created');
+          }
+        } catch (uploadError) {
+          console.error('Error uploading files:', uploadError);
+        }
+      }
+
       // Refetch requests to update transaction counts
       await refetchRequests();
 
@@ -421,6 +448,7 @@ export default function PurchaseRequestsPage({
       setTransactionDescription("");
       setTransactionVendorName("");
       setTransactionPaymentMethodId("");
+      setTransactionFiles([]);
     } catch (err) {
       console.error("Error adding transaction:", err);
       alert(err instanceof Error ? err.message : "Failed to add transaction");
@@ -1037,11 +1065,39 @@ export default function PurchaseRequestsPage({
                     )}
 
                     {request.transactionCount > 0 && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="text-muted-foreground">Transactions:</span>
-                        <span className="text-foreground font-medium">
-                          {request.transactionCount} ({formatCurrency(request.transactionTotal)} spent)
-                        </span>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-3 text-sm">
+                          <span className="text-muted-foreground">Approved:</span>
+                          <span className="font-semibold text-foreground">
+                            {formatCurrency(request.amount)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm">
+                          <span className="text-muted-foreground">Spent:</span>
+                          <span className={`font-semibold ${
+                            request.transactionTotal > request.amount
+                              ? 'text-red-600 dark:text-red-400'
+                              : 'text-green-600 dark:text-green-400'
+                          }`}>
+                            {formatCurrency(request.transactionTotal)}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            ({request.transactionCount} {request.transactionCount === 1 ? 'transaction' : 'transactions'})
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm">
+                          <span className="text-muted-foreground">Remaining:</span>
+                          <span className={`font-bold ${
+                            request.remainingAmount < 0
+                              ? 'text-red-600 dark:text-red-400'
+                              : request.remainingAmount === 0
+                              ? 'text-muted-foreground'
+                              : 'text-green-600 dark:text-green-400'
+                          }`}>
+                            {request.remainingAmount < 0 ? '-' : ''}{formatCurrency(Math.abs(request.remainingAmount))}
+                            {request.remainingAmount < 0 && ' over budget'}
+                          </span>
+                        </div>
                       </div>
                     )}
 
@@ -1079,8 +1135,11 @@ export default function PurchaseRequestsPage({
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-1.5">
-                    <div className={`text-3xl font-bold whitespace-nowrap ${
+                  <div className="flex flex-col items-end gap-1">
+                    <div className="text-xs text-muted-foreground uppercase tracking-wide">
+                      Approved
+                    </div>
+                    <div className={`text-2xl font-bold whitespace-nowrap ${
                       request.approvalStatus === "Approved"
                         ? "text-green-600 dark:text-green-400"
                         : request.approvalStatus === "Rejected"
@@ -1090,10 +1149,19 @@ export default function PurchaseRequestsPage({
                       {formatCurrency(request.amount)}
                     </div>
 
-                    {request.transactionCount > 0 && request.remainingAmount != null && (
-                      <div className="text-xs text-muted-foreground">
-                        {formatCurrency(request.remainingAmount)} remaining
-                      </div>
+                    {request.transactionCount > 0 && (
+                      <>
+                        <div className="text-xs text-muted-foreground uppercase tracking-wide mt-2">
+                          Spent
+                        </div>
+                        <div className={`text-2xl font-bold whitespace-nowrap ${
+                          request.transactionTotal > request.amount
+                            ? 'text-red-600 dark:text-red-400'
+                            : 'text-green-600 dark:text-green-400'
+                        }`}>
+                          {formatCurrency(request.transactionTotal)}
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
@@ -1491,6 +1559,25 @@ export default function PurchaseRequestsPage({
                 placeholder="Brief description of this transaction"
               />
             </div>
+
+            {/* File Attachments */}
+            <div>
+              <label htmlFor="transaction-files" className="block text-sm font-medium mb-2">
+                Attach Files <span className="text-xs text-muted-foreground">(optional)</span>
+              </label>
+              <input
+                id="transaction-files"
+                type="file"
+                multiple
+                onChange={(e) => setTransactionFiles(Array.from(e.target.files || []))}
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#61bc47] file:text-white hover:file:bg-[#52a038]"
+              />
+              {transactionFiles.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {transactionFiles.length} file{transactionFiles.length > 1 ? 's' : ''} selected
+                </p>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <button
@@ -1502,6 +1589,7 @@ export default function PurchaseRequestsPage({
                 setTransactionDescription("");
                 setTransactionVendorName("");
                 setTransactionPaymentMethodId("");
+                setTransactionFiles([]);
               }}
               className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { MPHelper } from "@/providers/MinistryPlatform/mpHelper";
+import { checkBudgetPermissions } from "@/lib/serverPermissions";
 
 // PATCH /api/projects/[id]/purchase-requests/[requestId]
 // Update a purchase request (approve/reject)
@@ -12,6 +13,15 @@ export async function PATCH(
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check permissions - approving/rejecting requires special permission
+    const permissions = checkBudgetPermissions(session);
+    if (!permissions.canApprovePurchaseRequests) {
+      return NextResponse.json(
+        { error: "Forbidden: You do not have permission to approve/reject purchase requests" },
+        { status: 403 }
+      );
     }
 
     const { requestId } = await params;
@@ -112,6 +122,15 @@ export async function DELETE(
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check permissions
+    const permissions = checkBudgetPermissions(session);
+    if (!permissions.canManagePurchaseRequests) {
+      return NextResponse.json(
+        { error: "Forbidden: You do not have permission to manage purchase requests" },
+        { status: 403 }
+      );
     }
 
     const { requestId } = await params;

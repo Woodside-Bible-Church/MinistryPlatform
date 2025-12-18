@@ -445,14 +445,17 @@ export default function LineItemsPage({
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-1.5">
-                    <div className="text-3xl font-bold text-foreground whitespace-nowrap">
-                      {formatCurrency(item.estimated)}
+                  {/* Only show budgeted amount if there's actually a budget */}
+                  {item.estimated !== 0 && (
+                    <div className="flex flex-col items-end gap-1.5">
+                      <div className="text-3xl font-bold text-foreground whitespace-nowrap">
+                        {formatCurrency(item.estimated)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        budgeted
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      budgeted
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Details Row */}
@@ -472,38 +475,88 @@ export default function LineItemsPage({
                         </p>
                       )}
 
-                      {/* Progress bar */}
-                      <div className="mt-3">
-                        <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                          <span>Spent: {formatCurrency(item.actual)}</span>
-                          <span>{percentSpent.toFixed(0)}%</span>
+                      {/* Progress bar - only show for items with a budget */}
+                      {item.estimated !== 0 && (
+                        <div className="mt-3">
+                          <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                            <span>
+                              {item.categoryType === "revenue" ? "Earned" : "Spent"}: {formatCurrency(item.actual)}
+                            </span>
+                            <span>{percentSpent.toFixed(0)}%</span>
+                          </div>
+                          <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 overflow-hidden">
+                            <div
+                              className={`h-full transition-all ${
+                                item.categoryType === "revenue"
+                                  ? "bg-green-500" // Revenue is always green (earning is good!)
+                                  : isOverBudget
+                                  ? "bg-red-500"   // Expense over budget is red
+                                  : percentSpent > 90
+                                  ? "bg-yellow-500"
+                                  : "bg-green-500"
+                              }`}
+                              style={{ width: `${Math.min(percentSpent, 100)}%` }}
+                            />
+                          </div>
                         </div>
-                        <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 overflow-hidden">
-                          <div
-                            className={`h-full transition-all ${
-                              isOverBudget
-                                ? "bg-red-500"
-                                : percentSpent > 90
-                                ? "bg-yellow-500"
-                                : "bg-green-500"
-                            }`}
-                            style={{ width: `${Math.min(percentSpent, 100)}%` }}
-                          />
+                      )}
+
+                      {/* For zero-budget items, show amount earned/spent based on type */}
+                      {item.estimated === 0 && item.actual > 0 && (
+                        <div className="mt-3">
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-muted-foreground">
+                              {item.categoryType === "revenue" ? "Earned:" : "Spent:"}
+                            </span>
+                            <span className={`font-semibold ${
+                              item.categoryType === "revenue"
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-red-600 dark:text-red-400"
+                            }`}>
+                              {formatCurrency(item.actual)}
+                            </span>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
 
                     <div className="flex flex-col items-end gap-1.5">
-                      <div className={`text-2xl font-bold whitespace-nowrap ${
-                        isOverBudget
-                          ? "text-red-600 dark:text-red-400"
-                          : "text-green-600 dark:text-green-400"
-                      }`}>
-                        {formatCurrency(Math.abs(remaining))}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {isOverBudget ? "over budget" : "remaining"}
-                      </div>
+                      {item.estimated === 0 ? (
+                        // For zero-budget items (auto-tracked), show amount earned/spent based on type
+                        <>
+                          <div className={`text-2xl font-bold whitespace-nowrap ${
+                            item.categoryType === "revenue"
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-red-600 dark:text-red-400"
+                          }`}>
+                            {formatCurrency(item.actual)}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {item.categoryType === "revenue" ? "earned" : "spent"}
+                          </div>
+                        </>
+                      ) : (
+                        // For budgeted items, show remaining/over
+                        <>
+                          <div className={`text-2xl font-bold whitespace-nowrap ${
+                            item.categoryType === "revenue"
+                              ? (isOverBudget
+                                ? "text-green-600 dark:text-green-400"  // Revenue over goal is GOOD (green)
+                                : "text-yellow-600 dark:text-yellow-400") // Revenue not yet met is yellow
+                              : (isOverBudget
+                                ? "text-red-600 dark:text-red-400"       // Expense over budget is BAD (red)
+                                : "text-green-600 dark:text-green-400")  // Expense under budget is GOOD (green)
+                          }`}>
+                            {formatCurrency(Math.abs(remaining))}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {item.categoryType === "revenue"
+                              ? (isOverBudget ? "over goal" : "to go")
+                              : (isOverBudget ? "over budget" : "remaining")
+                            }
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

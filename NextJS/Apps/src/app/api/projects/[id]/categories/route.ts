@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { MPHelper } from "@/providers/MinistryPlatform/mpHelper";
+import { checkBudgetPermissions } from "@/lib/serverPermissions";
 
 export async function POST(
   request: NextRequest,
@@ -11,6 +12,15 @@ export async function POST(
 
     if (!session?.accessToken) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check permissions
+    const permissions = checkBudgetPermissions(session);
+    if (!permissions.canManageCategories) {
+      return NextResponse.json(
+        { error: "Forbidden: You do not have permission to manage categories" },
+        { status: 403 }
+      );
     }
 
     const { id } = await params;
@@ -172,6 +182,15 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check permissions
+    const permissions = checkBudgetPermissions(session);
+    if (!permissions.canManageCategories) {
+      return NextResponse.json(
+        { error: "Forbidden: You do not have permission to manage categories" },
+        { status: 403 }
+      );
+    }
+
     const { id } = await params;
     const projectId = parseInt(id, 10);
 
@@ -278,6 +297,15 @@ export async function DELETE(
 
     if (!session?.accessToken) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check permissions
+    const permissions = checkBudgetPermissions(session);
+    if (!permissions.canManageCategories) {
+      return NextResponse.json(
+        { error: "Forbidden: You do not have permission to manage categories" },
+        { status: 403 }
+      );
     }
 
     const { id } = await params;

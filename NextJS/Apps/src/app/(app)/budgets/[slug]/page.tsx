@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useProjects } from "@/hooks/useProjects";
+import { useBudgetPermissions } from "@/hooks/useBudgetPermissions";
 import {
   ArrowLeft,
   Calendar,
@@ -128,6 +129,10 @@ function CategorySection({
   onCreatePurchaseRequest,
   onCreateTransaction,
   filteredLineItems,
+  canManageCategories,
+  canManageLineItems,
+  canManagePurchaseRequests,
+  canManageTransactions,
 }: {
   category: BudgetCategory;
   projectSlug: string;
@@ -147,6 +152,10 @@ function CategorySection({
   onCreatePurchaseRequest?: (lineItemId: string, lineItemName: string, estimated: number, vendor: string | null) => void;
   onCreateTransaction?: (lineItemId: string, lineItemName: string) => void;
   filteredLineItems?: BudgetCategory['lineItems'];
+  canManageCategories?: boolean;
+  canManageLineItems?: boolean;
+  canManagePurchaseRequests?: boolean;
+  canManageTransactions?: boolean;
 }) {
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -225,30 +234,31 @@ function CategorySection({
               </div>
             </div>
             {!isSimplifiedView ? (
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEditCategory?.();
-                  }}
-                  className="p-1.5 hover:bg-zinc-400 dark:hover:bg-zinc-700 rounded transition-colors"
-                  title="Edit category"
-                >
-                  <Edit className="w-4 h-4 text-muted-foreground" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteCategory?.();
-                  }}
-                  className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
-                  title="Delete category"
-                >
-                  <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1">
+              canManageCategories ? (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditCategory?.();
+                    }}
+                    className="p-1.5 hover:bg-zinc-400 dark:hover:bg-zinc-700 rounded transition-colors"
+                    title="Edit category"
+                  >
+                    <Edit className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteCategory?.();
+                    }}
+                    className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                    title="Delete category"
+                  >
+                    <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1">
                 {category.categoryId === 'registration-income' && onEditExpectedRevenue && (
                   <>
                     {isEditingRevenue ? (
@@ -297,8 +307,9 @@ function CategorySection({
                     )}
                   </>
                 )}
-              </div>
-            )}
+                </div>
+              )
+            ) : null}
           </div>
         </div>
       </div>
@@ -419,7 +430,7 @@ function CategorySection({
                     {!isSimplifiedView && (
                       <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-1">
-                          {category.type === "expense" && onCreatePurchaseRequest && (
+                          {category.type === "expense" && onCreatePurchaseRequest && canManagePurchaseRequests && (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -432,7 +443,7 @@ function CategorySection({
                               <Plus className="w-4 h-4 text-[#61bc47] dark:text-[#61bc47]" />
                             </button>
                           )}
-                          {category.type === "revenue" && onCreateTransaction && (
+                          {category.type === "revenue" && onCreateTransaction && canManageTransactions && (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -445,28 +456,32 @@ function CategorySection({
                               <Plus className="w-4 h-4 text-[#61bc47] dark:text-[#61bc47]" />
                             </button>
                           )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onEditLineItem?.(item.lineItemId);
-                            }}
-                            disabled={isLoading}
-                            className="p-1.5 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                            title="Edit line item"
-                          >
-                            <Edit className="w-4 h-4 text-muted-foreground" />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onDeleteLineItem?.(item.lineItemId, item.name);
-                            }}
-                            disabled={isLoading}
-                            className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                            title="Delete line item"
-                          >
-                            <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
-                          </button>
+                          {canManageLineItems && (
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onEditLineItem?.(item.lineItemId);
+                                }}
+                                disabled={isLoading}
+                                className="p-1.5 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="Edit line item"
+                              >
+                                <Edit className="w-4 h-4 text-muted-foreground" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDeleteLineItem?.(item.lineItemId, item.name);
+                                }}
+                                disabled={isLoading}
+                                className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="Delete line item"
+                              >
+                                <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     )}
@@ -479,7 +494,7 @@ function CategorySection({
       )}
 
       {/* Add Line Item Button */}
-      {isExpanded && !isSimplifiedView && (
+      {isExpanded && !isSimplifiedView && canManageLineItems && (
         <button
           onClick={onAddLineItem}
           className="w-full py-3 border-t border-border hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors flex items-center justify-center gap-2 text-[#61bc47] hover:text-[#52a03c] cursor-pointer"
@@ -501,6 +516,7 @@ export default function BudgetDetailPage({
   const { slug } = use(params);
   const router = useRouter();
   const { projects: allProjects } = useProjects(); // Fetch all projects for dropdown
+  const permissions = useBudgetPermissions(); // Get user's budget permissions
 
   const [project, setProject] = useState<ProjectBudgetDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -2378,6 +2394,10 @@ export default function BudgetDetailPage({
                       : undefined
                   }
                   filteredLineItems={category.filteredLineItems}
+                  canManageCategories={permissions.canManageCategories}
+                  canManageLineItems={permissions.canManageLineItems}
+                  canManagePurchaseRequests={permissions.canManagePurchaseRequests}
+                  canManageTransactions={permissions.canManageTransactions}
                 />
               ))
           : filteredRevenueCategories
@@ -2450,23 +2470,29 @@ export default function BudgetDetailPage({
                       : undefined
                   }
                   filteredLineItems={category.filteredLineItems}
+                  canManageCategories={permissions.canManageCategories}
+                  canManageLineItems={permissions.canManageLineItems}
+                  canManagePurchaseRequests={permissions.canManagePurchaseRequests}
+                  canManageTransactions={permissions.canManageTransactions}
                 />
               ))}
 
         {/* Add Category Button */}
-        <button
-          onClick={() => {
-            setNewCategoryType(viewMode === "expenses" ? "expense" : "revenue");
-            setIsAddCategoryOpen(true);
-          }}
-          className="w-full py-4 border-2 border-dashed border-border hover:border-[#61bc47] hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg transition-colors flex items-center justify-center gap-2 text-muted-foreground hover:text-[#61bc47]"
-          title={`Add new ${viewMode === "expenses" ? "expense" : "income"} category`}
-        >
-          <Plus className="w-5 h-5" />
-          <span className="font-medium">
-            Add {viewMode === "expenses" ? "Expense" : "Income"} Category
-          </span>
-        </button>
+        {permissions.canManageCategories && (
+          <button
+            onClick={() => {
+              setNewCategoryType(viewMode === "expenses" ? "expense" : "revenue");
+              setIsAddCategoryOpen(true);
+            }}
+            className="w-full py-4 border-2 border-dashed border-border hover:border-[#61bc47] hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg transition-colors flex items-center justify-center gap-2 text-muted-foreground hover:text-[#61bc47]"
+            title={`Add new ${viewMode === "expenses" ? "expense" : "income"} category`}
+          >
+            <Plus className="w-5 h-5" />
+            <span className="font-medium">
+              Add {viewMode === "expenses" ? "Expense" : "Income"} Category
+            </span>
+          </button>
+        )}
       </div>
 
       {/* Edit Expected Registration Revenue Dialog */}

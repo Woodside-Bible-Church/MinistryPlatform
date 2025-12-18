@@ -27,6 +27,7 @@ import {
 import { FileAttachments } from "@/components/FileAttachments";
 import { BackButton } from "@/components/BackButton";
 import { toast } from "sonner";
+import { useBudgetPermissions } from "@/hooks/useBudgetPermissions";
 
 interface PurchaseRequestDetails {
   purchaseRequestId: number;
@@ -102,6 +103,7 @@ export default function PurchaseRequestDetailsPage({
 }) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const permissions = useBudgetPermissions();
   const [purchaseRequest, setPurchaseRequest] =
     useState<PurchaseRequestDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -119,6 +121,15 @@ export default function PurchaseRequestDetailsPage({
   const [transactionDescription, setTransactionDescription] = useState<string>("");
   const [transactionDate, setTransactionDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [transactionPaymentMethod, setTransactionPaymentMethod] = useState<string>("");
+  const [transactionFiles, setTransactionFiles] = useState<File[]>([]);
+
+  // Edit Transaction modal state
+  const [isEditTransactionOpen, setIsEditTransactionOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [editTransactionAmount, setEditTransactionAmount] = useState<string>("");
+  const [editTransactionDescription, setEditTransactionDescription] = useState<string>("");
+  const [editTransactionDate, setEditTransactionDate] = useState<string>("");
+  const [editTransactionPaymentMethod, setEditTransactionPaymentMethod] = useState<string>("");
 
   // Status dropdown state
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
@@ -272,6 +283,86 @@ export default function PurchaseRequestDetailsPage({
     }
   }
 
+  async function handleEditTransaction() {
+    if (!purchaseRequest || !editingTransaction) return;
+
+    const amount = parseFloat(editTransactionAmount) || 0;
+
+    if (amount <= 0) {
+      toast.error("Amount must be greater than 0");
+      return;
+    }
+
+    if (!editTransactionPaymentMethod.trim()) {
+      toast.error("Payment method is required");
+      return;
+    }
+
+    const savedFormData = {
+      amount,
+      description: editTransactionDescription.trim() || "",
+      transactionDate: editTransactionDate,
+      paymentMethod: editTransactionPaymentMethod.trim(),
+    };
+
+    setIsEditTransactionOpen(false);
+    setEditingTransaction(null);
+    setEditTransactionAmount("");
+    setEditTransactionDescription("");
+    setEditTransactionDate("");
+    setEditTransactionPaymentMethod("");
+
+    const previousState = { ...purchaseRequest };
+
+    // Update UI optimistically
+    setPurchaseRequest({
+      ...purchaseRequest,
+      transactions: purchaseRequest.transactions.map(t =>
+        t.transactionId === editingTransaction.transactionId
+          ? {
+              ...t,
+              amount: savedFormData.amount,
+              description: savedFormData.description,
+              transactionDate: savedFormData.transactionDate,
+              paymentMethod: savedFormData.paymentMethod,
+            }
+          : t
+      ),
+      transactionTotal: purchaseRequest.transactionTotal - editingTransaction.amount + savedFormData.amount,
+      remainingAmount: purchaseRequest.amount - (purchaseRequest.transactionTotal - editingTransaction.amount + savedFormData.amount),
+    });
+
+    const toastId = toast.loading("Updating transaction...");
+
+    try {
+      const response = await fetch(`/api/projects/${purchaseRequest.projectId}/transactions`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          transactionId: editingTransaction.transactionId,
+          amount: savedFormData.amount,
+          description: savedFormData.description || null,
+          transactionDate: savedFormData.transactionDate,
+          payeeName: savedFormData.paymentMethod,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update transaction");
+      }
+
+      await fetchPurchaseRequestDetails();
+      toast.success("Transaction updated successfully", { id: toastId });
+    } catch (error) {
+      console.error("Error updating transaction:", error);
+      setPurchaseRequest(previousState);
+      toast.error(error instanceof Error ? error.message : "Failed to update transaction", { id: toastId });
+    }
+  }
+
   async function handleAddTransaction() {
     if (!purchaseRequest) return;
 
@@ -293,12 +384,14 @@ export default function PurchaseRequestDetailsPage({
       transactionDate,
       paymentMethod: transactionPaymentMethod.trim(),
     };
+    const savedFiles = [...transactionFiles];
 
     setIsAddTransactionOpen(false);
     setTransactionAmount("");
     setTransactionDescription("");
     setTransactionDate(new Date().toISOString().split('T')[0]);
     setTransactionPaymentMethod("");
+    setTransactionFiles([]);
 
     const previousState = { ...purchaseRequest };
 
@@ -340,6 +433,29 @@ export default function PurchaseRequestDetailsPage({
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to add transaction");
+      }
+
+      const createdTransaction = await response.json();
+
+      // Upload files if any were selected
+      if (savedFiles.length > 0 && createdTransaction.transactionId) {
+        try {
+          const formData = new FormData();
+          savedFiles.forEach((file) => {
+            formData.append('files', file);
+          });
+
+          const uploadResponse = await fetch(`/api/projects/${purchaseRequest.projectId}/transactions/${createdTransaction.transactionId}/files`, {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!uploadResponse.ok) {
+            console.error('Failed to upload files, but transaction was created');
+          }
+        } catch (uploadError) {
+          console.error('Error uploading files:', uploadError);
+        }
       }
 
       await fetchPurchaseRequestDetails();
@@ -425,23 +541,28 @@ export default function PurchaseRequestDetailsPage({
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => {
-              setEditAmount(purchaseRequest.amount.toString());
-              setEditDescription(purchaseRequest.description);
-              setEditVendorName(purchaseRequest.vendorName);
-              setIsEditOpen(true);
-            }}>
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleDelete}>
-              <Trash2 className="w-4 h-4" />
-            </Button>
+            {permissions.canManagePurchaseRequests && (
+              <>
+                <Button variant="outline" size="sm" onClick={() => {
+                  setEditAmount(purchaseRequest.amount.toString());
+                  setEditDescription(purchaseRequest.description);
+                  setEditVendorName(purchaseRequest.vendorName);
+                  setIsEditOpen(true);
+                }}>
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleDelete}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </>
+            )}
 
             {/* Status Icon with Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+            {permissions.canApprovePurchaseRequests && (
+              <div className="relative">
+                <button
+                  onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
                 className={`p-2 rounded-md transition-colors ${
                   purchaseRequest.approvalStatus === "Approved"
                     ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50"
@@ -480,33 +601,78 @@ export default function PurchaseRequestDetailsPage({
                   </button>
                 </div>
               )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Request Info */}
+      {/* Budget Summary */}
       <Card className="p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex items-start gap-3">
-            <DollarSign className="w-5 h-5 text-muted-foreground mt-1" />
-            <div>
-              <div className="text-sm text-muted-foreground mb-1">
-                Requested Amount
-              </div>
-              <div className="text-2xl font-bold text-foreground">
-                {formatCurrency(purchaseRequest.amount)}
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          {/* Approved Amount */}
+          <div className="text-center p-4 rounded-lg bg-muted/30">
+            <div className="text-sm text-muted-foreground mb-2 uppercase tracking-wide">
+              Approved Amount
+            </div>
+            <div className={`text-3xl font-bold ${
+              purchaseRequest.approvalStatus === "Approved"
+                ? "text-green-600 dark:text-green-400"
+                : purchaseRequest.approvalStatus === "Rejected"
+                ? "text-red-600 dark:text-red-400"
+                : "text-yellow-600 dark:text-yellow-400"
+            }`}>
+              {formatCurrency(purchaseRequest.amount)}
             </div>
           </div>
 
+          {/* Total Spent */}
+          <div className="text-center p-4 rounded-lg bg-muted/30">
+            <div className="text-sm text-muted-foreground mb-2 uppercase tracking-wide">
+              Total Spent
+            </div>
+            <div className={`text-3xl font-bold ${
+              purchaseRequest.transactionTotal > purchaseRequest.amount
+                ? 'text-red-600 dark:text-red-400'
+                : 'text-green-600 dark:text-green-400'
+            }`}>
+              {formatCurrency(purchaseRequest.transactionTotal)}
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              {purchaseRequest.transactionCount} {purchaseRequest.transactionCount === 1 ? 'transaction' : 'transactions'}
+            </div>
+          </div>
+
+          {/* Remaining */}
+          <div className="text-center p-4 rounded-lg bg-muted/30">
+            <div className="text-sm text-muted-foreground mb-2 uppercase tracking-wide">
+              Remaining
+            </div>
+            <div className={`text-3xl font-bold ${
+              purchaseRequest.remainingAmount < 0
+                ? 'text-red-600 dark:text-red-400'
+                : purchaseRequest.remainingAmount === 0
+                ? 'text-muted-foreground'
+                : 'text-green-600 dark:text-green-400'
+            }`}>
+              {purchaseRequest.remainingAmount < 0 ? '-' : ''}{formatCurrency(Math.abs(purchaseRequest.remainingAmount))}
+            </div>
+            {purchaseRequest.remainingAmount < 0 && (
+              <div className="text-xs text-red-600 dark:text-red-400 mt-1 font-medium">
+                Over Budget
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-border">
           <div className="flex items-start gap-3">
             <Calendar className="w-5 h-5 text-muted-foreground mt-1" />
             <div>
               <div className="text-sm text-muted-foreground mb-1">
                 Requested Date
               </div>
-              <div className="text-xl font-semibold text-foreground">
+              <div className="text-lg font-semibold text-foreground">
                 {formatDate(purchaseRequest.requestedDate)}
               </div>
             </div>
@@ -514,14 +680,14 @@ export default function PurchaseRequestDetailsPage({
 
           <div>
             <div className="text-sm text-muted-foreground mb-1">Vendor</div>
-            <div className="text-xl font-semibold text-foreground">
+            <div className="text-lg font-semibold text-foreground">
               {purchaseRequest.vendorName}
             </div>
           </div>
 
           <div>
             <div className="text-sm text-muted-foreground mb-1">Requested By</div>
-            <div className="text-xl font-semibold text-foreground">
+            <div className="text-lg font-semibold text-foreground">
               {purchaseRequest.requestedByName}
             </div>
           </div>
@@ -576,7 +742,7 @@ export default function PurchaseRequestDetailsPage({
           <h2 className="text-xl font-semibold text-foreground">
             Transactions ({purchaseRequest.transactionCount})
           </h2>
-          {purchaseRequest.approvalStatus === "Approved" && (
+          {purchaseRequest.approvalStatus === "Approved" && permissions.canManageTransactions && (
             <Button
               size="sm"
               onClick={() => {
@@ -594,48 +760,82 @@ export default function PurchaseRequestDetailsPage({
         </div>
 
         {purchaseRequest.transactionCount > 0 ? (
-          <>
-            <div className="space-y-2">
-              {purchaseRequest.transactions.map((transaction) => (
-              <div
-                key={transaction.transactionId}
-                className="p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer"
-                onClick={() =>
-                  router.push(
-                    `/budgets/${resolvedParams.slug}/transactions/${transaction.transactionId}`
-                  )
-                }
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium text-foreground">
-                      {formatCurrency(transaction.amount)}
-                    </div>
-                    <div className="text-sm text-muted-foreground mt-1">
-                      {transaction.description} •{" "}
-                      {formatDate(transaction.transactionDate)} •{" "}
-                      {transaction.paymentMethod}
-                    </div>
+          <div className="space-y-2">
+            {purchaseRequest.transactions.map((transaction) => (
+            <div
+              key={transaction.transactionId}
+              className="p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <div
+                  className="flex-1 cursor-pointer"
+                  onClick={() =>
+                    router.push(
+                      `/budgets/${resolvedParams.slug}/transactions/${transaction.transactionId}`
+                    )
+                  }
+                >
+                  <div className="font-medium text-foreground">
+                    {formatCurrency(transaction.amount)}
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {transaction.description} •{" "}
+                    {formatDate(transaction.transactionDate)} •{" "}
+                    {transaction.paymentMethod}
                   </div>
                 </div>
-              </div>
-            ))}
-            </div>
+                {permissions.canManageTransactions && (
+                  <div className="flex items-center gap-2 ml-4">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingTransaction(transaction);
+                        setEditTransactionAmount(transaction.amount.toString());
+                        setEditTransactionDescription(transaction.description);
+                        setEditTransactionDate(transaction.transactionDate.split('T')[0]);
+                        setEditTransactionPaymentMethod(transaction.paymentMethod);
+                        setIsEditTransactionOpen(true);
+                      }}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                      title="Edit transaction"
+                    >
+                      <Edit className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (confirm("Are you sure you want to delete this transaction? This action cannot be undone.")) {
+                          try {
+                            const response = await fetch(
+                              `/api/projects/${purchaseRequest.projectId}/transactions?transactionId=${transaction.transactionId}`,
+                              {
+                                method: "DELETE",
+                              }
+                            );
 
-            <div className="mt-4 pt-4 border-t border-border flex justify-between">
-              <div className="text-sm text-muted-foreground">Total Spent:</div>
-              <div className="font-bold text-foreground">
-                {formatCurrency(purchaseRequest.transactionTotal)}
-              </div>
-            </div>
+                            if (!response.ok) {
+                              throw new Error("Failed to delete transaction");
+                            }
 
-            <div className="flex justify-between mt-2">
-              <div className="text-sm text-muted-foreground">Remaining:</div>
-              <div className="font-bold text-foreground">
-                {formatCurrency(purchaseRequest.remainingAmount)}
+                            toast.success("Transaction deleted");
+                            await fetchPurchaseRequestDetails();
+                          } catch (err) {
+                            console.error("Error deleting transaction:", err);
+                            toast.error("Failed to delete transaction. Please try again.");
+                          }
+                        }
+                      }}
+                      className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                      title="Delete transaction"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
-          </>
+          ))}
+          </div>
         ) : (
           <div className="text-center py-8 text-muted-foreground">
             {purchaseRequest.approvalStatus === "Approved"
@@ -715,6 +915,88 @@ export default function PurchaseRequestDetailsPage({
         </DialogContent>
       </Dialog>
 
+      {/* Edit Transaction Dialog */}
+      <Dialog open={isEditTransactionOpen} onOpenChange={setIsEditTransactionOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Transaction</DialogTitle>
+            <DialogDescription>
+              Update the transaction details below.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Amount *
+              </label>
+              <input
+                type="number"
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                value={editTransactionAmount}
+                onChange={(e) => setEditTransactionAmount(e.target.value)}
+                placeholder="0.00"
+                step="0.01"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Transaction Date *
+              </label>
+              <input
+                type="date"
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                value={editTransactionDate}
+                onChange={(e) => setEditTransactionDate(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Payment Method *
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                value={editTransactionPaymentMethod}
+                onChange={(e) => setEditTransactionPaymentMethod(e.target.value)}
+                placeholder="e.g., Credit Card, Check, Cash"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Description
+              </label>
+              <textarea
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                value={editTransactionDescription}
+                onChange={(e) => setEditTransactionDescription(e.target.value)}
+                placeholder="Additional notes about this transaction"
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <button
+              onClick={() => setIsEditTransactionOpen(false)}
+              className="px-4 py-2 text-foreground border border-border rounded-md hover:bg-accent transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleEditTransaction}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#61bc47] hover:bg-[#52a038] text-white rounded-md transition-colors"
+            >
+              <DollarSign className="w-4 h-4" />
+              Save Changes
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Add Transaction Dialog */}
       <Dialog open={isAddTransactionOpen} onOpenChange={setIsAddTransactionOpen}>
         <DialogContent>
@@ -776,6 +1058,24 @@ export default function PurchaseRequestDetailsPage({
                 placeholder="Additional notes about this transaction"
                 rows={3}
               />
+            </div>
+
+            {/* File Attachments */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Attach Files <span className="text-xs text-muted-foreground">(optional)</span>
+              </label>
+              <input
+                type="file"
+                multiple
+                onChange={(e) => setTransactionFiles(Array.from(e.target.files || []))}
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#61bc47] file:text-white hover:file:bg-[#52a038]"
+              />
+              {transactionFiles.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {transactionFiles.length} file{transactionFiles.length > 1 ? 's' : ''} selected
+                </p>
+              )}
             </div>
           </div>
 
