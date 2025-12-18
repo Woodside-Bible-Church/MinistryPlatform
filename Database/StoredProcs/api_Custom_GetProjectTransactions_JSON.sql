@@ -101,9 +101,14 @@ BEGIN
                         -- Category/Line Item info (derived from unified line items table)
                         ISNULL(
                             (
-                                SELECT pbc.Budget_Category_Name + ' | ' + li.Line_Item_Name
+                                SELECT CASE
+                                    WHEN pbc.Budget_Category_Name IS NOT NULL THEN pbc.Budget_Category_Name + ' | ' + li.Line_Item_Name
+                                    ELSE li.Line_Item_Name
+                                END
                                 FROM Project_Budget_Line_Items li
-                                INNER JOIN Project_Budget_Categories pbc ON li.Category_ID = pbc.Project_Budget_Category_ID
+                                INNER JOIN Project_Budget_Categories pbc
+                                    ON li.Category_ID = pbc.Project_Budget_Category_ID
+                                    AND pbc.Project_ID = pbt.Project_ID
                                 WHERE li.Project_Budget_Line_Item_ID = pbt.Project_Budget_Line_Item_ID
                             ),
                             'Uncategorized'
