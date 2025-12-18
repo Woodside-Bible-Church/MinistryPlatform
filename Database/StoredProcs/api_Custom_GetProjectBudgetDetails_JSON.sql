@@ -157,6 +157,8 @@ BEGIN
                                 'Registration discount' AS description,
                                 0 AS estimated,  -- Individual line items don't have separate budgets
                                 SUM(ABS(id.Line_Total)) AS actual,
+                                COUNT(*) AS discountCount,
+                                AVG(ABS(id.Line_Total)) AS averageAmount,
                                 NULL AS vendor,
                                 'applied' AS status,
                                 ROW_NUMBER() OVER (ORDER BY SUM(ABS(id.Line_Total)) DESC) AS sortOrder

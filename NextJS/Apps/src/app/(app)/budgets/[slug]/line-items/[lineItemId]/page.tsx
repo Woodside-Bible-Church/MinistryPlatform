@@ -654,26 +654,28 @@ export default function LineItemDetailsPage({
       <Card className="p-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div>
-            <div className="text-sm text-muted-foreground mb-1">Budget</div>
+            <div className="text-sm text-muted-foreground mb-1">
+              {isIncome ? "Received" : "Spent"}
+            </div>
             <div className="text-2xl font-bold text-foreground">
-              {formatCurrency(lineItem.estimatedAmount)}
+              {formatCurrency(lineItem.actualAmount)}
             </div>
           </div>
           <div>
-            <div className="text-sm text-muted-foreground mb-1">Spent</div>
+            <div className="text-sm text-muted-foreground mb-1">
+              {isIncome ? "Expected" : "Budgeted"}
+            </div>
             <div className="text-2xl font-bold text-foreground">
-              {formatCurrency(lineItem.actualAmount)}
+              {formatCurrency(lineItem.estimatedAmount)}
             </div>
           </div>
           <div>
             <div className="text-sm text-muted-foreground mb-1">Remaining</div>
             <div
               className={`text-2xl font-bold ${
-                lineItem.variance < 0
+                -lineItem.variance >= 0
                   ? "text-green-600 dark:text-green-400"
-                  : lineItem.variance > 0
-                  ? "text-red-600 dark:text-red-400"
-                  : "text-muted-foreground"
+                  : "text-red-600 dark:text-red-400"
               }`}
             >
               {formatCurrency(-lineItem.variance)}

@@ -54,6 +54,8 @@ interface BudgetLineItem {
   actual: number;
   description: string | null;
   sortOrder: number;
+  discountCount?: number;
+  averageAmount?: number;
 }
 
 interface BudgetCategory {
@@ -148,9 +150,11 @@ function CategorySection({
 }) {
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
-  const variance = category.actual - category.estimated;
-  const variancePercent =
-    category.estimated > 0 ? (variance / category.estimated) * 100 : 0;
+  // For expenses: Remaining = Budgeted - Spent (positive is good)
+  // For revenue: Remaining = Received - Budgeted (positive is good)
+  const remaining = category.type === "expense"
+    ? category.estimated - category.actual
+    : category.actual - category.estimated;
 
   // Simplified view for registration discounts and revenue (no individual budgets per line item)
   const isSimplifiedView = category.categoryId === 'registration-discounts' || category.categoryId === 'registration-income';
@@ -191,7 +195,9 @@ function CategorySection({
           </div>
           <div className="flex items-center gap-6">
             <div className="text-right">
-              <div className="text-xs text-muted-foreground">Total</div>
+              <div className="text-xs text-muted-foreground">
+                {category.type === "revenue" ? "Received" : "Spent"}
+              </div>
               <div className="font-bold text-foreground">
                 {formatCurrency(category.actual)}
               </div>
@@ -207,20 +213,15 @@ function CategorySection({
               </div>
             </div>
             <div className="text-right min-w-[100px]">
-              <div className="text-xs text-muted-foreground">Variance</div>
+              <div className="text-xs text-muted-foreground">Remaining</div>
               <div
                 className={`font-semibold ${
-                  category.type === "revenue"
-                    ? variance >= 0
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-red-600 dark:text-red-400"
-                    : variance <= 0
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-red-600 dark:text-red-400"
+                  remaining >= 0
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-red-600 dark:text-red-400"
                 }`}
               >
-                {variance >= 0 ? "+" : ""}
-                {formatCurrency(variance)}
+                {formatCurrency(remaining)}
               </div>
             </div>
             {!isSimplifiedView ? (
@@ -315,18 +316,18 @@ function CategorySection({
                 <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
                   Item
                 </th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
+                  {category.type === "revenue" ? "Received" : "Spent"}
+                </th>
                 {!isSimplifiedView && (
                   <th className="px-6 py-3 text-right text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-                    {category.type === "revenue" ? "Expected" : "Estimated"}
+                    {category.type === "revenue" ? "Expected" : "Budgeted"}
                   </th>
                 )}
-                <th className="px-6 py-3 text-right text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-                  Actual
-                </th>
                 {!isSimplifiedView && (
                   <>
                     <th className="px-6 py-3 text-right text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-                      Variance
+                      Remaining
                     </th>
                   </>
                 )}
@@ -339,19 +340,27 @@ function CategorySection({
             </thead>
             <tbody className="divide-y divide-border">
               {displayLineItems.map((item) => {
-                const itemVariance = item.actual - item.estimated;
-                const itemVariancePercent =
-                  item.estimated > 0 ? (itemVariance / item.estimated) * 100 : 0;
+                // For expenses: Remaining = Budgeted - Spent (positive is good)
+                // For revenue: Remaining = Received - Budgeted (positive is good)
+                const itemRemaining = category.type === "expense"
+                  ? item.estimated - item.actual
+                  : item.actual - item.estimated;
                 const isLoading = String(item.lineItemId).startsWith('temp-');
 
                 return (
                   <tr
                     key={item.lineItemId}
-                    onClick={() => !isLoading && router.push(`/budgets/${projectSlug}/line-items/${item.lineItemId}`)}
-                    onMouseEnter={() => !isLoading && router.prefetch(`/budgets/${projectSlug}/line-items/${item.lineItemId}`)}
-                    className={`transition-colors ${isLoading ? 'cursor-wait animate-pulse opacity-60' : 'cursor-pointer'} ${
+                    onClick={() => !isLoading && !isSimplifiedView && router.push(`/budgets/${projectSlug}/line-items/${item.lineItemId}`)}
+                    onMouseEnter={() => !isLoading && !isSimplifiedView && router.prefetch(`/budgets/${projectSlug}/line-items/${item.lineItemId}`)}
+                    className={`transition-colors ${
+                      isLoading
+                        ? 'cursor-wait animate-pulse opacity-60'
+                        : isSimplifiedView
+                        ? 'cursor-default'
+                        : 'cursor-pointer'
+                    } ${
                       isSimplifiedView
-                        ? "bg-blue-50/20 dark:bg-blue-950/10 hover:bg-blue-50/40 dark:hover:bg-blue-950/20"
+                        ? "bg-blue-50/20 dark:bg-blue-950/10"
                         : "bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700"
                     }`}
                   >
@@ -373,37 +382,37 @@ function CategorySection({
                         )}
                       </div>
                     </td>
+                    <td className="px-6 py-4 text-right font-semibold text-foreground">
+                      {item.discountCount && item.averageAmount ? (
+                        <div className="flex flex-col items-end">
+                          <span className="text-sm text-muted-foreground">
+                            {item.discountCount}×{formatCurrency(item.averageAmount)}
+                          </span>
+                          <span className="font-bold">
+                            {formatCurrency(item.actual)}
+                          </span>
+                        </div>
+                      ) : (
+                        formatCurrency(item.actual)
+                      )}
+                    </td>
                     {!isSimplifiedView && (
                       <td className="px-6 py-4 text-right font-medium text-gray-700 dark:text-gray-300">
                         {formatCurrency(item.estimated)}
                       </td>
                     )}
-                    <td className="px-6 py-4 text-right font-semibold text-foreground">
-                      {formatCurrency(item.actual)}
-                    </td>
                     {!isSimplifiedView && (
                       <>
                         <td className="px-6 py-4 text-right">
                           <div
                             className={`font-medium ${
-                              category.type === "revenue"
-                                ? itemVariance >= 0
-                                  ? "text-green-600 dark:text-green-400"
-                                  : "text-red-600 dark:text-red-400"
-                                : itemVariance <= 0
-                                  ? "text-green-600 dark:text-green-400"
-                                  : "text-red-600 dark:text-red-400"
+                              itemRemaining >= 0
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-red-600 dark:text-red-400"
                             }`}
                           >
-                            {itemVariance >= 0 ? "+" : ""}
-                            {formatCurrency(itemVariance)}
+                            {formatCurrency(itemRemaining)}
                           </div>
-                          {item.estimated > 0 && (
-                            <div className="text-xs text-muted-foreground mt-1">
-                              ({itemVariance >= 0 ? "+" : ""}
-                              {itemVariancePercent.toFixed(1)}%)
-                            </div>
-                          )}
                         </td>
                       </>
                     )}
