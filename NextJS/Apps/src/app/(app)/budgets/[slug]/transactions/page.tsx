@@ -33,7 +33,7 @@ interface Transaction {
   description: string;
   paymentMethod: string | null;
   payee: string | null;
-  categoryItem: string;
+  categoryItem: string | null;
   lineItemId: number | null;
   purchaseRequestId: number | null;
   requisitionGuid: string | null;
@@ -717,7 +717,7 @@ export default function TransactionsPage({
               {/* Header Row */}
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div className="flex-1 min-w-0">
-                  {transaction.categoryItem.includes(" | ") ? (
+                  {transaction.categoryItem?.includes(" | ") ? (
                     <div className="flex flex-col">
                       <span className="text-[10px] text-muted-foreground uppercase tracking-wider leading-tight mb-0.5">
                         {transaction.categoryItem.split(" | ")[0]}
@@ -728,7 +728,7 @@ export default function TransactionsPage({
                     </div>
                   ) : (
                     <h3 className="text-xl font-bold text-foreground">
-                      {transaction.categoryItem}
+                      {transaction.categoryItem || "Uncategorized"}
                     </h3>
                   )}
                 </div>
@@ -918,7 +918,9 @@ export default function TransactionsPage({
                 className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
               >
                 <option value="">-- Select Line Item --</option>
-                {newTransactionType === "Expense" && budgetData?.expenseCategories.map((category) => (
+                {newTransactionType === "Expense" && budgetData?.expenseCategories
+                  .filter((category) => category.lineItems && category.lineItems.length > 0)
+                  .map((category) => (
                   <optgroup key={category.categoryId} label={category.name}>
                     {category.lineItems.map((item) => (
                       <option key={item.lineItemId} value={item.lineItemId}>
@@ -927,7 +929,9 @@ export default function TransactionsPage({
                     ))}
                   </optgroup>
                 ))}
-                {newTransactionType === "Income" && budgetData?.incomeLineItemsCategories?.map((category) => (
+                {newTransactionType === "Income" && budgetData?.incomeLineItemsCategories
+                  ?.filter((category) => category.lineItems && category.lineItems.length > 0)
+                  .map((category) => (
                   <optgroup key={category.categoryId} label={category.name}>
                     {category.lineItems.map((item) => (
                       <option key={item.lineItemId} value={item.lineItemId}>
@@ -1135,7 +1139,9 @@ export default function TransactionsPage({
                 className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
               >
                 <option value="">-- Select Line Item --</option>
-                {editTransactionType === "Expense" && budgetData?.expenseCategories.map((category) => (
+                {editTransactionType === "Expense" && budgetData?.expenseCategories
+                  .filter((category) => category.lineItems && category.lineItems.length > 0)
+                  .map((category) => (
                   <optgroup key={category.categoryId} label={category.name}>
                     {category.lineItems.map((item) => (
                       <option key={item.lineItemId} value={item.lineItemId}>
@@ -1144,7 +1150,9 @@ export default function TransactionsPage({
                     ))}
                   </optgroup>
                 ))}
-                {editTransactionType === "Income" && budgetData?.incomeLineItemsCategories?.map((category) => (
+                {editTransactionType === "Income" && budgetData?.incomeLineItemsCategories
+                  ?.filter((category) => category.lineItems && category.lineItems.length > 0)
+                  .map((category) => (
                   <optgroup key={category.categoryId} label={category.name}>
                     {category.lineItems.map((item) => (
                       <option key={item.lineItemId} value={item.lineItemId}>
