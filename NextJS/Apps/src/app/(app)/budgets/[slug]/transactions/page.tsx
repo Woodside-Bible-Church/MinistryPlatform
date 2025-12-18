@@ -75,6 +75,16 @@ interface ProjectBudget {
   incomeLineItemsCategories: BudgetCategory[];
 }
 
+interface PurchaseRequest {
+  requestId: number;
+  requisitionGuid: string;
+  requestDate: string;
+  status: string;
+  lineItemName: string;
+  lineItemId: number;
+  totalAmount: number;
+}
+
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -106,6 +116,7 @@ export default function TransactionsPage({
   const router = useRouter();
   const [data, setData] = useState<ProjectTransactions | null>(null);
   const [budgetData, setBudgetData] = useState<ProjectBudget | null>(null);
+  const [purchaseRequests, setPurchaseRequests] = useState<PurchaseRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedGuid, setCopiedGuid] = useState<string | null>(null);
@@ -119,6 +130,7 @@ export default function TransactionsPage({
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
   const [newTransactionDate, setNewTransactionDate] = useState("");
   const [newTransactionType, setNewTransactionType] = useState<"Expense" | "Income">("Expense");
+  const [newTransactionPurchaseRequestId, setNewTransactionPurchaseRequestId] = useState<string>("");
   const [newTransactionLineItemId, setNewTransactionLineItemId] = useState<string>("");
   const [newTransactionAmount, setNewTransactionAmount] = useState("");
   const [newTransactionPayee, setNewTransactionPayee] = useState("");
@@ -148,10 +160,19 @@ export default function TransactionsPage({
         setIsLoading(true);
         setError(null);
 
-        // Fetch both transactions and budget data in parallel
-        const [transactionsResponse, budgetResponse] = await Promise.all([
+        // First fetch budget data to get project ID
+        const budgetResponse = await fetch(`/api/projects/budgets/${encodeURIComponent(slug)}`);
+        if (!budgetResponse.ok) {
+          const errorData = await budgetResponse.json();
+          throw new Error(errorData.error || "Failed to fetch budget data");
+        }
+        const budgetDataResponse = await budgetResponse.json();
+        setBudgetData(budgetDataResponse);
+
+        // Now fetch transactions and purchase requests in parallel using project ID
+        const [transactionsResponse, purchaseRequestsResponse] = await Promise.all([
           fetch(`/api/projects/budgets/${encodeURIComponent(slug)}/transactions`),
-          fetch(`/api/projects/budgets/${encodeURIComponent(slug)}`),
+          fetch(`/api/projects/${budgetDataResponse.Project_ID}/purchase-requests`),
         ]);
 
         if (!transactionsResponse.ok) {
@@ -159,18 +180,14 @@ export default function TransactionsPage({
           throw new Error(errorData.error || "Failed to fetch transactions");
         }
 
-        if (!budgetResponse.ok) {
-          const errorData = await budgetResponse.json();
-          throw new Error(errorData.error || "Failed to fetch budget data");
-        }
-
-        const [transactionsData, budgetDataResponse] = await Promise.all([
-          transactionsResponse.json(),
-          budgetResponse.json(),
-        ]);
-
+        const transactionsData = await transactionsResponse.json();
         setData(transactionsData);
-        setBudgetData(budgetDataResponse);
+
+        // Purchase requests may not be available for all projects
+        if (purchaseRequestsResponse.ok) {
+          const purchaseRequestsData = await purchaseRequestsResponse.json();
+          setPurchaseRequests(purchaseRequestsData.purchaseRequests || []);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
@@ -208,8 +225,14 @@ export default function TransactionsPage({
 
     const amount = parseFloat(newTransactionAmount);
 
-    if (!newTransactionDate || !amount) {
-      toast.error("Date and amount are required");
+    if (!newTransactionDate || !amount || !newTransactionLineItemId) {
+      toast.error("Date, amount, and line item are required");
+      return;
+    }
+
+    // For expense transactions, purchase request is required
+    if (newTransactionType === "Expense" && !newTransactionPurchaseRequestId) {
+      toast.error("Purchase request is required for expense transactions");
       return;
     }
 
@@ -282,7 +305,8 @@ export default function TransactionsPage({
           transactionDate: newTransactionDate,
           transactionType: newTransactionType,
           amount: amount,
-          lineItemId: newTransactionLineItemId ? parseInt(newTransactionLineItemId, 10) : null,
+          lineItemId: parseInt(newTransactionLineItemId, 10),
+          purchaseRequestId: newTransactionPurchaseRequestId ? parseInt(newTransactionPurchaseRequestId, 10) : null,
           payeeName: newTransactionPayee.trim() || null,
           description: newTransactionDescription.trim() || null,
           paymentMethodId: newTransactionPaymentMethod ? parseInt(newTransactionPaymentMethod, 10) : null,
@@ -302,6 +326,7 @@ export default function TransactionsPage({
       // Reset form
       setNewTransactionDate("");
       setNewTransactionType("Expense");
+      setNewTransactionPurchaseRequestId("");
       setNewTransactionLineItemId("");
       setNewTransactionAmount("");
       setNewTransactionPayee("");
@@ -880,12 +905,16 @@ export default function TransactionsPage({
             </div>
             <div>
               <label htmlFor="new-transaction-line-item" className="block text-sm font-medium mb-2">
-                Category / Line Item (optional)
+                Category / Line Item *
               </label>
               <select
                 id="new-transaction-line-item"
                 value={newTransactionLineItemId}
-                onChange={(e) => setNewTransactionLineItemId(e.target.value)}
+                onChange={(e) => {
+                  setNewTransactionLineItemId(e.target.value);
+                  // Reset purchase request when line item changes
+                  setNewTransactionPurchaseRequestId("");
+                }}
                 className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
               >
                 <option value="">-- Select Line Item --</option>
@@ -909,6 +938,44 @@ export default function TransactionsPage({
                 ))}
               </select>
             </div>
+            {newTransactionType === "Expense" && newTransactionLineItemId && (
+              <div>
+                <label htmlFor="new-transaction-purchase-request" className="block text-sm font-medium mb-2">
+                  Purchase Request *
+                </label>
+                <select
+                  id="new-transaction-purchase-request"
+                  value={newTransactionPurchaseRequestId}
+                  onChange={(e) => {
+                    if (e.target.value === "__CREATE_NEW__") {
+                      // Open purchase request creation in new tab
+                      window.open(`/budgets/${slug}/line-items/${newTransactionLineItemId}`, '_blank');
+                      e.target.value = ""; // Reset dropdown
+                    } else {
+                      setNewTransactionPurchaseRequestId(e.target.value);
+                    }
+                  }}
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] bg-background text-foreground"
+                >
+                  <option value="">-- Select Purchase Request --</option>
+                  {purchaseRequests
+                    .filter((pr) => pr.lineItemId === parseInt(newTransactionLineItemId, 10))
+                    .map((pr) => (
+                      <option key={pr.requestId} value={pr.requestId}>
+                        {pr.requisitionGuid.toUpperCase()} - {formatCurrency(pr.totalAmount)} ({pr.status})
+                      </option>
+                    ))}
+                  <option value="__CREATE_NEW__" className="font-semibold text-[#61bc47]">
+                    + Create New Purchase Request...
+                  </option>
+                </select>
+                {purchaseRequests.filter((pr) => pr.lineItemId === parseInt(newTransactionLineItemId, 10)).length === 0 && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    No purchase requests found for this line item. Create one to continue.
+                  </p>
+                )}
+              </div>
+            )}
             <div>
               <label htmlFor="new-transaction-amount" className="block text-sm font-medium mb-2">
                 Amount *
@@ -931,7 +998,7 @@ export default function TransactionsPage({
             </div>
             <div>
               <label htmlFor="new-transaction-payee" className="block text-sm font-medium mb-2">
-                Payee (optional)
+                Payee
               </label>
               <input
                 id="new-transaction-payee"
@@ -944,7 +1011,7 @@ export default function TransactionsPage({
             </div>
             <div>
               <label htmlFor="new-transaction-description" className="block text-sm font-medium mb-2">
-                Description (optional)
+                Description
               </label>
               <textarea
                 id="new-transaction-description"
@@ -957,7 +1024,7 @@ export default function TransactionsPage({
             </div>
             <div>
               <label htmlFor="new-transaction-payment-reference" className="block text-sm font-medium mb-2">
-                Payment Reference (optional)
+                Payment Reference
               </label>
               <input
                 id="new-transaction-payment-reference"
@@ -970,7 +1037,7 @@ export default function TransactionsPage({
             </div>
             <div>
               <label htmlFor="new-transaction-notes" className="block text-sm font-medium mb-2">
-                Notes (optional)
+                Notes
               </label>
               <textarea
                 id="new-transaction-notes"
@@ -988,6 +1055,7 @@ export default function TransactionsPage({
                 setIsAddTransactionOpen(false);
                 setNewTransactionDate("");
                 setNewTransactionType("Expense");
+                setNewTransactionPurchaseRequestId("");
                 setNewTransactionLineItemId("");
                 setNewTransactionAmount("");
                 setNewTransactionPayee("");
@@ -1002,7 +1070,13 @@ export default function TransactionsPage({
             </button>
             <button
               onClick={handleAddTransaction}
-              disabled={!newTransactionDate || !newTransactionAmount || isSavingTransaction}
+              disabled={
+                !newTransactionDate ||
+                !newTransactionAmount ||
+                !newTransactionLineItemId ||
+                (newTransactionType === "Expense" && !newTransactionPurchaseRequestId) ||
+                isSavingTransaction
+              }
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[#61bc47] hover:bg-[#52a03c] text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="w-4 h-4" />
@@ -1052,7 +1126,7 @@ export default function TransactionsPage({
             </div>
             <div>
               <label htmlFor="edit-transaction-line-item" className="block text-sm font-medium mb-2">
-                Category / Line Item (optional)
+                Category / Line Item *
               </label>
               <select
                 id="edit-transaction-line-item"
@@ -1103,7 +1177,7 @@ export default function TransactionsPage({
             </div>
             <div>
               <label htmlFor="edit-transaction-payee" className="block text-sm font-medium mb-2">
-                Payee (optional)
+                Payee
               </label>
               <input
                 id="edit-transaction-payee"
@@ -1116,7 +1190,7 @@ export default function TransactionsPage({
             </div>
             <div>
               <label htmlFor="edit-transaction-description" className="block text-sm font-medium mb-2">
-                Description (optional)
+                Description
               </label>
               <textarea
                 id="edit-transaction-description"
@@ -1129,7 +1203,7 @@ export default function TransactionsPage({
             </div>
             <div>
               <label htmlFor="edit-transaction-payment-reference" className="block text-sm font-medium mb-2">
-                Payment Reference (optional)
+                Payment Reference
               </label>
               <input
                 id="edit-transaction-payment-reference"
@@ -1142,7 +1216,7 @@ export default function TransactionsPage({
             </div>
             <div>
               <label htmlFor="edit-transaction-notes" className="block text-sm font-medium mb-2">
-                Notes (optional)
+                Notes
               </label>
               <textarea
                 id="edit-transaction-notes"

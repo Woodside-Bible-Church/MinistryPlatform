@@ -47,8 +47,8 @@ BEGIN
 
             -- Category info
             cat.Project_Budget_Category_ID AS categoryId,
-            cat.Budget_Category_Name AS categoryName,
-            cat.Budget_Category_Type AS categoryType,
+            pct.Project_Category_Type AS categoryName,
+            CASE WHEN pct.Is_Revenue = 1 THEN 'revenue' ELSE 'expense' END AS categoryType,
 
             -- Project info
             p.Project_ID AS projectId,
@@ -139,6 +139,7 @@ BEGIN
 
         FROM Project_Budget_Line_Items li
         INNER JOIN Project_Budget_Categories cat ON li.Category_ID = cat.Project_Budget_Category_ID
+        INNER JOIN Project_Category_Types pct ON cat.Project_Category_Type_ID = pct.Project_Category_Type_ID
         INNER JOIN Projects p ON cat.Project_ID = p.Project_ID
         WHERE li.Project_Budget_Line_Item_ID = @LineItemID
         FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
