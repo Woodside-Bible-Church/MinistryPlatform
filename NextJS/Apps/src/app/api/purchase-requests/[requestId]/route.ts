@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { MPHelper } from "@/providers/MinistryPlatform/mpHelper";
+import { getMPAccessToken, getMPBaseUrl, checkBudgetAppAccess } from "@/lib/mpAuth";
 
 export async function GET(
   request: NextRequest,
@@ -8,19 +9,31 @@ export async function GET(
 ) {
   try {
     const session = await auth();
-    if (!session?.accessToken) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check if user has permission to access the Budget app
+    const { hasAccess } = await checkBudgetAppAccess();
+    if (!hasAccess) {
+      return NextResponse.json(
+        { error: "Forbidden - You don't have permission to access the Budget app" },
+        { status: 403 }
+      );
+    }
+
     const { requestId } = await params;
-    const baseUrl = process.env.MINISTRY_PLATFORM_BASE_URL;
+
+    // Get OAuth token using client credentials (app credentials, not user token)
+    const accessToken = await getMPAccessToken();
+    const baseUrl = getMPBaseUrl();
 
     // Get purchase request details
     const mpUrl = `${baseUrl}/procs/api_Custom_GetPurchaseRequestDetails_JSON?@PurchaseRequestID=${requestId}`;
 
     const response = await fetch(mpUrl, {
       headers: {
-        Authorization: `Bearer ${session.accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
     });
@@ -98,6 +111,15 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check if user has permission to edit in the Budget app
+    const { hasAccess, canEdit } = await checkBudgetAppAccess();
+    if (!hasAccess || !canEdit) {
+      return NextResponse.json(
+        { error: "Forbidden - You don't have permission to edit in the Budget app" },
+        { status: 403 }
+      );
+    }
+
     const { requestId } = await params;
     const body = await request.json();
 
@@ -150,12 +172,24 @@ export async function DELETE(
 ) {
   try {
     const session = await auth();
-    if (!session?.accessToken) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check if user has permission to delete in the Budget app
+    const { hasAccess, canDelete } = await checkBudgetAppAccess();
+    if (!hasAccess || !canDelete) {
+      return NextResponse.json(
+        { error: "Forbidden - You don't have permission to delete in the Budget app" },
+        { status: 403 }
+      );
+    }
+
     const { requestId } = await params;
-    const baseUrl = process.env.MINISTRY_PLATFORM_BASE_URL;
+
+    // Get OAuth token using client credentials (app credentials, not user token)
+    const accessToken = await getMPAccessToken();
+    const baseUrl = getMPBaseUrl();
 
     // Delete purchase request via MinistryPlatform API
     const mpUrl = `${baseUrl}/tables/Project_Budget_Purchase_Requests/${requestId}`;
@@ -163,7 +197,7 @@ export async function DELETE(
     const response = await fetch(mpUrl, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${session.accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
     });

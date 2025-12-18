@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { getMPAccessToken, getMPBaseUrl, checkBudgetAppAccess } from "@/lib/mpAuth";
 
 export async function GET(
   request: NextRequest,
@@ -7,19 +8,31 @@ export async function GET(
 ) {
   try {
     const session = await auth();
-    if (!session?.accessToken) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check if user has permission to access the Budget app
+    const { hasAccess } = await checkBudgetAppAccess();
+    if (!hasAccess) {
+      return NextResponse.json(
+        { error: "Forbidden - You don't have permission to access the Budget app" },
+        { status: 403 }
+      );
+    }
+
     const { transactionId } = await params;
-    const baseUrl = process.env.MINISTRY_PLATFORM_BASE_URL;
+
+    // Get OAuth token using client credentials (app credentials, not user token)
+    const accessToken = await getMPAccessToken();
+    const baseUrl = getMPBaseUrl();
 
     // Use the stored procedure to get transaction details
     const mpUrl = `${baseUrl}/procs/api_Custom_GetTransactionDetails_JSON?@TransactionID=${transactionId}`;
 
     const response = await fetch(mpUrl, {
       headers: {
-        Authorization: `Bearer ${session.accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
     });
@@ -65,7 +78,7 @@ export async function GET(
 
             const filesResponse = await fetch(filesUrl, {
               headers: {
-                Authorization: `Bearer ${session.accessToken}`,
+                Authorization: `Bearer ${accessToken}`,
                 "Content-Type": "application/json",
               },
             });
