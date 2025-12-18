@@ -2997,7 +2997,7 @@ export default function BudgetDetailPage({
               </label>
               <input
                 type="number"
-                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 value={createPRAmount}
                 onChange={(e) => setCreatePRAmount(e.target.value)}
                 placeholder="0.00"
@@ -3012,7 +3012,7 @@ export default function BudgetDetailPage({
               </label>
               <input
                 type="text"
-                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 value={createPRVendorName}
                 onChange={(e) => setCreatePRVendorName(e.target.value)}
                 placeholder="Enter vendor name"
@@ -3025,7 +3025,7 @@ export default function BudgetDetailPage({
                 Description
               </label>
               <textarea
-                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 value={createPRDescription}
                 onChange={(e) => setCreatePRDescription(e.target.value)}
                 placeholder="Describe what you need to purchase"
@@ -3044,7 +3044,7 @@ export default function BudgetDetailPage({
             </button>
             <button
               onClick={handleCreatePurchaseRequest}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isSavingPurchaseRequest}
             >
               <ShoppingCart className="w-4 h-4" />

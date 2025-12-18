@@ -101,6 +101,7 @@ export default function ReportsPage({
   const [project, setProject] = useState<ProjectBudgetDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   useEffect(() => {
     async function fetchProjectDetails() {
@@ -260,15 +261,317 @@ export default function ReportsPage({
     expenseCategories[0]
   );
 
+  // PDF Export handler
+  const handleExportPdf = async () => {
+    try {
+      setIsExportingPdf(true);
+
+      const response = await fetch(
+        `/api/projects/budgets/${encodeURIComponent(slug)}/export-pdf`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to generate PDF");
+      }
+
+      // Get the PDF blob
+      const blob = await response.blob();
+
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `budget-report-${slug}-${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error("PDF export error:", err);
+      alert("Failed to export PDF. Please try again.");
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
+
   return (
-    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
-      {/* Header */}
-      <div className="mb-8">
-        <BackButton
-          fallbackUrl={`/budgets/${slug}`}
-          label="Back"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#61bc47] mb-4 transition-colors"
-        />
+    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 print:py-0 max-w-[1600px]">
+      <style dangerouslySetInnerHTML={{__html: `
+        @media print {
+          @page {
+            margin: 0.3in 0.5in 0.5in 0.5in;
+          }
+
+          * {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
+
+          /* Force light mode and remove all top spacing */
+          html, body {
+            background: white !important;
+            color: #1a1a1a !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          body {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+          }
+
+          /* Remove spacing from layout elements */
+          main, header, nav, div[class*="layout"] {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+          }
+
+          /* Override all dark mode backgrounds and text */
+          .bg-card,
+          .chart-card,
+          .kpi-grid > div,
+          .key-insights-section {
+            background: white !important;
+            color: #1a1a1a !important;
+            border: 1px solid #e5e5e5 !important;
+          }
+
+          h1, h2, h3, h4, h5, h6, p, span, div {
+            color: #1a1a1a !important;
+          }
+
+          .text-muted-foreground,
+          .text-foreground {
+            color: #333 !important;
+          }
+
+          /* Container adjustments */
+          .container {
+            max-width: 100% !important;
+            padding: 0 !important;
+            background: white !important;
+          }
+
+          /* Header styling */
+          h1 {
+            font-size: 1.5rem !important;
+            color: #1a1a1a !important;
+            margin-bottom: 0.15rem !important;
+          }
+
+          /* Subtitle - project title with extra space below */
+          h1 + p {
+            margin-bottom: 1rem !important;
+          }
+
+          /* Subtitle spacing and header section */
+          .mb-8.print\\:mb-4 {
+            margin-bottom: 0.75rem !important;
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+          }
+
+          /* Ensure first header section has no top spacing */
+          .mb-8.print\\:mb-4:first-of-type,
+          .mb-8.print\\:mb-4:first-child {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+          }
+
+          /* KPI Cards - compact spacing, force 3 columns */
+          .kpi-grid,
+          .kpi-grid.grid,
+          .kpi-grid.grid.grid-cols-1,
+          .grid.grid-cols-1.md\\:grid-cols-3.kpi-grid,
+          div.grid.grid-cols-1.md\\:grid-cols-3 {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 0.5rem !important;
+            page-break-inside: avoid !important;
+            margin-bottom: 0.75rem !important;
+          }
+
+          .kpi-grid > div {
+            padding: 0.4rem !important;
+            background: white !important;
+            border: 1px solid #e5e5e5 !important;
+            border-radius: 6px !important;
+          }
+
+          /* Make KPI card text smaller in print */
+          .kpi-grid h3 {
+            font-size: 0.65rem !important;
+          }
+
+          .kpi-grid .text-4xl {
+            font-size: 1.5rem !important;
+          }
+
+          .kpi-grid .text-sm {
+            font-size: 0.65rem !important;
+          }
+
+          .kpi-grid .flex.items-center.gap-2 {
+            margin-bottom: 0.25rem !important;
+          }
+
+          .kpi-grid .w-4.h-4 {
+            width: 0.75rem !important;
+            height: 0.75rem !important;
+          }
+
+          /* Charts Grid - compact layout */
+          .charts-grid,
+          .charts-grid.grid,
+          div.grid.grid-cols-1.lg\\:grid-cols-2 {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 0.5rem !important;
+            margin-bottom: 0.75rem !important;
+          }
+
+          /* Force ALL non-KPI chart grids to be 2 columns in print */
+          div.grid.grid-cols-1.lg\\:grid-cols-2:not(.kpi-grid) {
+            grid-template-columns: repeat(2, 1fr) !important;
+            margin-bottom: 0.75rem !important;
+            gap: 0.5rem !important;
+          }
+
+          .chart-card {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            background: white !important;
+            border: 1px solid #e5e5e5 !important;
+            padding: 0.4rem !important;
+            border-radius: 6px !important;
+          }
+
+          /* Compact chart heights for print */
+          .chart-card > div:last-child {
+            height: 195px !important;
+          }
+
+          /* Key Insights - compact */
+          .key-insights-section {
+            background: white !important;
+            border: 1px solid #e5e5e5 !important;
+            padding: 0.5rem !important;
+            border-radius: 6px !important;
+            page-break-inside: avoid !important;
+            margin-bottom: 0 !important;
+          }
+
+          .key-insights-section .space-y-4 {
+            gap: 0.35rem !important;
+          }
+
+          .key-insights-section h3 {
+            margin-bottom: 0.35rem !important;
+            font-size: 0.95rem !important;
+          }
+
+          .key-insights-section p {
+            margin-bottom: 0.25rem !important;
+          }
+
+          .key-insights-section h4 {
+            font-size: 0.85rem !important;
+          }
+
+          /* Chart titles - smaller */
+          .chart-card h3 {
+            font-size: 0.9rem !important;
+            font-weight: 600 !important;
+            color: #1a1a1a !important;
+            margin-bottom: 0.2rem !important;
+          }
+
+          .chart-card p {
+            font-size: 0.7rem !important;
+            margin-bottom: 0.2rem !important;
+          }
+
+          /* Ensure chart backgrounds are white */
+          svg {
+            background: white !important;
+          }
+
+          /* Improve legend readability and centering */
+          .recharts-legend-wrapper {
+            width: 100% !important;
+            text-align: center !important;
+          }
+
+          .recharts-default-legend {
+            text-align: center !important;
+            display: flex !important;
+            justify-content: center !important;
+            width: 100% !important;
+          }
+
+          .recharts-legend-item-text {
+            font-size: 9px !important;
+            color: #1a1a1a !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+          }
+
+          .recharts-legend-item {
+            margin-right: 8px !important;
+          }
+
+          /* Chart axis text - larger for readability */
+          .recharts-cartesian-axis-tick-value {
+            font-size: 13px !important;
+            color: #1a1a1a !important;
+            font-weight: 500 !important;
+          }
+
+          /* Reduce overall vertical spacing */
+          .print\\:py-0 {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+          }
+
+          .print\\:py-1,
+          .print\\:py-4 {
+            padding-top: 0.25rem !important;
+            padding-bottom: 0.25rem !important;
+          }
+
+          .print\\:mb-4,
+          .print\\:mb-6 {
+            margin-bottom: 0.75rem !important;
+          }
+
+          /* Ensure container starts at very top */
+          .container.print\\:py-0 {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+          }
+
+          /* Prevent legend overlap */
+          .recharts-legend-wrapper {
+            margin-top: 0.5rem !important;
+          }
+
+          .chart-card .recharts-wrapper {
+            padding-bottom: 0.5rem !important;
+          }
+        }
+      `}} />
+
+        {/* Header */}
+        <div className="mb-8 print:mb-4">
+        <div className="print:hidden">
+          <BackButton
+            fallbackUrl={`/budgets/${slug}`}
+            label="Back"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#61bc47] mb-4 transition-colors"
+          />
+        </div>
 
         <div className="flex justify-between items-start">
           <div>
@@ -276,22 +579,32 @@ export default function ReportsPage({
               budget reports & analytics
             </h1>
             <p className="text-muted-foreground">
-              Visual analysis of budget performance for {project?.Project_Title}
+              {project?.Project_Title}
             </p>
           </div>
 
           <button
-            onClick={() => window.print()}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 dark:bg-zinc-700 text-white rounded-lg hover:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors"
+            onClick={handleExportPdf}
+            disabled={isExportingPdf}
+            className="print:hidden inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 dark:bg-zinc-700 text-white rounded-lg hover:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Download className="w-4 h-4" />
-            EXPORT PDF
+            {isExportingPdf ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4" />
+                EXPORT PDF
+              </>
+            )}
           </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="kpi-grid grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 print:mb-6">
         {/* Budget Utilization */}
         <div className="bg-card border border-border rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
@@ -303,7 +616,7 @@ export default function ReportsPage({
           <div className="text-4xl font-bold text-foreground mb-2">
             {budgetUtilization.toFixed(1)}%
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground dark:text-zinc-400">
             {formatCurrency(totalExpensesActual)} of{" "}
             {formatCurrency(totalExpensesEstimated)}
           </div>
@@ -320,7 +633,7 @@ export default function ReportsPage({
           <div className="text-4xl font-bold text-foreground mb-2">
             {revenueProgress.toFixed(1)}%
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground dark:text-zinc-400">
             {formatCurrency(totalRevenueActual)} of{" "}
             {formatCurrency(totalRevenueEstimated)}
           </div>
@@ -347,23 +660,23 @@ export default function ReportsPage({
           >
             {formatCurrency(netProfitLossActual)}
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground dark:text-zinc-400">
             Actual performance
           </div>
         </div>
       </div>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="charts-grid grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 print:mb-6">
         {/* Expense Breakdown */}
-        <div className="bg-card border border-border rounded-lg p-6">
+        <div className="chart-card bg-card border border-border rounded-lg p-6 print:p-4">
           <h3 className="text-lg font-semibold text-foreground mb-2">
             Expense Breakdown
           </h3>
-          <p className="text-sm text-muted-foreground mb-6">
+          <p className="text-sm text-muted-foreground dark:text-zinc-400 mb-6">
             Actual spending by category
           </p>
-          <div className="h-[350px]">
+          <div className="h-[450px] print:h-[195px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -396,7 +709,7 @@ export default function ReportsPage({
                       </text>
                     ) : null;
                   }}
-                  outerRadius={120}
+                  outerRadius={95}
                   dataKey="value"
                 >
                   {expenseBreakdownData.map((entry, index) => (
@@ -422,9 +735,10 @@ export default function ReportsPage({
                 />
                 <Legend
                   verticalAlign="bottom"
-                  height={36}
+                  height={45}
+                  align="center"
                   formatter={(value, entry: any) => (
-                    <span className="text-sm text-foreground">{value}</span>
+                    <span className="text-foreground">{value}</span>
                   )}
                 />
               </PieChart>
@@ -433,23 +747,24 @@ export default function ReportsPage({
         </div>
 
         {/* Budget vs Actual by Category */}
-        <div className="bg-card border border-border rounded-lg p-6">
+        <div className="chart-card bg-card border border-border rounded-lg p-6 print:p-4">
           <h3 className="text-lg font-semibold text-foreground mb-2">
             Budget vs Actual by Category
           </h3>
-          <p className="text-sm text-muted-foreground mb-6">
+          <p className="text-sm text-muted-foreground dark:text-zinc-400 mb-6">
             Estimated vs actual spending comparison
           </p>
-          <div className="h-[350px]">
+          <div className="h-[450px] print:h-[195px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={budgetVsActualData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis type="number" tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <XAxis type="number" tick={{ fill: "currentColor", fontSize: 14 }} className="text-foreground" />
                 <YAxis
                   dataKey="name"
                   type="category"
-                  width={150}
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                  width={110}
+                  tick={{ fill: "currentColor", fontSize: 13 }}
+                  className="text-foreground"
                 />
                 <ChartTooltip
                   content={({ active, payload }) => {
@@ -471,8 +786,9 @@ export default function ReportsPage({
                   }}
                 />
                 <Legend
+                  align="center"
                   formatter={(value) => (
-                    <span className="text-sm text-foreground capitalize">{value}</span>
+                    <span className="text-foreground capitalize">{value}</span>
                   )}
                 />
                 <Bar dataKey="estimated" fill="hsl(142, 76%, 36%)" name="Estimated" />
@@ -484,24 +800,26 @@ export default function ReportsPage({
       </div>
 
       {/* Profit & Loss Summary and Financial Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 print:mb-6">
         {/* Profit & Loss Summary */}
-        <div className="bg-card border border-border rounded-lg p-6">
+        <div className="chart-card bg-card border border-border rounded-lg p-6 print:p-4">
           <h3 className="text-lg font-semibold text-foreground mb-2">
             Profit & Loss Summary
           </h3>
-          <p className="text-sm text-muted-foreground mb-6">
+          <p className="text-sm text-muted-foreground dark:text-zinc-400 mb-6">
             Estimated vs actual financial performance
           </p>
-          <div className="h-[300px]">
+          <div className="h-[450px] print:h-[195px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={profitLossData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis type="number" tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <XAxis type="number" tick={{ fill: "currentColor", fontSize: 14 }} className="text-foreground" />
                 <YAxis
                   dataKey="category"
                   type="category"
-                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                  width={65}
+                  tick={{ fill: "currentColor", fontSize: 13 }}
+                  className="text-foreground"
                 />
                 <ChartTooltip
                   content={({ active, payload }) => {
@@ -523,8 +841,9 @@ export default function ReportsPage({
                   }}
                 />
                 <Legend
+                  align="center"
                   formatter={(value) => (
-                    <span className="text-sm text-foreground capitalize">{value}</span>
+                    <span className="text-foreground capitalize">{value}</span>
                   )}
                 />
                 <Bar dataKey="revenue" fill="hsl(142, 76%, 36%)" name="Revenue" />
@@ -536,22 +855,23 @@ export default function ReportsPage({
         </div>
 
         {/* Financial Overview */}
-        <div className="bg-card border border-border rounded-lg p-6">
+        <div className="chart-card bg-card border border-border rounded-lg p-6 print:p-4">
           <h3 className="text-lg font-semibold text-foreground mb-2">
             Financial Overview
           </h3>
-          <p className="text-sm text-muted-foreground mb-6">
+          <p className="text-sm text-muted-foreground dark:text-zinc-400 mb-6">
             Total revenue and expenses comparison
           </p>
-          <div className="h-[300px]">
+          <div className="h-[450px] print:h-[195px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={financialOverviewData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                 <XAxis
                   dataKey="category"
-                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                  tick={{ fill: "currentColor", fontSize: 13 }}
+                  className="text-foreground"
                 />
-                <YAxis tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                <YAxis tick={{ fill: "currentColor", fontSize: 13 }} className="text-foreground" />
                 <ChartTooltip
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
@@ -572,8 +892,9 @@ export default function ReportsPage({
                   }}
                 />
                 <Legend
+                  align="center"
                   formatter={(value) => (
-                    <span className="text-sm text-foreground capitalize">{value}</span>
+                    <span className="text-foreground capitalize">{value}</span>
                   )}
                 />
                 <Bar dataKey="estimated" fill="hsl(142, 76%, 36%)" name="Estimated" />
@@ -585,11 +906,11 @@ export default function ReportsPage({
       </div>
 
       {/* Key Insights */}
-      <div className="bg-card border border-border rounded-lg p-6">
+      <div className="key-insights-section bg-card border border-border rounded-lg p-6 print:p-4">
         <h3 className="text-lg font-semibold text-foreground mb-6">
           Key Insights
         </h3>
-        <p className="text-sm text-muted-foreground mb-6">
+        <p className="text-sm text-muted-foreground dark:text-zinc-400 mb-6">
           Analysis of budget performance
         </p>
         <div className="space-y-4">
@@ -618,7 +939,7 @@ export default function ReportsPage({
               <h4 className="font-semibold text-foreground mb-1">
                 Budget Status
               </h4>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground dark:text-zinc-300">
                 You have spent {formatCurrency(totalExpensesActual)} of your{" "}
                 {formatCurrency(totalExpensesEstimated)} budget ({budgetUtilization.toFixed(1)}% utilization)
                 {budgetUtilization > 100 && (
@@ -641,7 +962,7 @@ export default function ReportsPage({
                 <h4 className="font-semibold text-foreground mb-1">
                   Top Spending Category
                 </h4>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground dark:text-zinc-300">
                   {topSpendingCategory.name} is your largest expense at{" "}
                   {formatCurrency(topSpendingCategory.actual)}.
                 </p>
@@ -668,7 +989,7 @@ export default function ReportsPage({
               <h4 className="font-semibold text-foreground mb-1">
                 Profit/Loss Projection
               </h4>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground dark:text-zinc-300">
                 Based on current actuals, your project is operating at a{" "}
                 {netProfitLossActual >= 0 ? "profit" : "loss"} of{" "}
                 {formatCurrency(Math.abs(netProfitLossActual))}.

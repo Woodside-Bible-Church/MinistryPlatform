@@ -12,13 +12,17 @@ export default async function AppLayout({
   return (
     <div className="flex flex-col min-h-screen">
       <MPWidgetsLoader />
-      <Toaster position="top-right" richColors />
+      <div className="print:hidden">
+        <Toaster position="top-right" richColors />
+      </div>
 
       <AuthWrapper>
         <CampusProvider>
-          <Header />
+          <div className="print:hidden">
+            <Header />
+          </div>
 
-          <main className="flex-1 mt-24 md:mt-16">
+          <main className="flex-1 mt-24 md:mt-16 print:mt-0">
             {children}
           </main>
         </CampusProvider>
