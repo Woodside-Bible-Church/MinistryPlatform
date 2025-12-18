@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { getMPAccessToken, getMPBaseUrl } from "@/lib/mpAuth";
 
 // Configure route for file uploads
 export const runtime = "nodejs";
@@ -14,16 +15,20 @@ export async function POST(
 
   try {
     const session = await auth();
-    if (!session?.accessToken) {
+    if (!session) {
       console.error("❌ Upload failed: No access token");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    // Get OAuth token using client credentials (app credentials, not user token)
+    const accessToken = await getMPAccessToken();
+    const baseUrl = getMPBaseUrl();
+
 
     const { requestId } = await params;
     console.log(`📋 Processing upload for purchase request ${requestId}`);
 
     const formData = await request.formData();
-    const baseUrl = process.env.MINISTRY_PLATFORM_BASE_URL;
 
     // Get files from form data
     const files: File[] = [];
@@ -58,7 +63,7 @@ export async function POST(
       const uploadResponse = await fetch(uploadUrl, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${session.accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: fileFormData,
       });

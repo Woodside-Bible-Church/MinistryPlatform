@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/auth';
+import { checkBudgetAppAccess, getMPAccessToken, getMPBaseUrl } from '@/lib/mpAuth';
 
 /**
  * GET /api/projects/budgets
@@ -11,44 +13,29 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function GET(request: NextRequest) {
   try {
+    // Check if user is authenticated
+    const session = await auth();
+
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check if user has permission to access the Budget app
+    const { hasAccess } = await checkBudgetAppAccess();
+
+    if (!hasAccess) {
+      return NextResponse.json(
+        { error: 'Forbidden - You don\'t have permission to access the Budget app' },
+        { status: 403 }
+      );
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const projectIdOrSlug = searchParams.get('projectId');
 
-    // Get OAuth token for MinistryPlatform API
-    const baseUrl = process.env.MINISTRY_PLATFORM_BASE_URL;
-    const clientId = process.env.MINISTRY_PLATFORM_CLIENT_ID;
-    const clientSecret = process.env.MINISTRY_PLATFORM_CLIENT_SECRET;
-
-    if (!baseUrl || !clientId || !clientSecret) {
-      return NextResponse.json(
-        { error: 'MinistryPlatform configuration missing' },
-        { status: 500 }
-      );
-    }
-
-    // Get OAuth token
-    const tokenResponse = await fetch(`${baseUrl}/oauth/connect/token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        grant_type: 'client_credentials',
-        client_id: clientId,
-        client_secret: clientSecret,
-        scope: 'http://www.thinkministry.com/dataplatform/scopes/all',
-      }),
-    });
-
-    if (!tokenResponse.ok) {
-      console.error('Failed to get OAuth token:', await tokenResponse.text());
-      return NextResponse.json(
-        { error: 'Failed to authenticate with MinistryPlatform' },
-        { status: 500 }
-      );
-    }
-
-    const { access_token } = await tokenResponse.json();
+    // Get OAuth token for MinistryPlatform API using client credentials
+    const accessToken = await getMPAccessToken();
+    const baseUrl = getMPBaseUrl();
 
     // Call the stored procedure using POST for better handling of large responses
     const procUrl = `${baseUrl}/procs/api_Custom_GetProjectBudgets_JSON`;
@@ -66,7 +53,7 @@ export async function GET(request: NextRequest) {
     const procResponse = await fetch(procUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${access_token}`,
+        'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(procParams),

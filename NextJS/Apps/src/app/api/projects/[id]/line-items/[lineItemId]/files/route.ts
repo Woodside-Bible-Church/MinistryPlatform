@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { getMPAccessToken, getMPBaseUrl } from "@/lib/mpAuth";
 
 // Configure route for file uploads
 export const runtime = "nodejs";
@@ -14,17 +15,20 @@ export async function POST(
 
   try {
     const session = await auth();
-    if (!session?.accessToken) {
-      console.error("❌ Upload failed: No access token");
+    if (!session) {
+      console.error("❌ Upload failed: Unauthorized");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { lineItemId } = await params;
     console.log(`📋 Processing upload for line item ${lineItemId}`);
 
+    // Get OAuth token using client credentials (app credentials, not user token)
+    const accessToken = await getMPAccessToken();
+    const baseUrl = getMPBaseUrl();
+
     const formData = await request.formData();
     console.log("📦 FormData received, parsing files...");
-    const baseUrl = process.env.MINISTRY_PLATFORM_BASE_URL;
 
     // Get files from form data
     const files: File[] = [];
@@ -61,7 +65,7 @@ export async function POST(
       const uploadResponse = await fetch(uploadUrl, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${session.accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: fileFormData,
       });
@@ -103,19 +107,22 @@ export async function GET(
 ) {
   try {
     const session = await auth();
-    if (!session?.accessToken) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { lineItemId } = await params;
-    const baseUrl = process.env.MINISTRY_PLATFORM_BASE_URL;
+
+    // Get OAuth token using client credentials (app credentials, not user token)
+    const accessToken = await getMPAccessToken();
+    const baseUrl = getMPBaseUrl();
 
     // Get files using MP Files API
     const filesUrl = `${baseUrl}/tables/dp_Files?$filter=Record_ID=${lineItemId} AND Page_ID=(SELECT Page_ID FROM dp_Pages WHERE Table_Name='Project_Budget_Line_Items')&$select=File_ID,File_Name,File_Size,Unique_File_ID,Description,Last_Updated`;
 
     const filesResponse = await fetch(filesUrl, {
       headers: {
-        Authorization: `Bearer ${session.accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
     });

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { checkBudgetAppAccess } from "@/lib/mpAuth";
 import puppeteer from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
 
@@ -15,8 +16,18 @@ export async function GET(
   try {
     const session = await auth();
 
-    if (!session?.accessToken) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check if user has permission to access the Budget app
+    const { hasAccess } = await checkBudgetAppAccess();
+
+    if (!hasAccess) {
+      return NextResponse.json(
+        { error: "Forbidden - You don't have permission to access the Budget app" },
+        { status: 403 }
+      );
     }
 
     const { slug } = await params;

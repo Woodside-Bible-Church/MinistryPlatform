@@ -1,26 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { getMPAccessToken, getMPBaseUrl, checkBudgetAppAccess } from "@/lib/mpAuth";
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const session = await auth();
 
-    if (!session?.accessToken) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check if user has permission to access the Budget app
+    const { hasAccess } = await checkBudgetAppAccess();
+
+    if (!hasAccess) {
+      return NextResponse.json(
+        { error: "Forbidden - You don't have permission to access the Budget app" },
+        { status: 403 }
+      );
     }
 
     const { slug } = await params;
 
+    // Get OAuth token using client credentials (app credentials, not user token)
+    const accessToken = await getMPAccessToken();
+    const baseUrl = getMPBaseUrl();
+
     // Call the MinistryPlatform stored procedure
-    const baseUrl = process.env.MINISTRY_PLATFORM_BASE_URL;
     const mpUrl = `${baseUrl}/procs/api_Custom_GetProjectTransactions_JSON?@Slug=${encodeURIComponent(slug)}`;
 
     const response = await fetch(mpUrl, {
       headers: {
-        Authorization: `Bearer ${session.accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
     });
