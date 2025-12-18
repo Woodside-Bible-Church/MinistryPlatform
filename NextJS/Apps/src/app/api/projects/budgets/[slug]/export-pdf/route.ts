@@ -58,18 +58,29 @@ export async function GET(
 
     // Set cookies in Puppeteer context to authenticate
     if (cookies) {
-      const cookieArray = cookies.split(';').map(cookie => {
-        const [name, ...valueParts] = cookie.trim().split('=');
-        const value = valueParts.join('=');
-        return {
-          name: name.trim(),
-          value: value.trim(),
+      const cookieArray = cookies
+        .split(';')
+        .map(cookie => {
+          const [name, ...valueParts] = cookie.trim().split('=');
+          const value = valueParts.join('=');
+          return {
+            name: name.trim(),
+            value: value.trim(),
+          };
+        })
+        .filter(cookie => cookie.name && cookie.value) // Filter out invalid cookies
+        .map(cookie => ({
+          name: cookie.name,
+          value: cookie.value,
           domain: host.split(':')[0], // Remove port if present
           path: '/',
-        };
-      });
+          httpOnly: true,
+          secure: protocol === 'https',
+        }));
 
-      await page.setCookie(...cookieArray);
+      if (cookieArray.length > 0) {
+        await page.setCookie(...cookieArray);
+      }
     }
 
     // Navigate to the reports page
