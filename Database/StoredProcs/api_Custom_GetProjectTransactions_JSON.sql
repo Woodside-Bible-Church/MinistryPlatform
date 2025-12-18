@@ -99,16 +99,15 @@ BEGIN
                         ) AS purchaseRequestStatus,
 
                         -- Category/Line Item info (derived from unified line items table)
-                        CASE
-                            WHEN pbt.Project_Budget_Line_Item_ID IS NOT NULL THEN
-                                (
-                                    SELECT pbc.Budget_Category_Name + ' | ' + li.Line_Item_Name
-                                    FROM Project_Budget_Line_Items li
-                                    INNER JOIN Project_Budget_Categories pbc ON li.Category_ID = pbc.Project_Budget_Category_ID
-                                    WHERE li.Project_Budget_Line_Item_ID = pbt.Project_Budget_Line_Item_ID
-                                )
-                            ELSE 'Uncategorized'
-                        END AS categoryItem
+                        ISNULL(
+                            (
+                                SELECT pbc.Budget_Category_Name + ' | ' + li.Line_Item_Name
+                                FROM Project_Budget_Line_Items li
+                                INNER JOIN Project_Budget_Categories pbc ON li.Category_ID = pbc.Project_Budget_Category_ID
+                                WHERE li.Project_Budget_Line_Item_ID = pbt.Project_Budget_Line_Item_ID
+                            ),
+                            'Uncategorized'
+                        ) AS categoryItem
 
                     FROM Project_Budget_Transactions pbt
                     WHERE pbt.Project_ID = p.Project_ID
