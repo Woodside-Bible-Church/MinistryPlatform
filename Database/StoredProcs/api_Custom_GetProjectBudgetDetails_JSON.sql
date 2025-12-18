@@ -84,7 +84,8 @@ BEGIN
                     SELECT ISNULL(SUM(li.Estimated_Amount), 0)
                     FROM Project_Budget_Line_Items li
                     INNER JOIN Project_Budget_Categories c ON li.Category_ID = c.Project_Budget_Category_ID
-                    WHERE c.Project_ID = p.Project_ID AND c.Budget_Category_Type = 'revenue'
+                    INNER JOIN Project_Category_Types pct ON c.Project_Category_Type_ID = pct.Project_Category_Type_ID
+                    WHERE c.Project_ID = p.Project_ID AND pct.Is_Revenue = 1
                 ) AS Total_Expected_Income,
 
                 -- Expense categories with line items
@@ -176,7 +177,7 @@ BEGIN
                 (
                     SELECT
                         pbc.Project_Budget_Category_ID AS categoryId,
-                        pbc.Budget_Category_Name AS name,
+                        pct.Project_Category_Type AS name,
                         'revenue' AS type,
                         pbc.Budgeted_Amount AS estimated,
                         (
@@ -208,8 +209,9 @@ BEGIN
                             FOR JSON PATH
                         ) AS lineItems
                     FROM Project_Budget_Categories pbc
+                    INNER JOIN Project_Category_Types pct ON pbc.Project_Category_Type_ID = pct.Project_Category_Type_ID
                     WHERE pbc.Project_ID = p.Project_ID
-                        AND pbc.Budget_Category_Type = 'revenue'  -- Revenue categories only
+                        AND pct.Is_Revenue = 1  -- Revenue categories only
                     ORDER BY pbc.Sort_Order
                     FOR JSON PATH
                 ) AS incomeLineItemsCategories,

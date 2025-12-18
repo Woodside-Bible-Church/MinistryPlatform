@@ -475,7 +475,7 @@ export default function TransactionsPage({
   }
 
   // Filter and sort transactions
-  const filteredTransactions = data?.transactions.filter((transaction) => {
+  const filteredTransactions = (data?.transactions || []).filter((transaction) => {
     // Type filter
     if (typeFilter !== "all" && transaction.type !== typeFilter) {
       return false;
@@ -499,7 +499,7 @@ export default function TransactionsPage({
     } else {
       return Math.abs(b.amount) - Math.abs(a.amount);
     }
-  }) || [];
+  });
 
   if (isLoading) {
     return (
