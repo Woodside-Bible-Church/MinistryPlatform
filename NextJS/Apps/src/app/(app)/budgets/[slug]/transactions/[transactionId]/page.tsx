@@ -9,6 +9,7 @@ import {
   CreditCard,
   Edit,
   Trash2,
+  ShoppingCart,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -275,37 +276,31 @@ export default function TransactionDetailsPage({
     <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-8 max-w-[1200px]">
       {/* Header */}
       <div className="mb-6">
-        <BackButton
-          fallbackUrl={`/budgets/${resolvedParams.slug}/transactions`}
-          label="Back"
-        />
+        <div className="flex items-center justify-between mb-4">
+          <BackButton
+            fallbackUrl={`/budgets/${resolvedParams.slug}/transactions`}
+            label="Back"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+          />
 
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-          <div className="flex-1">
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-              Transaction Details
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              {transaction.transactionType} Transaction
-            </p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleOpenEdit}>
+              <Edit className="w-4 h-4 mr-2" />
+              Edit
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDeleteTransaction}>
+              <Trash2 className="w-4 h-4" />
+            </Button>
           </div>
+        </div>
 
-          <div className="flex items-center gap-1">
-            <button
-              onClick={handleOpenEdit}
-              className="p-2 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors"
-              title="Edit transaction"
-            >
-              <Edit className="w-4 h-4 text-muted-foreground" />
-            </button>
-            <button
-              onClick={handleDeleteTransaction}
-              className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
-              title="Delete transaction"
-            >
-              <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
-            </button>
-          </div>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+            Transaction Details
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            {transaction.transactionType} Transaction
+          </p>
         </div>
       </div>
 
@@ -339,6 +334,20 @@ export default function TransactionDetailsPage({
           <div className="flex items-start gap-3">
             <FileText className="w-5 h-5 text-muted-foreground mt-1" />
             <div>
+              <div className="text-sm text-muted-foreground mb-1">Type</div>
+              <div className={`text-lg md:text-xl font-semibold ${
+                transaction.transactionType === "Income"
+                  ? "text-green-600 dark:text-green-400"
+                  : "text-foreground"
+              }`}>
+                {transaction.transactionType}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <FileText className="w-5 h-5 text-muted-foreground mt-1" />
+            <div>
               <div className="text-sm text-muted-foreground mb-1">Payee</div>
               <div className="text-lg md:text-xl font-semibold text-foreground">
                 {transaction.payeeName || "N/A"}
@@ -360,6 +369,23 @@ export default function TransactionDetailsPage({
             </div>
           )}
 
+          {transaction.purchaseRequestId && (
+            <div className="flex items-start gap-3">
+              <ShoppingCart className="w-5 h-5 text-muted-foreground mt-1" />
+              <div>
+                <div className="text-sm text-muted-foreground mb-1">
+                  Purchase Request
+                </div>
+                <button
+                  onClick={() => router.push(`/budgets/${resolvedParams.slug}/purchase-requests/${transaction.purchaseRequestId}`)}
+                  className="text-lg md:text-xl font-semibold text-[#61bc47] hover:text-[#52a03c] hover:underline transition-colors"
+                >
+                  {transaction.purchaseRequestVendor || `Request #${transaction.purchaseRequestId}`}
+                </button>
+              </div>
+            </div>
+          )}
+
           {transaction.description && (
             <div className="md:col-span-2">
               <div className="text-sm text-muted-foreground mb-1">
@@ -372,11 +398,13 @@ export default function TransactionDetailsPage({
       </Card>
 
       {/* Files Section */}
-      <FileAttachments
-        files={transaction.files || []}
-        uploadEndpoint={`/api/projects/${transaction.projectId}/transactions/${transaction.transactionId}/files`}
-        onFilesUploaded={fetchTransactionDetails}
-      />
+      <div className="mt-8">
+        <FileAttachments
+          files={transaction.files || []}
+          uploadEndpoint={`/api/projects/${transaction.projectId}/transactions/${transaction.transactionId}/files`}
+          onFilesUploaded={fetchTransactionDetails}
+        />
+      </div>
 
       {/* Edit Transaction Dialog */}
       <Dialog open={isEditTransactionOpen} onOpenChange={setIsEditTransactionOpen}>

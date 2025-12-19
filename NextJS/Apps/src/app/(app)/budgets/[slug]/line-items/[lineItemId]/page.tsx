@@ -847,82 +847,7 @@ export default function LineItemDetailsPage({
                         </div>
 
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          {/* Add Transaction - available to edit and admin users */}
-                          {permissions.canManageTransactions && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (request.approvalStatus === "Approved") {
-                                  setTransactionPurchaseRequest(request);
-                                  setTransactionAmount(request.remainingAmount.toString());
-                                  setTransactionDescription("");
-                                  setTransactionDate(new Date().toISOString().split('T')[0]);
-                                  setTransactionPaymentMethod("");
-                                  setIsAddTransactionOpen(true);
-                                }
-                              }}
-                              disabled={request.approvalStatus !== "Approved"}
-                              className={`p-1.5 rounded-md transition-colors ${
-                                request.approvalStatus === "Approved"
-                                  ? "hover:bg-green-100 dark:hover:bg-green-900/20 text-green-600 dark:text-green-400"
-                                  : "text-muted-foreground/30 cursor-not-allowed"
-                              }`}
-                              title={
-                                request.approvalStatus === "Approved"
-                                  ? "Add Transaction"
-                                  : "Only available for approved requests"
-                              }
-                            >
-                              <Plus className="w-4 h-4" />
-                            </button>
-                          )}
-                          {/* Edit PR - available to edit and admin users */}
-                          {permissions.canManagePurchaseRequests && (
-                            <>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditingPurchaseRequest(request);
-                                  setEditPRAmount(request.amount.toString());
-                                  setEditPRDescription(request.description);
-                                  setEditPRVendorName(request.vendorName);
-                                  setIsEditPurchaseRequestOpen(true);
-                                }}
-                                className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-muted-foreground hover:text-foreground transition-colors"
-                                title="Edit Purchase Request"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  if (confirm("Are you sure you want to delete this purchase request? This action cannot be undone.")) {
-                                    try {
-                                      const response = await fetch(`/api/purchase-requests/${request.id}`, {
-                                        method: "DELETE",
-                                      });
-
-                                      if (!response.ok) {
-                                        throw new Error("Failed to delete purchase request");
-                                      }
-
-                                      // Refresh line item details
-                                      await fetchLineItemDetails();
-                                    } catch (err) {
-                                      console.error("Error deleting purchase request:", err);
-                                      alert("Failed to delete purchase request. Please try again.");
-                                    }
-                                  }
-                                }}
-                                className="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
-                                title="Delete Purchase Request"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </>
-                          )}
-
-                          {/* Approval Status Icon with Dropdown - only for admins */}
+                          {/* Approval Status Icon with Dropdown - First button - only for admins */}
                           <div className="relative">
                             {permissions.canApprovePurchaseRequests ? (
                               <>
@@ -1004,6 +929,81 @@ export default function LineItemDetailsPage({
                               </div>
                             )}
                           </div>
+
+                          {/* Add Transaction - available to edit and admin users */}
+                          {permissions.canManageTransactions && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (request.approvalStatus === "Approved") {
+                                  setTransactionPurchaseRequest(request);
+                                  setTransactionAmount(request.remainingAmount.toString());
+                                  setTransactionDescription("");
+                                  setTransactionDate(new Date().toISOString().split('T')[0]);
+                                  setTransactionPaymentMethod("");
+                                  setIsAddTransactionOpen(true);
+                                }
+                              }}
+                              disabled={request.approvalStatus !== "Approved"}
+                              className={`p-1.5 rounded-md transition-colors ${
+                                request.approvalStatus === "Approved"
+                                  ? "hover:bg-green-100 dark:hover:bg-green-900/20 text-green-600 dark:text-green-400"
+                                  : "text-muted-foreground/30 cursor-not-allowed"
+                              }`}
+                              title={
+                                request.approvalStatus === "Approved"
+                                  ? "Add Transaction"
+                                  : "Only available for approved requests"
+                              }
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          )}
+                          {/* Edit PR - available to edit and admin users */}
+                          {permissions.canManagePurchaseRequests && (
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingPurchaseRequest(request);
+                                  setEditPRAmount(request.amount.toString());
+                                  setEditPRDescription(request.description);
+                                  setEditPRVendorName(request.vendorName);
+                                  setIsEditPurchaseRequestOpen(true);
+                                }}
+                                className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-muted-foreground hover:text-foreground transition-colors"
+                                title="Edit Purchase Request"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  if (confirm("Are you sure you want to delete this purchase request? This action cannot be undone.")) {
+                                    try {
+                                      const response = await fetch(`/api/purchase-requests/${request.id}`, {
+                                        method: "DELETE",
+                                      });
+
+                                      if (!response.ok) {
+                                        throw new Error("Failed to delete purchase request");
+                                      }
+
+                                      // Refresh line item details
+                                      await fetchLineItemDetails();
+                                    } catch (err) {
+                                      console.error("Error deleting purchase request:", err);
+                                      alert("Failed to delete purchase request. Please try again.");
+                                    }
+                                  }
+                                }}
+                                className="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
+                                title="Delete Purchase Request"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
 

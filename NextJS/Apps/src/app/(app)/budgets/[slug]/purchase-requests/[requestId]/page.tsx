@@ -525,22 +525,62 @@ export default function PurchaseRequestDetailsPage({
     <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1200px]">
       {/* Header */}
       <div className="mb-6">
-        <BackButton
-          fallbackUrl={`/budgets/${resolvedParams.slug}/purchase-requests`}
-          label="Back"
-        />
+        <div className="flex items-center justify-between mb-4">
+          <BackButton
+            fallbackUrl={`/budgets/${resolvedParams.slug}/purchase-requests`}
+            label="Back"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+          />
 
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              Purchase Request
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              {purchaseRequest.lineItemName} • {purchaseRequest.categoryName}
-            </p>
-          </div>
+          <div className="flex gap-2">
+            {/* Status Icon with Dropdown - First button */}
+            {permissions.canApprovePurchaseRequests && (
+              <div className="relative">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+                  className={`${
+                    purchaseRequest.approvalStatus === "Approved"
+                      ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50"
+                      : purchaseRequest.approvalStatus === "Rejected"
+                      ? "bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50"
+                      : "bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:hover:bg-yellow-900/50"
+                  }`}
+                  title={`Status: ${purchaseRequest.approvalStatus}`}
+                >
+                  <StatusIcon className="w-4 h-4" />
+                </Button>
 
-          <div className="flex items-center gap-2">
+                {/* Status Dropdown */}
+                {statusDropdownOpen && (
+                  <div className="absolute right-0 top-full mt-1 w-48 bg-background border border-border rounded-lg shadow-lg z-50">
+                    <button
+                      onClick={() => handleStatusChange("Approved")}
+                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
+                    >
+                      <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      <span className="text-sm font-medium text-foreground">APPROVE</span>
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange("Rejected")}
+                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
+                    >
+                      <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                      <span className="text-sm font-medium text-foreground">REJECT</span>
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange("Pending")}
+                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
+                    >
+                      <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                      <span className="text-sm font-medium text-foreground">PENDING</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             {permissions.canManagePurchaseRequests && (
               <>
                 <Button variant="outline" size="sm" onClick={() => {
@@ -557,194 +597,236 @@ export default function PurchaseRequestDetailsPage({
                 </Button>
               </>
             )}
-
-            {/* Status Icon with Dropdown */}
-            {permissions.canApprovePurchaseRequests && (
-              <div className="relative">
-                <button
-                  onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
-                className={`p-2 rounded-md transition-colors ${
-                  purchaseRequest.approvalStatus === "Approved"
-                    ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50"
-                    : purchaseRequest.approvalStatus === "Rejected"
-                    ? "bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50"
-                    : "bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:hover:bg-yellow-900/50"
-                }`}
-                title={`Status: ${purchaseRequest.approvalStatus}`}
-              >
-                <StatusIcon className="w-5 h-5" />
-              </button>
-
-              {/* Status Dropdown */}
-              {statusDropdownOpen && (
-                <div className="absolute right-0 top-full mt-1 w-48 bg-background border border-border rounded-lg shadow-lg z-50">
-                  <button
-                    onClick={() => handleStatusChange("Approved")}
-                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
-                  >
-                    <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                    <span className="text-sm font-medium text-foreground">APPROVE</span>
-                  </button>
-                  <button
-                    onClick={() => handleStatusChange("Rejected")}
-                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
-                  >
-                    <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
-                    <span className="text-sm font-medium text-foreground">REJECT</span>
-                  </button>
-                  <button
-                    onClick={() => handleStatusChange("Pending")}
-                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
-                  >
-                    <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-                    <span className="text-sm font-medium text-foreground">PENDING</span>
-                  </button>
-                </div>
-              )}
-              </div>
-            )}
           </div>
+        </div>
+
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">
+            Purchase Request
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            {purchaseRequest.lineItemName} • {purchaseRequest.categoryName}
+          </p>
         </div>
       </div>
 
-      {/* Budget Summary */}
-      <Card className="p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          {/* Approved Amount */}
-          <div className="text-center p-4 rounded-lg bg-muted/30">
-            <div className="text-sm text-muted-foreground mb-2 uppercase tracking-wide">
-              Approved Amount
+      {/* Budget Summary - Horizontal bar chart */}
+      <div className="mb-10 md:mb-8">
+        <div className="flex items-center justify-between mb-2 text-sm text-muted-foreground">
+          <div>Spent</div>
+          <div>Approved</div>
+        </div>
+        <div className="relative h-8 bg-muted/30 overflow-hidden flex items-center">
+          {purchaseRequest.transactionTotal > 0 && (
+            <div
+              className={`absolute left-0 top-0 h-full ${
+                purchaseRequest.transactionTotal <= purchaseRequest.amount
+                  ? "bg-[#61bc47]"
+                  : "bg-red-500"
+              } transition-all flex items-center justify-start px-3`}
+              style={{
+                width: `${Math.min(
+                  (purchaseRequest.transactionTotal / purchaseRequest.amount) * 100,
+                  100
+                )}%`,
+              }}
+            >
+              <span className="text-sm font-semibold text-black dark:text-white">
+                {formatCurrency(purchaseRequest.transactionTotal)}
+              </span>
             </div>
-            <div className={`text-3xl font-bold ${
-              purchaseRequest.approvalStatus === "Approved"
-                ? "text-green-600 dark:text-green-400"
-                : purchaseRequest.approvalStatus === "Rejected"
-                ? "text-red-600 dark:text-red-400"
-                : "text-yellow-600 dark:text-yellow-400"
-            }`}>
-              {formatCurrency(purchaseRequest.amount)}
-            </div>
-          </div>
-
-          {/* Total Spent */}
-          <div className="text-center p-4 rounded-lg bg-muted/30">
-            <div className="text-sm text-muted-foreground mb-2 uppercase tracking-wide">
-              Total Spent
-            </div>
-            <div className={`text-3xl font-bold ${
-              purchaseRequest.transactionTotal > purchaseRequest.amount
-                ? 'text-red-600 dark:text-red-400'
-                : 'text-green-600 dark:text-green-400'
-            }`}>
-              {formatCurrency(purchaseRequest.transactionTotal)}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              {purchaseRequest.transactionCount} {purchaseRequest.transactionCount === 1 ? 'transaction' : 'transactions'}
-            </div>
-          </div>
-
-          {/* Remaining */}
-          <div className="text-center p-4 rounded-lg bg-muted/30">
-            <div className="text-sm text-muted-foreground mb-2 uppercase tracking-wide">
-              Remaining
-            </div>
-            <div className={`text-3xl font-bold ${
-              purchaseRequest.remainingAmount < 0
-                ? 'text-red-600 dark:text-red-400'
-                : purchaseRequest.remainingAmount === 0
-                ? 'text-muted-foreground'
-                : 'text-green-600 dark:text-green-400'
-            }`}>
-              {purchaseRequest.remainingAmount < 0 ? '-' : ''}{formatCurrency(Math.abs(purchaseRequest.remainingAmount))}
-            </div>
-            {purchaseRequest.remainingAmount < 0 && (
-              <div className="text-xs text-red-600 dark:text-red-400 mt-1 font-medium">
-                Over Budget
-              </div>
-            )}
+          )}
+          <div className="ml-auto pr-3 text-sm font-semibold text-foreground relative z-10">
+            {formatCurrency(purchaseRequest.amount)}
           </div>
         </div>
+        <div className="mt-2 text-sm">
+          <span className="text-muted-foreground">Remaining: </span>
+          <span className={`font-medium ${
+            purchaseRequest.remainingAmount < 0
+              ? "text-red-600 dark:text-red-400"
+              : purchaseRequest.remainingAmount === 0
+              ? "text-muted-foreground"
+              : "text-green-600 dark:text-green-400"
+          }`}>
+            {purchaseRequest.remainingAmount < 0 ? '-' : ''}{formatCurrency(Math.abs(purchaseRequest.remainingAmount))}
+          </span>
+          {purchaseRequest.transactionCount > 0 && (
+            <span className="text-muted-foreground ml-1">
+              ({purchaseRequest.transactionCount} {purchaseRequest.transactionCount === 1 ? 'transaction' : 'transactions'})
+            </span>
+          )}
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-border">
-          <div className="flex items-start gap-3">
-            <Calendar className="w-5 h-5 text-muted-foreground mt-1" />
+        {/* Additional Details */}
+        <div className="mt-4 pt-4 border-t border-border space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <div className="text-sm text-muted-foreground mb-1">
-                Requested Date
-              </div>
-              <div className="text-lg font-semibold text-foreground">
+              <div className="text-sm text-muted-foreground mb-1">Requested Date</div>
+              <div className="text-base font-semibold text-foreground">
                 {formatDate(purchaseRequest.requestedDate)}
               </div>
             </div>
-          </div>
 
-          <div>
-            <div className="text-sm text-muted-foreground mb-1">Vendor</div>
-            <div className="text-lg font-semibold text-foreground">
-              {purchaseRequest.vendorName}
+            <div>
+              <div className="text-sm text-muted-foreground mb-1">Vendor</div>
+              <div className="text-base font-semibold text-foreground">
+                {purchaseRequest.vendorName}
+              </div>
             </div>
-          </div>
 
-          <div>
-            <div className="text-sm text-muted-foreground mb-1">Requested By</div>
-            <div className="text-lg font-semibold text-foreground">
-              {purchaseRequest.requestedByName}
+            <div>
+              <div className="text-sm text-muted-foreground mb-1">Requested By</div>
+              <div className="text-base font-semibold text-foreground">
+                {purchaseRequest.requestedByName}
+              </div>
             </div>
+
+            {purchaseRequest.approvedByName && (
+              <div>
+                <div className="text-sm text-muted-foreground mb-1">Approved By</div>
+                <div className="text-base font-semibold text-foreground">
+                  {purchaseRequest.approvedByName}
+                  {purchaseRequest.approvedDate && ` on ${formatDate(purchaseRequest.approvedDate)}`}
+                </div>
+              </div>
+            )}
           </div>
 
           {purchaseRequest.description && (
-            <div className="md:col-span-2">
-              <div className="text-sm text-muted-foreground mb-1">
-                Description
-              </div>
+            <div>
+              <div className="text-sm text-muted-foreground mb-1">Description</div>
               <p className="text-foreground">{purchaseRequest.description}</p>
             </div>
           )}
 
-          {purchaseRequest.approvedByName && (
-            <div className="md:col-span-2 pt-4 border-t border-border">
-              <div className="text-sm text-muted-foreground mb-1">
-                Approved By
-              </div>
-              <div className="text-lg font-semibold text-foreground">
-                {purchaseRequest.approvedByName} on{" "}
-                {purchaseRequest.approvedDate &&
-                  formatDate(purchaseRequest.approvedDate)}
-              </div>
-            </div>
-          )}
-
           {purchaseRequest.rejectionReason && (
-            <div className="md:col-span-2 pt-4 border-t border-border">
-              <div className="text-sm text-muted-foreground mb-1">
-                Rejection Reason
-              </div>
+            <div>
+              <div className="text-sm text-muted-foreground mb-1">Rejection Reason</div>
               <p className="text-red-600 dark:text-red-400">
                 {purchaseRequest.rejectionReason}
               </p>
             </div>
           )}
         </div>
-      </Card>
-
-      {/* Files Section */}
-      <div className="mb-6">
-        <FileAttachments
-          files={purchaseRequest.files || []}
-          uploadEndpoint={`/api/projects/${purchaseRequest.projectId}/purchase-requests/${purchaseRequest.purchaseRequestId}/files`}
-          onFilesUploaded={fetchPurchaseRequestDetails}
-        />
       </div>
 
-      {/* Transactions Section */}
-      <Card className="p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-foreground">
-            Transactions ({purchaseRequest.transactionCount})
+      {/* Grid layout for Files and Transactions - side by side on large screens */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 gap-y-10 mb-6">
+        {/* Files Section - Only admins can manage files */}
+        {permissions.canManagePurchaseRequests && (
+          <div>
+            <FileAttachments
+              files={purchaseRequest.files || []}
+              uploadEndpoint={`/api/projects/${purchaseRequest.projectId}/purchase-requests/${purchaseRequest.purchaseRequestId}/files`}
+              onFilesUploaded={fetchPurchaseRequestDetails}
+            />
+          </div>
+        )}
+
+        {/* Transactions Section - No Card wrapper */}
+        <div>
+          <h2 className="text-xl font-semibold text-foreground flex items-center gap-2 mb-4">
+            <DollarSign className="w-5 h-5" />
+            Transactions
           </h2>
+
+          <p className="text-sm text-muted-foreground mb-4">
+            {purchaseRequest.approvalStatus === "Approved"
+              ? "Record transactions as spending occurs against this approved purchase request."
+              : "This purchase request must be approved before transactions can be added."}
+          </p>
+
+          {purchaseRequest.transactionCount > 0 ? (
+            <div className="space-y-2 mb-4">
+              {purchaseRequest.transactions.map((transaction) => (
+                <div
+                  key={transaction.transactionId}
+                  className="p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer"
+                  onClick={() =>
+                    router.push(
+                      `/budgets/${resolvedParams.slug}/transactions/${transaction.transactionId}`
+                    )
+                  }
+                >
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-foreground">
+                        {formatCurrency(transaction.amount)}
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        {transaction.description} • {formatDate(transaction.transactionDate)}
+                      </div>
+                    </div>
+
+                    {permissions.canManageTransactions && (
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingTransaction(transaction);
+                            setEditTransactionAmount(transaction.amount.toString());
+                            setEditTransactionDescription(transaction.description);
+                            setEditTransactionDate(transaction.transactionDate.split('T')[0]);
+                            setEditTransactionPaymentMethod(transaction.paymentMethod);
+                            setIsEditTransactionOpen(true);
+                          }}
+                          className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-muted-foreground hover:text-foreground transition-colors"
+                          title="Edit Transaction"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (confirm("Are you sure you want to delete this transaction? This action cannot be undone.")) {
+                              try {
+                                const response = await fetch(
+                                  `/api/projects/${purchaseRequest.projectId}/transactions?transactionId=${transaction.transactionId}`,
+                                  {
+                                    method: "DELETE",
+                                  }
+                                );
+
+                                if (!response.ok) {
+                                  throw new Error("Failed to delete transaction");
+                                }
+
+                                toast.success("Transaction deleted");
+                                await fetchPurchaseRequestDetails();
+                              } catch (err) {
+                                console.error("Error deleting transaction:", err);
+                                toast.error("Failed to delete transaction. Please try again.");
+                              }
+                            }
+                          }}
+                          className="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
+                          title="Delete Transaction"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Payment method info */}
+                  <div className="text-xs text-muted-foreground">
+                    {transaction.paymentMethod}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground mb-4">
+              {purchaseRequest.approvalStatus === "Approved"
+                ? "No transactions yet. Add a transaction to record spending."
+                : "This purchase request must be approved before transactions can be added."}
+            </div>
+          )}
+
+          {/* New Transaction button - full width with dashed border */}
           {purchaseRequest.approvalStatus === "Approved" && permissions.canManageTransactions && (
-            <Button
-              size="sm"
+            <button
               onClick={() => {
                 setTransactionAmount(purchaseRequest.remainingAmount.toString());
                 setTransactionDescription("");
@@ -752,98 +834,14 @@ export default function PurchaseRequestDetailsPage({
                 setTransactionPaymentMethod("");
                 setIsAddTransactionOpen(true);
               }}
+              className="w-full py-3 px-6 border-2 border-dashed border-border hover:border-[#61bc47] hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg transition-colors flex items-center justify-center gap-2 text-muted-foreground hover:text-[#61bc47]"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Transaction
-            </Button>
+              <Plus className="w-4 h-4" />
+              New Transaction
+            </button>
           )}
         </div>
-
-        {purchaseRequest.transactionCount > 0 ? (
-          <div className="space-y-2">
-            {purchaseRequest.transactions.map((transaction) => (
-            <div
-              key={transaction.transactionId}
-              className="p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <div
-                  className="flex-1 cursor-pointer"
-                  onClick={() =>
-                    router.push(
-                      `/budgets/${resolvedParams.slug}/transactions/${transaction.transactionId}`
-                    )
-                  }
-                >
-                  <div className="font-medium text-foreground">
-                    {formatCurrency(transaction.amount)}
-                  </div>
-                  <div className="text-sm text-muted-foreground mt-1">
-                    {transaction.description} •{" "}
-                    {formatDate(transaction.transactionDate)} •{" "}
-                    {transaction.paymentMethod}
-                  </div>
-                </div>
-                {permissions.canManageTransactions && (
-                  <div className="flex items-center gap-2 ml-4">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditingTransaction(transaction);
-                        setEditTransactionAmount(transaction.amount.toString());
-                        setEditTransactionDescription(transaction.description);
-                        setEditTransactionDate(transaction.transactionDate.split('T')[0]);
-                        setEditTransactionPaymentMethod(transaction.paymentMethod);
-                        setIsEditTransactionOpen(true);
-                      }}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
-                      title="Edit transaction"
-                    >
-                      <Edit className="w-4 h-4 text-muted-foreground" />
-                    </button>
-                    <button
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        if (confirm("Are you sure you want to delete this transaction? This action cannot be undone.")) {
-                          try {
-                            const response = await fetch(
-                              `/api/projects/${purchaseRequest.projectId}/transactions?transactionId=${transaction.transactionId}`,
-                              {
-                                method: "DELETE",
-                              }
-                            );
-
-                            if (!response.ok) {
-                              throw new Error("Failed to delete transaction");
-                            }
-
-                            toast.success("Transaction deleted");
-                            await fetchPurchaseRequestDetails();
-                          } catch (err) {
-                            console.error("Error deleting transaction:", err);
-                            toast.error("Failed to delete transaction. Please try again.");
-                          }
-                        }
-                      }}
-                      className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
-                      title="Delete transaction"
-                    >
-                      <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            {purchaseRequest.approvalStatus === "Approved"
-              ? "No transactions yet. Add a transaction to record spending."
-              : "This purchase request must be approved before transactions can be added."}
-          </div>
-        )}
-      </Card>
+      </div>
 
       {/* Edit Purchase Request Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
