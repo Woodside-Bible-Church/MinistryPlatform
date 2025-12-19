@@ -498,13 +498,8 @@ export default function LineItemsPage({
             // Check if this is an auto-tracked item (Registration Discounts or Registration Revenue)
             const isAutoTracked = item.categoryName.toLowerCase().includes('registration');
 
-            return (
-              <Link
-                key={item.lineItemId}
-                href={`/budgets/${slug}/line-items/${item.lineItemId}`}
-                prefetch={true}
-                className="block bg-card border border-border rounded-lg p-6 hover:shadow-lg hover:border-[#61bc47]/30 transition-all"
-              >
+            const cardContent = (
+              <>
                 {/* Header */}
                 <div className="space-y-1 mb-4">
                   {/* Category and pill on same line */}
@@ -657,6 +652,25 @@ export default function LineItemsPage({
                     </div>
                   )}
                 </div>
+              </>
+            );
+
+            // Wrap in Link only if not auto-tracked
+            return isAutoTracked ? (
+              <div
+                key={item.lineItemId}
+                className="block bg-card border border-border rounded-lg p-6"
+              >
+                {cardContent}
+              </div>
+            ) : (
+              <Link
+                key={item.lineItemId}
+                href={`/budgets/${slug}/line-items/${item.lineItemId}`}
+                prefetch={true}
+                className="block bg-card border border-border rounded-lg p-6 hover:shadow-lg hover:border-[#61bc47]/30 transition-all"
+              >
+                {cardContent}
               </Link>
             );
           })
