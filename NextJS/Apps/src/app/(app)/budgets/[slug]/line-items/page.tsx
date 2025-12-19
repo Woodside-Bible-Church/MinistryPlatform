@@ -291,10 +291,10 @@ export default function LineItemsPage({
       </div>
 
       {/* View Toggle */}
-      <div className="mb-6 flex justify-center">
+      <div className="mb-6">
         <button
           onClick={() => setCategoryFilter(categoryFilter === "expense" ? "revenue" : "expense")}
-          className="relative inline-flex rounded-xl bg-zinc-100 dark:bg-zinc-800 p-1 shadow-inner cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+          className="relative w-full md:w-auto md:mx-auto flex rounded-xl bg-zinc-100 dark:bg-zinc-800 p-1 shadow-inner cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
         >
           {/* Sliding background indicator */}
           <div
@@ -307,7 +307,7 @@ export default function LineItemsPage({
 
           {/* Labels */}
           <div
-            className={`relative z-10 px-8 py-2.5 rounded-lg font-medium transition-all duration-300 pointer-events-none ${
+            className={`relative z-10 flex-1 px-8 py-2.5 rounded-lg font-medium transition-all duration-300 pointer-events-none text-center ${
               categoryFilter === "expense"
                 ? "text-white"
                 : "text-muted-foreground"
@@ -316,7 +316,7 @@ export default function LineItemsPage({
             Expenses
           </div>
           <div
-            className={`relative z-10 px-8 py-2.5 rounded-lg font-medium transition-all duration-300 pointer-events-none ${
+            className={`relative z-10 flex-1 px-8 py-2.5 rounded-lg font-medium transition-all duration-300 pointer-events-none text-center ${
               categoryFilter === "revenue"
                 ? "text-white"
                 : "text-muted-foreground"
@@ -327,58 +327,118 @@ export default function LineItemsPage({
         </button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* Total Budget */}
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Total Budget
-            </h3>
-            <DollarSign className="w-5 h-5 text-blue-500" />
+      {/* Stats Cards - Carousel on mobile, grid on desktop */}
+      <div className="mb-8">
+        {/* Mobile: Horizontal scroll carousel */}
+        <div className="md:hidden overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4">
+          <div className="flex gap-4 pb-2">
+            {/* Total Budget */}
+            <div className="bg-card border border-border rounded-lg p-6 min-w-[85vw] snap-center">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Total Budget
+                </h3>
+                <DollarSign className="w-5 h-5 text-blue-500" />
+              </div>
+              <div className="text-3xl font-bold text-foreground">
+                {formatCurrency(totalBudget)}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                {expenseCount} expenses, {revenueCount} revenue
+              </p>
+            </div>
+
+            {/* Total Spent */}
+            <div className="bg-card border border-border rounded-lg p-6 min-w-[85vw] snap-center">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Total Spent
+                </h3>
+                <TrendingUp className="w-5 h-5 text-orange-500" />
+              </div>
+              <div className="text-3xl font-bold text-foreground">
+                {formatCurrency(totalSpent)}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Across {lineItems.length} line {lineItems.length === 1 ? "item" : "items"}
+              </p>
+            </div>
+
+            {/* Remaining */}
+            <div className="bg-card border border-border rounded-lg p-6 min-w-[85vw] snap-center">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Remaining
+                </h3>
+                <TrendingDown className={`w-5 h-5 ${totalRemaining >= 0 ? "text-green-500" : "text-red-500"}`} />
+              </div>
+              <div className={`text-3xl font-bold ${
+                totalRemaining >= 0
+                  ? "text-green-600 dark:text-green-400"
+                  : "text-red-600 dark:text-red-400"
+              }`}>
+                {formatCurrency(totalRemaining)}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                {totalRemaining >= 0 ? "Under budget" : "Over budget"}
+              </p>
+            </div>
           </div>
-          <div className="text-3xl font-bold text-foreground">
-            {formatCurrency(totalBudget)}
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            {expenseCount} expenses, {revenueCount} revenue
-          </p>
         </div>
 
-        {/* Total Spent */}
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Total Spent
-            </h3>
-            <TrendingUp className="w-5 h-5 text-orange-500" />
+        {/* Desktop: Grid layout */}
+        <div className="hidden md:grid md:grid-cols-3 gap-6">
+          {/* Total Budget */}
+          <div className="bg-card border border-border rounded-lg p-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-medium text-muted-foreground">
+                Total Budget
+              </h3>
+              <DollarSign className="w-5 h-5 text-blue-500" />
+            </div>
+            <div className="text-3xl font-bold text-foreground">
+              {formatCurrency(totalBudget)}
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              {expenseCount} expenses, {revenueCount} revenue
+            </p>
           </div>
-          <div className="text-3xl font-bold text-foreground">
-            {formatCurrency(totalSpent)}
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Across {lineItems.length} line {lineItems.length === 1 ? "item" : "items"}
-          </p>
-        </div>
 
-        {/* Remaining */}
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Remaining
-            </h3>
-            <TrendingDown className={`w-5 h-5 ${totalRemaining >= 0 ? "text-green-500" : "text-red-500"}`} />
+          {/* Total Spent */}
+          <div className="bg-card border border-border rounded-lg p-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-medium text-muted-foreground">
+                Total Spent
+              </h3>
+              <TrendingUp className="w-5 h-5 text-orange-500" />
+            </div>
+            <div className="text-3xl font-bold text-foreground">
+              {formatCurrency(totalSpent)}
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              Across {lineItems.length} line {lineItems.length === 1 ? "item" : "items"}
+            </p>
           </div>
-          <div className={`text-3xl font-bold ${
-            totalRemaining >= 0
-              ? "text-green-600 dark:text-green-400"
-              : "text-red-600 dark:text-red-400"
-          }`}>
-            {formatCurrency(totalRemaining)}
+
+          {/* Remaining */}
+          <div className="bg-card border border-border rounded-lg p-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-medium text-muted-foreground">
+                Remaining
+              </h3>
+              <TrendingDown className={`w-5 h-5 ${totalRemaining >= 0 ? "text-green-500" : "text-red-500"}`} />
+            </div>
+            <div className={`text-3xl font-bold ${
+              totalRemaining >= 0
+                ? "text-green-600 dark:text-green-400"
+                : "text-red-600 dark:text-red-400"
+            }`}>
+              {formatCurrency(totalRemaining)}
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              {totalRemaining >= 0 ? "Under budget" : "Over budget"}
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            {totalRemaining >= 0 ? "Under budget" : "Over budget"}
-          </p>
         </div>
       </div>
 
