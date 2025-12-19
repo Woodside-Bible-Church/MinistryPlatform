@@ -267,43 +267,45 @@ export default function BudgetsPage() {
                 onClick={(e) => handleCardClick(displayedProject, e)}
                 onMouseEnter={() => handleCardHover(displayedProject)}
               >
-                <div className="p-6">
+                <div className="p-6 relative">
+                  {/* Pin button in top right corner */}
+                  <div className="absolute top-4 right-4 z-10" data-no-navigate onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+                    <PinButton
+                      itemType="budget-project"
+                      itemId={displayedProject.slug}
+                      route={getBudgetUrl(displayedProject)}
+                      itemData={{
+                        title: displayedProject.title,
+                        subtitle: displayedProject.coordinator.displayName,
+                        icon: "Calendar",
+                        stats: [
+                          {
+                            label: "Expenses",
+                            actual: formatCurrency(displayedProject.totalActual),
+                            expected: formatCurrency(displayedProject.totalEstimated),
+                          },
+                          {
+                            label: "Income",
+                            actual: formatCurrency(displayedProject.totalActualIncome),
+                            expected: formatCurrency(displayedProject.totalExpectedIncome),
+                          },
+                        ],
+                      }}
+                      isPinned={isPinned("budget-project", displayedProject.slug)}
+                      onPin={pinItem}
+                      onUnpin={unpinItem}
+                      iconOnly={true}
+                    />
+                  </div>
+
                   {/* Title with integrated dropdown for multiple projects of same type */}
                   {typeProjects.length > 1 ? (
-                    <div className="relative mb-4 flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div className="relative mb-4 pr-12">
+                      <div className="flex items-center gap-2">
                         <h2 className="text-lg font-bold text-foreground whitespace-nowrap overflow-hidden text-ellipsis">
                           {displayedProject.title}
                         </h2>
                         <ChevronDown className="w-5 h-5 text-foreground flex-shrink-0" />
-                      </div>
-                      <div data-no-navigate onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
-                        <PinButton
-                          itemType="budget-project"
-                          itemId={displayedProject.slug}
-                          route={getBudgetUrl(displayedProject)}
-                          itemData={{
-                            title: displayedProject.title,
-                            subtitle: displayedProject.coordinator.displayName,
-                            icon: "Calendar",
-                            stats: [
-                              {
-                                label: "Expenses",
-                                actual: formatCurrency(displayedProject.totalActual),
-                                expected: formatCurrency(displayedProject.totalEstimated),
-                              },
-                              {
-                                label: "Income",
-                                actual: formatCurrency(displayedProject.totalActualIncome),
-                                expected: formatCurrency(displayedProject.totalExpectedIncome),
-                              },
-                            ],
-                          }}
-                          isPinned={isPinned("budget-project", displayedProject.slug)}
-                          onPin={pinItem}
-                          onUnpin={unpinItem}
-                          className="relative z-20 flex-shrink-0"
-                        />
                       </div>
                       <div data-no-navigate className="absolute inset-0" onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
                         <select
@@ -325,38 +327,10 @@ export default function BudgetsPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="mb-4 flex items-center justify-between gap-4">
-                      <h2 className="text-lg font-bold text-foreground whitespace-nowrap overflow-hidden text-ellipsis flex-1 min-w-0">
+                    <div className="mb-4 pr-12">
+                      <h2 className="text-lg font-bold text-foreground whitespace-nowrap overflow-hidden text-ellipsis">
                         {displayedProject.title}
                       </h2>
-                      <div data-no-navigate onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
-                        <PinButton
-                          itemType="budget-project"
-                          itemId={displayedProject.slug}
-                          route={getBudgetUrl(displayedProject)}
-                          itemData={{
-                            title: displayedProject.title,
-                            subtitle: displayedProject.coordinator.displayName,
-                            icon: "Calendar",
-                            stats: [
-                              {
-                                label: "Expenses",
-                                actual: formatCurrency(displayedProject.totalActual),
-                                expected: formatCurrency(displayedProject.totalEstimated),
-                              },
-                              {
-                                label: "Income",
-                                actual: formatCurrency(displayedProject.totalActualIncome),
-                                expected: formatCurrency(displayedProject.totalExpectedIncome),
-                              },
-                            ],
-                          }}
-                          isPinned={isPinned("budget-project", displayedProject.slug)}
-                          onPin={pinItem}
-                          onUnpin={unpinItem}
-                          className="flex-shrink-0"
-                        />
-                      </div>
                     </div>
                   )}
 
@@ -468,40 +442,42 @@ export default function BudgetsPage() {
               onClick={(e) => handleCardClick(project, e)}
               onMouseEnter={() => handleCardHover(project)}
             >
-              <div className="p-6">
-                {/* Title with Add to Homescreen button */}
-                <div className="mb-4 flex items-center justify-between gap-4">
-                  <h2 className="text-lg font-bold text-foreground whitespace-nowrap overflow-hidden text-ellipsis flex-1 min-w-0">
+              <div className="p-6 relative">
+                {/* Pin button in top right corner */}
+                <div className="absolute top-4 right-4 z-10" data-no-navigate onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+                  <PinButton
+                    itemType="budget-project"
+                    itemId={project.slug}
+                    route={getBudgetUrl(project)}
+                    itemData={{
+                      title: project.title,
+                      subtitle: project.coordinator.displayName,
+                      icon: "Calendar",
+                      stats: [
+                        {
+                          label: "Expenses",
+                          actual: formatCurrency(project.totalActual),
+                          expected: formatCurrency(project.totalEstimated),
+                        },
+                        {
+                          label: "Income",
+                          actual: formatCurrency(project.totalActualIncome),
+                          expected: formatCurrency(project.totalExpectedIncome),
+                        },
+                      ],
+                    }}
+                    isPinned={isPinned("budget-project", project.slug)}
+                    onPin={pinItem}
+                    onUnpin={unpinItem}
+                    iconOnly={true}
+                  />
+                </div>
+
+                {/* Title */}
+                <div className="mb-4 pr-12">
+                  <h2 className="text-lg font-bold text-foreground whitespace-nowrap overflow-hidden text-ellipsis">
                     {project.title}
                   </h2>
-                  <div data-no-navigate onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
-                    <PinButton
-                      itemType="budget-project"
-                      itemId={project.slug}
-                      route={getBudgetUrl(project)}
-                      itemData={{
-                        title: project.title,
-                        subtitle: project.coordinator.displayName,
-                        icon: "Calendar",
-                        stats: [
-                          {
-                            label: "Expenses",
-                            actual: formatCurrency(project.totalActual),
-                            expected: formatCurrency(project.totalEstimated),
-                          },
-                          {
-                            label: "Income",
-                            actual: formatCurrency(project.totalActualIncome),
-                            expected: formatCurrency(project.totalExpectedIncome),
-                          },
-                        ],
-                      }}
-                      isPinned={isPinned("budget-project", project.slug)}
-                      onPin={pinItem}
-                      onUnpin={unpinItem}
-                      className="flex-shrink-0"
-                    />
-                  </div>
                 </div>
 
                 {/* Project Details */}

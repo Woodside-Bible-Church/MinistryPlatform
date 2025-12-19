@@ -586,11 +586,11 @@ export default function ReportsPage({
           <button
             onClick={handleExportPdf}
             disabled={isExportingPdf}
-            className="print:hidden inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 dark:bg-zinc-700 text-white rounded-lg hover:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="print:hidden inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-700 text-zinc-800 dark:text-white border border-zinc-300 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isExportingPdf ? (
               <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-zinc-800 dark:border-white border-t-transparent rounded-full animate-spin" />
                 Generating...
               </>
             ) : (

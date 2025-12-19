@@ -186,28 +186,151 @@ function CategorySection({
             : "bg-zinc-300 dark:bg-black border-border hover:bg-zinc-400 dark:hover:bg-zinc-900"
         }`}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        {/* Mobile: Stacked layout */}
+        <div className="md:hidden space-y-3">
+          <div className="flex items-center gap-2">
             {isExpanded ? (
-              <ChevronDown className="w-5 h-5 text-muted-foreground" />
+              <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             ) : (
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+              <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             )}
-            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              {category.name}
+            <h3 className="text-base font-semibold text-foreground flex items-center gap-2 flex-1 min-w-0">
+              <span className="truncate">{category.name}</span>
               {isSimplifiedView && (
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100/70 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400">
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-blue-100/70 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex-shrink-0">
                   Auto-tracked
                 </span>
               )}
             </h3>
           </div>
-          <div className="flex items-center gap-6">
+
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">{category.type === "revenue" ? "Received:" : "Spent:"}</span>
+              <span className="font-bold text-foreground">{formatCurrency(category.actual)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">{category.type === "revenue" ? "Expected:" : "Budgeted:"}</span>
+              <span className={`font-semibold text-muted-foreground ${(isEditingRevenue || isEditingDiscounts) ? 'opacity-50' : ''}`}>
+                {formatCurrency(category.estimated)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Remaining:</span>
+              <span className={`font-semibold ${
+                remaining >= 0
+                  ? "text-green-600 dark:text-green-400"
+                  : "text-red-600 dark:text-red-400"
+              }`}>
+                {formatCurrency(remaining)}
+              </span>
+            </div>
+          </div>
+
+          {!isSimplifiedView && (canManageCategories || category.categoryId === 'registration-income' || category.categoryId === 'registration-discounts') && (
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+              {canManageCategories ? (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditCategory?.();
+                    }}
+                    className="p-2 hover:bg-zinc-400 dark:hover:bg-zinc-700 rounded transition-colors"
+                    title="Edit category"
+                  >
+                    <Edit className="w-5 h-5 text-muted-foreground" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteCategory?.();
+                    }}
+                    className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                    title="Delete category"
+                  >
+                    <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  {category.categoryId === 'registration-income' && onEditExpectedRevenue && (
+                    <>
+                      {isEditingRevenue ? (
+                        <div className="p-2">
+                          <Loader2 className="w-5 h-5 text-[#61bc47] animate-spin" />
+                        </div>
+                      ) : revenueJustSaved ? (
+                        <div className="p-2 animate-in zoom-in duration-300">
+                          <CheckCircle2 className="w-5 h-5 text-[#61bc47]" />
+                        </div>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditExpectedRevenue();
+                          }}
+                          className="p-2 hover:bg-zinc-400 dark:hover:bg-zinc-700 rounded transition-colors"
+                          title="Edit expected registration revenue"
+                        >
+                          <Edit className="w-5 h-5 text-muted-foreground" />
+                        </button>
+                      )}
+                    </>
+                  )}
+                  {category.categoryId === 'registration-discounts' && onEditDiscountsBudget && (
+                    <>
+                      {isEditingDiscounts ? (
+                        <div className="p-2">
+                          <Loader2 className="w-5 h-5 text-[#61bc47] animate-spin" />
+                        </div>
+                      ) : discountsJustSaved ? (
+                        <div className="p-2 animate-in zoom-in duration-300">
+                          <CheckCircle2 className="w-5 h-5 text-[#61bc47]" />
+                        </div>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditDiscountsBudget();
+                          }}
+                          className="p-2 hover:bg-zinc-400 dark:hover:bg-zinc-700 rounded transition-colors"
+                          title="Edit expected discounts budget"
+                        >
+                          <Edit className="w-5 h-5 text-muted-foreground" />
+                        </button>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Desktop: Horizontal layout */}
+        <div className="hidden md:flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            {isExpanded ? (
+              <ChevronDown className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+            ) : (
+              <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+            )}
+            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 min-w-0">
+              <span className="truncate">{category.name}</span>
+              {isSimplifiedView && (
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100/70 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex-shrink-0">
+                  Auto-tracked
+                </span>
+              )}
+            </h3>
+          </div>
+          <div className="flex items-center gap-6 flex-shrink-0">
             <div className="text-right">
               <div className="text-xs text-muted-foreground">
                 {category.type === "revenue" ? "Received" : "Spent"}
               </div>
-              <div className="font-bold text-foreground">
+              <div className="text-base font-bold text-foreground whitespace-nowrap">
                 {formatCurrency(category.actual)}
               </div>
             </div>
@@ -318,7 +441,7 @@ function CategorySection({
       {isExpanded && displayLineItems && displayLineItems.length > 0 && (
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead>
+            <thead className="hidden md:table-header-group">
               <tr className={`border-b ${
                 isSimplifiedView
                   ? "bg-blue-50/50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30"
@@ -343,7 +466,7 @@ function CategorySection({
                   </>
                 )}
                 {!isSimplifiedView && (
-                  <th className="px-6 py-3 text-center text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
+                  <th className="hidden lg:table-cell px-6 py-3 text-center text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
                     Actions
                   </th>
                 )}
@@ -375,7 +498,121 @@ function CategorySection({
                         : "bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700"
                     }`}
                   >
-                    <td className="px-6 py-4">
+                    {/* Mobile: Single column card layout */}
+                    <td className="md:hidden p-4" colSpan={2}>
+                      <div className="space-y-3">
+                        {/* Item name and description */}
+                        <div>
+                          <div className="font-medium text-foreground flex items-center gap-2">
+                            {item.name}
+                            {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                          </div>
+                          {item.description && (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {item.description}
+                            </div>
+                          )}
+                          {item.vendor && (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              Vendor: {item.vendor}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* All numbers grouped together */}
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">{category.type === "revenue" ? "Received:" : "Spent:"}</span>
+                            <span className="font-semibold text-foreground">
+                              {item.discountCount && item.averageAmount ? (
+                                <span className="text-xs">{item.discountCount}× {formatCurrency(item.actual)}</span>
+                              ) : (
+                                formatCurrency(item.actual)
+                              )}
+                            </span>
+                          </div>
+                          {!isSimplifiedView && (
+                            <>
+                              <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">{category.type === "revenue" ? "Expected:" : "Budgeted:"}</span>
+                                <span className="font-medium text-gray-700 dark:text-gray-300">{formatCurrency(item.estimated)}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">Remaining:</span>
+                                <span className={`font-semibold ${
+                                  itemRemaining >= 0
+                                    ? "text-green-600 dark:text-green-400"
+                                    : "text-red-600 dark:text-red-400"
+                                }`}>
+                                  {formatCurrency(itemRemaining)}
+                                </span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+
+                        {/* Action buttons - clear tap area */}
+                        {!isSimplifiedView && (
+                          <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+                            {category.type === "expense" && onCreatePurchaseRequest && canManagePurchaseRequests && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onCreatePurchaseRequest(item.lineItemId, item.name, item.estimated, item.vendor);
+                                }}
+                                disabled={isLoading}
+                                className="p-2 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="Create purchase request"
+                              >
+                                <Plus className="w-5 h-5 text-[#61bc47] dark:text-[#61bc47]" />
+                              </button>
+                            )}
+                            {category.type === "revenue" && onCreateTransaction && canManageTransactions && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onCreateTransaction(item.lineItemId, item.name);
+                                }}
+                                disabled={isLoading}
+                                className="p-2 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="Create income transaction"
+                              >
+                                <Plus className="w-5 h-5 text-[#61bc47] dark:text-[#61bc47]" />
+                              </button>
+                            )}
+                            {canManageLineItems && (
+                              <>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEditLineItem?.(item.lineItemId);
+                                  }}
+                                  disabled={isLoading}
+                                  className="p-2 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                  title="Edit line item"
+                                >
+                                  <Edit className="w-5 h-5 text-muted-foreground" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDeleteLineItem?.(item.lineItemId, item.name);
+                                  }}
+                                  disabled={isLoading}
+                                  className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                  title="Delete line item"
+                                >
+                                  <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+
+                    {/* Desktop: Multi-column table layout */}
+                    <td className="hidden md:table-cell px-6 py-4">
                       <div>
                         <div className="font-medium text-foreground flex items-center gap-2">
                           {item.name}
@@ -393,7 +630,7 @@ function CategorySection({
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-right font-semibold text-foreground">
+                    <td className="hidden md:table-cell px-6 py-4 text-right font-semibold text-foreground">
                       {item.discountCount && item.averageAmount ? (
                         <div className="flex flex-col items-end">
                           <span className="text-sm text-muted-foreground">
@@ -408,13 +645,13 @@ function CategorySection({
                       )}
                     </td>
                     {!isSimplifiedView && (
-                      <td className="px-6 py-4 text-right font-medium text-gray-700 dark:text-gray-300">
+                      <td className="hidden md:table-cell px-6 py-4 text-right font-medium text-gray-700 dark:text-gray-300">
                         {formatCurrency(item.estimated)}
                       </td>
                     )}
                     {!isSimplifiedView && (
                       <>
-                        <td className="px-6 py-4 text-right">
+                        <td className="hidden md:table-cell px-6 py-4 text-right">
                           <div
                             className={`font-medium ${
                               itemRemaining >= 0
@@ -428,7 +665,7 @@ function CategorySection({
                       </>
                     )}
                     {!isSimplifiedView && (
-                      <td className="px-6 py-4 text-center">
+                      <td className="hidden lg:table-cell px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-1">
                           {category.type === "expense" && onCreatePurchaseRequest && canManagePurchaseRequests && (
                             <button
@@ -1885,9 +2122,9 @@ export default function BudgetDetailPage({
       : 0;
 
   return (
-    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
+    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-8 max-w-[1600px]">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6 md:mb-8">
         <Link
           href="/budgets"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#61bc47] mb-4 transition-colors"
@@ -1896,16 +2133,16 @@ export default function BudgetDetailPage({
           Back to Budgets
         </Link>
 
-        <div className="flex justify-between items-start">
-          <div>
+        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+          <div className="flex-1">
             {/* Title with dropdown for projects of the same type */}
             {projectsOfSameType.length > 1 ? (
               <div className="relative mb-2">
                 <div className="flex items-center gap-3">
-                  <h1 className="text-4xl font-bold text-primary dark:text-foreground">
+                  <h1 className="text-3xl md:text-4xl font-bold text-primary dark:text-foreground">
                     {project?.Project_Title}
                   </h1>
-                  <ChevronDown className="w-6 h-6 text-foreground flex-shrink-0" />
+                  <ChevronDown className="w-5 h-5 md:w-6 md:h-6 text-foreground flex-shrink-0" />
                 </div>
                 <select
                   value={slug}
@@ -1922,11 +2159,11 @@ export default function BudgetDetailPage({
                 </select>
               </div>
             ) : (
-              <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">
+              <h1 className="text-3xl md:text-4xl font-bold text-primary dark:text-foreground mb-2">
                 {project?.Project_Title}
               </h1>
             )}
-            <div className="flex items-center gap-4 text-sm text-gray-400 dark:text-gray-400">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-400 dark:text-gray-400">
               {project?.Coordinator_Display_Name && (
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4" />
@@ -1942,7 +2179,7 @@ export default function BudgetDetailPage({
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative w-full md:w-auto">
             <button
               onClick={() => setIsViewDetailsOpen(!isViewDetailsOpen)}
               onBlur={(e) => {
@@ -1951,16 +2188,16 @@ export default function BudgetDetailPage({
                   setTimeout(() => setIsViewDetailsOpen(false), 150);
                 }
               }}
-              className="appearance-none inline-flex items-center gap-2 pl-4 pr-10 py-2 bg-zinc-800 dark:bg-zinc-700 text-white rounded-lg hover:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+              className="appearance-none w-full md:w-auto inline-flex items-center justify-center gap-2 pl-4 pr-10 py-2 bg-white dark:bg-zinc-700 text-zinc-800 dark:text-white border border-zinc-300 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-600 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
             >
               View Details
-              <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white transition-transform ${isViewDetailsOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-800 dark:text-white transition-transform ${isViewDetailsOpen ? 'rotate-180' : ''}`} />
             </button>
             {isViewDetailsOpen && (
-              <div className="absolute top-full left-0 mt-1 bg-zinc-800 dark:bg-zinc-700 rounded-lg shadow-lg overflow-hidden z-10 min-w-[200px]">
+              <div className="absolute top-full left-0 right-0 md:right-auto mt-1 bg-white dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-lg overflow-hidden z-10 md:min-w-[200px]">
                 <Link
                   href={`/budgets/${slug}/reports`}
-                  className="flex items-center gap-2 px-4 py-2 text-white hover:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors whitespace-nowrap"
+                  className="flex items-center gap-2 px-4 py-2 text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-600 transition-colors whitespace-nowrap"
                   onClick={() => setIsViewDetailsOpen(false)}
                 >
                   <BarChart3 className="w-4 h-4" />
@@ -1968,7 +2205,7 @@ export default function BudgetDetailPage({
                 </Link>
                 <Link
                   href={`/budgets/${slug}/transactions`}
-                  className="flex items-center gap-2 px-4 py-2 text-white hover:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors whitespace-nowrap"
+                  className="flex items-center gap-2 px-4 py-2 text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-600 transition-colors whitespace-nowrap"
                   onClick={() => setIsViewDetailsOpen(false)}
                 >
                   <List className="w-4 h-4" />
@@ -1976,7 +2213,7 @@ export default function BudgetDetailPage({
                 </Link>
                 <Link
                   href={`/budgets/${slug}/purchase-requests`}
-                  className="flex items-center gap-2 px-4 py-2 text-white hover:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors whitespace-nowrap"
+                  className="flex items-center gap-2 px-4 py-2 text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-600 transition-colors whitespace-nowrap"
                   onClick={() => setIsViewDetailsOpen(false)}
                 >
                   <ShoppingCart className="w-4 h-4" />
@@ -1992,7 +2229,7 @@ export default function BudgetDetailPage({
       <div className="mb-6 flex justify-center">
         <button
           onClick={() => setViewMode(viewMode === "expenses" ? "income" : "expenses")}
-          className="relative inline-flex rounded-xl bg-zinc-100 dark:bg-zinc-800 p-1 shadow-inner cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+          className="relative w-full md:w-auto inline-flex rounded-xl bg-zinc-100 dark:bg-zinc-800 p-1 shadow-inner cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
         >
           {/* Sliding background indicator */}
           <div
@@ -2003,7 +2240,7 @@ export default function BudgetDetailPage({
 
           {/* Labels */}
           <div
-            className={`relative z-10 px-8 py-2.5 rounded-lg font-medium transition-all duration-300 pointer-events-none ${
+            className={`relative z-10 flex-1 md:flex-initial md:px-8 py-2.5 rounded-lg font-medium transition-all duration-300 pointer-events-none ${
               viewMode === "expenses"
                 ? "text-white"
                 : "text-muted-foreground"
@@ -2012,7 +2249,7 @@ export default function BudgetDetailPage({
             Expenses
           </div>
           <div
-            className={`relative z-10 px-8 py-2.5 rounded-lg font-medium transition-all duration-300 pointer-events-none ${
+            className={`relative z-10 flex-1 md:flex-initial md:px-8 py-2.5 rounded-lg font-medium transition-all duration-300 pointer-events-none ${
               viewMode === "income"
                 ? "text-white"
                 : "text-muted-foreground"
@@ -2029,8 +2266,8 @@ export default function BudgetDetailPage({
           {/* Expenses View - Two Column */}
           <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 mb-8">
             {/* Left: Donut Chart */}
-            <div className="bg-card border border-border rounded-lg p-6 w-fit">
-              <div className="flex items-center gap-2 mb-6">
+            <div className="bg-card border border-border rounded-lg p-4 md:p-6 w-full lg:w-fit mx-auto">
+              <div className="flex items-center gap-2 mb-4 md:mb-6">
                 <DollarSign className="w-4 h-4 text-muted-foreground" />
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                   Summary
@@ -2047,9 +2284,9 @@ export default function BudgetDetailPage({
                     color: "hsl(211, 21%, 27%)",
                   },
                 } satisfies ChartConfig}
-                className="h-[280px]"
+                className="h-[200px] md:h-[280px] w-full flex justify-center"
               >
-                <ResponsiveContainer width={280} height="100%">
+                <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={[
@@ -2102,8 +2339,8 @@ export default function BudgetDetailPage({
             </div>
 
             {/* Right: Categories Grid */}
-            <div className="bg-card border border-border rounded-lg p-8">
-              <div className="flex items-center gap-2 mb-6">
+            <div className="hidden lg:block bg-card border border-border rounded-lg p-4 md:p-8">
+              <div className="flex items-center gap-2 mb-4 md:mb-6">
                 <Receipt className="w-4 h-4 text-purple-500" />
                 <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                   Categories
@@ -2158,8 +2395,8 @@ export default function BudgetDetailPage({
           {/* Income View - Two Column */}
           <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 mb-8">
             {/* Left: Donut Chart */}
-            <div className="bg-card border border-border rounded-lg p-6 w-fit">
-              <div className="flex items-center gap-2 mb-6">
+            <div className="bg-card border border-border rounded-lg p-4 md:p-6 w-full lg:w-fit mx-auto">
+              <div className="flex items-center gap-2 mb-4 md:mb-6">
                 <DollarSign className="w-4 h-4 text-muted-foreground" />
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                   Summary
@@ -2176,9 +2413,9 @@ export default function BudgetDetailPage({
                     color: "hsl(211, 21%, 27%)",
                   },
                 } satisfies ChartConfig}
-                className="h-[280px]"
+                className="h-[200px] md:h-[280px] w-full flex justify-center"
               >
-                <ResponsiveContainer width={280} height="100%">
+                <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={[
@@ -2231,8 +2468,8 @@ export default function BudgetDetailPage({
             </div>
 
             {/* Right: Income Sources Grid */}
-            <div className="bg-card border border-border rounded-lg p-8">
-              <div className="flex items-center gap-2 mb-6">
+            <div className="hidden lg:block bg-card border border-border rounded-lg p-4 md:p-8">
+              <div className="flex items-center gap-2 mb-4 md:mb-6">
                 <Receipt className="w-4 h-4 text-teal-500" />
                 <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                   Sources

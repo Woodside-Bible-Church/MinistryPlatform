@@ -13,6 +13,7 @@ interface PinButtonProps {
   onPin: (itemType: PinnedItemType, itemId: string, itemData: PinnedItemData, route: string) => Promise<boolean>;
   onUnpin: (itemType: PinnedItemType, itemId: string) => Promise<boolean>;
   className?: string;
+  iconOnly?: boolean;
 }
 
 export default function PinButton({
@@ -24,6 +25,7 @@ export default function PinButton({
   onPin,
   onUnpin,
   className = "",
+  iconOnly = false,
 }: PinButtonProps) {
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -46,6 +48,23 @@ export default function PinButton({
       setIsProcessing(false);
     }
   };
+
+  if (iconOnly) {
+    return (
+      <button
+        onClick={handleClick}
+        disabled={isProcessing}
+        className={`flex items-center justify-center w-8 h-8 rounded-full border transition-colors ${
+          isPinned
+            ? "bg-[#61bc47]/10 border-[#61bc47]/50 text-[#61bc47] hover:bg-[#61bc47]/20"
+            : "bg-card border-border text-muted-foreground hover:border-[#61bc47]/50 hover:text-[#61bc47]"
+        } ${isProcessing ? "opacity-50 cursor-not-allowed" : ""} ${className}`}
+        title={isPinned ? "Remove from home" : "Add to home"}
+      >
+        <Home className="w-4 h-4" />
+      </button>
+    );
+  }
 
   return (
     <button

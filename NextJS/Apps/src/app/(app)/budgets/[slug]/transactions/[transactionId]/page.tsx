@@ -272,7 +272,7 @@ export default function TransactionDetailsPage({
   }
 
   return (
-    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1200px]">
+    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-8 max-w-[1200px]">
       {/* Header */}
       <div className="mb-6">
         <BackButton
@@ -280,9 +280,9 @@ export default function TransactionDetailsPage({
           label="Back"
         />
 
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div className="flex-1">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
               Transaction Details
             </h1>
             <p className="text-muted-foreground mt-2">
@@ -310,13 +310,13 @@ export default function TransactionDetailsPage({
       </div>
 
       {/* Transaction Info */}
-      <Card className="p-6 mb-6">
+      <Card className="p-4 md:p-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex items-start gap-3">
             <DollarSign className="w-5 h-5 text-muted-foreground mt-1" />
             <div>
               <div className="text-sm text-muted-foreground mb-1">Amount</div>
-              <div className={`text-2xl font-bold ${
+              <div className={`text-xl md:text-2xl font-bold ${
                 transaction.transactionType === "Income"
                   ? "text-green-600 dark:text-green-400"
                   : "text-foreground"
@@ -330,7 +330,7 @@ export default function TransactionDetailsPage({
             <Calendar className="w-5 h-5 text-muted-foreground mt-1" />
             <div>
               <div className="text-sm text-muted-foreground mb-1">Date</div>
-              <div className="text-xl font-semibold text-foreground">
+              <div className="text-lg md:text-xl font-semibold text-foreground">
                 {formatDate(transaction.transactionDate)}
               </div>
             </div>
@@ -340,7 +340,7 @@ export default function TransactionDetailsPage({
             <FileText className="w-5 h-5 text-muted-foreground mt-1" />
             <div>
               <div className="text-sm text-muted-foreground mb-1">Payee</div>
-              <div className="text-xl font-semibold text-foreground">
+              <div className="text-lg md:text-xl font-semibold text-foreground">
                 {transaction.payeeName || "N/A"}
               </div>
             </div>
@@ -353,7 +353,7 @@ export default function TransactionDetailsPage({
                 <div className="text-sm text-muted-foreground mb-1">
                   Payment Method
                 </div>
-                <div className="text-xl font-semibold text-foreground">
+                <div className="text-lg md:text-xl font-semibold text-foreground">
                   {transaction.paymentMethod}
                 </div>
               </div>

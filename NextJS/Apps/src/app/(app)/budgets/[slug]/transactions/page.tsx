@@ -561,18 +561,18 @@ export default function TransactionsPage({
   }
 
   return (
-    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
+    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-8 max-w-[1600px]">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6 md:mb-8">
         <BackButton
           fallbackUrl={`/budgets/${slug}`}
           label="Back"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#61bc47] mb-4 transition-colors"
         />
 
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+          <div className="flex-1">
+            <h1 className="text-3xl md:text-4xl font-bold text-primary dark:text-foreground mb-2">
               transactions
             </h1>
             <p className="text-muted-foreground">
@@ -587,7 +587,7 @@ export default function TransactionsPage({
               setNewTransactionDate(today);
               setIsAddTransactionOpen(true);
             }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#61bc47] hover:bg-[#52a03c] text-white rounded-lg transition-colors"
+            className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#61bc47] hover:bg-[#52a03c] text-white rounded-lg transition-colors"
             title="Add new transaction"
           >
             <Plus className="w-4 h-4" />
@@ -597,16 +597,16 @@ export default function TransactionsPage({
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
         {/* Total Transactions */}
-        <div className="bg-card border border-border rounded-lg p-6">
+        <div className="bg-card border border-border rounded-lg p-4 md:p-6">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-muted-foreground">
               Total Transactions
             </h3>
             <Receipt className="w-5 h-5 text-purple-500" />
           </div>
-          <div className="text-3xl font-bold text-foreground">
+          <div className="text-2xl md:text-3xl font-bold text-foreground">
             {data.Total_Transactions}
           </div>
           <p className="text-sm text-muted-foreground mt-1">
@@ -615,14 +615,14 @@ export default function TransactionsPage({
         </div>
 
         {/* Total Expenses */}
-        <div className="bg-card border border-border rounded-lg p-6">
+        <div className="bg-card border border-border rounded-lg p-4 md:p-6">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-muted-foreground">
               Total Expenses
             </h3>
             <DollarSign className="w-5 h-5 text-red-500" />
           </div>
-          <div className="text-3xl font-bold text-red-600 dark:text-red-400">
+          <div className="text-2xl md:text-3xl font-bold text-red-600 dark:text-red-400">
             {formatCurrency(data.Total_Expenses)}
           </div>
           <p className="text-sm text-muted-foreground mt-1">
@@ -631,14 +631,14 @@ export default function TransactionsPage({
         </div>
 
         {/* Total Income */}
-        <div className="bg-card border border-border rounded-lg p-6">
+        <div className="bg-card border border-border rounded-lg p-4 md:p-6">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-muted-foreground">
               Total Income
             </h3>
             <DollarSign className="w-5 h-5 text-green-500" />
           </div>
-          <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+          <div className="text-2xl md:text-3xl font-bold text-green-600 dark:text-green-400">
             {formatCurrency(data.Total_Income)}
           </div>
           <p className="text-sm text-muted-foreground mt-1">
@@ -648,7 +648,7 @@ export default function TransactionsPage({
       </div>
 
       {/* Filters */}
-      <div className="bg-card border border-border rounded-lg p-6 mb-6">
+      <div className="bg-card border border-border rounded-lg p-4 md:p-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Search */}
           <div className="md:col-span-2">
@@ -712,22 +712,22 @@ export default function TransactionsPage({
               key={transaction.transactionId}
               href={`/budgets/${slug}/transactions/${transaction.transactionId}`}
               prefetch={true}
-              className="block bg-card border border-border rounded-lg p-6 hover:shadow-lg hover:border-[#61bc47]/30 transition-all"
+              className="block bg-card border border-border rounded-lg p-4 md:p-6 hover:shadow-lg hover:border-[#61bc47]/30 transition-all"
             >
               {/* Header Row */}
-              <div className="flex items-start justify-between gap-4 mb-4">
+              <div className="flex items-start justify-between gap-2 md:gap-4 mb-3 md:mb-4">
                 <div className="flex-1 min-w-0">
                   {transaction.categoryItem?.includes(" | ") ? (
                     <div className="flex flex-col">
                       <span className="text-[10px] text-muted-foreground uppercase tracking-wider leading-tight mb-0.5">
                         {transaction.categoryItem.split(" | ")[0]}
                       </span>
-                      <h3 className="text-xl font-bold text-foreground leading-tight">
+                      <h3 className="text-lg md:text-xl font-bold text-foreground leading-tight">
                         {transaction.categoryItem.split(" | ")[1]}
                       </h3>
                     </div>
                   ) : (
-                    <h3 className="text-xl font-bold text-foreground">
+                    <h3 className="text-lg md:text-xl font-bold text-foreground">
                       {transaction.categoryItem || "Uncategorized"}
                     </h3>
                   )}
@@ -837,9 +837,9 @@ export default function TransactionsPage({
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-1.5">
+                  <div className="flex flex-col items-end gap-1">
                     <span
-                      className={`text-sm font-medium ${
+                      className={`text-xs md:text-sm font-medium ${
                         transaction.type === "Expense"
                           ? "text-red-600 dark:text-red-400"
                           : "text-green-600 dark:text-green-400"
@@ -848,7 +848,7 @@ export default function TransactionsPage({
                       {transaction.type}
                     </span>
                     <div
-                      className={`text-3xl font-bold whitespace-nowrap ${
+                      className={`text-xl md:text-2xl lg:text-3xl font-bold whitespace-nowrap ${
                         transaction.type === "Expense"
                           ? "text-red-600 dark:text-red-400"
                           : "text-green-600 dark:text-green-400"

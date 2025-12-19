@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
-import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import DynamicManifest from "@/components/DynamicManifest";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import SimulationBanner from "@/components/SimulationBanner";
@@ -72,7 +71,6 @@ export default async function RootLayout({
           <SimulationBanner />
           <DynamicManifest />
           {children}
-          <PWAInstallPrompt />
         </ThemeProvider>
       </body>
     </html>
