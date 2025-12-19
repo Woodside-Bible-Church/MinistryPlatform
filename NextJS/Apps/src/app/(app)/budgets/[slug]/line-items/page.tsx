@@ -2,6 +2,8 @@
 
 import { use, useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   DollarSign,
   Search,
@@ -9,9 +11,12 @@ import {
   TrendingUp,
   TrendingDown,
   List as ListIcon,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import { BackButton } from "@/components/BackButton";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useBudgetPermissions } from "@/hooks/useBudgetPermissions";
 
 interface LineItem {
   lineItemId: string;
@@ -71,16 +76,41 @@ export default function LineItemsPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
+  const router = useRouter();
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
   const [projectTitle, setProjectTitle] = useState<string>("");
   const [projectId, setProjectId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Permissions
+  const permissions = useBudgetPermissions();
+
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<"all" | "expense" | "revenue">("all");
   const [sortBy, setSortBy] = useState<"name" | "budget" | "spent" | "remaining">("name");
+
+  // Delete line item handler
+  async function handleDeleteLineItem(lineItemId: string, lineItemName: string) {
+    try {
+      const response = await fetch(`/api/line-items/${lineItemId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete line item");
+      }
+
+      toast.success(`"${lineItemName}" deleted successfully`);
+
+      // Remove from local state
+      setLineItems(prev => prev.filter(item => item.lineItemId !== lineItemId));
+    } catch (error) {
+      console.error("Error deleting line item:", error);
+      toast.error("Failed to delete line item");
+    }
+  }
 
   useEffect(() => {
     async function fetchData() {
@@ -471,32 +501,51 @@ export default function LineItemsPage({
 
                       {item.description && (
                         <p className="text-sm text-muted-foreground italic">
-                          "{item.description}"
+                          {item.description}
                         </p>
                       )}
 
-                      {/* Progress bar - only show for items with a budget */}
+                      {/* Compact bar chart - only show for items with a budget */}
                       {item.estimated !== 0 && (
-                        <div className="mt-3">
-                          <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                            <span>
-                              {item.categoryType === "revenue" ? "Earned" : "Spent"}: {formatCurrency(item.actual)}
-                            </span>
-                            <span>{percentSpent.toFixed(0)}%</span>
+                        <div className="mt-3 space-y-2">
+                          {/* Labels row */}
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>{item.categoryType === "revenue" ? "Received" : "Spent"}</span>
+                            <span>{item.categoryType === "revenue" ? "Expected" : "Budgeted"}</span>
                           </div>
-                          <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 overflow-hidden">
+
+                          {/* Progress bar */}
+                          <div className="relative h-8 bg-zinc-200 dark:bg-zinc-700 rounded-lg overflow-hidden">
                             <div
                               className={`h-full transition-all ${
                                 item.categoryType === "revenue"
-                                  ? "bg-green-500" // Revenue is always green (earning is good!)
-                                  : isOverBudget
-                                  ? "bg-red-500"   // Expense over budget is red
-                                  : percentSpent > 90
-                                  ? "bg-yellow-500"
-                                  : "bg-green-500"
+                                  ? (item.actual >= item.estimated ? "bg-green-500" : "bg-yellow-500")
+                                  : (item.actual <= item.estimated ? "bg-green-500" : "bg-red-500")
                               }`}
-                              style={{ width: `${Math.min(percentSpent, 100)}%` }}
+                              style={{
+                                width: item.estimated > 0
+                                  ? `${Math.min((item.actual / item.estimated) * 100, 100)}%`
+                                  : '0%'
+                              }}
                             />
+                            <div className="absolute inset-0 flex items-center justify-between px-2 text-xs font-semibold">
+                              <span className={item.actual > item.estimated * 0.3 ? "text-white" : "text-foreground"}>
+                                {formatCurrency(item.actual)}
+                              </span>
+                              <span className="text-foreground">{formatCurrency(item.estimated)}</span>
+                            </div>
+                          </div>
+
+                          {/* Remaining */}
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Remaining:</span>
+                            <span className={`font-semibold ${
+                              remaining >= 0
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-red-600 dark:text-red-400"
+                            }`}>
+                              {formatCurrency(remaining)}
+                            </span>
                           </div>
                         </div>
                       )}
@@ -504,9 +553,9 @@ export default function LineItemsPage({
                       {/* For zero-budget items, show amount earned/spent based on type */}
                       {item.estimated === 0 && item.actual > 0 && (
                         <div className="mt-3">
-                          <div className="flex items-center gap-2 text-sm">
+                          <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">
-                              {item.categoryType === "revenue" ? "Earned:" : "Spent:"}
+                              {item.categoryType === "revenue" ? "Received:" : "Spent:"}
                             </span>
                             <span className={`font-semibold ${
                               item.categoryType === "revenue"
@@ -520,44 +569,45 @@ export default function LineItemsPage({
                       )}
                     </div>
 
-                    <div className="flex flex-col items-end gap-1.5">
-                      {item.estimated === 0 ? (
-                        // For zero-budget items (auto-tracked), show amount earned/spent based on type
-                        <>
-                          <div className={`text-2xl font-bold whitespace-nowrap ${
-                            item.categoryType === "revenue"
-                              ? "text-green-600 dark:text-green-400"
-                              : "text-red-600 dark:text-red-400"
-                          }`}>
-                            {formatCurrency(item.actual)}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {item.categoryType === "revenue" ? "earned" : "spent"}
-                          </div>
-                        </>
-                      ) : (
-                        // For budgeted items, show remaining/over
-                        <>
-                          <div className={`text-2xl font-bold whitespace-nowrap ${
-                            item.categoryType === "revenue"
-                              ? (isOverBudget
-                                ? "text-green-600 dark:text-green-400"  // Revenue over goal is GOOD (green)
-                                : "text-yellow-600 dark:text-yellow-400") // Revenue not yet met is yellow
-                              : (isOverBudget
-                                ? "text-red-600 dark:text-red-400"       // Expense over budget is BAD (red)
-                                : "text-green-600 dark:text-green-400")  // Expense under budget is GOOD (green)
-                          }`}>
-                            {formatCurrency(Math.abs(remaining))}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {item.categoryType === "revenue"
-                              ? (isOverBudget ? "over goal" : "to go")
-                              : (isOverBudget ? "over budget" : "remaining")
+                    {/* Action buttons */}
+                    {permissions.canManageLineItems && (
+                      <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
+                        {item.categoryType === "expense" && permissions.canManagePurchaseRequests && (
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              router.push(`/budgets/${slug}/purchase-requests?lineItemId=${item.lineItemId}`);
+                            }}
+                            className="p-2 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors"
+                            title="Create purchase request"
+                          >
+                            <Plus className="w-5 h-5 text-[#61bc47]" />
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            router.push(`/budgets/${slug}/line-items/${item.lineItemId}`);
+                          }}
+                          className="p-2 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded transition-colors"
+                          title="Edit line item"
+                        >
+                          <Edit className="w-5 h-5 text-muted-foreground" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
+                              handleDeleteLineItem(item.lineItemId, item.name);
                             }
-                          </div>
-                        </>
-                      )}
-                    </div>
+                          }}
+                          className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                          title="Delete line item"
+                        >
+                          <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </Link>
