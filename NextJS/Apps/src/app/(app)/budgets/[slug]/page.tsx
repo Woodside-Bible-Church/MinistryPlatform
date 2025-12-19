@@ -13,8 +13,8 @@ import {
   DollarSign,
   PieChart as PieChartIcon,
   Receipt,
-  ChevronDown,
   ChevronRight,
+  ChevronDown,
   List,
   BarChart3,
   Plus,
@@ -191,26 +191,22 @@ function CategorySection({
           <div>
             <div className="flex items-center gap-2">
               {/* Desktop: chevron on left */}
-              <div className="hidden md:block">
-                {isExpanded ? (
-                  <ChevronDown className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                ) : (
-                  <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                )}
-              </div>
+              <ChevronRight
+                className={`hidden md:block w-5 h-5 text-muted-foreground flex-shrink-0 transition-transform duration-200 ${
+                  isExpanded ? 'rotate-90' : ''
+                }`}
+              />
 
               <h3 className="text-base md:text-lg font-semibold text-foreground flex-1 min-w-0">
                 {category.name}
               </h3>
 
               {/* Mobile: chevron on right */}
-              <div className="md:hidden">
-                {isExpanded ? (
-                  <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                ) : (
-                  <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                )}
-              </div>
+              <ChevronRight
+                className={`md:hidden w-4 h-4 text-muted-foreground flex-shrink-0 transition-transform duration-200 ${
+                  isExpanded ? 'rotate-90' : ''
+                }`}
+              />
 
               {isSimplifiedView && (
                 <span className="hidden md:inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100/70 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 whitespace-nowrap">
