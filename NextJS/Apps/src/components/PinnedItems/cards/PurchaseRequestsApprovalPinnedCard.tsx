@@ -61,6 +61,22 @@ function formatCurrency(amount: number) {
   }).format(amount);
 }
 
+function formatCompactCurrency(amount: number) {
+  const absAmount = Math.abs(amount);
+  const sign = amount < 0 ? '-' : '';
+
+  if (absAmount >= 1000000) {
+    // Millions: $12.3M
+    return `${sign}$${(absAmount / 1000000).toFixed(1)}M`;
+  } else if (absAmount >= 10000) {
+    // Ten thousands and up: $120K
+    return `${sign}$${Math.round(absAmount / 1000)}K`;
+  } else {
+    // Below 10k: show full amount
+    return formatCurrency(amount);
+  }
+}
+
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("en-US", {
     month: "short",
@@ -273,18 +289,23 @@ export function PurchaseRequestsApprovalPinnedCard({ item }: PurchaseRequestsApp
                 }`}
               >
                 <div className="flex flex-col gap-3">
-                  {/* Top Row: Line item name and amount */}
-                  <div className="flex items-start justify-between gap-4">
-                    <h3 className="flex-1 text-base font-semibold text-foreground">
+                  {/* Labels Row */}
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="text-xs text-muted-foreground uppercase tracking-wide">
                       {request.lineItemName}
+                    </div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-wide">
+                      Amount
+                    </div>
+                  </div>
+
+                  {/* Main Row: Description and amount */}
+                  <div className="flex items-start justify-between gap-4 -mt-2">
+                    <h3 className="flex-1 text-xl font-bold text-foreground">
+                      {request.description || 'Purchase Request'}
                     </h3>
-                    <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
-                      <div className="text-xs text-muted-foreground uppercase tracking-wide">
-                        Amount
-                      </div>
-                      <div className="text-xl font-bold text-foreground whitespace-nowrap">
-                        {formatCurrency(request.amount)}
-                      </div>
+                    <div className="text-xl font-bold text-foreground whitespace-nowrap flex-shrink-0">
+                      {formatCompactCurrency(request.amount)}
                     </div>
                   </div>
 
@@ -293,12 +314,6 @@ export function PurchaseRequestsApprovalPinnedCard({ item }: PurchaseRequestsApp
                       <div className="w-3 h-3 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin" />
                       Processing...
                     </div>
-                  )}
-
-                  {request.description && (
-                    <p className="text-sm text-muted-foreground italic">
-                      {request.description}
-                    </p>
                   )}
 
                   {/* Date and Requester */}
@@ -362,27 +377,25 @@ export function PurchaseRequestsApprovalPinnedCard({ item }: PurchaseRequestsApp
                     </div>
 
                     {/* Impact Preview */}
-                    <div className="flex items-start gap-2">
+                    <div className="flex items-center justify-center gap-2">
                       {request.wouldBeOverBudget && (
-                        <AlertTriangle className="w-3.5 h-3.5 text-red-500 mt-0.5 flex-shrink-0" />
+                        <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
                       )}
-                      <div className="flex-1">
-                        <p className={`text-xs ${
-                          request.wouldBeOverBudget
-                            ? 'text-red-600 dark:text-red-400 font-medium'
-                            : 'text-muted-foreground'
-                        }`}>
-                          {request.wouldBeOverBudget ? (
-                            <>
-                              Approving will exceed budget by {formatCurrency(request.overBudgetAmount)}
-                            </>
-                          ) : (
-                            <>
-                              After approval: {formatCurrency(request.lineItemBudgeted - request.projectedSpentAfterApproval)} remaining
-                            </>
-                          )}
-                        </p>
-                      </div>
+                      <p className={`text-xs ${
+                        request.wouldBeOverBudget
+                          ? 'text-red-600 dark:text-red-400 font-medium'
+                          : 'text-muted-foreground'
+                      }`}>
+                        {request.wouldBeOverBudget ? (
+                          <>
+                            Approving will exceed budget by {formatCurrency(request.overBudgetAmount)}
+                          </>
+                        ) : (
+                          <>
+                            After approval: {formatCurrency(request.lineItemBudgeted - request.projectedSpentAfterApproval)} remaining
+                          </>
+                        )}
+                      </p>
                     </div>
                   </div>
 
