@@ -10,6 +10,7 @@ import {
   Edit,
   Trash2,
   ShoppingCart,
+  ExternalLink,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -378,9 +379,10 @@ export default function TransactionDetailsPage({
                 </div>
                 <button
                   onClick={() => router.push(`/budgets/${resolvedParams.slug}/purchase-requests/${transaction.purchaseRequestId}`)}
-                  className="text-lg md:text-xl font-semibold text-[#61bc47] hover:text-[#52a03c] hover:underline transition-colors"
+                  className="group flex items-center gap-2 text-lg md:text-xl font-semibold text-foreground hover:text-[#61bc47] transition-colors"
                 >
-                  {transaction.purchaseRequestVendor || `Request #${transaction.purchaseRequestId}`}
+                  <span>{transaction.purchaseRequestVendor || `Request #${transaction.purchaseRequestId}`}</span>
+                  <ExternalLink className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
                 </button>
               </div>
             </div>
