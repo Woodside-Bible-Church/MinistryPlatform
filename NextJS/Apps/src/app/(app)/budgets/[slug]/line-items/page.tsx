@@ -88,7 +88,7 @@ export default function LineItemsPage({
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<"all" | "expense" | "revenue">("all");
+  const [categoryFilter, setCategoryFilter] = useState<"expense" | "revenue">("expense");
   const [sortBy, setSortBy] = useState<"name" | "budget" | "spent" | "remaining">("name");
 
   // Delete line item handler
@@ -200,7 +200,7 @@ export default function LineItemsPage({
   // Filter and sort line items
   const filteredLineItems = lineItems.filter((item) => {
     // Category filter
-    if (categoryFilter !== "all" && item.categoryType !== categoryFilter) {
+    if (item.categoryType !== categoryFilter) {
       return false;
     }
 
@@ -293,30 +293,19 @@ export default function LineItemsPage({
       {/* View Toggle */}
       <div className="mb-6 flex justify-center">
         <button
-          onClick={() => setCategoryFilter(categoryFilter === "expense" ? "revenue" : categoryFilter === "revenue" ? "all" : "expense")}
+          onClick={() => setCategoryFilter(categoryFilter === "expense" ? "revenue" : "expense")}
           className="relative inline-flex rounded-xl bg-zinc-100 dark:bg-zinc-800 p-1 shadow-inner cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
         >
           {/* Sliding background indicator */}
           <div
-            className={`absolute top-1 bottom-1 w-[calc(33.333%-4px)] bg-[#61BC47] rounded-lg shadow-md transition-all duration-300 ease-in-out pointer-events-none ${
-              categoryFilter === "all"
+            className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#61BC47] rounded-lg shadow-md transition-all duration-300 ease-in-out pointer-events-none ${
+              categoryFilter === "expense"
                 ? "left-1"
-                : categoryFilter === "expense"
-                ? "left-[calc(33.333%+2px)]"
-                : "left-[calc(66.666%+4px)]"
+                : "left-[calc(50%+2px)]"
             }`}
           />
 
           {/* Labels */}
-          <div
-            className={`relative z-10 px-8 py-2.5 rounded-lg font-medium transition-all duration-300 pointer-events-none ${
-              categoryFilter === "all"
-                ? "text-white"
-                : "text-muted-foreground"
-            }`}
-          >
-            All Items
-          </div>
           <div
             className={`relative z-10 px-8 py-2.5 rounded-lg font-medium transition-all duration-300 pointer-events-none ${
               categoryFilter === "expense"
