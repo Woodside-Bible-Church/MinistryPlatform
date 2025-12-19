@@ -186,36 +186,81 @@ function CategorySection({
             : "bg-zinc-300 dark:bg-black border-border hover:bg-zinc-400 dark:hover:bg-zinc-900"
         }`}
       >
-        {/* Mobile: Stacked layout */}
-        <div className="md:hidden space-y-3">
-          <div className="flex items-center gap-2">
-            {isExpanded ? (
-              <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-            ) : (
-              <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-            )}
-            <h3 className="text-base font-semibold text-foreground flex items-center gap-2 flex-1 min-w-0">
-              <span className="truncate">{category.name}</span>
+        {/* Bar chart layout for all screen sizes */}
+        <div className="space-y-3">
+          <div>
+            <div className="flex items-center gap-2">
+              {/* Desktop: chevron on left */}
+              <div className="hidden md:block">
+                {isExpanded ? (
+                  <ChevronDown className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                ) : (
+                  <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                )}
+              </div>
+
+              <h3 className="text-base md:text-lg font-semibold text-foreground flex-1 min-w-0">
+                {category.name}
+              </h3>
+
+              {/* Mobile: chevron on right */}
+              <div className="md:hidden">
+                {isExpanded ? (
+                  <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                )}
+              </div>
+
               {isSimplifiedView && (
-                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-blue-100/70 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex-shrink-0">
+                <span className="hidden md:inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100/70 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 whitespace-nowrap">
                   Auto-tracked
                 </span>
               )}
-            </h3>
+            </div>
+            {isSimplifiedView && (
+              <div className="md:hidden mt-2">
+                <span className="inline-block text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-blue-100/70 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400">
+                  Auto-tracked
+                </span>
+              </div>
+            )}
           </div>
 
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">{category.type === "revenue" ? "Received:" : "Spent:"}</span>
-              <span className="font-bold text-foreground">{formatCurrency(category.actual)}</span>
+          {/* Bar chart visualization */}
+          <div className="space-y-2">
+            {/* Labels row */}
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>{category.type === "revenue" ? "Received" : "Spent"}</span>
+              <span>{category.type === "revenue" ? "Expected" : "Budgeted"}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">{category.type === "revenue" ? "Expected:" : "Budgeted:"}</span>
-              <span className={`font-semibold text-muted-foreground ${(isEditingRevenue || isEditingDiscounts) ? 'opacity-50' : ''}`}>
-                {formatCurrency(category.estimated)}
-              </span>
+
+            {/* Progress bar */}
+            <div className="relative h-8 bg-zinc-200 dark:bg-zinc-700 rounded-lg overflow-hidden">
+              <div
+                className={`h-full transition-all ${
+                  category.type === "revenue"
+                    ? (category.actual >= category.estimated ? "bg-green-500" : "bg-yellow-500")
+                    : (category.actual <= category.estimated ? "bg-green-500" : "bg-red-500")
+                }`}
+                style={{
+                  width: category.estimated > 0
+                    ? `${Math.min((category.actual / category.estimated) * 100, 100)}%`
+                    : '0%'
+                }}
+              />
+              <div className="absolute inset-0 flex items-center justify-between px-2 text-xs font-semibold">
+                <span className={category.actual > category.estimated * 0.3 ? "text-white" : "text-foreground"}>
+                  {formatCurrency(category.actual)}
+                </span>
+                <span className={`${(isEditingRevenue || isEditingDiscounts) ? 'opacity-50' : ''} text-foreground`}>
+                  {formatCurrency(category.estimated)}
+                </span>
+              </div>
             </div>
-            <div className="flex items-center justify-between">
+
+            {/* Remaining */}
+            <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Remaining:</span>
               <span className={`font-semibold ${
                 remaining >= 0
@@ -227,9 +272,9 @@ function CategorySection({
             </div>
           </div>
 
-          {!isSimplifiedView && (canManageCategories || category.categoryId === 'registration-income' || category.categoryId === 'registration-discounts') && (
+          {((!isSimplifiedView && canManageCategories) || category.categoryId === 'registration-income' || category.categoryId === 'registration-discounts') && (
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
-              {canManageCategories ? (
+              {!isSimplifiedView && canManageCategories ? (
                 <>
                   <button
                     onClick={(e) => {
@@ -308,140 +353,13 @@ function CategorySection({
           )}
         </div>
 
-        {/* Desktop: Horizontal layout */}
-        <div className="hidden md:flex items-center justify-between gap-2">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            {isExpanded ? (
-              <ChevronDown className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-            ) : (
-              <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-            )}
-            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 min-w-0">
-              <span className="truncate">{category.name}</span>
-              {isSimplifiedView && (
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100/70 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex-shrink-0">
-                  Auto-tracked
-                </span>
-              )}
-            </h3>
-          </div>
-          <div className="flex items-center gap-6 flex-shrink-0">
-            <div className="text-right">
-              <div className="text-xs text-muted-foreground">
-                {category.type === "revenue" ? "Received" : "Spent"}
-              </div>
-              <div className="text-base font-bold text-foreground whitespace-nowrap">
-                {formatCurrency(category.actual)}
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-xs text-muted-foreground">
-                {category.type === "revenue" ? "Expected" : "Budgeted"}
-              </div>
-              <div className={`font-semibold text-muted-foreground transition-all ${
-                (isEditingRevenue || isEditingDiscounts) ? 'opacity-50' : ''
-              }`}>
-                {formatCurrency(category.estimated)}
-              </div>
-            </div>
-            <div className="text-right min-w-[100px]">
-              <div className="text-xs text-muted-foreground">Remaining</div>
-              <div
-                className={`font-semibold ${
-                  remaining >= 0
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-red-600 dark:text-red-400"
-                }`}
-              >
-                {formatCurrency(remaining)}
-              </div>
-            </div>
-            {!isSimplifiedView ? (
-              canManageCategories ? (
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEditCategory?.();
-                    }}
-                    className="p-1.5 hover:bg-zinc-400 dark:hover:bg-zinc-700 rounded transition-colors"
-                    title="Edit category"
-                  >
-                    <Edit className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteCategory?.();
-                    }}
-                    className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
-                    title="Delete category"
-                  >
-                    <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1">
-                {category.categoryId === 'registration-income' && onEditExpectedRevenue && (
-                  <>
-                    {isEditingRevenue ? (
-                      <div className="p-1.5">
-                        <Loader2 className="w-4 h-4 text-[#61bc47] animate-spin" />
-                      </div>
-                    ) : revenueJustSaved ? (
-                      <div className="p-1.5 animate-in zoom-in duration-300">
-                        <CheckCircle2 className="w-4 h-4 text-[#61bc47]" />
-                      </div>
-                    ) : (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEditExpectedRevenue();
-                        }}
-                        className="p-1.5 hover:bg-zinc-400 dark:hover:bg-zinc-700 rounded transition-colors"
-                        title="Edit expected registration revenue"
-                      >
-                        <Edit className="w-4 h-4 text-muted-foreground" />
-                      </button>
-                    )}
-                  </>
-                )}
-                {category.categoryId === 'registration-discounts' && onEditDiscountsBudget && (
-                  <>
-                    {isEditingDiscounts ? (
-                      <div className="p-1.5">
-                        <Loader2 className="w-4 h-4 text-[#61bc47] animate-spin" />
-                      </div>
-                    ) : discountsJustSaved ? (
-                      <div className="p-1.5 animate-in zoom-in duration-300">
-                        <CheckCircle2 className="w-4 h-4 text-[#61bc47]" />
-                      </div>
-                    ) : (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEditDiscountsBudget();
-                        }}
-                        className="p-1.5 hover:bg-zinc-400 dark:hover:bg-zinc-700 rounded transition-colors"
-                        title="Edit expected discounts budget"
-                      >
-                        <Edit className="w-4 h-4 text-muted-foreground" />
-                      </button>
-                    )}
-                  </>
-                )}
-                </div>
-              )
-            ) : null}
-          </div>
-        </div>
       </div>
 
       {/* Line Items Table */}
       {isExpanded && displayLineItems && displayLineItems.length > 0 && (
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="hidden md:table-header-group">
+            <thead className="hidden">
               <tr className={`border-b ${
                 isSimplifiedView
                   ? "bg-blue-50/50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30"
@@ -498,8 +416,8 @@ function CategorySection({
                         : "bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700"
                     }`}
                   >
-                    {/* Mobile: Single column card layout */}
-                    <td className="md:hidden p-4" colSpan={2}>
+                    {/* Card layout for all screen sizes */}
+                    <td className="p-4" colSpan={2}>
                       <div className="space-y-3">
                         {/* Item name and description */}
                         <div>
@@ -519,37 +437,69 @@ function CategorySection({
                           )}
                         </div>
 
-                        {/* All numbers grouped together */}
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground">{category.type === "revenue" ? "Received:" : "Spent:"}</span>
-                            <span className="font-semibold text-foreground">
-                              {item.discountCount && item.averageAmount ? (
-                                <span className="text-xs">{item.discountCount}× {formatCurrency(item.actual)}</span>
-                              ) : (
-                                formatCurrency(item.actual)
-                              )}
-                            </span>
+                        {/* Bar chart visualization */}
+                        {isSimplifiedView ? (
+                          // Auto-tracked items - just show spent amount
+                          <div className="text-sm">
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">{category.type === "revenue" ? "Received:" : "Spent:"}</span>
+                              <span className="font-semibold text-foreground">
+                                {item.discountCount && item.averageAmount ? (
+                                  <span className="text-xs">{item.discountCount}× {formatCurrency(item.actual)}</span>
+                                ) : (
+                                  formatCurrency(item.actual)
+                                )}
+                              </span>
+                            </div>
                           </div>
-                          {!isSimplifiedView && (
-                            <>
-                              <div className="flex items-center justify-between">
-                                <span className="text-muted-foreground">{category.type === "revenue" ? "Expected:" : "Budgeted:"}</span>
-                                <span className="font-medium text-gray-700 dark:text-gray-300">{formatCurrency(item.estimated)}</span>
-                              </div>
-                              <div className="flex items-center justify-between">
-                                <span className="text-muted-foreground">Remaining:</span>
-                                <span className={`font-semibold ${
-                                  itemRemaining >= 0
-                                    ? "text-green-600 dark:text-green-400"
-                                    : "text-red-600 dark:text-red-400"
-                                }`}>
-                                  {formatCurrency(itemRemaining)}
+                        ) : (
+                          // Regular items - show bar chart
+                          <div className="space-y-2">
+                            {/* Labels row */}
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              <span>{category.type === "revenue" ? "Received" : "Spent"}</span>
+                              <span>{category.type === "revenue" ? "Expected" : "Budgeted"}</span>
+                            </div>
+
+                            {/* Progress bar */}
+                            <div className="relative h-8 bg-zinc-200 dark:bg-zinc-700 rounded-lg overflow-hidden">
+                              <div
+                                className={`h-full transition-all ${
+                                  category.type === "revenue"
+                                    ? (item.actual >= item.estimated ? "bg-green-500" : "bg-yellow-500")
+                                    : (item.actual <= item.estimated ? "bg-green-500" : "bg-red-500")
+                                }`}
+                                style={{
+                                  width: item.estimated > 0
+                                    ? `${Math.min((item.actual / item.estimated) * 100, 100)}%`
+                                    : '0%'
+                                }}
+                              />
+                              <div className="absolute inset-0 flex items-center justify-between px-2 text-xs font-semibold">
+                                <span className={item.actual > item.estimated * 0.3 ? "text-white" : "text-foreground"}>
+                                  {item.discountCount && item.averageAmount ? (
+                                    <span className="text-[10px]">{item.discountCount}× {formatCurrency(item.actual)}</span>
+                                  ) : (
+                                    formatCurrency(item.actual)
+                                  )}
                                 </span>
+                                <span className="text-foreground">{formatCurrency(item.estimated)}</span>
                               </div>
-                            </>
-                          )}
-                        </div>
+                            </div>
+
+                            {/* Remaining */}
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">Remaining:</span>
+                              <span className={`font-semibold ${
+                                itemRemaining >= 0
+                                  ? "text-green-600 dark:text-green-400"
+                                  : "text-red-600 dark:text-red-400"
+                              }`}>
+                                {formatCurrency(itemRemaining)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Action buttons - clear tap area */}
                         {!isSimplifiedView && (
@@ -611,117 +561,6 @@ function CategorySection({
                       </div>
                     </td>
 
-                    {/* Desktop: Multi-column table layout */}
-                    <td className="hidden md:table-cell px-6 py-4">
-                      <div>
-                        <div className="font-medium text-foreground flex items-center gap-2">
-                          {item.name}
-                          {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                        </div>
-                        {item.description && (
-                          <div className="text-sm text-muted-foreground mt-1">
-                            {item.description}
-                          </div>
-                        )}
-                        {item.vendor && (
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Vendor: {item.vendor}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="hidden md:table-cell px-6 py-4 text-right font-semibold text-foreground">
-                      {item.discountCount && item.averageAmount ? (
-                        <div className="flex flex-col items-end">
-                          <span className="text-sm text-muted-foreground">
-                            {item.discountCount}×{formatCurrency(item.averageAmount)}
-                          </span>
-                          <span className="font-bold">
-                            {formatCurrency(item.actual)}
-                          </span>
-                        </div>
-                      ) : (
-                        formatCurrency(item.actual)
-                      )}
-                    </td>
-                    {!isSimplifiedView && (
-                      <td className="hidden md:table-cell px-6 py-4 text-right font-medium text-gray-700 dark:text-gray-300">
-                        {formatCurrency(item.estimated)}
-                      </td>
-                    )}
-                    {!isSimplifiedView && (
-                      <>
-                        <td className="hidden md:table-cell px-6 py-4 text-right">
-                          <div
-                            className={`font-medium ${
-                              itemRemaining >= 0
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-red-600 dark:text-red-400"
-                            }`}
-                          >
-                            {formatCurrency(itemRemaining)}
-                          </div>
-                        </td>
-                      </>
-                    )}
-                    {!isSimplifiedView && (
-                      <td className="hidden lg:table-cell px-6 py-4 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          {category.type === "expense" && onCreatePurchaseRequest && canManagePurchaseRequests && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onCreatePurchaseRequest(item.lineItemId, item.name, item.estimated, item.vendor);
-                              }}
-                              disabled={isLoading}
-                              className="p-1.5 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                              title="Create purchase request"
-                            >
-                              <Plus className="w-4 h-4 text-[#61bc47] dark:text-[#61bc47]" />
-                            </button>
-                          )}
-                          {category.type === "revenue" && onCreateTransaction && canManageTransactions && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onCreateTransaction(item.lineItemId, item.name);
-                              }}
-                              disabled={isLoading}
-                              className="p-1.5 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                              title="Create income transaction"
-                            >
-                              <Plus className="w-4 h-4 text-[#61bc47] dark:text-[#61bc47]" />
-                            </button>
-                          )}
-                          {canManageLineItems && (
-                            <>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onEditLineItem?.(item.lineItemId);
-                                }}
-                                disabled={isLoading}
-                                className="p-1.5 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="Edit line item"
-                              >
-                                <Edit className="w-4 h-4 text-muted-foreground" />
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onDeleteLineItem?.(item.lineItemId, item.name);
-                                }}
-                                disabled={isLoading}
-                                className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="Delete line item"
-                              >
-                                <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    )}
                   </tr>
                 );
               })}
@@ -2263,257 +2102,77 @@ export default function BudgetDetailPage({
       {/* Summary Cards */}
       {viewMode === "expenses" ? (
         <>
-          {/* Expenses View - Two Column */}
-          <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 mb-8">
-            {/* Left: Donut Chart */}
-            <div className="bg-card border border-border rounded-lg p-4 md:p-6 w-full lg:w-fit mx-auto">
-              <div className="flex items-center gap-2 mb-4 md:mb-6">
-                <DollarSign className="w-4 h-4 text-muted-foreground" />
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                  Summary
-                </h3>
-              </div>
-              <ChartContainer
-                config={{
-                  spent: {
-                    label: "Spent",
-                    color: "hsl(142, 76%, 36%)",
-                  },
-                  remaining: {
-                    label: "Remaining",
-                    color: "hsl(211, 21%, 27%)",
-                  },
-                } satisfies ChartConfig}
-                className="h-[200px] md:h-[280px] w-full flex justify-center"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: "Spent", value: totalExpensesActual, fill: "hsl(142, 76%, 36%)" },
-                        { name: "Remaining", value: Math.max(0, totalExpensesEstimated - totalExpensesActual), fill: "hsl(211, 21%, 27%)" },
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={90}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {[
-                        { name: "Spent", value: totalExpensesActual },
-                        { name: "Remaining", value: Math.max(0, totalExpensesEstimated - totalExpensesActual) },
-                      ].map((entry, index) => (
-                        <Cell key={`cell-${index}`} />
-                      ))}
-                    </Pie>
-                    <ChartTooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-white dark:bg-zinc-800 border border-border rounded-lg shadow-lg p-3">
-                              <p className="font-medium text-foreground">{payload[0].name}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {formatCurrency(payload[0].value as number)}
-                              </p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-              <div className="text-center mt-6 space-y-2">
-                <div className="text-3xl font-bold text-foreground">
-                  {formatCurrency(totalExpensesActual)}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  of {formatCurrency(totalExpensesEstimated)}
-                </div>
-                <div className="text-sm font-semibold text-muted-foreground">
-                  {formatCurrency(Math.abs(totalExpensesEstimated - totalExpensesActual))} {totalExpensesEstimated - totalExpensesActual >= 0 ? "remaining" : "over"}
-                </div>
-              </div>
+          {/* Expenses Summary Bar */}
+          <div className="bg-card border border-border rounded-lg p-4 md:p-6 mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <DollarSign className="w-4 h-4 text-muted-foreground" />
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                Summary
+              </h3>
             </div>
 
-            {/* Right: Categories Grid */}
-            <div className="hidden lg:block bg-card border border-border rounded-lg p-4 md:p-8">
-              <div className="flex items-center gap-2 mb-4 md:mb-6">
-                <Receipt className="w-4 h-4 text-purple-500" />
-                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                  Categories
-                </h4>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                {expenseCategories
-                  .sort((a, b) => {
-                    // Always put Registration Discounts first
-                    if (a.categoryId === 'registration-discounts') return -1;
-                    if (b.categoryId === 'registration-discounts') return 1;
-                    // Sort others by actual amount
-                    return b.actual - a.actual;
-                  })
-                  .map((category) => {
-                    const catUtilization = category.estimated > 0 ? (category.actual / category.estimated) * 100 : 0;
-                    const barColor = catUtilization < 90 ? "bg-green-500" : catUtilization < 100 ? "bg-yellow-500" : "bg-red-500";
-
-                    return (
-                      <div key={category.categoryId}>
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm font-medium text-foreground truncate pr-2">
-                            {category.name}
-                          </span>
-                          <span className="text-sm font-bold text-foreground whitespace-nowrap">
-                            {formatCurrency(category.actual)}
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                          <div
-                            className={`h-full rounded-full ${barColor}`}
-                            style={{ width: `${Math.min(catUtilization, 100)}%` }}
-                          />
-                        </div>
-                        <div className="flex justify-between items-center mt-2">
-                          <span className="text-xs text-muted-foreground">
-                            Budget: {formatCurrency(category.estimated)}
-                          </span>
-                          <span className="text-xs font-medium text-muted-foreground">
-                            {catUtilization.toFixed(1)}%
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
+            <div className="flex justify-between text-sm text-muted-foreground mb-2">
+              <span>Spent</span>
+              <span>Budgeted</span>
+            </div>
+            <div className="w-full bg-gray-200 dark:bg-gray-700 h-10 md:h-12 relative overflow-hidden flex items-center justify-between px-3 text-white font-semibold text-sm md:text-base">
+              <div
+                className={`absolute inset-0 ${
+                  totalExpensesEstimated > 0 && (totalExpensesActual / totalExpensesEstimated) * 100 < 90
+                    ? "bg-green-500"
+                    : totalExpensesEstimated > 0 && (totalExpensesActual / totalExpensesEstimated) * 100 < 100
+                    ? "bg-yellow-500"
+                    : "bg-red-500"
+                }`}
+                style={{
+                  width: `${Math.min((totalExpensesEstimated > 0 ? (totalExpensesActual / totalExpensesEstimated) * 100 : 0), 100)}%`
+                }}
+              />
+              <span className="relative z-10 text-white drop-shadow-sm">{formatCurrency(totalExpensesActual)}</span>
+              <span className="relative z-10 text-black dark:text-white">{formatCurrency(totalExpensesEstimated)}</span>
+            </div>
+            <div className="flex justify-between items-center mt-2">
+              <span className="text-sm text-muted-foreground">
+                Remaining:
+              </span>
+              <span className={`text-sm font-medium ${totalExpensesEstimated - totalExpensesActual >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                {totalExpensesEstimated - totalExpensesActual >= 0 ? "" : "-"}{formatCurrency(Math.abs(totalExpensesEstimated - totalExpensesActual))}
+              </span>
             </div>
           </div>
         </>
       ) : (
         <>
-          {/* Income View - Two Column */}
-          <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 mb-8">
-            {/* Left: Donut Chart */}
-            <div className="bg-card border border-border rounded-lg p-4 md:p-6 w-full lg:w-fit mx-auto">
-              <div className="flex items-center gap-2 mb-4 md:mb-6">
-                <DollarSign className="w-4 h-4 text-muted-foreground" />
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                  Summary
-                </h3>
-              </div>
-              <ChartContainer
-                config={{
-                  received: {
-                    label: "Received",
-                    color: "hsl(142, 76%, 36%)",
-                  },
-                  remaining: {
-                    label: "Remaining",
-                    color: "hsl(211, 21%, 27%)",
-                  },
-                } satisfies ChartConfig}
-                className="h-[200px] md:h-[280px] w-full flex justify-center"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: "Received", value: totalRevenueActual, fill: "hsl(142, 76%, 36%)" },
-                        { name: "Remaining", value: Math.max(0, totalRevenueEstimated - totalRevenueActual), fill: "hsl(211, 21%, 27%)" },
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={90}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {[
-                        { name: "Received", value: totalRevenueActual },
-                        { name: "Remaining", value: Math.max(0, totalRevenueEstimated - totalRevenueActual) },
-                      ].map((entry, index) => (
-                        <Cell key={`cell-${index}`} />
-                      ))}
-                    </Pie>
-                    <ChartTooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-white dark:bg-zinc-800 border border-border rounded-lg shadow-lg p-3">
-                              <p className="font-medium text-foreground">{payload[0].name}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {formatCurrency(payload[0].value as number)}
-                              </p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-              <div className="text-center mt-6 space-y-2">
-                <div className="text-3xl font-bold text-foreground">
-                  {formatCurrency(totalRevenueActual)}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  of {formatCurrency(totalRevenueEstimated)}
-                </div>
-                <div className="text-sm font-semibold text-muted-foreground">
-                  {formatCurrency(Math.abs(totalRevenueEstimated - totalRevenueActual))} {totalRevenueEstimated - totalRevenueActual >= 0 ? "remaining" : "over"}
-                </div>
-              </div>
+          {/* Income Summary Bar */}
+          <div className="bg-card border border-border rounded-lg p-4 md:p-6 mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <DollarSign className="w-4 h-4 text-muted-foreground" />
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                Summary
+              </h3>
             </div>
 
-            {/* Right: Income Sources Grid */}
-            <div className="hidden lg:block bg-card border border-border rounded-lg p-4 md:p-8">
-              <div className="flex items-center gap-2 mb-4 md:mb-6">
-                <Receipt className="w-4 h-4 text-teal-500" />
-                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                  Sources
-                </h4>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                {revenueCategories
-                  .sort((a, b) => {
-                    // Always put Registration Revenue first
-                    if (a.categoryId === 'registration-income') return -1;
-                    if (b.categoryId === 'registration-income') return 1;
-                    // Sort others by actual amount
-                    return b.actual - a.actual;
-                  })
-                  .map((category) => {
-                    const progress = category.estimated > 0 ? (category.actual / category.estimated) * 100 : 0;
-                    return (
-                      <div key={category.categoryId}>
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm font-medium text-foreground truncate pr-2">
-                            {category.name}
-                          </span>
-                          <span className="text-sm font-bold text-foreground whitespace-nowrap">
-                            {formatCurrency(category.actual)}
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                          <div
-                            className="h-full rounded-full bg-green-500"
-                            style={{ width: `${Math.min(progress, 100)}%` }}
-                          />
-                        </div>
-                        <div className="flex justify-between items-center mt-2">
-                          <span className="text-xs text-muted-foreground">
-                            Goal: {formatCurrency(category.estimated)}
-                          </span>
-                          <span className="text-xs font-medium text-muted-foreground">
-                            {progress.toFixed(1)}%
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
+            <div className="flex justify-between text-sm text-muted-foreground mb-2">
+              <span>Received</span>
+              <span>Goal</span>
+            </div>
+            <div className="w-full bg-gray-200 dark:bg-gray-700 h-10 md:h-12 relative overflow-hidden flex items-center justify-between px-3 text-white font-semibold text-sm md:text-base">
+              <div
+                className="absolute inset-0 bg-green-500"
+                style={{
+                  width: `${Math.min((totalRevenueEstimated > 0 ? (totalRevenueActual / totalRevenueEstimated) * 100 : 0), 100)}%`
+                }}
+              />
+              <span className="relative z-10 text-white drop-shadow-sm">{formatCurrency(totalRevenueActual)}</span>
+              <span className="relative z-10 text-black dark:text-white">{formatCurrency(totalRevenueEstimated)}</span>
+            </div>
+            <div className="flex justify-between items-center mt-2">
+              <span className="text-sm text-muted-foreground">
+                Remaining:
+              </span>
+              <span className={`text-sm font-medium ${totalRevenueEstimated - totalRevenueActual >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                {totalRevenueEstimated - totalRevenueActual >= 0 ? "" : "-"}{formatCurrency(Math.abs(totalRevenueEstimated - totalRevenueActual))}
+              </span>
             </div>
           </div>
         </>
@@ -2521,7 +2180,7 @@ export default function BudgetDetailPage({
 
       {/* Filter Input */}
       <div className="mb-6">
-        <div className="relative max-w-md">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
           <input
             type="text"
@@ -2565,7 +2224,7 @@ export default function BudgetDetailPage({
                   projectSlug={slug}
                   projectId={project?.Project_ID || 0}
                   onEditDiscountsBudget={
-                    category.categoryId === 'registration-discounts'
+                    category.categoryId === 'registration-discounts' && permissions.canManageCategories
                       ? () => {
                           setEditDiscountsValue((project?.Expected_Discounts_Budget || 0).toString());
                           setIsEditDiscountsOpen(true);
@@ -2652,7 +2311,7 @@ export default function BudgetDetailPage({
                   projectSlug={slug}
                   projectId={project?.Project_ID || 0}
                   onEditExpectedRevenue={
-                    category.categoryId === 'registration-income'
+                    category.categoryId === 'registration-income' && permissions.canManageCategories
                       ? () => {
                           setEditRevenueValue((project?.Expected_Registration_Revenue || 0).toString());
                           setIsEditRevenueOpen(true);
