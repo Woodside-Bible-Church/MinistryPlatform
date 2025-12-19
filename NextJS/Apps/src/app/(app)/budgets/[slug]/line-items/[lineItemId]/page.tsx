@@ -704,21 +704,12 @@ export default function LineItemDetailsPage({
     <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
       {/* Header */}
       <div className="mb-6">
-        <BackButton
-          fallbackUrl={`/budgets/${resolvedParams.slug}`}
-          label="Back"
-        />
-
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              {lineItem.lineItemName}
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              {lineItem.categoryName} •{" "}
-              {isExpense ? "Expense" : "Income"} Line Item
-            </p>
-          </div>
+        <div className="flex items-center justify-between mb-4">
+          <BackButton
+            fallbackUrl={`/budgets/${resolvedParams.slug}`}
+            label="Back"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+          />
 
           {permissions.canManageLineItems && (
             <div className="flex gap-2">
@@ -732,59 +723,359 @@ export default function LineItemDetailsPage({
             </div>
           )}
         </div>
+
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">
+            {lineItem.lineItemName}
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            {lineItem.categoryName} •{" "}
+            {isExpense ? "Expense" : "Income"} Line Item
+          </p>
+        </div>
       </div>
 
-      {/* Budget Summary */}
-      <Card className="p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div>
-            <div className="text-sm text-muted-foreground mb-1">
-              {isIncome ? "Received" : "Spent"}
-            </div>
-            <div className="text-2xl font-bold text-foreground">
-              {formatCurrency(lineItem.actualAmount)}
-            </div>
-          </div>
-          <div>
-            <div className="text-sm text-muted-foreground mb-1">
-              {isIncome ? "Expected" : "Budgeted"}
-            </div>
-            <div className="text-2xl font-bold text-foreground">
-              {formatCurrency(lineItem.estimatedAmount)}
-            </div>
-          </div>
-          <div>
-            <div className="text-sm text-muted-foreground mb-1">Remaining</div>
+      {/* Budget Summary - Horizontal bar chart */}
+      <div className="mb-10 md:mb-8">
+        <div className="flex items-center justify-between mb-2 text-sm text-muted-foreground">
+          <div>{isIncome ? "Received" : "Spent"}</div>
+          <div>{isIncome ? "Expected" : "Budgeted"}</div>
+        </div>
+        <div className="relative h-8 bg-muted/30 overflow-hidden flex items-center">
+          {lineItem.actualAmount > 0 && (
             <div
-              className={`text-2xl font-bold ${
-                -lineItem.variance >= 0
-                  ? "text-green-600 dark:text-green-400"
-                  : "text-red-600 dark:text-red-400"
-              }`}
+              className={`absolute left-0 top-0 h-full ${
+                lineItem.actualAmount <= lineItem.estimatedAmount
+                  ? "bg-[#61bc47]"
+                  : "bg-red-500"
+              } transition-all flex items-center justify-start px-3`}
+              style={{
+                width: `${Math.min(
+                  (lineItem.actualAmount / lineItem.estimatedAmount) * 100,
+                  100
+                )}%`,
+              }}
             >
-              {formatCurrency(-lineItem.variance)}
-            </div>
-          </div>
-          {lineItem.vendorName && (
-            <div>
-              <div className="text-sm text-muted-foreground mb-1">Vendor</div>
-              <div className="text-xl font-semibold text-foreground">
-                {lineItem.vendorName}
-              </div>
+              <span className="text-sm font-semibold text-black dark:text-white">
+                {formatCurrency(lineItem.actualAmount)}
+              </span>
             </div>
           )}
+          <div className="ml-auto pr-3 text-sm font-semibold text-foreground relative z-10">
+            {formatCurrency(lineItem.estimatedAmount)}
+          </div>
         </div>
-        {lineItem.lineItemDescription && (
-          <div className="mt-4 pt-4 border-t border-border">
-            <div className="text-sm text-muted-foreground mb-1">Description</div>
-            <p className="text-foreground">{lineItem.lineItemDescription}</p>
+        <div className="mt-2 text-sm">
+          <span className="text-muted-foreground">Remaining: </span>
+          <span className={`font-medium ${
+            -lineItem.variance >= 0
+              ? "text-green-600 dark:text-green-400"
+              : "text-red-600 dark:text-red-400"
+          }`}>
+            {formatCurrency(Math.abs(-lineItem.variance))}
+          </span>
+        </div>
+
+        {(lineItem.vendorName || lineItem.lineItemDescription) && (
+          <div className="mt-4 pt-4 border-t border-border space-y-3">
+            {lineItem.vendorName && (
+              <div>
+                <div className="text-sm text-muted-foreground mb-1">Vendor</div>
+                <div className="text-base font-semibold text-foreground">
+                  {lineItem.vendorName}
+                </div>
+              </div>
+            )}
+            {lineItem.lineItemDescription && (
+              <div>
+                <div className="text-sm text-muted-foreground mb-1">Description</div>
+                <p className="text-foreground">{lineItem.lineItemDescription}</p>
+              </div>
+            )}
           </div>
         )}
-      </Card>
+      </div>
 
-      {/* Files Section - Only admins can manage files */}
-      {permissions.canManageLineItems && (
-        <div className="mb-6">
+      {/* Grid layout for Files and Purchase Requests - side by side on large screens */}
+      {isExpense && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 gap-y-10 mb-6 mt-12 md:mt-0">
+          {/* Files Section - Only admins can manage files */}
+          {permissions.canManageLineItems && (
+            <div>
+              <FileAttachments
+                files={lineItem.files || []}
+                uploadEndpoint={`/api/projects/${lineItem.projectId}/line-items/${lineItem.lineItemId}/files`}
+                onFilesUploaded={fetchLineItemDetails}
+              />
+            </div>
+          )}
+
+          {/* Purchase Requests Section - No Card wrapper */}
+          <div>
+            <h2 className="text-xl font-semibold text-foreground flex items-center gap-2 mb-4">
+              <ShoppingCart className="w-5 h-5" />
+              Purchase Requests
+            </h2>
+
+            <p className="text-sm text-muted-foreground mb-4">
+              Expense line items require purchase request approval before
+              transactions can be created.
+            </p>
+
+            {lineItem.purchaseRequestCount > 0 ? (
+              <div className="space-y-2 mb-4">
+                {lineItem.purchaseRequests.map((request) => {
+                  const spentPercentage = (request.transactionTotal / request.amount) * 100;
+                  return (
+                    <div
+                      key={request.id}
+                      className="p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer"
+                      onClick={() =>
+                        router.push(
+                          `/budgets/${resolvedParams.slug}/purchase-requests/${request.id}`
+                        )
+                      }
+                    >
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-foreground">
+                            {request.vendorName}
+                          </div>
+                          <div className="text-sm text-muted-foreground mt-1">
+                            {request.description}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {/* Add Transaction - available to edit and admin users */}
+                          {permissions.canManageTransactions && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (request.approvalStatus === "Approved") {
+                                  setTransactionPurchaseRequest(request);
+                                  setTransactionAmount(request.remainingAmount.toString());
+                                  setTransactionDescription("");
+                                  setTransactionDate(new Date().toISOString().split('T')[0]);
+                                  setTransactionPaymentMethod("");
+                                  setIsAddTransactionOpen(true);
+                                }
+                              }}
+                              disabled={request.approvalStatus !== "Approved"}
+                              className={`p-1.5 rounded-md transition-colors ${
+                                request.approvalStatus === "Approved"
+                                  ? "hover:bg-green-100 dark:hover:bg-green-900/20 text-green-600 dark:text-green-400"
+                                  : "text-muted-foreground/30 cursor-not-allowed"
+                              }`}
+                              title={
+                                request.approvalStatus === "Approved"
+                                  ? "Add Transaction"
+                                  : "Only available for approved requests"
+                              }
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          )}
+                          {/* Edit PR - available to edit and admin users */}
+                          {permissions.canManagePurchaseRequests && (
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingPurchaseRequest(request);
+                                  setEditPRAmount(request.amount.toString());
+                                  setEditPRDescription(request.description);
+                                  setEditPRVendorName(request.vendorName);
+                                  setIsEditPurchaseRequestOpen(true);
+                                }}
+                                className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-muted-foreground hover:text-foreground transition-colors"
+                                title="Edit Purchase Request"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  if (confirm("Are you sure you want to delete this purchase request? This action cannot be undone.")) {
+                                    try {
+                                      const response = await fetch(`/api/purchase-requests/${request.id}`, {
+                                        method: "DELETE",
+                                      });
+
+                                      if (!response.ok) {
+                                        throw new Error("Failed to delete purchase request");
+                                      }
+
+                                      // Refresh line item details
+                                      await fetchLineItemDetails();
+                                    } catch (err) {
+                                      console.error("Error deleting purchase request:", err);
+                                      alert("Failed to delete purchase request. Please try again.");
+                                    }
+                                  }
+                                }}
+                                className="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
+                                title="Delete Purchase Request"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+
+                          {/* Approval Status Icon with Dropdown - only for admins */}
+                          <div className="relative">
+                            {permissions.canApprovePurchaseRequests ? (
+                              <>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setStatusDropdownOpen(statusDropdownOpen === request.id ? null : request.id);
+                                  }}
+                                  className={`p-2 rounded-md transition-colors ${
+                                    request.approvalStatus === "Approved"
+                                      ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50"
+                                      : request.approvalStatus === "Rejected"
+                                      ? "bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50"
+                                      : "bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:hover:bg-yellow-900/50"
+                                  }`}
+                                  title={`Status: ${request.approvalStatus}`}
+                                >
+                                  {request.approvalStatus === "Approved" && (
+                                    <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                  )}
+                                  {request.approvalStatus === "Rejected" && (
+                                    <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                                  )}
+                                  {request.approvalStatus === "Pending" && (
+                                    <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                                  )}
+                                </button>
+
+                                {/* Status Dropdown */}
+                                {statusDropdownOpen === request.id && (
+                                  <div
+                                    className="absolute right-0 top-full mt-1 w-48 bg-background border border-border rounded-lg shadow-lg z-50"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <button
+                                      onClick={() => handleStatusChange(request, "Approved")}
+                                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
+                                    >
+                                      <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                      <span className="text-sm font-medium text-foreground">APPROVE</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleStatusChange(request, "Rejected")}
+                                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
+                                    >
+                                      <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                                      <span className="text-sm font-medium text-foreground">REJECT</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleStatusChange(request, "Pending")}
+                                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
+                                    >
+                                      <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                                      <span className="text-sm font-medium text-foreground">PENDING</span>
+                                    </button>
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <div
+                                className={`p-2 rounded-md ${
+                                  request.approvalStatus === "Approved"
+                                    ? "bg-green-100 dark:bg-green-900/30"
+                                    : request.approvalStatus === "Rejected"
+                                    ? "bg-red-100 dark:bg-red-900/30"
+                                    : "bg-yellow-100 dark:bg-yellow-900/30"
+                                }`}
+                                title={`Status: ${request.approvalStatus}`}
+                              >
+                                {request.approvalStatus === "Approved" && (
+                                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                )}
+                                {request.approvalStatus === "Rejected" && (
+                                  <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                                )}
+                                {request.approvalStatus === "Pending" && (
+                                  <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Horizontal bar chart for Spent vs Requested */}
+                      <div className="mt-3">
+                        <div className="flex items-center justify-between mb-1.5 text-xs text-muted-foreground">
+                          <div>Spent</div>
+                          <div>Requested</div>
+                        </div>
+                        <div className="relative h-6 bg-muted/30 overflow-hidden flex items-center">
+                          {request.transactionTotal > 0 && (
+                            <div
+                              className={`absolute left-0 top-0 h-full ${
+                                request.transactionTotal <= request.amount
+                                  ? "bg-[#61bc47]"
+                                  : "bg-red-500"
+                              } transition-all flex items-center justify-start px-2`}
+                              style={{
+                                width: `${Math.min(spentPercentage, 100)}%`,
+                              }}
+                            >
+                              <span className="text-xs font-semibold text-black dark:text-white">
+                                {formatCurrency(request.transactionTotal)}
+                              </span>
+                            </div>
+                          )}
+                          <div className="ml-auto pr-2 text-xs font-semibold text-foreground relative z-10">
+                            {formatCurrency(request.amount)}
+                          </div>
+                        </div>
+                        <div className="mt-1.5 text-xs">
+                          <span className="text-muted-foreground">Remaining: </span>
+                          <span className={`font-medium ${
+                            request.remainingAmount < 0
+                              ? 'text-red-600 dark:text-red-400'
+                              : request.remainingAmount === 0
+                              ? 'text-muted-foreground'
+                              : 'text-green-600 dark:text-green-400'
+                          }`}>
+                            {formatCurrency(Math.abs(request.remainingAmount))}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                No purchase requests yet.
+              </div>
+            )}
+
+            {/* New Request button - full width with dashed border */}
+            <button
+              onClick={() => {
+                setCreatePRAmount(lineItem.estimatedAmount.toString());
+                setCreatePRVendorName(lineItem.vendorName || "");
+                setIsCreatePurchaseRequestOpen(true);
+              }}
+              className="w-full py-3 px-6 border-2 border-dashed border-border hover:border-[#61bc47] hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg transition-colors flex items-center justify-center gap-2 text-muted-foreground hover:text-[#61bc47]"
+            >
+              <Plus className="w-4 h-4" />
+              New Request
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Files Section for income line items - only admins can manage files */}
+      {isIncome && permissions.canManageLineItems && (
+        <div className="mb-6 mt-12 md:mt-0">
           <FileAttachments
             files={lineItem.files || []}
             uploadEndpoint={`/api/projects/${lineItem.projectId}/line-items/${lineItem.lineItemId}/files`}
@@ -793,244 +1084,9 @@ export default function LineItemDetailsPage({
         </div>
       )}
 
-      {/* Expense Line Item - Purchase Requests */}
-      {isExpense && (
-        <Card className="p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-foreground">
-              Purchase Requests
-            </h2>
-            <Button
-              size="sm"
-              onClick={() => {
-                setCreatePRAmount(lineItem.estimatedAmount.toString());
-                setCreatePRVendorName(lineItem.vendorName || "");
-                setIsCreatePurchaseRequestOpen(true);
-              }}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              New Request
-            </Button>
-          </div>
-
-          <p className="text-sm text-muted-foreground mb-4">
-            Expense line items require purchase request approval before
-            transactions can be created.
-          </p>
-
-          {lineItem.purchaseRequestCount > 0 ? (
-            <div className="space-y-2">
-              {lineItem.purchaseRequests.map((request) => (
-                <div
-                  key={request.id}
-                  className="p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer"
-                  onClick={() =>
-                    router.push(
-                      `/budgets/${resolvedParams.slug}/purchase-requests/${request.id}`
-                    )
-                  }
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="font-medium text-foreground">
-                        {formatCurrency(request.amount)} - {request.vendorName}
-                      </div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {request.description}
-                      </div>
-                      <div className="flex items-center gap-3 mt-2 text-xs">
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-muted/50">
-                          <DollarSign className="w-3 h-3" />
-                          {request.transactionCount} {request.transactionCount === 1 ? 'transaction' : 'transactions'}
-                        </span>
-                        <span className={`font-medium ${
-                          request.remainingAmount < 0
-                            ? 'text-red-600 dark:text-red-400'
-                            : request.remainingAmount === 0
-                            ? 'text-muted-foreground'
-                            : 'text-green-600 dark:text-green-400'
-                        }`}>
-                          {formatCurrency(Math.abs(request.remainingAmount))} {request.remainingAmount < 0 ? 'over budget' : 'remaining'}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {/* Action Icons */}
-                      <div className="flex items-center gap-1">
-                        {/* Add Transaction - available to edit and admin users */}
-                        {permissions.canManageTransactions && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (request.approvalStatus === "Approved") {
-                                setTransactionPurchaseRequest(request);
-                                setTransactionAmount(request.remainingAmount.toString());
-                                setTransactionDescription("");
-                                setTransactionDate(new Date().toISOString().split('T')[0]);
-                                setTransactionPaymentMethod("");
-                                setIsAddTransactionOpen(true);
-                              }
-                            }}
-                            disabled={request.approvalStatus !== "Approved"}
-                            className={`p-1.5 rounded-md transition-colors ${
-                              request.approvalStatus === "Approved"
-                                ? "hover:bg-green-100 dark:hover:bg-green-900/20 text-green-600 dark:text-green-400"
-                                : "text-muted-foreground/30 cursor-not-allowed"
-                            }`}
-                            title={
-                              request.approvalStatus === "Approved"
-                                ? "Add Transaction"
-                                : "Only available for approved requests"
-                            }
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
-                        )}
-                        {/* Edit/Delete PR - available to edit and admin users */}
-                        {permissions.canManagePurchaseRequests && (
-                          <>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditingPurchaseRequest(request);
-                                setEditPRAmount(request.amount.toString());
-                                setEditPRDescription(request.description);
-                                setEditPRVendorName(request.vendorName);
-                                setIsEditPurchaseRequestOpen(true);
-                              }}
-                              className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-muted-foreground hover:text-foreground transition-colors"
-                              title="Edit Purchase Request"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                if (confirm("Are you sure you want to delete this purchase request? This action cannot be undone.")) {
-                                  try {
-                                    const response = await fetch(`/api/purchase-requests/${request.id}`, {
-                                      method: "DELETE",
-                                    });
-
-                                    if (!response.ok) {
-                                      throw new Error("Failed to delete purchase request");
-                                    }
-
-                                    // Refresh line item details
-                                    await fetchLineItemDetails();
-                                  } catch (err) {
-                                    console.error("Error deleting purchase request:", err);
-                                    alert("Failed to delete purchase request. Please try again.");
-                                  }
-                                }
-                              }}
-                              className="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
-                              title="Delete Purchase Request"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-
-                      {/* Approval Status Icon with Dropdown - only for admins */}
-                      <div className="relative">
-                        {permissions.canApprovePurchaseRequests ? (
-                          <>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setStatusDropdownOpen(statusDropdownOpen === request.id ? null : request.id);
-                              }}
-                              className={`p-2 rounded-md transition-colors ${
-                                request.approvalStatus === "Approved"
-                                  ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50"
-                                  : request.approvalStatus === "Rejected"
-                                  ? "bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50"
-                                  : "bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:hover:bg-yellow-900/50"
-                              }`}
-                              title={`Status: ${request.approvalStatus}`}
-                            >
-                              {request.approvalStatus === "Approved" && (
-                                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                              )}
-                              {request.approvalStatus === "Rejected" && (
-                                <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
-                              )}
-                              {request.approvalStatus === "Pending" && (
-                                <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-                              )}
-                            </button>
-
-                            {/* Status Dropdown */}
-                            {statusDropdownOpen === request.id && (
-                              <div
-                                className="absolute right-0 top-full mt-1 w-48 bg-background border border-border rounded-lg shadow-lg z-50"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <button
-                                  onClick={() => handleStatusChange(request, "Approved")}
-                                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
-                                >
-                                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                                  <span className="text-sm font-medium text-foreground">APPROVE</span>
-                                </button>
-                                <button
-                                  onClick={() => handleStatusChange(request, "Rejected")}
-                                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
-                                >
-                                  <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
-                                  <span className="text-sm font-medium text-foreground">REJECT</span>
-                                </button>
-                                <button
-                                  onClick={() => handleStatusChange(request, "Pending")}
-                                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
-                                >
-                                  <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-                                  <span className="text-sm font-medium text-foreground">PENDING</span>
-                                </button>
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <div
-                            className={`p-2 rounded-md ${
-                              request.approvalStatus === "Approved"
-                                ? "bg-green-100 dark:bg-green-900/30"
-                                : request.approvalStatus === "Rejected"
-                                ? "bg-red-100 dark:bg-red-900/30"
-                                : "bg-yellow-100 dark:bg-yellow-900/30"
-                            }`}
-                            title={`Status: ${request.approvalStatus}`}
-                          >
-                            {request.approvalStatus === "Approved" && (
-                              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                            )}
-                            {request.approvalStatus === "Rejected" && (
-                              <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
-                            )}
-                            {request.approvalStatus === "Pending" && (
-                              <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              No purchase requests yet. Create one to request spending approval.
-            </div>
-          )}
-        </Card>
-      )}
-
       {/* Income Line Item - Direct Transactions */}
       {isIncome && (
-        <Card className="p-6">
+        <Card className="p-6 mt-12 md:mt-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-foreground">
               Transactions

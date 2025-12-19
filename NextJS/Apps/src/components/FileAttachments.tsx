@@ -222,114 +222,117 @@ export function FileAttachments({ files, uploadEndpoint, onFilesUploaded }: File
 
   return (
     <>
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Attached Files
-          </h2>
-          <div>
-            <input
-              type="file"
-              multiple
-              onChange={handleFileUpload}
-              className="hidden"
-              id="file-upload"
-              disabled={isUploading}
-            />
-            <Button
-              onClick={() => document.getElementById("file-upload")?.click()}
-              disabled={isUploading}
-              size="sm"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              {isUploading ? "Uploading..." : "Upload Files"}
-            </Button>
-          </div>
-        </div>
+      <div>
+        <h2 className="text-xl font-semibold text-foreground flex items-center gap-2 mb-4">
+          <FileText className="w-5 h-5" />
+          Attached Files
+        </h2>
 
         {files && files.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-2 mb-4">
             {files.map((file) => {
               const isImage = isImageFile(file.FileName, file.FileExtension, file.ImageWidth, file.ImageHeight);
               return (
                 <div
                   key={file.FileId}
-                  className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                  className="p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
                 >
-                  {isImage ? (
-                    <div
-                      className="relative w-20 h-20 flex-shrink-0 rounded overflow-hidden bg-muted/30 cursor-pointer hover:ring-2 hover:ring-primary transition-all"
-                      onClick={() => setSelectedImage(file.publicUrl)}
-                    >
-                      <Image
-                        src={file.publicUrl}
-                        alt={file.FileName}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-20 h-20 flex-shrink-0 rounded bg-muted/30 flex items-center justify-center">
-                      <FileText className="w-8 h-8 text-muted-foreground" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-foreground truncate">
-                      {file.FileName}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {formatFileSize(file.FileSize)} •{" "}
-                      {formatDate(file.LastUpdated)}
-                      {file.Description && ` • ${file.Description}`}
+                  {/* Thumbnail and actions row */}
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    {/* Small thumbnail */}
+                    {isImage ? (
+                      <div
+                        className="relative w-16 h-16 flex-shrink-0 rounded overflow-hidden bg-muted/30 cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+                        onClick={() => setSelectedImage(file.publicUrl)}
+                      >
+                        <Image
+                          src={file.publicUrl}
+                          alt={file.FileName}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 flex-shrink-0 rounded bg-muted/30 flex items-center justify-center">
+                        <FileText className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                    )}
+
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => window.open(file.publicUrl, "_blank")}
+                        title="Download"
+                      >
+                        <Download className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyPublicUrl(file.publicUrl)}
+                        title="Copy public link"
+                      >
+                        <Link2 className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditFile(file)}
+                        title="Edit file name"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setDeletingFileId(file.FileId)}
+                        title="Delete file"
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => window.open(file.publicUrl, "_blank")}
-                      title="Download"
-                    >
-                      <Download className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyPublicUrl(file.publicUrl)}
-                      title="Copy public link"
-                    >
-                      <Link2 className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditFile(file)}
-                      title="Edit file name"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDeletingFileId(file.FileId)}
-                      title="Delete file"
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+
+                  {/* File info row - spans full width */}
+                  <div className="text-xs text-muted-foreground/70 truncate">
+                    {file.FileName} • {formatFileSize(file.FileSize)} •{" "}
+                    {formatDate(file.LastUpdated)}
+                    {file.Description && ` • ${file.Description}`}
                   </div>
                 </div>
               );
             })}
           </div>
         ) : (
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="text-center py-8 text-muted-foreground mb-4">
             No files attached yet. Upload files like quotes or receipts.
           </div>
         )}
-      </Card>
+
+        {/* Upload button at bottom */}
+        <div className="mt-4">
+          <input
+            type="file"
+            multiple
+            onChange={handleFileUpload}
+            className="hidden"
+            id="file-upload"
+            disabled={isUploading}
+          />
+          <button
+            onClick={() => document.getElementById("file-upload")?.click()}
+            disabled={isUploading}
+            className="w-full py-3 px-6 border-2 border-dashed border-border hover:border-[#61bc47] hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg transition-colors flex items-center justify-center gap-2 text-muted-foreground hover:text-[#61bc47] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Upload className="w-4 h-4" />
+            {isUploading ? "Uploading..." : "Upload Files"}
+          </button>
+        </div>
+      </div>
 
       {/* Image Viewer Dialog */}
       <Dialog open={selectedImage !== null} onOpenChange={() => setSelectedImage(null)}>
