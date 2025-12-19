@@ -495,6 +495,9 @@ export default function LineItemsPage({
               ? (item.actual / item.estimated) * 100
               : 0;
 
+            // Check if this is an auto-tracked item (Registration Discounts or Registration Revenue)
+            const isAutoTracked = item.categoryName.toLowerCase().includes('registration');
+
             return (
               <Link
                 key={item.lineItemId}
@@ -510,11 +513,13 @@ export default function LineItemsPage({
                       {item.categoryName}
                     </span>
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                      item.categoryType === "expense"
+                      isAutoTracked
+                        ? "bg-blue-100/70 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"
+                        : item.categoryType === "expense"
                         ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
                         : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
                     }`}>
-                      {item.categoryType === "expense" ? "EXPENSE" : "REVENUE"}
+                      {isAutoTracked ? "AUTO-TRACKED" : ""}
                     </span>
                   </div>
 
@@ -604,8 +609,8 @@ export default function LineItemsPage({
                     )}
                   </div>
 
-                  {/* Action buttons on separate line */}
-                  {permissions.canManageLineItems && (
+                  {/* Action buttons on separate line - hide for auto-tracked */}
+                  {!isAutoTracked && permissions.canManageLineItems && (
                     <div className="flex items-center justify-end gap-2 pt-2">
                       {item.categoryType === "expense" && permissions.canManagePurchaseRequests && (
                         <button
@@ -615,6 +620,18 @@ export default function LineItemsPage({
                           }}
                           className="p-2 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors"
                           title="Create purchase request"
+                        >
+                          <Plus className="w-5 h-5 text-[#61bc47]" />
+                        </button>
+                      )}
+                      {item.categoryType === "revenue" && permissions.canManageTransactions && (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            router.push(`/budgets/${slug}/transactions?lineItemId=${item.lineItemId}`);
+                          }}
+                          className="p-2 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors"
+                          title="Create income transaction"
                         >
                           <Plus className="w-5 h-5 text-[#61bc47]" />
                         </button>
