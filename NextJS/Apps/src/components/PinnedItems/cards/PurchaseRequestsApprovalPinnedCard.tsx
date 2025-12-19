@@ -7,6 +7,9 @@ import {
   XCircle,
   FileText,
   DollarSign,
+  AlertTriangle,
+  Copy,
+  Check,
 } from "lucide-react";
 import { PinnedItem } from "@/types/pinnedItems";
 import {
@@ -34,6 +37,15 @@ interface PurchaseRequest {
   requestedByContactId: number;
   requestedByName: string;
   requestedByEmail: string;
+
+  // Budget context
+  lineItemBudgeted: number;
+  lineItemActualSpent: number;
+  lineItemRemaining: number;
+  approvedPurchaseRequestsTotal: number;
+  projectedSpentAfterApproval: number;
+  wouldBeOverBudget: boolean;
+  overBudgetAmount: number;
 }
 
 interface PurchaseRequestsApprovalPinnedCardProps {
@@ -73,6 +85,7 @@ export function PurchaseRequestsApprovalPinnedCard({ item }: PurchaseRequestsApp
   const [rejectionReason, setRejectionReason] = useState("");
   const [isSavingApproval, setIsSavingApproval] = useState(false);
   const [processingRequestId, setProcessingRequestId] = useState<number | null>(null);
+  const [copiedGuid, setCopiedGuid] = useState<string | null>(null);
 
   // Extract project ID from the item's route
   const projectSlug = item.item_id;
@@ -90,17 +103,17 @@ export function PurchaseRequestsApprovalPinnedCard({ item }: PurchaseRequestsApp
         }
         const projectData = await projectResponse.json();
 
-        // Fetch all purchase requests (not filtered)
+        // Fetch pending requests with budget context
         const response = await fetch(
-          `/api/projects/${projectData.Project_ID}/purchase-requests?filterByMe=false`
+          `/api/projects/${projectData.Project_ID}/purchase-requests/pending-approval`
         );
 
         if (!response.ok) {
-          throw new Error("Failed to fetch purchase requests");
+          throw new Error("Failed to fetch pending purchase requests");
         }
 
         const data = await response.json();
-        setRequests(data);
+        setRequests(data.pendingRequests || []);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
@@ -126,6 +139,16 @@ export function PurchaseRequestsApprovalPinnedCard({ item }: PurchaseRequestsApp
       }
     } catch (err) {
       console.error("Error refetching purchase requests:", err);
+    }
+  }
+
+  async function handleCopyGuid(guid: string) {
+    try {
+      await navigator.clipboard.writeText(guid);
+      setCopiedGuid(guid);
+      setTimeout(() => setCopiedGuid(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy GUID:", err);
     }
   }
 
@@ -236,54 +259,135 @@ export function PurchaseRequestsApprovalPinnedCard({ item }: PurchaseRequestsApp
           <p className="text-sm text-muted-foreground">No pending approvals</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="flex flex-wrap gap-3">
           {pendingRequests.slice(0, 3).map((request) => {
             const isProcessing = processingRequestId === request.purchaseRequestId;
 
             return (
               <div
                 key={request.purchaseRequestId}
-                className={`bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4 transition-all ${
+                className={`bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4 transition-all flex-1 min-w-[280px] max-w-full ${
                   isProcessing
                     ? 'opacity-60 pointer-events-none'
                     : 'hover:bg-zinc-200 dark:hover:bg-zinc-700'
                 }`}
               >
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono text-purple-600 dark:text-purple-400 font-semibold">
-                      {formatGuid(request.requisitionGuid)}
-                    </span>
-                    <span className="text-xs text-muted-foreground">•</span>
-                    <span className="text-sm font-medium text-foreground truncate">
+                <div className="flex flex-col gap-3">
+                  {/* Top Row: Line item name and amount */}
+                  <div className="flex items-start justify-between gap-4">
+                    <h3 className="flex-1 text-base font-semibold text-foreground">
                       {request.lineItemName}
-                    </span>
-                    {isProcessing && (
-                      <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <div className="w-3 h-3 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin" />
-                        Processing...
-                      </span>
-                    )}
+                    </h3>
+                    <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+                      <div className="text-xs text-muted-foreground uppercase tracking-wide">
+                        Amount
+                      </div>
+                      <div className="text-xl font-bold text-foreground whitespace-nowrap">
+                        {formatCurrency(request.amount)}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <FileText className="w-3 h-3" />
-                      {request.requestedByName}
-                    </span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <DollarSign className="w-3 h-3" />
-                      {formatCurrency(request.amount)}
-                    </span>
-                    <span>•</span>
-                    <span>{formatDate(request.requestedDate)}</span>
-                  </div>
+
+                  {isProcessing && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <div className="w-3 h-3 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin" />
+                      Processing...
+                    </div>
+                  )}
+
                   {request.description && (
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="text-sm text-muted-foreground italic">
                       {request.description}
                     </p>
                   )}
-                  <div className="flex items-center gap-2 mt-2">
+
+                  {/* Date and Requester */}
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>{formatDate(request.requestedDate)}</span>
+                    <span>•</span>
+                    <span>{request.requestedByName}</span>
+                  </div>
+
+                  {/* Full GUID with copy */}
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground/60">
+                    <span className="font-mono">
+                      {request.requisitionGuid.toUpperCase()}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleCopyGuid(request.requisitionGuid);
+                      }}
+                      className="p-0.5 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors opacity-60 hover:opacity-100"
+                      title="Copy GUID"
+                    >
+                      {copiedGuid === request.requisitionGuid ? (
+                        <Check className="w-3 h-3 text-green-600 dark:text-green-400" />
+                      ) : (
+                        <Copy className="w-3 h-3 text-muted-foreground" />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Budget Context */}
+                  <div className="pt-2 border-t border-zinc-300 dark:border-zinc-600">
+                    {/* Budget Bar Chart */}
+                    <div className="mb-2">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-medium text-muted-foreground">
+                          Budget Usage
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatCurrency(request.lineItemActualSpent)} / {formatCurrency(request.lineItemBudgeted)}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-zinc-300 dark:bg-zinc-700 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all ${
+                            request.wouldBeOverBudget
+                              ? 'bg-red-500'
+                              : request.lineItemActualSpent / request.lineItemBudgeted > 0.9
+                              ? 'bg-yellow-500'
+                              : 'bg-[#61bc47]'
+                          }`}
+                          style={{
+                            width: `${Math.min(
+                              (request.lineItemActualSpent / request.lineItemBudgeted) * 100,
+                              100
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Impact Preview */}
+                    <div className="flex items-start gap-2">
+                      {request.wouldBeOverBudget && (
+                        <AlertTriangle className="w-3.5 h-3.5 text-red-500 mt-0.5 flex-shrink-0" />
+                      )}
+                      <div className="flex-1">
+                        <p className={`text-xs ${
+                          request.wouldBeOverBudget
+                            ? 'text-red-600 dark:text-red-400 font-medium'
+                            : 'text-muted-foreground'
+                        }`}>
+                          {request.wouldBeOverBudget ? (
+                            <>
+                              Approving will exceed budget by {formatCurrency(request.overBudgetAmount)}
+                            </>
+                          ) : (
+                            <>
+                              After approval: {formatCurrency(request.lineItemBudgeted - request.projectedSpentAfterApproval)} remaining
+                            </>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={(e) => {
                         e.preventDefault();
@@ -342,20 +446,95 @@ export function PurchaseRequestsApprovalPinnedCard({ item }: PurchaseRequestsApp
           </DialogHeader>
           <div className="space-y-4 py-4">
             {approvingRequest && (
-              <div className="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Amount:</span>
-                  <span className="font-semibold">{formatCurrency(approvingRequest.amount)}</span>
+              <>
+                <div className="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Amount:</span>
+                    <span className="font-semibold">{formatCurrency(approvingRequest.amount)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Line Item:</span>
+                    <span className="font-medium">{approvingRequest.lineItemName}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Requested by:</span>
+                    <span>{approvingRequest.requestedByName}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Line Item:</span>
-                  <span className="font-medium">{approvingRequest.lineItemName}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Requested by:</span>
-                  <span>{approvingRequest.requestedByName}</span>
-                </div>
-              </div>
+
+                {/* Budget Impact in Modal */}
+                {approvalAction === "Approved" && (
+                  <div className="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4 space-y-3">
+                    <h4 className="text-sm font-semibold text-foreground">Budget Impact</h4>
+
+                    {/* Current Budget Status */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-medium text-muted-foreground">
+                          Current Status
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatCurrency(approvingRequest.lineItemActualSpent)} / {formatCurrency(approvingRequest.lineItemBudgeted)}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-zinc-300 dark:bg-zinc-700 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[#61bc47] transition-all"
+                          style={{
+                            width: `${Math.min(
+                              (approvingRequest.lineItemActualSpent / approvingRequest.lineItemBudgeted) * 100,
+                              100
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* After Approval Status */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-medium text-muted-foreground">
+                          After Approval
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatCurrency(approvingRequest.projectedSpentAfterApproval)} / {formatCurrency(approvingRequest.lineItemBudgeted)}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-zinc-300 dark:bg-zinc-700 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all ${
+                            approvingRequest.wouldBeOverBudget
+                              ? 'bg-red-500'
+                              : approvingRequest.projectedSpentAfterApproval / approvingRequest.lineItemBudgeted > 0.9
+                              ? 'bg-yellow-500'
+                              : 'bg-[#61bc47]'
+                          }`}
+                          style={{
+                            width: `${Math.min(
+                              (approvingRequest.projectedSpentAfterApproval / approvingRequest.lineItemBudgeted) * 100,
+                              100
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Warning or Remaining */}
+                    {approvingRequest.wouldBeOverBudget ? (
+                      <div className="flex items-start gap-2 p-2 bg-red-50 dark:bg-red-950/30 rounded border border-red-200 dark:border-red-800">
+                        <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                          This approval will exceed the line item budget by {formatCurrency(approvingRequest.overBudgetAmount)}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        Remaining after approval: {formatCurrency(approvingRequest.lineItemBudgeted - approvingRequest.projectedSpentAfterApproval)}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </>
             )}
             {approvalAction === "Rejected" && (
               <div>

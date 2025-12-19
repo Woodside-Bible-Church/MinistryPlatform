@@ -15,6 +15,7 @@ import {
   Receipt,
   Copy,
   Check,
+  AlertTriangle,
 } from "lucide-react";
 import { BackButton } from "@/components/BackButton";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,6 +53,33 @@ interface PurchaseRequest {
   transactionCount: number;
   transactionTotal: number;
   remainingAmount: number;
+}
+
+interface QuickApprovalRequest {
+  purchaseRequestId: number;
+  requisitionGuid: string;
+  projectId: number;
+  lineItemId: number;
+  lineItemName: string;
+  categoryId: number;
+  categoryName: string;
+  amount: number;
+  description: string | null;
+  vendorName: string | null;
+  requestedDate: string;
+  approvalStatus: "Pending" | "Approved" | "Rejected";
+  requestedByContactId: number;
+  requestedByName: string;
+  requestedByEmail: string;
+
+  // Budget context
+  lineItemBudgeted: number;
+  lineItemActualSpent: number;
+  lineItemRemaining: number;
+  approvedPurchaseRequestsTotal: number;
+  projectedSpentAfterApproval: number;
+  wouldBeOverBudget: boolean;
+  overBudgetAmount: number;
 }
 
 interface LineItem {
@@ -106,6 +134,7 @@ export default function PurchaseRequestsPage({
   const { slug } = use(params);
   const { isPinned, pinItem, unpinItem } = usePinnedItems();
   const [requests, setRequests] = useState<PurchaseRequest[]>([]);
+  const [quickApprovalRequests, setQuickApprovalRequests] = useState<QuickApprovalRequest[]>([]);
   const [projectId, setProjectId] = useState<number | null>(null);
   const [projectTitle, setProjectTitle] = useState<string>("");
   const [budgetData, setBudgetData] = useState<ProjectBudget | null>(null);
@@ -173,19 +202,27 @@ export default function PurchaseRequestsPage({
         setProjectTitle(projectData.Project_Title);
         setBudgetData(projectData);
 
-        // Then fetch purchase requests
-        const filterByMe = viewMode === "my-requests";
-        const response = await fetch(
-          `/api/projects/${projectData.Project_ID}/purchase-requests?filterByMe=${filterByMe}`
-        );
+        // Fetch both regular requests and quick approval requests in parallel
+        const [requestsResponse, quickApprovalResponse] = await Promise.all([
+          fetch(`/api/projects/${projectData.Project_ID}/purchase-requests?filterByMe=${viewMode === "my-requests"}`),
+          fetch(`/api/projects/${projectData.Project_ID}/purchase-requests/pending-approval`)
+        ]);
 
-        if (!response.ok) {
-          const errorData = await response.json();
+        if (!requestsResponse.ok) {
+          const errorData = await requestsResponse.json();
           throw new Error(errorData.error || "Failed to fetch purchase requests");
         }
 
-        const data = await response.json();
-        setRequests(data);
+        const requestsData = await requestsResponse.json();
+        setRequests(requestsData);
+
+        // Quick approval might fail if no pending requests, that's ok
+        if (quickApprovalResponse.ok) {
+          const quickApprovalData = await quickApprovalResponse.json();
+          setQuickApprovalRequests(quickApprovalData.pendingRequests || []);
+        } else {
+          setQuickApprovalRequests([]);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
@@ -619,21 +656,12 @@ export default function PurchaseRequestsPage({
     <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
       {/* Header */}
       <div className="mb-8">
-        <BackButton
-          fallbackUrl={`/budgets/${slug}`}
-          label="Back"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#61bc47] mb-4 transition-colors"
-        />
-
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">
-              purchase requests
-            </h1>
-            <p className="text-muted-foreground">
-              Expense approval requests for {projectTitle}
-            </p>
-          </div>
+        <div className="flex justify-between items-center mb-4">
+          <BackButton
+            fallbackUrl={`/budgets/${slug}`}
+            label="Back"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#61bc47] transition-colors"
+          />
 
           <button
             onClick={() => {
@@ -646,17 +674,26 @@ export default function PurchaseRequestsPage({
             New Request
           </button>
         </div>
+
+        <div>
+          <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">
+            purchase requests
+          </h1>
+          <p className="text-muted-foreground">
+            Expense approval requests for {projectTitle}
+          </p>
+        </div>
       </div>
 
       {/* Quick Approval Card */}
-      {requests.filter(r => r.approvalStatus === "Pending").length > 0 && (
+      {quickApprovalRequests.length > 0 && (
         <div className="bg-card border border-border rounded-lg p-6 mb-6">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-yellow-500" />
               <h2 className="text-xl font-semibold text-foreground">Quick Approval</h2>
               <span className="ml-2 px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs font-medium rounded-full">
-                {requests.filter(r => r.approvalStatus === "Pending").length} pending
+                {quickApprovalRequests.length} pending
               </span>
             </div>
             <PinButton
@@ -664,7 +701,7 @@ export default function PurchaseRequestsPage({
               itemId={slug}
               itemData={{
                 title: `${projectTitle} - Purchase Requests`,
-                description: `Quick approval for ${requests.filter(r => r.approvalStatus === "Pending").length} pending request${requests.filter(r => r.approvalStatus === "Pending").length !== 1 ? 's' : ''}`,
+                description: `Quick approval for ${quickApprovalRequests.length} pending request${quickApprovalRequests.length !== 1 ? 's' : ''}`,
               }}
               route={`/budgets/${slug}/purchase-requests`}
               isPinned={isPinned("purchase-requests-approval", slug)}
@@ -672,57 +709,134 @@ export default function PurchaseRequestsPage({
               onUnpin={unpinItem}
             />
           </div>
-          <div className="space-y-3">
-            {requests
-              .filter(r => r.approvalStatus === "Pending")
-              .slice(0, 5)
-              .map((request) => (
-                <Link
-                  key={request.purchaseRequestId}
-                  href={`/budgets/${slug}/purchase-requests/${request.purchaseRequestId}`}
-                  prefetch={true}
-                  className="flex items-center justify-between bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-                >
-                  <div className="flex-1 min-w-0 mr-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-mono text-purple-600 dark:text-purple-400 font-semibold">
-                        {formatGuid(request.requisitionGuid)}
-                      </span>
-                      <span className="text-xs text-muted-foreground">•</span>
-                      <span className="text-sm font-medium text-foreground truncate">
-                        {request.lineItemName}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <FileText className="w-3 h-3" />
-                        {request.requestedByName}
-                      </span>
-                      <span>•</span>
-                      <span className="flex items-center gap-1">
-                        <DollarSign className="w-3 h-3" />
+          <div className="flex flex-wrap gap-3">
+            {quickApprovalRequests.slice(0, 5).map((request) => (
+              <div
+                key={request.purchaseRequestId}
+                className="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors flex-1 min-w-[280px] max-w-full"
+              >
+                <div className="flex flex-col gap-3">
+                  {/* Top Row: Line item name and amount */}
+                  <div className="flex items-start justify-between gap-4">
+                    <h3 className="flex-1 text-base font-semibold text-foreground">
+                      {request.lineItemName}
+                    </h3>
+                    <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+                      <div className="text-xs text-muted-foreground uppercase tracking-wide">
+                        Amount
+                      </div>
+                      <div className="text-xl font-bold text-foreground whitespace-nowrap">
                         {formatCurrency(request.amount)}
-                      </span>
-                      <span>•</span>
-                      <span>{formatDate(request.requestedDate)}</span>
+                      </div>
                     </div>
-                    {request.description && (
-                      <p className="text-xs text-muted-foreground mt-1 truncate">
-                        {request.description}
-                      </p>
-                    )}
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
+
+                  {request.description && (
+                    <p className="text-sm text-muted-foreground italic">
+                      {request.description}
+                    </p>
+                  )}
+
+                  {/* Date and Requester */}
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>{formatDate(request.requestedDate)}</span>
+                    <span>•</span>
+                    <span>{request.requestedByName}</span>
+                  </div>
+
+                  {/* Full GUID with copy */}
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground/60">
+                    <span className="font-mono">
+                      {request.requisitionGuid.toUpperCase()}
+                    </span>
                     <button
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        setApprovingRequest(request);
-                        setApprovalAction("Approved");
-                        setIsApprovalModalOpen(true);
+                        handleCopyGuid(request.requisitionGuid);
                       }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors"
-                      title="Approve request"
+                      className="p-0.5 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors opacity-60 hover:opacity-100"
+                      title="Copy GUID"
+                    >
+                      {copiedGuid === request.requisitionGuid ? (
+                        <Check className="w-3 h-3 text-green-600 dark:text-green-400" />
+                      ) : (
+                        <Copy className="w-3 h-3 text-muted-foreground" />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Budget Context */}
+                  <div className="pt-2 border-t border-zinc-300 dark:border-zinc-600">
+                    {/* Budget Bar Chart */}
+                    <div className="mb-2">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-medium text-muted-foreground">
+                          Budget Usage
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatCurrency(request.lineItemActualSpent)} / {formatCurrency(request.lineItemBudgeted)}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-zinc-300 dark:bg-zinc-700 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all ${
+                            request.wouldBeOverBudget
+                              ? 'bg-red-500'
+                              : request.lineItemActualSpent / request.lineItemBudgeted > 0.9
+                              ? 'bg-yellow-500'
+                              : 'bg-[#61bc47]'
+                          }`}
+                          style={{
+                            width: `${Math.min(
+                              (request.lineItemActualSpent / request.lineItemBudgeted) * 100,
+                              100
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Impact Preview */}
+                    <div className="flex items-start gap-2">
+                      {request.wouldBeOverBudget && (
+                        <AlertTriangle className="w-3.5 h-3.5 text-red-500 mt-0.5 flex-shrink-0" />
+                      )}
+                      <div className="flex-1">
+                        <p className={`text-xs ${
+                          request.wouldBeOverBudget
+                            ? 'text-red-600 dark:text-red-400 font-medium'
+                            : 'text-muted-foreground'
+                        }`}>
+                          {request.wouldBeOverBudget ? (
+                            <>
+                              Approving will exceed budget by {formatCurrency(request.overBudgetAmount)}
+                            </>
+                          ) : (
+                            <>
+                              After approval: {formatCurrency(request.lineItemBudgeted - request.projectedSpentAfterApproval)} remaining
+                            </>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // Find the full request object from the regular requests array
+                        const fullRequest = requests.find(r => r.purchaseRequestId === request.purchaseRequestId);
+                        if (fullRequest) {
+                          setApprovingRequest(fullRequest);
+                          setApprovalAction("Approved");
+                          setIsApprovalModalOpen(true);
+                        }
+                      }}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors"
                     >
                       <CheckCircle2 className="w-4 h-4" />
                       Approve
@@ -731,24 +845,28 @@ export default function PurchaseRequestsPage({
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        setApprovingRequest(request);
-                        setApprovalAction("Rejected");
-                        setIsApprovalModalOpen(true);
+                        // Find the full request object from the regular requests array
+                        const fullRequest = requests.find(r => r.purchaseRequestId === request.purchaseRequestId);
+                        if (fullRequest) {
+                          setApprovingRequest(fullRequest);
+                          setApprovalAction("Rejected");
+                          setIsApprovalModalOpen(true);
+                        }
                       }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition-colors"
-                      title="Reject request"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition-colors"
                     >
                       <XCircle className="w-4 h-4" />
                       Reject
                     </button>
                   </div>
-                </Link>
-              ))}
+                </div>
+              </div>
+            ))}
           </div>
-          {requests.filter(r => r.approvalStatus === "Pending").length > 5 && (
+          {quickApprovalRequests.length > 5 && (
             <div className="mt-4 text-center">
               <p className="text-sm text-muted-foreground">
-                + {requests.filter(r => r.approvalStatus === "Pending").length - 5} more pending request{requests.filter(r => r.approvalStatus === "Pending").length - 5 !== 1 ? 's' : ''}
+                + {quickApprovalRequests.length - 5} more pending request{quickApprovalRequests.length - 5 !== 1 ? 's' : ''}
               </p>
             </div>
           )}
