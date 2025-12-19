@@ -512,15 +512,11 @@ export default function LineItemsPage({
                     <span className="text-[10px] text-muted-foreground uppercase tracking-wider leading-tight">
                       {item.categoryName}
                     </span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                      isAutoTracked
-                        ? "bg-blue-100/70 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"
-                        : item.categoryType === "expense"
-                        ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
-                        : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
-                    }`}>
-                      {isAutoTracked ? "AUTO-TRACKED" : ""}
-                    </span>
+                    {isAutoTracked && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-blue-100/70 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400">
+                        AUTO-TRACKED
+                      </span>
+                    )}
                   </div>
 
                   {/* Title full-width */}
