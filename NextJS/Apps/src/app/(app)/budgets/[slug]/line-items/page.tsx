@@ -461,13 +461,6 @@ export default function LineItemsPage({
                         <span className="text-[10px] text-muted-foreground uppercase tracking-wider leading-tight">
                           {item.categoryName}
                         </span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                          item.categoryType === "expense"
-                            ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
-                            : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
-                        }`}>
-                          {item.categoryType === "expense" ? "EXPENSE" : "REVENUE"}
-                        </span>
                       </div>
                       <h3 className="text-xl font-bold text-foreground leading-tight">
                         {item.name}
@@ -475,140 +468,135 @@ export default function LineItemsPage({
                     </div>
                   </div>
 
-                  {/* Only show budgeted amount if there's actually a budget */}
-                  {item.estimated !== 0 && (
-                    <div className="flex flex-col items-end gap-1.5">
-                      <div className="text-3xl font-bold text-foreground whitespace-nowrap">
-                        {formatCurrency(item.estimated)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        budgeted
-                      </div>
-                    </div>
-                  )}
+                  {/* Type pill in top right */}
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                    item.categoryType === "expense"
+                      ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                      : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                  }`}>
+                    {item.categoryType === "expense" ? "EXPENSE" : "REVENUE"}
+                  </span>
                 </div>
 
                 {/* Details Row */}
-                <div className="pt-3 border-t border-border">
-                  <div className="flex items-end justify-between gap-4">
-                    <div className="flex-1 space-y-2">
-                      {item.vendor && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="text-muted-foreground">Vendor:</span>
-                          <span className="text-foreground font-medium">{item.vendor}</span>
+                <div className="pt-3 border-t border-border space-y-3">
+                  <div className="space-y-2">
+                    {item.vendor && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-muted-foreground">Vendor:</span>
+                        <span className="text-foreground font-medium">{item.vendor}</span>
+                      </div>
+                    )}
+
+                    {item.description && (
+                      <p className="text-sm text-muted-foreground italic">
+                        {item.description}
+                      </p>
+                    )}
+
+                    {/* Compact bar chart - only show for items with a budget */}
+                    {item.estimated !== 0 && (
+                      <div className="mt-3 space-y-2">
+                        {/* Labels row */}
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{item.categoryType === "revenue" ? "Received" : "Spent"}</span>
+                          <span>{item.categoryType === "revenue" ? "Expected" : "Budgeted"}</span>
                         </div>
-                      )}
 
-                      {item.description && (
-                        <p className="text-sm text-muted-foreground italic">
-                          {item.description}
-                        </p>
-                      )}
-
-                      {/* Compact bar chart - only show for items with a budget */}
-                      {item.estimated !== 0 && (
-                        <div className="mt-3 space-y-2">
-                          {/* Labels row */}
-                          <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            <span>{item.categoryType === "revenue" ? "Received" : "Spent"}</span>
-                            <span>{item.categoryType === "revenue" ? "Expected" : "Budgeted"}</span>
-                          </div>
-
-                          {/* Progress bar */}
-                          <div className="relative h-8 bg-zinc-200 dark:bg-zinc-700 rounded-lg overflow-hidden">
-                            <div
-                              className={`h-full transition-all ${
-                                item.categoryType === "revenue"
-                                  ? (item.actual >= item.estimated ? "bg-green-500" : "bg-yellow-500")
-                                  : (item.actual <= item.estimated ? "bg-green-500" : "bg-red-500")
-                              }`}
-                              style={{
-                                width: item.estimated > 0
-                                  ? `${Math.min((item.actual / item.estimated) * 100, 100)}%`
-                                  : '0%'
-                              }}
-                            />
-                            <div className="absolute inset-0 flex items-center justify-between px-2 text-xs font-semibold">
-                              <span className={item.actual > item.estimated * 0.3 ? "text-white" : "text-foreground"}>
-                                {formatCurrency(item.actual)}
-                              </span>
-                              <span className="text-foreground">{formatCurrency(item.estimated)}</span>
-                            </div>
-                          </div>
-
-                          {/* Remaining */}
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Remaining:</span>
-                            <span className={`font-semibold ${
-                              remaining >= 0
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-red-600 dark:text-red-400"
-                            }`}>
-                              {formatCurrency(remaining)}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* For zero-budget items, show amount earned/spent based on type */}
-                      {item.estimated === 0 && item.actual > 0 && (
-                        <div className="mt-3">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">
-                              {item.categoryType === "revenue" ? "Received:" : "Spent:"}
-                            </span>
-                            <span className={`font-semibold ${
+                        {/* Progress bar */}
+                        <div className="relative h-8 bg-zinc-200 dark:bg-zinc-700 rounded-lg overflow-hidden">
+                          <div
+                            className={`h-full transition-all ${
                               item.categoryType === "revenue"
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-red-600 dark:text-red-400"
-                            }`}>
+                                ? (item.actual >= item.estimated ? "bg-green-500" : "bg-yellow-500")
+                                : (item.actual <= item.estimated ? "bg-green-500" : "bg-red-500")
+                            }`}
+                            style={{
+                              width: item.estimated > 0
+                                ? `${Math.min((item.actual / item.estimated) * 100, 100)}%`
+                                : '0%'
+                            }}
+                          />
+                          <div className="absolute inset-0 flex items-center justify-between px-2 text-xs font-semibold">
+                            <span className={item.actual > item.estimated * 0.3 ? "text-white" : "text-foreground"}>
                               {formatCurrency(item.actual)}
                             </span>
+                            <span className="text-foreground">{formatCurrency(item.estimated)}</span>
                           </div>
                         </div>
-                      )}
-                    </div>
 
-                    {/* Action buttons */}
-                    {permissions.canManageLineItems && (
-                      <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
-                        {item.categoryType === "expense" && permissions.canManagePurchaseRequests && (
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              router.push(`/budgets/${slug}/purchase-requests?lineItemId=${item.lineItemId}`);
-                            }}
-                            className="p-2 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors"
-                            title="Create purchase request"
-                          >
-                            <Plus className="w-5 h-5 text-[#61bc47]" />
-                          </button>
-                        )}
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            router.push(`/budgets/${slug}/line-items/${item.lineItemId}`);
-                          }}
-                          className="p-2 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded transition-colors"
-                          title="Edit line item"
-                        >
-                          <Edit className="w-5 h-5 text-muted-foreground" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
-                              handleDeleteLineItem(item.lineItemId, item.name);
-                            }
-                          }}
-                          className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
-                          title="Delete line item"
-                        >
-                          <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
-                        </button>
+                        {/* Remaining */}
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Remaining:</span>
+                          <span className={`font-semibold ${
+                            remaining >= 0
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-red-600 dark:text-red-400"
+                          }`}>
+                            {formatCurrency(remaining)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* For zero-budget items, show amount earned/spent based on type */}
+                    {item.estimated === 0 && item.actual > 0 && (
+                      <div className="mt-3">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">
+                            {item.categoryType === "revenue" ? "Received:" : "Spent:"}
+                          </span>
+                          <span className={`font-semibold ${
+                            item.categoryType === "revenue"
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-red-600 dark:text-red-400"
+                          }`}>
+                            {formatCurrency(item.actual)}
+                          </span>
+                        </div>
                       </div>
                     )}
                   </div>
+
+                  {/* Action buttons on separate line */}
+                  {permissions.canManageLineItems && (
+                    <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
+                      {item.categoryType === "expense" && permissions.canManagePurchaseRequests && (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            router.push(`/budgets/${slug}/purchase-requests?lineItemId=${item.lineItemId}`);
+                          }}
+                          className="p-2 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors"
+                          title="Create purchase request"
+                        >
+                          <Plus className="w-5 h-5 text-[#61bc47]" />
+                        </button>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          router.push(`/budgets/${slug}/line-items/${item.lineItemId}`);
+                        }}
+                        className="p-2 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded transition-colors"
+                        title="Edit line item"
+                      >
+                        <Edit className="w-5 h-5 text-muted-foreground" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
+                            handleDeleteLineItem(item.lineItemId, item.name);
+                          }
+                        }}
+                        className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                        title="Delete line item"
+                      >
+                        <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </Link>
             );
