@@ -22,7 +22,7 @@ export default async function AppLayout({
             <Header />
           </div>
 
-          <main className="flex-1 mt-16 print:mt-0">
+          <main className="flex-1 mt-4 print:mt-0">
             {children}
           </main>
         </CampusProvider>
