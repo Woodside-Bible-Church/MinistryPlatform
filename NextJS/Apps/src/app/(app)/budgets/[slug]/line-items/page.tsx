@@ -506,7 +506,7 @@ export default function LineItemsPage({
                 className="block bg-card border border-border rounded-lg p-6 hover:shadow-lg hover:border-[#61bc47]/30 transition-all"
               >
                 {/* Header */}
-                <div className="space-y-2 mb-4">
+                <div className="space-y-1 mb-4">
                   {/* Category and pill on same line */}
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[10px] text-muted-foreground uppercase tracking-wider leading-tight">
