@@ -453,33 +453,30 @@ export default function LineItemsPage({
                 prefetch={true}
                 className="block bg-card border border-border rounded-lg p-6 hover:shadow-lg hover:border-[#61bc47]/30 transition-all"
               >
-                {/* Header Row */}
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider leading-tight">
-                          {item.categoryName}
-                        </span>
-                      </div>
-                      <h3 className="text-xl font-bold text-foreground leading-tight">
-                        {item.name}
-                      </h3>
-                    </div>
+                {/* Header */}
+                <div className="space-y-2 mb-4">
+                  {/* Category and pill on same line */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider leading-tight">
+                      {item.categoryName}
+                    </span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                      item.categoryType === "expense"
+                        ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                        : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                    }`}>
+                      {item.categoryType === "expense" ? "EXPENSE" : "REVENUE"}
+                    </span>
                   </div>
 
-                  {/* Type pill in top right */}
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                    item.categoryType === "expense"
-                      ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
-                      : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
-                  }`}>
-                    {item.categoryType === "expense" ? "EXPENSE" : "REVENUE"}
-                  </span>
+                  {/* Title full-width */}
+                  <h3 className="text-xl font-bold text-foreground leading-tight">
+                    {item.name}
+                  </h3>
                 </div>
 
                 {/* Details Row */}
-                <div className="pt-3 border-t border-border space-y-3">
+                <div className="space-y-3">
                   <div className="space-y-2">
                     {item.vendor && (
                       <div className="flex items-center gap-2 text-sm">
@@ -560,7 +557,7 @@ export default function LineItemsPage({
 
                   {/* Action buttons on separate line */}
                   {permissions.canManageLineItems && (
-                    <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
+                    <div className="flex items-center justify-end gap-2 pt-2">
                       {item.categoryType === "expense" && permissions.canManagePurchaseRequests && (
                         <button
                           onClick={(e) => {
