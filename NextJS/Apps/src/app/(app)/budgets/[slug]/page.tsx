@@ -272,6 +272,18 @@ function CategorySection({
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
               {!isSimplifiedView && canManageCategories ? (
                 <>
+                  {!isSimplifiedView && canManageLineItems && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddLineItem?.();
+                      }}
+                      className="p-2 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors"
+                      title="Add line item"
+                    >
+                      <Plus className="w-5 h-5 text-[#61bc47]" />
+                    </button>
+                  )}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -2025,11 +2037,11 @@ export default function BudgetDetailPage({
               }}
               className="appearance-none w-full md:w-auto inline-flex items-center justify-center gap-2 pl-4 pr-10 py-2 bg-white dark:bg-zinc-700 text-zinc-800 dark:text-white border border-zinc-300 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-600 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
             >
-              View Details
+              Quick Links
               <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-800 dark:text-white transition-transform ${isViewDetailsOpen ? 'rotate-180' : ''}`} />
             </button>
             {isViewDetailsOpen && (
-              <div className="absolute top-full left-0 right-0 md:right-auto mt-1 bg-white dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-lg overflow-hidden z-10 md:min-w-[200px]">
+              <div className="absolute top-full left-0 right-0 md:right-auto mt-1 bg-white dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-lg overflow-hidden z-20 md:min-w-[200px]">
                 <Link
                   href={`/budgets/${slug}/reports`}
                   className="flex items-center gap-2 px-4 py-2 text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-600 transition-colors whitespace-nowrap"
