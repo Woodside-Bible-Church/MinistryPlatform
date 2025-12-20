@@ -762,15 +762,9 @@ export default function PurchaseRequestsPage({
 
       {/* Quick Approval Card - Only for users with approval permission */}
       {permissions.canApprovePurchaseRequests && quickApprovalRequests.length > 0 && (
-        <div className="bg-card border border-border rounded-lg p-4 md:p-6 mb-10 md:mb-12">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-yellow-500" />
-              <h2 className="text-lg md:text-xl font-semibold text-foreground">Quick Approval</h2>
-              <span className="ml-2 px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs font-medium rounded-full">
-                {quickApprovalRequests.length} pending
-              </span>
-            </div>
+        <div className="bg-card border border-border rounded-lg p-4 md:p-6 mb-10 md:mb-12 relative">
+          {/* Pin button in top right corner */}
+          <div className="absolute top-4 right-4 z-10" data-no-navigate>
             <PinButton
               itemType="purchase-requests-approval"
               itemId={slug}
@@ -782,7 +776,16 @@ export default function PurchaseRequestsPage({
               isPinned={isPinned("purchase-requests-approval", slug)}
               onPin={pinItem}
               onUnpin={unpinItem}
+              iconOnly={true}
             />
+          </div>
+
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="w-5 h-5 text-yellow-500" />
+            <h2 className="text-lg md:text-xl font-semibold text-foreground">Quick Approval</h2>
+            <span className="ml-2 px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs font-medium rounded-full">
+              {quickApprovalRequests.length} pending
+            </span>
           </div>
           <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
             {quickApprovalRequests.slice(0, 5).map((request) => (
