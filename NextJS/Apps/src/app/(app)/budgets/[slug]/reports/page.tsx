@@ -565,28 +565,17 @@ export default function ReportsPage({
 
         {/* Header */}
         <div className="mb-8 print:mb-4">
-        <div className="print:hidden">
+        <div className="print:hidden flex items-center justify-between mb-4">
           <BackButton
             fallbackUrl={`/budgets/${slug}`}
             label="Back"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#61bc47] mb-4 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#61bc47] transition-colors"
           />
-        </div>
-
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">
-              budget reports & analytics
-            </h1>
-            <p className="text-muted-foreground">
-              {project?.Project_Title}
-            </p>
-          </div>
 
           <button
             onClick={handleExportPdf}
             disabled={isExportingPdf}
-            className="print:hidden inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-700 text-zinc-800 dark:text-white border border-zinc-300 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-700 text-zinc-800 dark:text-white border border-zinc-300 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isExportingPdf ? (
               <>
@@ -601,12 +590,21 @@ export default function ReportsPage({
             )}
           </button>
         </div>
+
+        <div>
+          <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">
+            budget reports & analytics
+          </h1>
+          <p className="text-muted-foreground">
+            {project?.Project_Title}
+          </p>
+        </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="kpi-grid grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 print:mb-6">
+      <div className="kpi-grid flex md:grid md:grid-cols-3 gap-4 md:gap-6 mb-8 print:mb-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide md:overflow-visible">
         {/* Budget Utilization */}
-        <div className="bg-card border border-border rounded-lg p-6">
+        <div className="bg-card border border-border rounded-lg p-6 flex-none w-[85%] md:w-auto snap-start">
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className="w-4 h-4 text-muted-foreground" />
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
@@ -623,7 +621,7 @@ export default function ReportsPage({
         </div>
 
         {/* Revenue Progress */}
-        <div className="bg-card border border-border rounded-lg p-6">
+        <div className="bg-card border border-border rounded-lg p-6 flex-none w-[85%] md:w-auto snap-start">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-4 h-4 text-muted-foreground" />
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
@@ -640,7 +638,7 @@ export default function ReportsPage({
         </div>
 
         {/* Net Profit/Loss */}
-        <div className="bg-card border border-border rounded-lg p-6">
+        <div className="bg-card border border-border rounded-lg p-6 flex-none w-[85%] md:w-auto snap-start">
           <div className="flex items-center gap-2 mb-4">
             {netProfitLossActual >= 0 ? (
               <TrendingUp className="w-4 h-4 text-green-500" />
@@ -669,14 +667,14 @@ export default function ReportsPage({
       {/* Charts Grid */}
       <div className="charts-grid grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 print:mb-6">
         {/* Expense Breakdown */}
-        <div className="chart-card bg-card border border-border rounded-lg p-6 print:p-4">
-          <h3 className="text-lg font-semibold text-foreground mb-2">
+        <div className="chart-card bg-card border border-border rounded-lg p-4 md:p-6 print:p-4">
+          <h3 className="text-base md:text-lg font-semibold text-foreground mb-1 md:mb-2">
             Expense Breakdown
           </h3>
-          <p className="text-sm text-muted-foreground dark:text-zinc-400 mb-6">
+          <p className="text-xs md:text-sm text-muted-foreground dark:text-zinc-400 mb-4 md:mb-6">
             Actual spending by category
           </p>
-          <div className="h-[450px] print:h-[195px]">
+          <div className="h-[300px] md:h-[450px] print:h-[195px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -747,14 +745,14 @@ export default function ReportsPage({
         </div>
 
         {/* Budget vs Actual by Category */}
-        <div className="chart-card bg-card border border-border rounded-lg p-6 print:p-4">
-          <h3 className="text-lg font-semibold text-foreground mb-2">
+        <div className="chart-card bg-card border border-border rounded-lg p-4 md:p-6 print:p-4">
+          <h3 className="text-base md:text-lg font-semibold text-foreground mb-1 md:mb-2">
             Budget vs Actual by Category
           </h3>
-          <p className="text-sm text-muted-foreground dark:text-zinc-400 mb-6">
+          <p className="text-xs md:text-sm text-muted-foreground dark:text-zinc-400 mb-4 md:mb-6">
             Estimated vs actual spending comparison
           </p>
-          <div className="h-[450px] print:h-[195px]">
+          <div className="h-[300px] md:h-[450px] print:h-[195px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={budgetVsActualData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
@@ -802,14 +800,14 @@ export default function ReportsPage({
       {/* Profit & Loss Summary and Financial Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 print:mb-6">
         {/* Profit & Loss Summary */}
-        <div className="chart-card bg-card border border-border rounded-lg p-6 print:p-4">
-          <h3 className="text-lg font-semibold text-foreground mb-2">
+        <div className="chart-card bg-card border border-border rounded-lg p-4 md:p-6 print:p-4">
+          <h3 className="text-base md:text-lg font-semibold text-foreground mb-1 md:mb-2">
             Profit & Loss Summary
           </h3>
-          <p className="text-sm text-muted-foreground dark:text-zinc-400 mb-6">
+          <p className="text-xs md:text-sm text-muted-foreground dark:text-zinc-400 mb-4 md:mb-6">
             Estimated vs actual financial performance
           </p>
-          <div className="h-[450px] print:h-[195px]">
+          <div className="h-[300px] md:h-[450px] print:h-[195px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={profitLossData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
@@ -855,14 +853,14 @@ export default function ReportsPage({
         </div>
 
         {/* Financial Overview */}
-        <div className="chart-card bg-card border border-border rounded-lg p-6 print:p-4">
-          <h3 className="text-lg font-semibold text-foreground mb-2">
+        <div className="chart-card bg-card border border-border rounded-lg p-4 md:p-6 print:p-4">
+          <h3 className="text-base md:text-lg font-semibold text-foreground mb-1 md:mb-2">
             Financial Overview
           </h3>
-          <p className="text-sm text-muted-foreground dark:text-zinc-400 mb-6">
+          <p className="text-xs md:text-sm text-muted-foreground dark:text-zinc-400 mb-4 md:mb-6">
             Total revenue and expenses comparison
           </p>
-          <div className="h-[450px] print:h-[195px]">
+          <div className="h-[300px] md:h-[450px] print:h-[195px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={financialOverviewData}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
@@ -906,11 +904,11 @@ export default function ReportsPage({
       </div>
 
       {/* Key Insights */}
-      <div className="key-insights-section bg-card border border-border rounded-lg p-6 print:p-4">
-        <h3 className="text-lg font-semibold text-foreground mb-6">
+      <div className="key-insights-section bg-card border border-border rounded-lg p-4 md:p-6 print:p-4">
+        <h3 className="text-base md:text-lg font-semibold text-foreground mb-4 md:mb-6">
           Key Insights
         </h3>
-        <p className="text-sm text-muted-foreground dark:text-zinc-400 mb-6">
+        <p className="text-xs md:text-sm text-muted-foreground dark:text-zinc-400 mb-4 md:mb-6">
           Analysis of budget performance
         </p>
         <div className="space-y-4">

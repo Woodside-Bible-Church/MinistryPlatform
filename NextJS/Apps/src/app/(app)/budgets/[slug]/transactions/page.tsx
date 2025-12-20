@@ -283,9 +283,12 @@ export default function TransactionsPage({
         payee: newTransactionPayee.trim() || null,
         categoryItem: categoryItemName,
         lineItemId: newTransactionLineItemId ? parseInt(newTransactionLineItemId, 10) : null,
+        submittedByContactId: null,
+        submittedByName: null,
         purchaseRequestId: null,
         requisitionGuid: null,
         purchaseRequestStatus: null,
+        purchaseRequestDescription: null,
       };
 
       // Optimistic UI update
