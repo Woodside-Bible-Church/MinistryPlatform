@@ -44,6 +44,7 @@ interface FileAttachmentsProps {
   files: FileAttachment[];
   uploadEndpoint: string;
   onFilesUploaded: () => void;
+  emptyMessage?: string;
 }
 
 function formatFileSize(bytes: number): string {
@@ -79,7 +80,7 @@ function isImageFile(fileName: string, fileExtension?: string, imageWidth?: numb
   return imageExtensions.includes(extension);
 }
 
-export function FileAttachments({ files, uploadEndpoint, onFilesUploaded }: FileAttachmentsProps) {
+export function FileAttachments({ files, uploadEndpoint, onFilesUploaded, emptyMessage = "No files attached yet. Upload files like quotes or receipts." }: FileAttachmentsProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [editingFile, setEditingFile] = useState<FileAttachment | null>(null);
@@ -309,7 +310,7 @@ export function FileAttachments({ files, uploadEndpoint, onFilesUploaded }: File
           </div>
         ) : (
           <div className="text-center py-8 text-muted-foreground mb-4">
-            No files attached yet. Upload files like quotes or receipts.
+            {emptyMessage}
           </div>
         )}
 

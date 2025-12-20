@@ -405,6 +405,7 @@ export default function TransactionDetailsPage({
           files={transaction.files || []}
           uploadEndpoint={`/api/projects/${transaction.projectId}/transactions/${transaction.transactionId}/files`}
           onFilesUploaded={fetchTransactionDetails}
+          emptyMessage="No files attached yet. Upload receipts, invoices, or proof of purchase."
         />
       </div>
 

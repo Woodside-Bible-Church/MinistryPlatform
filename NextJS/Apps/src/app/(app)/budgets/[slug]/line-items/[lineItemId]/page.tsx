@@ -12,7 +12,6 @@ import {
   Edit,
   ShoppingCart,
 } from "lucide-react";
-import { FileAttachments } from "@/components/FileAttachments";
 import { BackButton } from "@/components/BackButton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -51,7 +50,6 @@ interface LineItemDetails {
   approvedRequestCount: number;
   transactions: Transaction[];
   transactionCount: number;
-  files: FileAttachment[];
 }
 
 interface PurchaseRequest {
@@ -73,19 +71,6 @@ interface Transaction {
   description: string;
   transactionDate: string;
   paymentMethod: string;
-}
-
-interface FileAttachment {
-  FileId: number;
-  FileName: string;
-  FileSize: number;
-  FileExtension: string;
-  ImageWidth: number | null;
-  ImageHeight: number | null;
-  UniqueFileId: string;
-  Description: string | null;
-  LastUpdated: string;
-  publicUrl: string;
 }
 
 function formatCurrency(amount: number) {
@@ -796,20 +781,9 @@ export default function LineItemDetailsPage({
         )}
       </div>
 
-      {/* Grid layout for Files and Purchase Requests - side by side on large screens */}
+      {/* Purchase Requests Section for Expense Line Items */}
       {isExpense && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 gap-y-10 mb-6 mt-12 md:mt-0">
-          {/* Files Section - Only admins can manage files */}
-          {permissions.canManageLineItems && (
-            <div>
-              <FileAttachments
-                files={lineItem.files || []}
-                uploadEndpoint={`/api/projects/${lineItem.projectId}/line-items/${lineItem.lineItemId}/files`}
-                onFilesUploaded={fetchLineItemDetails}
-              />
-            </div>
-          )}
-
+        <div className="mb-6 mt-12 md:mt-0">
           {/* Purchase Requests Section - No Card wrapper */}
           <div>
             <h2 className="text-xl font-semibold text-foreground flex items-center gap-2 mb-4">
@@ -1073,17 +1047,6 @@ export default function LineItemDetailsPage({
         </div>
       )}
 
-      {/* Files Section for income line items - only admins can manage files */}
-      {isIncome && permissions.canManageLineItems && (
-        <div className="mb-6 mt-12 md:mt-0">
-          <FileAttachments
-            files={lineItem.files || []}
-            uploadEndpoint={`/api/projects/${lineItem.projectId}/line-items/${lineItem.lineItemId}/files`}
-            onFilesUploaded={fetchLineItemDetails}
-          />
-        </div>
-      )}
-
       {/* Income Line Item - Direct Transactions */}
       {isIncome && (
         <Card className="p-6 mt-12 md:mt-6">
@@ -1289,8 +1252,11 @@ export default function LineItemDetailsPage({
             {/* File Attachments */}
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">
-                Attach Files <span className="text-xs text-muted-foreground">(optional)</span>
+                Attach Supporting Documents <span className="text-xs text-muted-foreground">(optional)</span>
               </label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Upload quotes, estimates, invoices, or other documentation
+              </p>
               <input
                 type="file"
                 multiple
@@ -1382,8 +1348,11 @@ export default function LineItemDetailsPage({
             {/* File Attachments */}
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">
-                Attach Additional Files <span className="text-xs text-muted-foreground">(optional)</span>
+                Attach Additional Documents <span className="text-xs text-muted-foreground">(optional)</span>
               </label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Upload quotes, estimates, invoices, or other documentation
+              </p>
               <input
                 type="file"
                 multiple
@@ -1499,8 +1468,11 @@ export default function LineItemDetailsPage({
             {/* File Attachments */}
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">
-                Attach Files <span className="text-xs text-muted-foreground">(optional)</span>
+                Attach Receipts <span className="text-xs text-muted-foreground">(optional)</span>
               </label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Upload receipts, invoices, or proof of purchase
+              </p>
               <input
                 type="file"
                 multiple

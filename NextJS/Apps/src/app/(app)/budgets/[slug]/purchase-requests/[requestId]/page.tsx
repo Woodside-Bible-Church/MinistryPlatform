@@ -720,6 +720,7 @@ export default function PurchaseRequestDetailsPage({
               files={purchaseRequest.files || []}
               uploadEndpoint={`/api/projects/${purchaseRequest.projectId}/purchase-requests/${purchaseRequest.purchaseRequestId}/files`}
               onFilesUploaded={fetchPurchaseRequestDetails}
+              emptyMessage="No files attached yet. Upload files like quotes or estimates."
             />
           </div>
         )}
@@ -1061,8 +1062,11 @@ export default function PurchaseRequestDetailsPage({
             {/* File Attachments */}
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">
-                Attach Files <span className="text-xs text-muted-foreground">(optional)</span>
+                Attach Receipts <span className="text-xs text-muted-foreground">(optional)</span>
               </label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Upload receipts, invoices, or proof of purchase
+              </p>
               <input
                 type="file"
                 multiple
