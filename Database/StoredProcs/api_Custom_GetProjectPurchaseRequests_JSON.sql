@@ -56,7 +56,72 @@ BEGIN
                 SELECT ISNULL(SUM(t.Amount), 0)
                 FROM Project_Budget_Transactions t
                 WHERE t.Purchase_Request_ID = pr.Purchase_Request_ID
-            ) AS transactionTotal
+            ) AS transactionTotal,
+
+            -- Remaining amount for this specific request
+            pr.Amount - (
+                SELECT ISNULL(SUM(t.Amount), 0)
+                FROM Project_Budget_Transactions t
+                WHERE t.Purchase_Request_ID = pr.Purchase_Request_ID
+            ) AS remainingAmount,
+
+            -- Line item budget details (for budget context/impact preview)
+            li.Estimated_Amount AS lineItemBudgeted,
+
+            -- Calculate actual spent (sum of all transactions for this line item)
+            ISNULL((
+                SELECT SUM(t.Amount)
+                FROM Project_Budget_Transactions t
+                WHERE t.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID
+            ), 0) AS lineItemActualSpent,
+
+            -- Calculate remaining budget
+            li.Estimated_Amount - ISNULL((
+                SELECT SUM(t.Amount)
+                FROM Project_Budget_Transactions t
+                WHERE t.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID
+            ), 0) AS lineItemRemaining,
+
+            -- Total of all approved purchase requests for this line item
+            ISNULL((
+                SELECT SUM(pr2.Amount)
+                FROM Project_Budget_Purchase_Requests pr2
+                WHERE pr2.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID
+                  AND pr2.Approval_Status = 'Approved'
+            ), 0) AS approvedPurchaseRequestsTotal,
+
+            -- Projected spent if this pending request is approved
+            ISNULL((
+                SELECT SUM(t.Amount)
+                FROM Project_Budget_Transactions t
+                WHERE t.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID
+            ), 0) + pr.Amount AS projectedSpentAfterApproval,
+
+            -- Would approving this pending request put the line item over budget?
+            CASE
+                WHEN (ISNULL((
+                    SELECT SUM(t.Amount)
+                    FROM Project_Budget_Transactions t
+                    WHERE t.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID
+                ), 0) + pr.Amount) > li.Estimated_Amount
+                THEN CAST(1 AS BIT)
+                ELSE CAST(0 AS BIT)
+            END AS wouldBeOverBudget,
+
+            -- Calculate how much over budget it would be (if applicable)
+            CASE
+                WHEN (ISNULL((
+                    SELECT SUM(t.Amount)
+                    FROM Project_Budget_Transactions t
+                    WHERE t.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID
+                ), 0) + pr.Amount) > li.Estimated_Amount
+                THEN (ISNULL((
+                    SELECT SUM(t.Amount)
+                    FROM Project_Budget_Transactions t
+                    WHERE t.Project_Budget_Line_Item_ID = li.Project_Budget_Line_Item_ID
+                ), 0) + pr.Amount) - li.Estimated_Amount
+                ELSE 0
+            END AS overBudgetAmount
 
         FROM Project_Budget_Purchase_Requests pr
         INNER JOIN Project_Budget_Line_Items li

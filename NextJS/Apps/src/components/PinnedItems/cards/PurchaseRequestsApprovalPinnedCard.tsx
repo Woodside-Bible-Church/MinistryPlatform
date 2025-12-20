@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   Clock,
   CheckCircle2,
@@ -280,9 +281,10 @@ export function PurchaseRequestsApprovalPinnedCard({ item }: PurchaseRequestsApp
             const isProcessing = processingRequestId === request.purchaseRequestId;
 
             return (
-              <div
+              <Link
                 key={request.purchaseRequestId}
-                className={`bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4 transition-all flex-1 min-w-[280px] max-w-full relative ${
+                href={`/budgets/${projectSlug}/purchase-requests/${request.purchaseRequestId}`}
+                className={`bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4 transition-all flex-1 min-w-[280px] max-w-full relative block ${
                   isProcessing
                     ? 'opacity-60 pointer-events-none'
                     : 'hover:bg-zinc-200 dark:hover:bg-zinc-700'
@@ -447,7 +449,7 @@ export function PurchaseRequestsApprovalPinnedCard({ item }: PurchaseRequestsApp
                     </button>
                   </div>
                 </div>
-              </div>
+              </Link>
             );
           })}
           {pendingRequests.length > 3 && (

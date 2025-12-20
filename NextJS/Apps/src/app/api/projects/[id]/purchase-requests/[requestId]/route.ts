@@ -3,8 +3,66 @@ import { auth } from "@/auth";
 import { MPHelper } from "@/providers/MinistryPlatform/mpHelper";
 import { checkBudgetPermissions } from "@/lib/serverPermissions";
 
+// GET /api/projects/[id]/purchase-requests/[requestId]
+// Get purchase request details with transactions
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string; requestId: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { requestId } = await params;
+
+    // Fetch purchase request details using stored procedure
+    const mp = new MPHelper();
+    const result = await mp.executeProcedureWithBody(
+      "api_Custom_GetPurchaseRequestDetails_JSON",
+      {
+        "@PurchaseRequestID": parseInt(requestId),
+      }
+    ) as unknown as Array<Array<{ JsonResult: string }>>;
+
+    if (!result || result.length === 0) {
+      return NextResponse.json(
+        { error: "Purchase request not found" },
+        { status: 404 }
+      );
+    }
+
+    const jsonResult = result[0][0]?.JsonResult;
+    if (!jsonResult) {
+      return NextResponse.json(
+        { error: "Purchase request not found" },
+        { status: 404 }
+      );
+    }
+
+    const purchaseRequest = JSON.parse(jsonResult);
+
+    // Parse nested JSON fields if they're strings (SQL Server returns nested JSON as strings)
+    if (purchaseRequest.transactions && typeof purchaseRequest.transactions === 'string') {
+      purchaseRequest.transactions = JSON.parse(purchaseRequest.transactions);
+    }
+    if (purchaseRequest.files && typeof purchaseRequest.files === 'string') {
+      purchaseRequest.files = JSON.parse(purchaseRequest.files);
+    }
+
+    return NextResponse.json(purchaseRequest);
+  } catch (error: any) {
+    console.error("Error fetching purchase request:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to fetch purchase request" },
+      { status: 500 }
+    );
+  }
+}
+
 // PATCH /api/projects/[id]/purchase-requests/[requestId]
-// Update a purchase request (approve/reject)
+// Update a purchase request (edit fields or approve/reject)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; requestId: string }> }
@@ -15,24 +73,38 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check permissions - approving/rejecting requires special permission
+    const { requestId } = await params;
+    const body = await request.json();
+
+    const {
+      lineItemId,
+      amount,
+      description,
+      vendorName,
+      approvalStatus,
+      rejectionReason,
+    } = body;
+
+    // Check permissions based on what's being updated
     const permissions = checkBudgetPermissions(session);
-    if (!permissions.canApprovePurchaseRequests) {
+
+    // If editing fields (not just approval status)
+    const isEditingFields = lineItemId !== undefined || amount !== undefined || description !== undefined || vendorName !== undefined;
+
+    // If changing approval status
+    const isChangingApproval = approvalStatus !== undefined;
+
+    if (isEditingFields && !permissions.canManagePurchaseRequests) {
       return NextResponse.json(
-        { error: "Forbidden: You do not have permission to approve/reject purchase requests" },
+        { error: "Forbidden: You do not have permission to edit purchase requests" },
         { status: 403 }
       );
     }
 
-    const { requestId } = await params;
-    const body = await request.json();
-
-    const { approvalStatus, rejectionReason } = body;
-
-    if (!approvalStatus || !["Approved", "Rejected", "Pending"].includes(approvalStatus)) {
+    if (isChangingApproval && !permissions.canApprovePurchaseRequests) {
       return NextResponse.json(
-        { error: "Invalid approval status" },
-        { status: 400 }
+        { error: "Forbidden: You do not have permission to approve/reject purchase requests" },
+        { status: 403 }
       );
     }
 
@@ -57,22 +129,47 @@ export async function PATCH(
     // Build update object
     const updateData: any = {
       Purchase_Request_ID: parseInt(requestId),
-      Approval_Status: approvalStatus,
     };
 
-    if (approvalStatus === "Approved") {
-      updateData.Approved_By_User_ID = userId;
-      updateData.Approved_Date = new Date().toISOString();
-      updateData.Rejection_Reason = null;
-    } else if (approvalStatus === "Rejected") {
-      updateData.Approved_By_User_ID = userId;
-      updateData.Approved_Date = new Date().toISOString();
-      updateData.Rejection_Reason = rejectionReason || null;
-    } else if (approvalStatus === "Pending") {
-      // Reset approval
-      updateData.Approved_By_User_ID = null;
-      updateData.Approved_Date = null;
-      updateData.Rejection_Reason = null;
+    // Handle field edits
+    if (lineItemId !== undefined) {
+      updateData.Project_Budget_Line_Item_ID = parseInt(lineItemId);
+    }
+    if (amount !== undefined) {
+      updateData.Amount = parseFloat(amount);
+    }
+    if (description !== undefined) {
+      updateData.Description = description || null;
+    }
+    if (vendorName !== undefined) {
+      updateData.Vendor_Name = vendorName || null;
+    }
+
+    // Handle approval status changes
+    if (approvalStatus !== undefined) {
+      if (!["Approved", "Rejected", "Pending"].includes(approvalStatus)) {
+        return NextResponse.json(
+          { error: "Invalid approval status" },
+          { status: 400 }
+        );
+      }
+
+      updateData.Approval_Status = approvalStatus;
+
+      if (approvalStatus === "Approved") {
+        updateData.Approved_By_User_ID = userId;
+        updateData.Approved_Date = new Date().toISOString();
+        updateData.Rejection_Reason = null;
+      } else if (approvalStatus === "Rejected") {
+        updateData.Approved_By_User_ID = userId;
+        updateData.Approved_Date = new Date().toISOString();
+        updateData.Rejection_Reason = rejectionReason || null;
+      } else if (approvalStatus === "Pending") {
+        // Reset approval
+        updateData.Approved_By_User_ID = null;
+        updateData.Approved_Date = null;
+        updateData.Rejection_Reason = null;
+      }
     }
 
     // Update purchase request

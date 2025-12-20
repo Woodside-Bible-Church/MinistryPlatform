@@ -49,8 +49,8 @@ BEGIN
             appC.Contact_ID AS approvedByContactId,
             appC.Display_Name AS approvedByName,
 
-            -- Transactions associated with this purchase request
-            (
+            -- Transactions associated with this purchase request - using ISNULL to prevent null JSON
+            ISNULL((
                 SELECT
                     t.Project_Budget_Transaction_ID AS transactionId,
                     t.Transaction_Date AS transactionDate,
@@ -65,7 +65,7 @@ BEGIN
                 WHERE t.Purchase_Request_ID = pr.Purchase_Request_ID
                 ORDER BY t.Transaction_Date DESC
                 FOR JSON PATH
-            ) AS transactions,
+            ), '[]') AS transactions,
 
             -- Transaction summary
             (

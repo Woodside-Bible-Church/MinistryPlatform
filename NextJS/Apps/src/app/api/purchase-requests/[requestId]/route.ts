@@ -73,6 +73,14 @@ export async function GET(
             );
           }
 
+          // Parse nested JSON fields if they're strings (SQL Server returns nested JSON as strings)
+          if (purchaseRequest.transactions && typeof purchaseRequest.transactions === 'string') {
+            purchaseRequest.transactions = JSON.parse(purchaseRequest.transactions);
+          }
+          if (purchaseRequest.files && typeof purchaseRequest.files === 'string') {
+            purchaseRequest.files = JSON.parse(purchaseRequest.files);
+          }
+
           return NextResponse.json(purchaseRequest);
         } catch (parseError) {
           console.error("JSON parse error:", parseError);

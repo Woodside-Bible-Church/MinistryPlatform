@@ -16,6 +16,7 @@ import {
   Copy,
   Check,
   AlertTriangle,
+  ChevronDown,
 } from "lucide-react";
 import { BackButton } from "@/components/BackButton";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -29,6 +30,17 @@ import {
 } from "@/components/ui/dialog";
 import PinButton from "@/components/PinButton";
 import { usePinnedItems } from "@/hooks/usePinnedItems";
+import { useBudgetPermissions } from "@/hooks/useBudgetPermissions";
+
+interface Transaction {
+  transactionId: number;
+  transactionDate: string;
+  amount: number;
+  description: string | null;
+  vendorName: string | null;
+  paymentMethod: string | null;
+  paymentMethodId: number | null;
+}
 
 interface PurchaseRequest {
   purchaseRequestId: number;
@@ -53,6 +65,16 @@ interface PurchaseRequest {
   transactionCount: number;
   transactionTotal: number;
   remainingAmount: number;
+  transactions?: Transaction[]; // Optional - fetched separately for approved requests
+
+  // Budget context fields (from stored proc)
+  lineItemBudgeted: number;
+  lineItemActualSpent: number;
+  lineItemRemaining: number;
+  approvedPurchaseRequestsTotal: number;
+  projectedSpentAfterApproval: number;
+  wouldBeOverBudget: boolean;
+  overBudgetAmount: number;
 }
 
 interface QuickApprovalRequest {
@@ -149,6 +171,7 @@ export default function PurchaseRequestsPage({
 }) {
   const { slug } = use(params);
   const { isPinned, pinItem, unpinItem } = usePinnedItems();
+  const permissions = useBudgetPermissions();
   const [requests, setRequests] = useState<PurchaseRequest[]>([]);
   const [quickApprovalRequests, setQuickApprovalRequests] = useState<QuickApprovalRequest[]>([]);
   const [projectId, setProjectId] = useState<number | null>(null);
@@ -192,6 +215,9 @@ export default function PurchaseRequestsPage({
   // Copy and status editing state
   const [copiedGuid, setCopiedGuid] = useState<string | null>(null);
   const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
+
+  // Transactions state - map of requestId to transactions array
+  const [requestTransactions, setRequestTransactions] = useState<Record<number, Transaction[]>>({});
 
   // Edit Request modal state
   const [isEditRequestOpen, setIsEditRequestOpen] = useState(false);
@@ -261,6 +287,15 @@ export default function PurchaseRequestsPage({
     return () => document.removeEventListener('click', handleClickOutside);
   }, [editingStatusId]);
 
+  // Fetch transactions for approved purchase requests
+  useEffect(() => {
+    requests.forEach((request) => {
+      if (request.approvalStatus === "Approved" && request.transactionCount > 0 && !requestTransactions[request.purchaseRequestId]) {
+        fetchTransactionsForRequest(request.purchaseRequestId);
+      }
+    });
+  }, [requests, projectId]);
+
   async function refetchRequests() {
     if (!projectId) return;
 
@@ -275,6 +310,27 @@ export default function PurchaseRequestsPage({
       }
     } catch (err) {
       console.error("Error refetching purchase requests:", err);
+    }
+  }
+
+  async function fetchTransactionsForRequest(purchaseRequestId: number) {
+    if (!projectId) return;
+
+    try {
+      const response = await fetch(
+        `/api/projects/${projectId}/purchase-requests/${purchaseRequestId}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        if (data.transactions) {
+          setRequestTransactions(prev => ({
+            ...prev,
+            [purchaseRequestId]: data.transactions
+          }));
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching transactions:", err);
     }
   }
 
@@ -671,7 +727,7 @@ export default function PurchaseRequestsPage({
   return (
     <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6 md:mb-8">
         <div className="flex justify-between items-center mb-4">
           <BackButton
             fallbackUrl={`/budgets/${slug}`}
@@ -679,35 +735,38 @@ export default function PurchaseRequestsPage({
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#61bc47] transition-colors"
           />
 
-          <button
-            onClick={() => {
-              setIsCreateRequestOpen(true);
-            }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#61bc47] hover:bg-[#52a03c] text-white rounded-lg transition-colors"
-            title="Create new purchase request"
-          >
-            <Plus className="w-4 h-4" />
-            New Request
-          </button>
+          {permissions.canManagePurchaseRequests && (
+            <button
+              onClick={() => {
+                setIsCreateRequestOpen(true);
+              }}
+              className="inline-flex items-center gap-2 px-3 py-2 md:px-4 md:py-2 bg-[#61bc47] hover:bg-[#52a03c] text-white rounded-lg transition-colors text-sm"
+              title="Create new purchase request"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">New Request</span>
+              <span className="sm:hidden">New</span>
+            </button>
+          )}
         </div>
 
         <div>
-          <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary dark:text-foreground mb-2">
             purchase requests
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm md:text-base text-muted-foreground">
             Expense approval requests for {projectTitle}
           </p>
         </div>
       </div>
 
-      {/* Quick Approval Card */}
-      {quickApprovalRequests.length > 0 && (
-        <div className="bg-card border border-border rounded-lg p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
+      {/* Quick Approval Card - Only for users with approval permission */}
+      {permissions.canApprovePurchaseRequests && quickApprovalRequests.length > 0 && (
+        <div className="bg-card border border-border rounded-lg p-4 md:p-6 mb-10 md:mb-12">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-yellow-500" />
-              <h2 className="text-xl font-semibold text-foreground">Quick Approval</h2>
+              <h2 className="text-lg md:text-xl font-semibold text-foreground">Quick Approval</h2>
               <span className="ml-2 px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs font-medium rounded-full">
                 {quickApprovalRequests.length} pending
               </span>
@@ -725,11 +784,12 @@ export default function PurchaseRequestsPage({
               onUnpin={unpinItem}
             />
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
             {quickApprovalRequests.slice(0, 5).map((request) => (
-              <div
+              <Link
                 key={request.purchaseRequestId}
-                className="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors flex-1 min-w-[280px] max-w-full relative"
+                href={`/budgets/${slug}/purchase-requests/${request.purchaseRequestId}`}
+                className="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors sm:flex-1 sm:min-w-[280px] sm:max-w-md w-full relative block"
               >
                 {/* GUID - Top right corner like a reference number */}
                 <div className="absolute top-2 right-2 flex items-center gap-1 text-[9px] text-muted-foreground/40">
@@ -889,7 +949,7 @@ export default function PurchaseRequestsPage({
                     </button>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
           {quickApprovalRequests.length > 5 && (
@@ -903,21 +963,21 @@ export default function PurchaseRequestsPage({
       )}
 
       {/* View Toggle */}
-      <div className="mb-6 flex justify-center">
+      <div className="mb-6 md:mb-6">
         <button
           onClick={() => setViewMode(viewMode === "my-requests" ? "all-requests" : "my-requests")}
-          className="relative inline-flex rounded-xl bg-zinc-100 dark:bg-zinc-800 p-1 shadow-inner cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+          className="relative w-full md:w-auto md:mx-auto flex rounded-xl bg-zinc-100 dark:bg-zinc-800 p-1 shadow-inner cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
         >
           {/* Sliding background indicator */}
           <div
             className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#61BC47] rounded-lg shadow-md transition-all duration-300 ease-in-out pointer-events-none ${
-              viewMode === "my-requests" ? "left-1" : "left-[calc(50%+4px-1px)]"
+              viewMode === "my-requests" ? "left-1" : "left-[calc(50%+2px)]"
             }`}
           />
 
           {/* Labels */}
           <div
-            className={`relative z-10 px-8 py-2.5 rounded-lg font-medium transition-all duration-300 pointer-events-none ${
+            className={`relative z-10 flex-1 px-4 sm:px-8 py-2.5 rounded-lg font-medium transition-all duration-300 pointer-events-none text-center whitespace-nowrap ${
               viewMode === "my-requests"
                 ? "text-white"
                 : "text-muted-foreground"
@@ -926,7 +986,7 @@ export default function PurchaseRequestsPage({
             My Requests
           </div>
           <div
-            className={`relative z-10 px-8 py-2.5 rounded-lg font-medium transition-all duration-300 pointer-events-none ${
+            className={`relative z-10 flex-1 px-4 sm:px-8 py-2.5 rounded-lg font-medium transition-all duration-300 pointer-events-none text-center whitespace-nowrap ${
               viewMode === "all-requests"
                 ? "text-white"
                 : "text-muted-foreground"
@@ -937,86 +997,142 @@ export default function PurchaseRequestsPage({
         </button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* Pending Requests */}
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Pending Approval
-            </h3>
-            <Clock className="w-5 h-5 text-yellow-500" />
+      {/* Stats Cards - Carousel on mobile, grid on desktop */}
+      <div className="mb-6 md:mb-8">
+        {/* Mobile: Horizontal scroll carousel */}
+        <div className="md:hidden overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4">
+          <div className="flex gap-4 pb-2">
+            {/* Pending Requests */}
+            <div className="bg-card border border-border rounded-lg p-6 min-w-[85vw] snap-center">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Pending Approval
+                </h3>
+                <Clock className="w-5 h-5 text-yellow-500" />
+              </div>
+              <div className="text-3xl font-bold text-foreground">
+                {pendingCount}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                {pendingCount} {pendingCount === 1 ? "request" : "requests"} awaiting review
+              </p>
+            </div>
+
+            {/* Approved Requests */}
+            <div className="bg-card border border-border rounded-lg p-6 min-w-[85vw] snap-center">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Approved
+                </h3>
+                <CheckCircle2 className="w-5 h-5 text-green-500" />
+              </div>
+              <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+                {approvedCount}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                {approvedCount} {approvedCount === 1 ? "request" : "requests"} approved
+              </p>
+            </div>
+
+            {/* Total Requested */}
+            <div className="bg-card border border-border rounded-lg p-6 min-w-[85vw] snap-center">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Total Requested
+                </h3>
+                <DollarSign className="w-5 h-5 text-purple-500" />
+              </div>
+              <div className="text-3xl font-bold text-foreground">
+                {formatCurrency(totalRequested)}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Across {requests.length} {requests.length === 1 ? "request" : "requests"}
+              </p>
+            </div>
           </div>
-          <div className="text-3xl font-bold text-foreground">
-            {pendingCount}
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            {pendingCount} {pendingCount === 1 ? "request" : "requests"} awaiting review
-          </p>
         </div>
 
-        {/* Approved Requests */}
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Approved
-            </h3>
-            <CheckCircle2 className="w-5 h-5 text-green-500" />
+        {/* Desktop: Grid layout */}
+        <div className="hidden md:grid md:grid-cols-3 gap-6">
+          {/* Pending Requests */}
+          <div className="bg-card border border-border rounded-lg p-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-medium text-muted-foreground">
+                Pending Approval
+              </h3>
+              <Clock className="w-5 h-5 text-yellow-500" />
+            </div>
+            <div className="text-3xl font-bold text-foreground">
+              {pendingCount}
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              {pendingCount} {pendingCount === 1 ? "request" : "requests"} awaiting review
+            </p>
           </div>
-          <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-            {approvedCount}
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            {approvedCount} {approvedCount === 1 ? "request" : "requests"} approved
-          </p>
-        </div>
 
-        {/* Total Requested */}
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Total Requested
-            </h3>
-            <DollarSign className="w-5 h-5 text-purple-500" />
+          {/* Approved Requests */}
+          <div className="bg-card border border-border rounded-lg p-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-medium text-muted-foreground">
+                Approved
+              </h3>
+              <CheckCircle2 className="w-5 h-5 text-green-500" />
+            </div>
+            <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+              {approvedCount}
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              {approvedCount} {approvedCount === 1 ? "request" : "requests"} approved
+            </p>
           </div>
-          <div className="text-3xl font-bold text-foreground">
-            {formatCurrency(totalRequested)}
+
+          {/* Total Requested */}
+          <div className="bg-card border border-border rounded-lg p-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-medium text-muted-foreground">
+                Total Requested
+              </h3>
+              <DollarSign className="w-5 h-5 text-purple-500" />
+            </div>
+            <div className="text-3xl font-bold text-foreground">
+              {formatCurrency(totalRequested)}
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              Across {requests.length} {requests.length === 1 ? "request" : "requests"}
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Across {requests.length} {requests.length === 1 ? "request" : "requests"}
-          </p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-card border border-border rounded-lg p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="bg-card border border-border rounded-lg p-4 md:p-6 mb-6 md:mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Search */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-muted-foreground mb-2">
+          <div className="sm:col-span-2">
+            <label className="block text-xs md:text-sm font-medium text-muted-foreground mb-2">
               Search
             </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Search by GUID, line item, vendor, or requester..."
+                placeholder="Search by GUID, line item, vendor..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-zinc-100 dark:bg-zinc-800 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] text-foreground"
+                className="w-full pl-10 pr-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] text-foreground"
               />
             </div>
           </div>
 
           {/* Status Filter */}
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-2">
+            <label className="block text-xs md:text-sm font-medium text-muted-foreground mb-2">
               Status
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="w-full px-4 py-2 bg-zinc-100 dark:bg-zinc-800 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] text-foreground"
+              className="w-full px-3 md:px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] text-foreground"
             >
               <option value="all">All Status</option>
               <option value="Pending">Pending</option>
@@ -1027,13 +1143,13 @@ export default function PurchaseRequestsPage({
 
           {/* Sort By */}
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-2">
+            <label className="block text-xs md:text-sm font-medium text-muted-foreground mb-2">
               Sort By
             </label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="w-full px-4 py-2 bg-zinc-100 dark:bg-zinc-800 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] text-foreground"
+              className="w-full px-3 md:px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61bc47] text-foreground"
             >
               <option value="date">Date</option>
               <option value="amount">Amount</option>
@@ -1043,7 +1159,7 @@ export default function PurchaseRequestsPage({
       </div>
 
       {/* Requests Cards */}
-      <div className="space-y-4">
+      <div className="space-y-6 md:space-y-4">
         {filteredRequests.length === 0 ? (
           <div className="bg-card border border-border rounded-lg p-12 text-center">
             <p className="text-muted-foreground">No purchase requests found</p>
@@ -1054,265 +1170,463 @@ export default function PurchaseRequestsPage({
               key={request.purchaseRequestId}
               href={`/budgets/${slug}/purchase-requests/${request.purchaseRequestId}`}
               prefetch={true}
-              className="block bg-card border border-border rounded-lg p-6 hover:shadow-lg hover:border-[#61bc47]/30 transition-all"
+              className="block bg-card border border-border rounded-lg p-4 md:p-6 hover:shadow-lg hover:border-[#61bc47]/30 transition-all relative"
             >
-              {/* Header Row */}
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider leading-tight mb-0.5">
-                      {request.categoryName}
-                    </span>
-                    <h3 className="text-xl font-bold text-foreground leading-tight">
-                      {request.lineItemName}
-                    </h3>
+              {/* GUID - Top right corner */}
+              <div className="absolute top-3 md:top-4 right-4 md:right-6 flex items-center gap-1 text-[8px] sm:text-[9px] text-muted-foreground/40">
+                <span className="font-mono">
+                  {request.requisitionGuid.toUpperCase()}
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleCopyGuid(request.requisitionGuid);
+                  }}
+                  className="p-0.5 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors opacity-60 hover:opacity-100"
+                  title="Copy GUID"
+                >
+                  {copiedGuid === request.requisitionGuid ? (
+                    <Check className="w-2.5 h-2.5 text-green-600 dark:text-green-400" />
+                  ) : (
+                    <Copy className="w-2.5 h-2.5 text-muted-foreground" />
+                  )}
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-3 md:gap-4 pt-3 md:pt-4">
+                {/* Status Badge and Actions Row - AT TOP */}
+                <div className="flex items-center justify-between gap-2">
+                  {/* Status Badge - Left side with Dropdown (if user has permission) */}
+                  <div className="relative">
+                    {permissions.canApprovePurchaseRequests ? (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setEditingStatusId(
+                              editingStatusId === request.purchaseRequestId ? null : request.purchaseRequestId
+                            );
+                          }}
+                          className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-bold rounded-md transition-colors ${
+                            request.approvalStatus === "Pending"
+                              ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-900/50"
+                              : request.approvalStatus === "Approved"
+                              ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50"
+                              : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50"
+                          }`}
+                        >
+                          {request.approvalStatus === "Pending" && (
+                            <>
+                              <Clock className="w-4 h-4" />
+                              PENDING
+                            </>
+                          )}
+                          {request.approvalStatus === "Approved" && (
+                            <>
+                              <CheckCircle2 className="w-4 h-4" />
+                              APPROVED
+                            </>
+                          )}
+                          {request.approvalStatus === "Rejected" && (
+                            <>
+                              <XCircle className="w-4 h-4" />
+                              REJECTED
+                            </>
+                          )}
+                          <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${
+                            editingStatusId === request.purchaseRequestId ? "rotate-180" : ""
+                          }`} />
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        {editingStatusId === request.purchaseRequestId && (
+                          <div
+                            className="absolute left-0 top-full mt-1 bg-white dark:bg-zinc-800 border border-border rounded-lg shadow-lg py-1 z-10 min-w-[140px]"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setEditingStatusId(null);
+                                setApprovingRequest(request);
+                                setApprovalAction("Approved");
+                                setIsApprovalModalOpen(true);
+                              }}
+                              className="w-full px-4 py-2 text-left text-sm hover:bg-green-50 dark:hover:bg-green-900/20 flex items-center gap-2"
+                            >
+                              <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                              <span>Approve</span>
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setEditingStatusId(null);
+                                setApprovingRequest(request);
+                                setApprovalAction("Rejected");
+                                setIsApprovalModalOpen(true);
+                              }}
+                              className="w-full px-4 py-2 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+                            >
+                              <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                              <span>Reject</span>
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleStatusChange(request, "Pending");
+                              }}
+                              className="w-full px-4 py-2 text-left text-sm hover:bg-yellow-50 dark:hover:bg-yellow-900/20 flex items-center gap-2"
+                            >
+                              <Clock className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+                              <span>Pending</span>
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      // Users without permission see non-clickable status badge
+                      <div
+                        className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-bold rounded-md ${
+                          request.approvalStatus === "Pending"
+                            ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300"
+                            : request.approvalStatus === "Approved"
+                            ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
+                            : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"
+                        }`}
+                      >
+                        {request.approvalStatus === "Pending" && (
+                          <>
+                            <Clock className="w-4 h-4" />
+                            PENDING
+                          </>
+                        )}
+                        {request.approvalStatus === "Approved" && (
+                          <>
+                            <CheckCircle2 className="w-4 h-4" />
+                            APPROVED
+                          </>
+                        )}
+                        {request.approvalStatus === "Rejected" && (
+                          <>
+                            <XCircle className="w-4 h-4" />
+                            REJECTED
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Icons - Right side (Edit and Delete only) */}
+                  <div className="flex items-center gap-1 -mr-2">
+                    {/* Edit Button */}
+                    {permissions.canManagePurchaseRequests && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setEditingRequest(request);
+                          setEditRequestLineItemId(request.lineItemId.toString());
+                          setEditRequestAmount(request.amount.toString());
+                          setEditRequestDescription(request.description || "");
+                          setEditRequestVendorName(request.vendorName || "");
+                          setIsEditRequestOpen(true);
+                        }}
+                        className="p-2 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors"
+                        title="Edit request"
+                      >
+                        <Edit className="w-5 h-5 text-muted-foreground" />
+                      </button>
+                    )}
+
+                    {/* Delete Button */}
+                    {request.transactionCount === 0 && permissions.canManagePurchaseRequests && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleDeleteRequest(request);
+                        }}
+                        className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                        title="Delete request"
+                      >
+                        <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
+                      </button>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1">
-                  {/* Add Transaction Button (only for approved) */}
-                  {request.approvalStatus === "Approved" && (
+                {/* Labels Row */}
+                <div className="flex items-center justify-between gap-4">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wide">
+                    {request.lineItemName}
+                  </div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-wide">
+                    Amount
+                  </div>
+                </div>
+
+                {/* Main Row: Description and amount */}
+                <div className="flex items-start justify-between gap-4 -mt-2">
+                  <h3 className="flex-1 text-xl font-bold text-foreground">
+                    {request.description || request.lineItemName}
+                  </h3>
+                  <div className="text-xl font-bold text-foreground whitespace-nowrap flex-shrink-0">
+                    {formatCompactCurrency(request.amount)}
+                  </div>
+                </div>
+
+                {/* Date and Requester */}
+                <div className="flex flex-wrap gap-x-6 gap-y-2 -mt-1">
+                  {/* Date */}
+                  <div className="flex flex-col gap-0.5">
+                    <div className="text-xs text-muted-foreground uppercase tracking-wide">
+                      Date
+                    </div>
+                    <div className="text-sm text-foreground">
+                      {formatDate(request.requestedDate)}
+                    </div>
+                  </div>
+
+                  {/* Requester */}
+                  <div className="flex flex-col gap-0.5">
+                    <div className="text-xs text-muted-foreground uppercase tracking-wide">
+                      Requested By
+                    </div>
+                    <div className="text-sm text-foreground">
+                      {request.requestedByName}
+                    </div>
+                  </div>
+
+                  {/* Vendor if exists */}
+                  {request.vendorName && (
+                    <div className="flex flex-col gap-0.5">
+                      <div className="text-xs text-muted-foreground uppercase tracking-wide">
+                        Vendor
+                      </div>
+                      <div className="text-sm text-foreground">
+                        {request.vendorName}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Budget/Transaction Progress */}
+                {(() => {
+                  if (request.approvalStatus === "Approved" && request.transactionCount > 0) {
+                    // Show transaction progress for approved requests with transactions
+                    return (
+                      <div className="-mt-1">
+                        <div className="mb-1.5">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-medium text-muted-foreground">
+                              Transaction Progress
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {formatCurrency(request.transactionTotal)} / {formatCurrency(request.amount)}
+                            </span>
+                          </div>
+                          <div className="h-2 bg-zinc-300 dark:bg-zinc-700 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full transition-all ${
+                                request.transactionTotal > request.amount
+                                  ? 'bg-red-500'
+                                  : request.transactionTotal / request.amount > 0.9
+                                  ? 'bg-yellow-500'
+                                  : 'bg-[#61bc47]'
+                              }`}
+                              style={{
+                                width: `${Math.min(
+                                  (request.transactionTotal / request.amount) * 100,
+                                  100
+                                )}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-center">
+                          <p className={`text-xs ${
+                            (request.remainingAmount ?? (request.amount - request.transactionTotal)) < 0
+                              ? 'text-red-600 dark:text-red-400 font-medium'
+                              : (request.remainingAmount ?? (request.amount - request.transactionTotal)) === 0
+                              ? 'text-green-600 dark:text-green-400 font-medium'
+                              : 'text-muted-foreground'
+                          }`}>
+                            {(() => {
+                              const remaining = request.remainingAmount ?? (request.amount - request.transactionTotal);
+                              if (remaining < 0) {
+                                return (
+                                  <>
+                                    Over budget by {formatCurrency(Math.abs(remaining))} • {request.transactionCount} {request.transactionCount === 1 ? 'transaction' : 'transactions'}
+                                  </>
+                                );
+                              } else if (remaining === 0) {
+                                return (
+                                  <>
+                                    Fully spent • {request.transactionCount} {request.transactionCount === 1 ? 'transaction' : 'transactions'}
+                                  </>
+                                );
+                              } else {
+                                return (
+                                  <>
+                                    {formatCurrency(remaining)} remaining • {request.transactionCount} {request.transactionCount === 1 ? 'transaction' : 'transactions'}
+                                  </>
+                                );
+                              }
+                            })()}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  } else if (request.approvalStatus === "Rejected" && request.rejectionReason) {
+                    // Show rejection reason for rejected requests
+                    return (
+                      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 -mt-1">
+                        <div className="flex items-start gap-2">
+                          <XCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-xs font-medium text-red-900 dark:text-red-200 mb-1">
+                              Rejection Reason
+                            </p>
+                            <p className="text-xs text-red-800 dark:text-red-300">
+                              {request.rejectionReason}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  } else if (request.approvalStatus === "Pending" && request.lineItemBudgeted) {
+                    // Show line item budget usage for pending requests using stored proc data
+                    const budgetUsagePercent = (request.lineItemActualSpent / request.lineItemBudgeted) * 100;
+
+                    return (
+                      <div className="-mt-1">
+                        {/* Budget Bar Chart */}
+                        <div className="mb-1.5">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-medium text-muted-foreground">
+                              Budget Usage
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {formatCurrency(request.lineItemActualSpent)} / {formatCurrency(request.lineItemBudgeted)}
+                            </span>
+                          </div>
+                          <div className="h-2 bg-zinc-300 dark:bg-zinc-700 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full transition-all ${
+                                request.wouldBeOverBudget
+                                  ? 'bg-red-500'
+                                  : budgetUsagePercent > 90
+                                  ? 'bg-yellow-500'
+                                  : 'bg-[#61bc47]'
+                              }`}
+                              style={{
+                                width: `${Math.min(budgetUsagePercent, 100)}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Impact Preview */}
+                        <div className="flex items-center justify-center">
+                          {request.wouldBeOverBudget && (
+                            <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mr-1.5" />
+                          )}
+                          <p className={`text-xs ${
+                            request.wouldBeOverBudget
+                              ? 'text-red-600 dark:text-red-400 font-medium'
+                              : 'text-muted-foreground'
+                          }`}>
+                            {request.wouldBeOverBudget ? (
+                              <>
+                                Approving will exceed budget by {formatCurrency(request.overBudgetAmount)}
+                              </>
+                            ) : (
+                              <>
+                                After approval: {formatCurrency(request.lineItemBudgeted - request.projectedSpentAfterApproval)} remaining
+                              </>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+
+              {/* Transaction List and Add Button (for approved requests) */}
+              {request.approvalStatus === "Approved" && (
+                <>
+                  {/* Transaction List */}
+                  {requestTransactions[request.purchaseRequestId] && requestTransactions[request.purchaseRequestId].length > 0 && (
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                          Transactions ({requestTransactions[request.purchaseRequestId].length})
+                        </h4>
+                        {requestTransactions[request.purchaseRequestId].length > 3 && (
+                          <span className="text-xs font-medium text-[#61bc47] hover:text-[#52a03c] transition-colors cursor-pointer">
+                            View All
+                          </span>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        {requestTransactions[request.purchaseRequestId].slice(0, 3).map((transaction) => (
+                          <Link
+                            key={transaction.transactionId}
+                            href={`/budgets/${slug}/transactions/${transaction.transactionId}`}
+                            className="flex items-center justify-between px-4 py-2.5 bg-zinc-100/50 dark:bg-zinc-800/30 hover:bg-zinc-100 dark:hover:bg-zinc-700/50 rounded-lg transition-colors border border-zinc-200/50 dark:border-zinc-700/50 hover:border-[#61bc47]/30 group"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <span className="text-sm font-bold text-foreground whitespace-nowrap">
+                                {formatCurrency(transaction.amount)}
+                              </span>
+                              <span className="text-sm text-muted-foreground">•</span>
+                              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                                {formatDate(transaction.transactionDate)}
+                              </span>
+                              {(transaction.description || transaction.vendorName) && (
+                                <>
+                                  <span className="text-sm text-muted-foreground">•</span>
+                                  <span className="text-sm text-foreground truncate">
+                                    {transaction.description || transaction.vendorName}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                            <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-[#61bc47] rotate-[-90deg] flex-shrink-0 ml-2 transition-colors" />
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Add Transaction Button */}
+                  {permissions.canManageTransactions && (
                     <button
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         setTransactionRequest(request);
                         setTransactionDate(new Date().toISOString().split('T')[0]);
-                        setTransactionAmount((request.remainingAmount || request.amount).toString());
+                        setTransactionAmount((request.remainingAmount ?? (request.amount - request.transactionTotal)).toString());
                         setTransactionVendorName(request.vendorName || "");
                         setIsAddTransactionOpen(true);
                       }}
-                      className="p-2 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors"
-                      title="Add transaction"
+                      className="w-full mt-4 py-3 border-2 border-dashed border-zinc-300 dark:border-zinc-700 hover:border-[#61bc47] dark:hover:border-[#61bc47] rounded-lg text-muted-foreground hover:text-[#61bc47] transition-colors flex items-center justify-center gap-2 text-sm font-medium"
                     >
-                      <Plus className="w-4 h-4 text-green-600 dark:text-green-400" />
+                      <Plus className="w-4 h-4" />
+                      ADD TRANSACTION
                     </button>
                   )}
-
-                  {/* Status Icon with Dropdown */}
-                  <div className="relative">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setEditingStatusId(
-                          editingStatusId === request.purchaseRequestId ? null : request.purchaseRequestId
-                        );
-                      }}
-                      className={`p-2 rounded transition-colors ${
-                        request.approvalStatus === "Approved"
-                          ? "hover:bg-green-100 dark:hover:bg-green-900/30"
-                          : request.approvalStatus === "Rejected"
-                          ? "hover:bg-red-100 dark:hover:bg-red-900/30"
-                          : "hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
-                      }`}
-                      title={`Status: ${request.approvalStatus}`}
-                    >
-                      {request.approvalStatus === "Approved" ? (
-                        <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
-                      ) : request.approvalStatus === "Rejected" ? (
-                        <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
-                      ) : (
-                        <Clock className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
-                      )}
-                    </button>
-
-                    {/* Dropdown Menu */}
-                    {editingStatusId === request.purchaseRequestId && (
-                      <div
-                        className="absolute right-0 top-full mt-1 bg-white dark:bg-zinc-800 border border-border rounded-lg shadow-lg py-1 z-10 min-w-[140px]"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setEditingStatusId(null);
-                            setApprovingRequest(request);
-                            setApprovalAction("Approved");
-                            setIsApprovalModalOpen(true);
-                          }}
-                          className="w-full px-4 py-2 text-left text-sm hover:bg-green-50 dark:hover:bg-green-900/20 flex items-center gap-2"
-                        >
-                          <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
-                          <span>Approve</span>
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setEditingStatusId(null);
-                            setApprovingRequest(request);
-                            setApprovalAction("Rejected");
-                            setIsApprovalModalOpen(true);
-                          }}
-                          className="w-full px-4 py-2 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
-                        >
-                          <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
-                          <span>Reject</span>
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleStatusChange(request, "Pending");
-                          }}
-                          className="w-full px-4 py-2 text-left text-sm hover:bg-yellow-50 dark:hover:bg-yellow-900/20 flex items-center gap-2"
-                        >
-                          <Clock className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
-                          <span>Pending</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Edit Button */}
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setEditingRequest(request);
-                      setEditRequestLineItemId(request.lineItemId.toString());
-                      setEditRequestAmount(request.amount.toString());
-                      setEditRequestDescription(request.description || "");
-                      setEditRequestVendorName(request.vendorName || "");
-                      setIsEditRequestOpen(true);
-                    }}
-                    className="p-2 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors"
-                    title="Edit request"
-                  >
-                    <Edit className="w-4 h-4 text-muted-foreground" />
-                  </button>
-
-                  {/* Delete Button */}
-                  {request.transactionCount === 0 && (
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleDeleteRequest(request);
-                      }}
-                      className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
-                      title="Delete request"
-                    >
-                      <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Details Row */}
-              <div className="pt-3">
-                <div className="flex items-end justify-between gap-4">
-                  <div className="flex-1 space-y-2.5">
-                    {request.description && (
-                      <p className="text-sm text-muted-foreground italic">
-                        "{request.description}"
-                      </p>
-                    )}
-
-                    {request.transactionCount > 0 && (
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-3 text-sm">
-                          <span className="text-muted-foreground">Approved:</span>
-                          <span className="font-semibold text-foreground">
-                            {formatCurrency(request.amount)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3 text-sm">
-                          <span className="text-muted-foreground">Spent:</span>
-                          <span className={`font-semibold ${
-                            request.transactionTotal > request.amount
-                              ? 'text-red-600 dark:text-red-400'
-                              : 'text-green-600 dark:text-green-400'
-                          }`}>
-                            {formatCurrency(request.transactionTotal)}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            ({request.transactionCount} {request.transactionCount === 1 ? 'transaction' : 'transactions'})
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3 text-sm">
-                          <span className="text-muted-foreground">Remaining:</span>
-                          <span className={`font-bold ${
-                            request.remainingAmount < 0
-                              ? 'text-red-600 dark:text-red-400'
-                              : request.remainingAmount === 0
-                              ? 'text-muted-foreground'
-                              : 'text-green-600 dark:text-green-400'
-                          }`}>
-                            {request.remainingAmount < 0 ? '-' : ''}{formatCurrency(Math.abs(request.remainingAmount))}
-                            {request.remainingAmount < 0 && ' over budget'}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground/70">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-mono">
-                          {request.requisitionGuid.toUpperCase()}
-                        </span>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleCopyGuid(request.requisitionGuid);
-                          }}
-                          className="p-0.5 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors"
-                          title="Copy GUID"
-                        >
-                          {copiedGuid === request.requisitionGuid ? (
-                            <Check className="w-3 h-3 text-green-600 dark:text-green-400" />
-                          ) : (
-                            <Copy className="w-3 h-3 text-muted-foreground/70" />
-                          )}
-                        </button>
-                      </div>
-                      <span>•</span>
-                      <span>{formatDate(request.requestedDate)}</span>
-                      <span>•</span>
-                      <span>{request.requestedByName}</span>
-                      {request.vendorName && (
-                        <>
-                          <span>•</span>
-                          <span>{request.vendorName}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-end gap-1">
-                    <div className="text-xs text-muted-foreground uppercase tracking-wide">
-                      Approved
-                    </div>
-                    <div className={`text-2xl font-bold whitespace-nowrap ${
-                      request.approvalStatus === "Approved"
-                        ? "text-green-600 dark:text-green-400"
-                        : request.approvalStatus === "Rejected"
-                        ? "text-red-600 dark:text-red-400"
-                        : "text-yellow-600 dark:text-yellow-400"
-                    }`}>
-                      {formatCurrency(request.amount)}
-                    </div>
-
-                    {request.transactionCount > 0 && (
-                      <>
-                        <div className="text-xs text-muted-foreground uppercase tracking-wide mt-2">
-                          Spent
-                        </div>
-                        <div className={`text-2xl font-bold whitespace-nowrap ${
-                          request.transactionTotal > request.amount
-                            ? 'text-red-600 dark:text-red-400'
-                            : 'text-green-600 dark:text-green-400'
-                        }`}>
-                          {formatCurrency(request.transactionTotal)}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
+                </>
+              )}
             </Link>
           ))
         )}
