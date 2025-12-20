@@ -85,6 +85,14 @@ BEGIN
                         -- Line Item ID (unified)
                         pbt.Project_Budget_Line_Item_ID AS lineItemId,
 
+                        -- Submitter info
+                        pbt.Submitted_By AS submittedByContactId,
+                        (
+                            SELECT COALESCE(c.Nickname, c.First_Name) + ' ' + c.Last_Name
+                            FROM Contacts c
+                            WHERE c.Contact_ID = pbt.Submitted_By
+                        ) AS submittedByName,
+
                         -- Purchase Request info (for expense transactions only)
                         pbt.Purchase_Request_ID AS purchaseRequestId,
                         (
@@ -97,6 +105,11 @@ BEGIN
                             FROM Project_Budget_Purchase_Requests pr
                             WHERE pr.Purchase_Request_ID = pbt.Purchase_Request_ID
                         ) AS purchaseRequestStatus,
+                        (
+                            SELECT pr.Description
+                            FROM Project_Budget_Purchase_Requests pr
+                            WHERE pr.Purchase_Request_ID = pbt.Purchase_Request_ID
+                        ) AS purchaseRequestDescription,
 
                         -- Category/Line Item info (derived from unified line items table)
                         ISNULL(
