@@ -678,6 +678,7 @@ export default function BudgetDetailPage({
   const [createPRAmount, setCreatePRAmount] = useState<string>("");
   const [createPRDescription, setCreatePRDescription] = useState<string>("");
   const [createPRVendorName, setCreatePRVendorName] = useState<string>("");
+  const [createPRFiles, setCreatePRFiles] = useState<File[]>([]);
   const [isSavingPurchaseRequest, setIsSavingPurchaseRequest] = useState(false);
 
   useEffect(() => {
@@ -1796,8 +1797,32 @@ export default function BudgetDetailPage({
       return;
     }
 
+    if (!createPRDescription.trim()) {
+      alert("Description is required");
+      return;
+    }
+
+    // Save form data before closing modal
+    const savedFormData = {
+      amount,
+      description: createPRDescription.trim(),
+      vendorName: createPRVendorName.trim() || null,
+    };
+
+    // Save files before closing modal
+    const savedFiles = [...createPRFiles];
+
     // Close modal immediately
     setIsCreatePurchaseRequestOpen(false);
+
+    // Reset form
+    setCreatePRLineItemId("");
+    setCreatePRLineItemName("");
+    setCreatePRAmount("");
+    setCreatePRDescription("");
+    setCreatePRVendorName("");
+    setCreatePRFiles([]);
+
     setIsSavingPurchaseRequest(true);
 
     try {
@@ -1808,9 +1833,9 @@ export default function BudgetDetailPage({
         },
         body: JSON.stringify({
           lineItemId: createPRLineItemId,
-          amount: amount,
-          description: createPRDescription.trim() || null,
-          vendorName: createPRVendorName.trim() || null,
+          amount: savedFormData.amount,
+          description: savedFormData.description,
+          vendorName: savedFormData.vendorName,
         }),
       });
 
@@ -1819,16 +1844,30 @@ export default function BudgetDetailPage({
         throw new Error(errorData.error || "Failed to create purchase request");
       }
 
-      await response.json();
+      const createdPR = await response.json();
+
+      // Upload files if any were selected
+      if (savedFiles.length > 0 && createdPR.purchaseRequestId) {
+        try {
+          const formData = new FormData();
+          savedFiles.forEach((file) => {
+            formData.append('files', file);
+          });
+
+          const uploadResponse = await fetch(`/api/projects/${project.Project_ID}/purchase-requests/${createdPR.purchaseRequestId}/files`, {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!uploadResponse.ok) {
+            console.error('Failed to upload files, but purchase request was created');
+          }
+        } catch (uploadError) {
+          console.error('Error uploading files:', uploadError);
+        }
+      }
 
       setIsSavingPurchaseRequest(false);
-
-      // Reset form
-      setCreatePRLineItemId("");
-      setCreatePRLineItemName("");
-      setCreatePRAmount("");
-      setCreatePRDescription("");
-      setCreatePRVendorName("");
 
       alert("Purchase request created successfully! You can view it in the Purchase Requests tab.");
     } catch (err) {
@@ -2919,22 +2958,43 @@ export default function BudgetDetailPage({
                 className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 value={createPRVendorName}
                 onChange={(e) => setCreatePRVendorName(e.target.value)}
-                placeholder="Enter vendor name"
+                placeholder="Where did you buy this?"
               />
             </div>
 
             {/* Description */}
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">
-                Description
+                Description *
               </label>
-              <textarea
+              <input
+                type="text"
                 className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 value={createPRDescription}
                 onChange={(e) => setCreatePRDescription(e.target.value)}
                 placeholder="Describe what you need to purchase"
-                rows={3}
               />
+            </div>
+
+            {/* File Upload */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Attach Supporting Documents <span className="text-xs text-muted-foreground">(optional)</span>
+              </label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Upload quotes, estimates, invoices, or other documentation
+              </p>
+              <input
+                type="file"
+                multiple
+                onChange={(e) => setCreatePRFiles(Array.from(e.target.files || []))}
+                className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#61bc47] file:text-white hover:file:bg-[#52a038]"
+              />
+              {createPRFiles.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {createPRFiles.length} file{createPRFiles.length > 1 ? 's' : ''} selected
+                </p>
+              )}
             </div>
           </div>
 

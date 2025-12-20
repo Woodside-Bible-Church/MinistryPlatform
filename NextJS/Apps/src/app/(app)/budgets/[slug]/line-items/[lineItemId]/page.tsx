@@ -268,10 +268,15 @@ export default function LineItemDetailsPage({
       return;
     }
 
+    if (!createPRDescription.trim()) {
+      toast.error("Description is required");
+      return;
+    }
+
     // Save form data before closing modal
     const savedFormData = {
       amount,
-      description: createPRDescription.trim() || "",
+      description: createPRDescription.trim(),
       vendorName: createPRVendorName.trim() || "",
     };
 
@@ -381,10 +386,15 @@ export default function LineItemDetailsPage({
       return;
     }
 
+    if (!editPRDescription.trim()) {
+      toast.error("Description is required");
+      return;
+    }
+
     // Save form data and files before closing modal
     const savedFormData = {
       amount,
-      description: editPRDescription.trim() || "",
+      description: editPRDescription.trim(),
       vendorName: editPRVendorName.trim() || "",
     };
     const savedFiles = [...editPRFiles];
@@ -1231,21 +1241,21 @@ export default function LineItemDetailsPage({
                 className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
                 value={createPRVendorName}
                 onChange={(e) => setCreatePRVendorName(e.target.value)}
-                placeholder="Enter vendor name"
+                placeholder="Where did you buy this?"
               />
             </div>
 
             {/* Description */}
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">
-                Description
+                Description *
               </label>
-              <textarea
+              <input
+                type="text"
                 className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
                 value={createPRDescription}
                 onChange={(e) => setCreatePRDescription(e.target.value)}
                 placeholder="Describe what you need to purchase"
-                rows={3}
               />
             </div>
 
@@ -1327,21 +1337,21 @@ export default function LineItemDetailsPage({
                 className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
                 value={editPRVendorName}
                 onChange={(e) => setEditPRVendorName(e.target.value)}
-                placeholder="Enter vendor name"
+                placeholder="Where did you buy this?"
               />
             </div>
 
             {/* Description */}
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">
-                Description
+                Description *
               </label>
-              <textarea
+              <input
+                type="text"
                 className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
                 value={editPRDescription}
                 onChange={(e) => setEditPRDescription(e.target.value)}
                 placeholder="Describe what you need to purchase"
-                rows={3}
               />
             </div>
 
