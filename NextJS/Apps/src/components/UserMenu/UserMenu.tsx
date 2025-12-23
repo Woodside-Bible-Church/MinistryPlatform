@@ -5,7 +5,6 @@ import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 import { mpUserProfile } from '@/providers/MinistryPlatform/Interfaces/mpUserProfile';
 import { Sun, Moon, UserSearch } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { signOut } from 'next-auth/react';
 import { useSession } from '@/components/SessionProvider';
 import {
   DropdownMenu,
@@ -35,9 +34,8 @@ export default function UserMenu({ onClose, userProfile, children }: UserMenuPro
     if (onClose) {
       onClose();
     }
-    // Try to stay on current page, or go to home if page requires auth
-    const currentPath = window.location.pathname;
-    await signOut({ callbackUrl: currentPath });
+    // Redirect to logout API which clears session and shows logout confirmation
+    window.location.href = '/api/auth/logout';
   };
 
   // Use resolvedTheme to get the actual current theme (handles system preference)

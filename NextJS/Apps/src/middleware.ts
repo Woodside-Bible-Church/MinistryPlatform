@@ -213,7 +213,7 @@ export async function middleware(request: NextRequest) {
   // console.log(`Middleware: Processing ${pathname}`);
 
   // Early returns for public paths
-  if (pathname.startsWith('/api') || pathname === '/signin' || pathname === '/' || pathname === '/403') {
+  if (pathname.startsWith('/api') || pathname === '/signin' || pathname === '/403') {
     console.log(`Middleware: Allowing public path ${pathname}`);
     return NextResponse.next();
   }
@@ -256,8 +256,8 @@ export async function middleware(request: NextRequest) {
     // console.log('Middleware: Token exp:', token?.exp);
 
     if (!token) {
-      console.log("Middleware: Redirecting to home - no token");
-      return NextResponse.redirect(new URL('/', request.url));
+      console.log("Middleware: Redirecting to sign-in - no token");
+      return NextResponse.redirect(new URL('/signin', request.url));
     }
 
     // Don't check token expiration here - let NextAuth's JWT callback handle token refresh
@@ -356,7 +356,7 @@ export async function middleware(request: NextRequest) {
 
   } catch (error) {
     console.error('Middleware: Error getting token:', error);
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL('/signin', request.url));
   }
 }
 

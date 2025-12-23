@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Activity, Loader2, AlertCircle } from "lucide-react";
+import { Activity, Loader2, AlertCircle, ArrowRight, UserCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import * as LucideIcons from "lucide-react";
@@ -11,6 +11,7 @@ import {
   PinnedCardWrapper,
   getPinnedCardComponent
 } from "@/components/PinnedItems";
+import { signIn } from "next-auth/react";
 
 type Application = {
   Application_ID: number;
@@ -95,21 +96,25 @@ export default function Dashboard() {
           onUnpin={unpinItem}
           renderCard={(item, onUnpin) => {
             const CardContent = getPinnedCardComponent(item.item_type);
+            // Cards with internal links should not be wrapped in a Link to avoid nested <a> tags
+            const hasInternalLinks = item.item_type === 'purchase-requests-approval';
             return (
-              <PinnedCardWrapper item={item} onUnpin={onUnpin}>
+              <PinnedCardWrapper item={item} onUnpin={onUnpin} hasInternalLinks={hasInternalLinks}>
                 <CardContent item={item} />
               </PinnedCardWrapper>
             );
           }}
         />
 
-        {/* Hero Header */}
-        <div className="pt-8 pb-6 text-center">
-          <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">Ministry Applications</h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto px-4">
-            Internal tools for Woodside Bible Church staff and volunteers
-          </p>
-        </div>
+        {/* Hero Header - Only show if we have apps */}
+        {!isLoading && apps.length > 0 && (
+          <div className="pt-8 pb-6 text-center">
+            <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">Ministry Applications</h1>
+            <p className="text-muted-foreground max-w-2xl mx-auto px-4">
+              Internal tools for Woodside Bible Church staff and volunteers
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Apps Grid */}
@@ -124,11 +129,44 @@ export default function Dashboard() {
             <p className="text-muted-foreground">{error}</p>
           </div>
         ) : apps.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No applications available</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Contact your administrator to request access
-            </p>
+          <div className="flex justify-center">
+            <div
+              onClick={() => signIn("ministryplatform")}
+              className="group relative overflow-hidden border border-border bg-card hover:border-primary/50 dark:hover:border-[#61bc47]/50 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col min-h-[180px] w-full md:w-96"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  signIn("ministryplatform");
+                }
+              }}
+            >
+              <div className="p-6 space-y-3 flex-1 flex flex-col">
+                {/* Icon and Title */}
+                <div className="flex items-center gap-3">
+                  <div className="bg-[#61bc47]/20 dark:bg-[#61bc47]/10 group-hover:bg-[#61bc47] group-focus:bg-[#61bc47] w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-all duration-300">
+                    <UserCircle className="w-5 h-5 text-[#61bc47] group-hover:text-white group-focus:text-white transition-colors duration-300" />
+                  </div>
+                  <h3 className="text-lg uppercase font-extrabold tracking-tight text-foreground" style={{ letterSpacing: '-0.025em' }}>
+                    Sign In
+                  </h3>
+                </div>
+
+                {/* Description */}
+                <p className="text-sm text-muted-foreground leading-relaxed flex-1">
+                  Sign in to access ministry tools and applications
+                </p>
+
+                {/* Click to Sign In */}
+                <div className="flex items-center justify-end gap-1 text-primary dark:text-muted-foreground dark:group-hover:text-[#61bc47] font-semibold text-sm transition-colors">
+                  <span>Sign in</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </div>
+
+              {/* Hover gradient effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 dark:from-[#61bc47]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -146,7 +184,7 @@ export default function Dashboard() {
                   <div className="p-6 space-y-3 flex-1 flex flex-col">
                     {/* Icon and Title */}
                     <div className="flex items-center gap-3">
-                      <div className="bg-[#61bc47]/10 group-hover:bg-[#61bc47] group-focus:bg-[#61bc47] w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-all duration-300">
+                      <div className="bg-[#61bc47]/20 dark:bg-[#61bc47]/10 group-hover:bg-[#61bc47] group-focus:bg-[#61bc47] w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-all duration-300">
                         <Icon className="w-5 h-5 text-[#61bc47] group-hover:text-white group-focus:text-white transition-colors duration-300" />
                       </div>
                       <h3 className="text-lg uppercase font-extrabold tracking-tight text-foreground" style={{ letterSpacing: '-0.025em' }}>

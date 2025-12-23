@@ -9,9 +9,10 @@ interface PinnedCardWrapperProps {
   item: PinnedItem;
   onUnpin: (itemType: PinnedItemType, itemId: string) => Promise<boolean>;
   children: React.ReactNode;
+  hasInternalLinks?: boolean; // If true, don't wrap in a Link to avoid nested <a> tags
 }
 
-export function PinnedCardWrapper({ item, onUnpin, children }: PinnedCardWrapperProps) {
+export function PinnedCardWrapper({ item, onUnpin, children, hasInternalLinks = false }: PinnedCardWrapperProps) {
   const [isUnpinning, setIsUnpinning] = useState(false);
 
   const handleUnpin = async (e: React.MouseEvent) => {
@@ -29,8 +30,8 @@ export function PinnedCardWrapper({ item, onUnpin, children }: PinnedCardWrapper
     }
   };
 
-  return (
-    <div className="relative bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 group">
+  const content = (
+    <>
       <button
         onClick={handleUnpin}
         disabled={isUnpinning}
@@ -40,9 +41,21 @@ export function PinnedCardWrapper({ item, onUnpin, children }: PinnedCardWrapper
       >
         <X className="w-4 h-4 text-muted-foreground hover:text-red-600 dark:hover:text-red-400" />
       </button>
-      <Link href={item.route} className="block">
-        {children}
-      </Link>
+      {children}
+    </>
+  );
+
+  return (
+    <div className="relative bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 group">
+      {hasInternalLinks ? (
+        // Don't wrap in Link if card has internal links (prevents nested <a> tags)
+        content
+      ) : (
+        // Wrap in Link for cards with a single destination
+        <Link href={item.route} className="block">
+          {content}
+        </Link>
+      )}
     </div>
   );
 }

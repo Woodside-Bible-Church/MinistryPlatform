@@ -36,6 +36,7 @@ export default function MinistryPlatform<P extends MinistryPlatformProfile>(
         scope: "openid offline_access http://www.thinkministry.com/dataplatform/scopes/all",
         response_type: "code",
         realm: "realm",
+        prompt: "login", // Force re-authentication every time (important for shared devices)
       },
     },
     token: {
