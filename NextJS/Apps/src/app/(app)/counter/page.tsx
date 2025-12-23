@@ -48,6 +48,7 @@ import {
 } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCampus } from "@/contexts/CampusContext";
+import { toast } from "sonner";
 
 type Event = {
   Event_ID: number;
@@ -66,6 +67,9 @@ type EventMetric = {
   Metric_ID: number;
   Numerical_Value: number;
   Group_ID?: number | null;
+  _loading?: boolean; // Flag for loading state (processing)
+  _confirmed?: boolean; // Flag for confirmed state (just confirmed)
+  _deleting?: boolean; // Flag for deletion animation
 };
 
 export default function CounterPage() {
@@ -292,12 +296,32 @@ export default function CounterPage() {
   const handleSubmit = async () => {
     if (!selectedEvent || !selectedMetric || count === 0) return;
 
-    setIsSubmitting(true);
-    setSubmitSuccess(false);
+    // Store previous state for rollback
+    const previousMetrics = [...existingMetrics];
+    const metricName = selectedMetric.Metric_Title;
 
-    try {
-      if (editingMetricId) {
-        // Update existing metric
+    if (editingMetricId) {
+      // IMMEDIATELY update the metric with loading state
+      setExistingMetrics(prev =>
+        prev.map(m =>
+          m.Event_Metric_ID === editingMetricId
+            ? { ...m, Numerical_Value: count, Metric_ID: selectedMetric.Metric_ID, _loading: true }
+            : m
+        )
+      );
+
+      // Reset form IMMEDIATELY
+      setIsAdding(false);
+      setEditingMetricId(null);
+      setSelectedMetric(null);
+      setCount(0);
+
+      try {
+        // Create abort controller for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+        // Make API call
         const response = await fetch(
           `/api/counter/event-metrics/${selectedEvent.Event_ID}`,
           {
@@ -309,17 +333,83 @@ export default function CounterPage() {
                 Metric_ID: selectedMetric.Metric_ID,
                 Numerical_Value: count
               }
-            })
+            }),
+            signal: controller.signal
           }
         );
+
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
           const errorData = await response.json();
           console.error("Server error response:", errorData);
+          // ROLLBACK on error
+          setExistingMetrics(previousMetrics);
           throw new Error(errorData.error || "Failed to update metric");
         }
-      } else {
-        // Create new metric
+
+        // Success - show confirmed state briefly
+        setExistingMetrics(prev =>
+          prev.map(m =>
+            m.Event_Metric_ID === editingMetricId
+              ? { ...m, _loading: false, _confirmed: true }
+              : m
+          )
+        );
+
+        toast.success(`${metricName} updated!`);
+
+        // Remove confirmed state after animation
+        setTimeout(() => {
+          setExistingMetrics(prev =>
+            prev.map(m =>
+              m.Event_Metric_ID === editingMetricId
+                ? { ...m, _confirmed: false }
+                : m
+            )
+          );
+        }, 2000);
+      } catch (error) {
+        console.error("Error submitting metric:", error);
+
+        // ROLLBACK on any error
+        setExistingMetrics(previousMetrics);
+
+        let errorMessage = "Failed to update metric";
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            errorMessage = "Request timed out - please check your connection";
+          } else {
+            errorMessage = error.message;
+          }
+        }
+
+        toast.error(errorMessage);
+      }
+    } else {
+      // IMMEDIATELY add metric with loading state
+      const tempId = Date.now();
+      const newMetric: EventMetric = {
+        Event_Metric_ID: tempId,
+        Event_ID: selectedEvent.Event_ID,
+        Metric_ID: selectedMetric.Metric_ID,
+        Numerical_Value: count,
+        _loading: true
+      };
+
+      setExistingMetrics(prev => [...prev, newMetric]);
+
+      // Reset form IMMEDIATELY
+      setIsAdding(false);
+      setSelectedMetric(null);
+      setCount(0);
+
+      try {
+        // Create abort controller for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+        // Make API call
         const response = await fetch("/api/counter/event-metrics", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -327,45 +417,58 @@ export default function CounterPage() {
             Event_ID: selectedEvent.Event_ID,
             Metric_ID: selectedMetric.Metric_ID,
             Numerical_Value: count
-          })
+          }),
+          signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
           const errorData = await response.json();
           console.error("Server error response:", errorData);
+          // ROLLBACK on error - remove the metric
+          setExistingMetrics(previousMetrics);
           throw new Error(errorData.error || "Failed to submit metric");
         }
+
+        const createdMetric = await response.json();
+
+        // Replace temp metric with real one and show confirmed state
+        setExistingMetrics(prev =>
+          prev.map(m => m.Event_Metric_ID === tempId
+            ? { ...createdMetric, _loading: false, _confirmed: true }
+            : m)
+        );
+
+        toast.success(`${metricName} added!`);
+
+        // Remove confirmed state after animation
+        setTimeout(() => {
+          setExistingMetrics(prev =>
+            prev.map(m =>
+              m.Event_Metric_ID === createdMetric.Event_Metric_ID
+                ? { ...m, _confirmed: false }
+                : m
+            )
+          );
+        }, 2000);
+      } catch (error) {
+        console.error("Error submitting metric:", error);
+
+        // ROLLBACK on any error - remove the metric
+        setExistingMetrics(previousMetrics);
+
+        let errorMessage = "Failed to add metric";
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            errorMessage = "Request timed out - please check your connection";
+          } else {
+            errorMessage = error.message;
+          }
+        }
+
+        toast.error(errorMessage);
       }
-
-      // Success!
-      setSubmitSuccess(true);
-
-      // Reload existing metrics
-      const metricsResponse = await fetch(
-        `/api/counter/event-metrics/${selectedEvent.Event_ID}`
-      );
-      if (metricsResponse.ok) {
-        const data = await metricsResponse.json();
-        setExistingMetrics(data);
-      }
-
-      // Reset form after 1 second
-      setTimeout(() => {
-        setIsAdding(false);
-        setEditingMetricId(null);
-        setSelectedMetric(null);
-        setCount(0);
-        setSubmitSuccess(false);
-      }, 1000);
-    } catch (error) {
-      console.error("Error submitting metric:", error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to submit metric. Please try again.";
-      alert(errorMessage);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -384,37 +487,70 @@ export default function CounterPage() {
 
     if (!selectedEvent) return;
 
+    // Store previous state for rollback
+    const previousMetrics = [...existingMetrics];
+
     try {
+      // Mark as deleting for animation
+      setExistingMetrics(prev =>
+        prev.map(m =>
+          m.Event_Metric_ID === eventMetricId
+            ? { ...m, _deleting: true }
+            : m
+        )
+      );
+
+      // Wait for animation to start
+      await new Promise(resolve => setTimeout(resolve, 150));
+
+      // Remove from UI
+      setExistingMetrics(prev =>
+        prev.filter(m => m.Event_Metric_ID !== eventMetricId)
+      );
+
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      // Make API call
       const response = await fetch(
         `/api/counter/event-metrics/${selectedEvent.Event_ID}`,
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ eventMetricId })
+          body: JSON.stringify({ eventMetricId }),
+          signal: controller.signal
         }
       );
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
+        // ROLLBACK on error
+        setExistingMetrics(previousMetrics);
         throw new Error("Failed to delete metric");
       }
 
-      // Reload existing metrics
-      const metricsResponse = await fetch(
-        `/api/counter/event-metrics/${selectedEvent.Event_ID}`
-      );
-      if (metricsResponse.ok) {
-        const data = await metricsResponse.json();
-        setExistingMetrics(data);
-        // Reset form if we're editing the metric that was just deleted
-        if (editingMetricId === eventMetricId) {
-          setEditingMetricId(null);
-          setSelectedMetric(null);
-          setCount(0);
-        }
+      // Reset form if we're editing the metric that was just deleted
+      if (editingMetricId === eventMetricId) {
+        setEditingMetricId(null);
+        setSelectedMetric(null);
+        setCount(0);
       }
+
+      toast.success("Metric deleted");
     } catch (error) {
       console.error("Error deleting metric:", error);
-      alert("Failed to delete metric. Please try again.");
+
+      // ROLLBACK on any error
+      setExistingMetrics(previousMetrics);
+
+      let errorMessage = "Failed to delete metric";
+      if (error instanceof Error && error.name === 'AbortError') {
+        errorMessage = "Request timed out - please check your connection";
+      }
+
+      toast.error(errorMessage);
     }
   };
 
@@ -626,39 +762,84 @@ export default function CounterPage() {
                     </Button>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {existingMetrics.map((em) => (
-                      <div
-                        key={em.Event_Metric_ID}
-                        className="p-4 rounded-lg border border-border bg-background flex items-center justify-between"
-                      >
-                        <div>
-                          <p className="font-semibold text-foreground">
-                            {getMetricName(em.Metric_ID)}
-                          </p>
-                          <p className="text-2xl font-bold text-primary">
-                            {em.Numerical_Value}
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleEdit(em)}
-                            className="hover:text-primary"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleDelete(em.Event_Metric_ID)}
-                            className="hover:text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                    <AnimatePresence mode="popLayout">
+                      {existingMetrics.map((em) => (
+                        <motion.div
+                          key={em.Event_Metric_ID}
+                          layout
+                          initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                          animate={{
+                            opacity: em._deleting ? 0.3 : 1,
+                            scale: em._deleting ? 0.8 : 1,
+                            y: 0,
+                            x: em._deleting ? -20 : 0
+                          }}
+                          exit={{ opacity: 0, scale: 0.8, x: -20 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 500,
+                            damping: 30,
+                            mass: 1
+                          }}
+                          className={`p-4 rounded-lg border bg-background flex items-center justify-between ${
+                            em._confirmed
+                              ? "border-[#61bc47] bg-[#61bc47]/5"
+                              : em._deleting
+                              ? "border-destructive/50"
+                              : "border-border"
+                          }`}
+                        >
+                          <div className="relative flex-1">
+                            <p className="font-semibold text-foreground">
+                              {getMetricName(em.Metric_ID)}
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <motion.p
+                                key={em.Numerical_Value}
+                                initial={{ scale: 1.1 }}
+                                animate={{ scale: 1 }}
+                                transition={{ duration: 0.2 }}
+                                className="text-2xl font-bold text-primary"
+                              >
+                                {em.Numerical_Value}
+                              </motion.p>
+                              {em._loading && (
+                                <Loader2 className="w-4 h-4 animate-spin text-[#61bc47]" />
+                              )}
+                              {em._confirmed && (
+                                <motion.div
+                                  initial={{ scale: 0, rotate: -180 }}
+                                  animate={{ scale: 1, rotate: 0 }}
+                                  transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                                >
+                                  <CheckCircle2 className="w-4 h-4 text-[#61bc47]" />
+                                </motion.div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => handleEdit(em)}
+                              className="hover:text-primary"
+                              disabled={em._loading || em._deleting}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => handleDelete(em.Event_Metric_ID)}
+                              className="hover:text-destructive"
+                              disabled={em._loading || em._deleting}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
                   </div>
                 </motion.div>
               )}
@@ -772,31 +953,73 @@ export default function CounterPage() {
                             onEnter={handleSubmit}
                           />
                         </div>
-                        <Button
-                          onClick={handleSubmit}
-                          disabled={!canSubmit || isSubmitting || submitSuccess}
-                          className="w-full h-14 text-lg font-semibold"
-                          size="lg"
+                        <motion.div
+                          whileTap={{ scale: 0.98 }}
+                          className="w-full"
                         >
-                          {isSubmitting ? (
-                            <>
-                              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                              {editingMetricId
-                                ? "Updating..."
-                                : "Submitting..."}
-                            </>
-                          ) : submitSuccess ? (
-                            <>
-                              <CheckCircle2 className="mr-2 h-5 w-5" />
-                              {editingMetricId ? "Updated!" : "Submitted!"}
-                            </>
-                          ) : (
-                            <>
-                              {editingMetricId ? "Update" : "Submit"}
-                              <ArrowRight className="ml-2 h-5 w-5" />
-                            </>
-                          )}
-                        </Button>
+                          <Button
+                            onClick={handleSubmit}
+                            disabled={!canSubmit || isSubmitting || submitSuccess}
+                            className="w-full h-14 text-lg font-semibold relative overflow-hidden"
+                            size="lg"
+                          >
+                            <AnimatePresence mode="wait">
+                              {isSubmitting ? (
+                                <motion.div
+                                  key="submitting"
+                                  initial={{ opacity: 0, y: 20 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -20 }}
+                                  className="flex items-center"
+                                >
+                                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                  {editingMetricId ? "Updating..." : "Submitting..."}
+                                </motion.div>
+                              ) : submitSuccess ? (
+                                <motion.div
+                                  key="success"
+                                  initial={{ opacity: 0, scale: 0.5 }}
+                                  animate={{
+                                    opacity: 1,
+                                    scale: [0.5, 1.2, 1],
+                                  }}
+                                  exit={{ opacity: 0, scale: 0.5 }}
+                                  transition={{ duration: 0.4 }}
+                                  className="flex items-center"
+                                >
+                                  <motion.div
+                                    animate={{
+                                      rotate: [0, -10, 10, -10, 0],
+                                    }}
+                                    transition={{ duration: 0.5, delay: 0.1 }}
+                                  >
+                                    <CheckCircle2 className="mr-2 h-5 w-5" />
+                                  </motion.div>
+                                  {editingMetricId ? "Updated!" : "Submitted!"}
+                                </motion.div>
+                              ) : (
+                                <motion.div
+                                  key="default"
+                                  initial={{ opacity: 0, y: 20 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -20 }}
+                                  className="flex items-center"
+                                >
+                                  {editingMetricId ? "Update" : "Submit"}
+                                  <ArrowRight className="ml-2 h-5 w-5" />
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                            {submitSuccess && (
+                              <motion.div
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 2, opacity: 0 }}
+                                transition={{ duration: 0.6 }}
+                                className="absolute inset-0 bg-[#61bc47] rounded-lg"
+                              />
+                            )}
+                          </Button>
+                        </motion.div>
                       </div>
                     </div>
                   ) : (

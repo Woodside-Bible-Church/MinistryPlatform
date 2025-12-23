@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { CounterService } from "@/services/counterService";
+import { MPHelper } from "@/providers/MinistryPlatform/mpHelper";
 
 export async function GET(
   request: NextRequest,
@@ -9,7 +10,7 @@ export async function GET(
   try {
     const session = await auth();
 
-    if (!session?.accessToken) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -37,7 +38,7 @@ export async function PUT(
   try {
     const session = await auth();
 
-    if (!session?.accessToken) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -47,8 +48,26 @@ export async function PUT(
     const { eventId } = await params;
     const { eventMetricId, data } = await request.json();
 
+    // Get User_ID for audit logging
+    const mp = new MPHelper();
+    const users = await mp.getTableRecords<{ User_ID: number }>({
+      table: 'dp_Users',
+      select: 'User_ID',
+      filter: `User_GUID='${session.sub}'`,
+      top: 1,
+    });
+
+    if (users.length === 0) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    const userId = users[0].User_ID;
+
     const counterService = new CounterService(session.accessToken);
-    await counterService.updateEventMetric(eventMetricId, data);
+    await counterService.updateEventMetric(eventMetricId, data, userId);
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -67,7 +86,7 @@ export async function DELETE(
   try {
     const session = await auth();
 
-    if (!session?.accessToken) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -77,8 +96,26 @@ export async function DELETE(
     const { eventId } = await params;
     const { eventMetricId } = await request.json();
 
+    // Get User_ID for audit logging
+    const mp = new MPHelper();
+    const users = await mp.getTableRecords<{ User_ID: number }>({
+      table: 'dp_Users',
+      select: 'User_ID',
+      filter: `User_GUID='${session.sub}'`,
+      top: 1,
+    });
+
+    if (users.length === 0) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    const userId = users[0].User_ID;
+
     const counterService = new CounterService(session.accessToken);
-    await counterService.deleteEventMetric(eventMetricId);
+    await counterService.deleteEventMetric(eventMetricId, userId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

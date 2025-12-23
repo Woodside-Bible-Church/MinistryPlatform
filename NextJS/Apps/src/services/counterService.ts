@@ -95,8 +95,8 @@ export class CounterService {
   /**
    * Submit a new event metric
    */
-  async submitEventMetric(data: CreateEventMetric) {
-    const result = await this.tableService.createTableRecords("Event_Metrics", [data]);
+  async submitEventMetric(data: CreateEventMetric, userId: number) {
+    const result = await this.tableService.createTableRecords("Event_Metrics", [data], { $userId: userId });
     return result[0];
   }
 
@@ -114,17 +114,17 @@ export class CounterService {
   /**
    * Delete an event metric
    */
-  async deleteEventMetric(eventMetricId: number) {
-    return this.tableService.deleteTableRecords("Event_Metrics", [eventMetricId]);
+  async deleteEventMetric(eventMetricId: number, userId: number) {
+    return this.tableService.deleteTableRecords("Event_Metrics", [eventMetricId], { $userId: userId });
   }
 
   /**
    * Update an event metric
    */
-  async updateEventMetric(eventMetricId: number, data: Partial<CreateEventMetric>) {
+  async updateEventMetric(eventMetricId: number, data: Partial<CreateEventMetric>, userId: number) {
     return this.tableService.updateTableRecords("Event_Metrics", [{
       Event_Metric_ID: eventMetricId,
       ...data
-    }]);
+    }], { $userId: userId });
   }
 }

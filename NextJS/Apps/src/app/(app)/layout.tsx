@@ -2,7 +2,7 @@ import Header from "@/components/Header";
 import AuthWrapper from "@/components/AuthWrapper";
 import { CampusProvider } from "@/contexts/CampusContext";
 import { MPWidgetsLoader } from "@/components/MPWidgetsLoader";
-import { Toaster } from "sonner";
+import { ToasterWrapper } from "@/components/ToasterWrapper";
 
 export default async function AppLayout({
   children,
@@ -13,7 +13,7 @@ export default async function AppLayout({
     <div className="flex flex-col min-h-screen">
       <MPWidgetsLoader />
       <div className="print:hidden">
-        <Toaster position="top-right" richColors />
+        <ToasterWrapper />
       </div>
 
       <AuthWrapper>
