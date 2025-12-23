@@ -302,6 +302,7 @@ export default function LineItemDetailsPage({
     const tempId = Date.now();
     const tempPurchaseRequest: PurchaseRequest = {
       id: tempId,
+      requisitionGuid: "",
       amount: savedFormData.amount,
       description: savedFormData.description || "New Purchase Request",
       vendorName: savedFormData.vendorName || lineItem.vendorName || "TBD",
