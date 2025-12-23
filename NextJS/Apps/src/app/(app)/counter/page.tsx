@@ -39,6 +39,13 @@ import {
   DialogOverlay
 } from "@/components/ui/dialog";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCampus } from "@/contexts/CampusContext";
 
@@ -152,6 +159,18 @@ export default function CounterPage() {
     }
     loadMetrics();
   }, []);
+
+  // Auto-select "In Person Headcount" when adding a new metric
+  useEffect(() => {
+    if ((isAdding || (existingMetrics.length === 0 && selectedEvent)) && !selectedMetric && metrics.length > 0 && !editingMetricId) {
+      const inPersonHeadcount = metrics.find(
+        (m) => m.Metric_Title.toLowerCase() === "in person headcount"
+      );
+      if (inPersonHeadcount) {
+        setSelectedMetric(inPersonHeadcount);
+      }
+    }
+  }, [isAdding, existingMetrics, selectedEvent, selectedMetric, metrics, editingMetricId]);
 
   // Load events when date or campus changes
   useEffect(() => {
@@ -694,50 +713,46 @@ export default function CounterPage() {
                   </div>
 
                   {/* Metric Selection */}
-                  {!selectedMetric ? (
-                    <>
-                      {isLoadingMetrics ? (
-                        <div className="flex items-center justify-center py-8">
-                          <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {metrics.map((metric) => (
-                            <button
-                              key={metric.Metric_ID}
-                              onClick={() => setSelectedMetric(metric)}
-                              className="p-4 rounded-lg border-2 border-border hover:border-primary/50 hover:shadow-sm transition-all text-left"
-                            >
-                              <p className="font-semibold">
-                                {metric.Metric_Title}
-                              </p>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  ) : (
+                  {isLoadingMetrics ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    </div>
+                  ) : selectedMetric ? (
                     /* Count Input */
                     <div className="space-y-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            Selected Metric
-                          </p>
-                          <p className="font-semibold text-lg">
-                            {selectedMetric.Metric_Title}
-                          </p>
-                        </div>
-                        <Button
-                          onClick={() => {
-                            setSelectedMetric(null);
-                            setCount(0);
+                      <div>
+                        <label className="text-sm text-muted-foreground block mb-2">
+                          What are you counting?
+                        </label>
+                        <Select
+                          value={selectedMetric.Metric_ID.toString()}
+                          onValueChange={(value) => {
+                            const metric = metrics.find(
+                              (m) => m.Metric_ID.toString() === value
+                            );
+                            if (metric) {
+                              setSelectedMetric(metric);
+                              // Reset count when changing metric type
+                              if (metric.Metric_ID !== selectedMetric.Metric_ID) {
+                                setCount(0);
+                              }
+                            }
                           }}
-                          size="sm"
-                          variant="ghost"
                         >
-                          Change
-                        </Button>
+                          <SelectTrigger className="w-full h-12">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {metrics.map((metric) => (
+                              <SelectItem
+                                key={metric.Metric_ID}
+                                value={metric.Metric_ID.toString()}
+                              >
+                                {metric.Metric_Title}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       <div className="text-center">
@@ -783,6 +798,10 @@ export default function CounterPage() {
                           )}
                         </Button>
                       </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
                     </div>
                   )}
                 </motion.div>
