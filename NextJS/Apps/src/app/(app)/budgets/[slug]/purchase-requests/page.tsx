@@ -1658,7 +1658,7 @@ export default function PurchaseRequestsPage({
                 <option value="">-- Select Line Item --</option>
                 {budgetData?.expenseCategories.map((category) => (
                   <optgroup key={category.categoryId} label={category.name}>
-                    {category.lineItems.map((item) => (
+                    {category.lineItems?.map((item) => (
                       <option key={item.lineItemId} value={item.lineItemId}>
                         {item.name} ({formatCurrency(item.estimated)} budgeted)
                       </option>
@@ -1767,7 +1767,7 @@ export default function PurchaseRequestsPage({
                 <option value="">-- Select Line Item --</option>
                 {budgetData?.expenseCategories.map((category) => (
                   <optgroup key={category.categoryId} label={category.name}>
-                    {category.lineItems.map((item) => (
+                    {category.lineItems?.map((item) => (
                       <option key={item.lineItemId} value={item.lineItemId}>
                         {item.name} ({formatCurrency(item.estimated)} budgeted)
                       </option>

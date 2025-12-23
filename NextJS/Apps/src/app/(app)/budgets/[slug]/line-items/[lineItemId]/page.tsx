@@ -11,6 +11,8 @@ import {
   Trash2,
   Edit,
   ShoppingCart,
+  Copy,
+  Check,
 } from "lucide-react";
 import { BackButton } from "@/components/BackButton";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -54,6 +56,7 @@ interface LineItemDetails {
 
 interface PurchaseRequest {
   id: number;
+  requisitionGuid: string;
   amount: number;
   description: string;
   vendorName: string;
@@ -138,6 +141,9 @@ export default function LineItemDetailsPage({
 
   // Status dropdown state
   const [statusDropdownOpen, setStatusDropdownOpen] = useState<number | null>(null);
+
+  // Copy GUID state
+  const [copiedGuid, setCopiedGuid] = useState<string | null>(null);
 
   useEffect(() => {
     fetchLineItemDetails();
@@ -598,6 +604,16 @@ export default function LineItemDetailsPage({
     }
   }
 
+  async function handleCopyGuid(guid: string) {
+    try {
+      await navigator.clipboard.writeText(guid);
+      setCopiedGuid(guid);
+      setTimeout(() => setCopiedGuid(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy GUID:", err);
+    }
+  }
+
   async function handleStatusChange(purchaseRequest: PurchaseRequest, newStatus: "Pending" | "Approved" | "Rejected") {
     if (!lineItem) return;
 
@@ -813,14 +829,38 @@ export default function LineItemDetailsPage({
                   return (
                     <div
                       key={request.id}
-                      className="p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer"
+                      className="p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer relative"
                       onClick={() =>
                         router.push(
                           `/budgets/${resolvedParams.slug}/purchase-requests/${request.id}`
                         )
                       }
                     >
-                      <div className="flex items-start justify-between gap-3 mb-3">
+                      {/* GUID - Top right corner */}
+                      {request.requisitionGuid && (
+                        <div className="absolute top-2 right-2 flex items-center gap-1 text-[9px] text-muted-foreground/40">
+                          <span className="font-mono">
+                            {request.requisitionGuid.toUpperCase()}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleCopyGuid(request.requisitionGuid);
+                            }}
+                            className="p-0.5 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors opacity-60 hover:opacity-100"
+                            title="Copy GUID"
+                          >
+                            {copiedGuid === request.requisitionGuid ? (
+                              <Check className="w-2.5 h-2.5 text-green-600 dark:text-green-400" />
+                            ) : (
+                              <Copy className="w-2.5 h-2.5 text-muted-foreground" />
+                            )}
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="flex items-start justify-between gap-3 mb-3 pt-3">
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-foreground">
                             {request.vendorName}

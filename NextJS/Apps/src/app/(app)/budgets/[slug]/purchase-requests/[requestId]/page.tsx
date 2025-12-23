@@ -12,6 +12,8 @@ import {
   Trash2,
   Plus,
   ShoppingCart,
+  Copy,
+  Check,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -134,6 +136,9 @@ export default function PurchaseRequestDetailsPage({
   // Status dropdown state
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
 
+  // Copy GUID state
+  const [copiedGuid, setCopiedGuid] = useState<boolean>(false);
+
   useEffect(() => {
     fetchPurchaseRequestDetails();
   }, [resolvedParams.requestId]);
@@ -240,6 +245,16 @@ export default function PurchaseRequestDetailsPage({
     } catch (err) {
       console.error("Error deleting purchase request:", err);
       toast.error("Failed to delete purchase request. Please try again.");
+    }
+  }
+
+  async function handleCopyGuid(guid: string) {
+    try {
+      await navigator.clipboard.writeText(guid);
+      setCopiedGuid(true);
+      setTimeout(() => setCopiedGuid(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy GUID:", err);
     }
   }
 
@@ -604,9 +619,30 @@ export default function PurchaseRequestDetailsPage({
           <h1 className="text-3xl font-bold text-foreground">
             Purchase Request
           </h1>
-          <p className="text-muted-foreground mt-2">
-            {purchaseRequest.lineItemName} • {purchaseRequest.categoryName}
-          </p>
+          <div className="flex items-center gap-3 mt-2">
+            <p className="text-muted-foreground">
+              {purchaseRequest.lineItemName} • {purchaseRequest.categoryName}
+            </p>
+            {purchaseRequest.requisitionGuid && (
+              <div className="flex items-center gap-1.5 ml-2">
+                <span className="text-xs text-muted-foreground">ID:</span>
+                <span className="font-mono text-xs text-muted-foreground">
+                  {purchaseRequest.requisitionGuid.toUpperCase()}
+                </span>
+                <button
+                  onClick={() => handleCopyGuid(purchaseRequest.requisitionGuid)}
+                  className="p-1 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors"
+                  title="Copy GUID"
+                >
+                  {copiedGuid ? (
+                    <Check className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

@@ -59,6 +59,7 @@ BEGIN
             ISNULL((
                 SELECT
                     pr.Purchase_Request_ID AS id,
+                    pr.Requisition_GUID AS requisitionGuid,
                     pr.Amount AS amount,
                     pr.Description AS description,
                     pr.Vendor_Name AS vendorName,
