@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MinistryPlatformClient } from "@/providers/MinistryPlatform/core/ministryPlatformClient";
 import { getUserIdFromSession } from "@/utils/auth";
+import { checkRsvpAppAccess } from "@/lib/mpAuth";
 
 /**
  * PATCH /api/rsvp/events/[eventId]
@@ -11,6 +12,15 @@ export async function PATCH(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
+    // Check if user has permission to edit
+    const { hasAccess, canEdit } = await checkRsvpAppAccess();
+    if (!hasAccess || !canEdit) {
+      return NextResponse.json(
+        { error: "Forbidden - You don't have permission to edit in the RSVP app" },
+        { status: 403 }
+      );
+    }
+
     const { eventId: id } = await params;
     const eventId = parseInt(id, 10);
 

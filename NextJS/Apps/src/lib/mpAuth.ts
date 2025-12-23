@@ -100,6 +100,97 @@ export async function checkBudgetAppAccess(): Promise<{
 }
 
 /**
+ * Check if the current user has permission to access the RSVP app
+ * Dynamically fetches allowed roles from Neon instead of hardcoding
+ * Users must be authenticated AND (have "Administrators" role OR have a role configured in Neon)
+ *
+ * @returns Promise<{hasAccess: boolean, roles: string[], canEdit: boolean, canDelete: boolean}> - Access status and permissions
+ */
+export async function checkRsvpAppAccess(): Promise<{
+  hasAccess: boolean;
+  roles: string[];
+  canEdit: boolean;
+  canDelete: boolean;
+}> {
+  const session = await auth();
+
+  if (!session) {
+    return { hasAccess: false, roles: [], canEdit: false, canDelete: false };
+  }
+
+  const userRoles = session.roles || [];
+  const userEmail = session.user?.email;
+
+  // Administrators always have full access
+  if (userRoles.includes("Administrators")) {
+    return {
+      hasAccess: true,
+      roles: userRoles,
+      canEdit: true,
+      canDelete: true,
+    };
+  }
+
+  // Find the RSVP app in Neon
+  const rsvpApp = await db.query.applications.findFirst({
+    where: eq(applications.key, "rsvp"),
+  });
+
+  if (!rsvpApp) {
+    console.error("RSVP app not found in Neon database");
+    return { hasAccess: false, roles: userRoles, canEdit: false, canDelete: false };
+  }
+
+  // Build permission query conditions
+  const permissionConditions = [];
+
+  // Check by role names if user has any roles
+  if (userRoles.length > 0) {
+    permissionConditions.push(
+      and(
+        eq(appPermissions.applicationId, rsvpApp.id),
+        inArray(appPermissions.roleName, userRoles)
+      )
+    );
+  }
+
+  // Check by email if user has an email
+  if (userEmail) {
+    permissionConditions.push(
+      and(
+        eq(appPermissions.applicationId, rsvpApp.id),
+        eq(appPermissions.userEmail, userEmail)
+      )
+    );
+  }
+
+  // If no conditions, user has no access
+  if (permissionConditions.length === 0) {
+    return { hasAccess: false, roles: userRoles, canEdit: false, canDelete: false };
+  }
+
+  // Query for RSVP app permissions matching user's roles or email
+  const rsvpPermissions = await db.query.appPermissions.findMany({
+    where: or(...permissionConditions),
+  });
+
+  if (rsvpPermissions.length === 0) {
+    return { hasAccess: false, roles: userRoles, canEdit: false, canDelete: false };
+  }
+
+  // Determine highest permission level
+  const canEdit = rsvpPermissions.some(p => p.canEdit);
+  const canDelete = rsvpPermissions.some(p => p.canDelete);
+
+  return {
+    hasAccess: true,
+    roles: userRoles,
+    canEdit,
+    canDelete,
+  };
+}
+
+/**
  * Get an OAuth access token using client credentials (app-level authentication)
  * This should be used for all MinistryPlatform API calls instead of user tokens
  *

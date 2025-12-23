@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MinistryPlatformClient } from "@/providers/MinistryPlatform/core/ministryPlatformClient";
+import { checkRsvpAppAccess } from "@/lib/mpAuth";
+import { getUserIdFromSession } from "@/utils/auth";
 
 /**
  * PATCH /api/rsvp/confirmation-cards/[cardId]
@@ -19,6 +21,24 @@ export async function PATCH(
   { params }: { params: Promise<{ cardId: string }> }
 ) {
   try {
+    // Check if user has permission to edit
+    const { hasAccess, canEdit } = await checkRsvpAppAccess();
+    if (!hasAccess || !canEdit) {
+      return NextResponse.json(
+        { error: "Forbidden - You don't have permission to edit in the RSVP app" },
+        { status: 403 }
+      );
+    }
+
+    // Get User_ID for auditing
+    const userId = await getUserIdFromSession();
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized - No valid session" },
+        { status: 401 }
+      );
+    }
+
     const { cardId: id } = await params;
     const cardId = parseInt(id, 10);
 
@@ -59,7 +79,7 @@ export async function PATCH(
         Project_Confirmation_Card_ID: cardId,
         Card_Configuration: JSON.stringify(configuration)
       }
-    ]);
+    ], { $userId: userId });
 
     console.log(`Successfully updated confirmation card ${cardId}:`, configuration);
 

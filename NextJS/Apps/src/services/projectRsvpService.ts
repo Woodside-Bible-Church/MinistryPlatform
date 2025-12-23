@@ -124,11 +124,13 @@ export class ProjectRSVPService {
   /**
    * Update a project (RSVP fields)
    */
-  public async updateProject(data: UpdateProject): Promise<Project> {
+  public async updateProject(data: UpdateProject, userId?: number): Promise<Project> {
     try {
+      const options = userId ? { $userId: userId } : {};
       const result = await this.tableService.updateTableRecords<Project>(
         "Projects",
-        [data as Project]
+        [data as Project],
+        options
       );
 
       return result[0];
@@ -180,7 +182,8 @@ export class ProjectRSVPService {
    * Now updates Events table directly instead of Project_Events
    */
   public async updateProjectEvent(
-    data: UpdateProjectEvent
+    data: UpdateProjectEvent,
+    userId?: number
   ): Promise<ProjectEvent> {
     try {
       // Map Project_Event_ID to Event_ID for the update
@@ -190,9 +193,11 @@ export class ProjectRSVPService {
         RSVP_Capacity_Modifier: data.RSVP_Capacity_Modifier,
       };
 
+      const options = userId ? { $userId: userId } : {};
       const result = await this.tableService.updateTableRecords<any>(
         "Events",
-        [updateData]
+        [updateData],
+        options
       );
 
       // Map response back to ProjectEvent shape for compatibility

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { use } from "react";
 import Link from "next/link";
 import { useCampus } from "@/contexts/CampusContext";
+import { useRsvpPermissions } from "@/hooks/useRsvpPermissions";
 import {
   Calendar,
   Users,
@@ -288,6 +289,9 @@ export default function ProjectDetailPage({
 
   // Get selected campus from context
   const { selectedCampus } = useCampus();
+
+  // Get RSVP permissions
+  const permissions = useRsvpPermissions();
 
   const [project, setProject] = useState<Project | null>(null);
   const [campuses, setCampuses] = useState<ProjectCampus[]>([]);
@@ -1268,41 +1272,43 @@ export default function ProjectDetailPage({
           <div className="bg-card border border-border rounded-lg p-6">
             <div className="flex justify-between items-start mb-6">
               <h2 className="text-xl font-semibold text-foreground">Project Information</h2>
-              <div className="flex items-center gap-2">
-                {isEditingProjectInfo && (
+              {permissions.canEdit && (
+                <div className="flex items-center gap-2">
+                  {isEditingProjectInfo && (
+                    <button
+                      className="px-3 py-1.5 text-sm bg-[#61bc47] text-white hover:bg-[#51a839] rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => handleSaveProjectInfo()}
+                      disabled={isSavingProjectInfo}
+                    >
+                      Save
+                    </button>
+                  )}
                   <button
-                    className="px-3 py-1.5 text-sm bg-[#61bc47] text-white hover:bg-[#51a839] rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    onClick={() => handleSaveProjectInfo()}
+                    className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                    onClick={() => {
+                      if (isEditingProjectInfo) {
+                        setIsEditingProjectInfo(false);
+                        // Reset form to current project values
+                        if (project) {
+                          setProjectInfoForm({
+                            RSVP_Title: project.RSVP_Title || "",
+                            RSVP_Description: project.RSVP_Description || "",
+                            RSVP_Start_Date: project.RSVP_Start_Date ? project.RSVP_Start_Date.split("T")[0] : "",
+                            RSVP_End_Date: project.RSVP_End_Date ? project.RSVP_End_Date.split("T")[0] : "",
+                            RSVP_URL: project.RSVP_URL || "",
+                          });
+                        }
+                      } else {
+                        setIsEditingProjectInfo(true);
+                      }
+                    }}
+                    title={isEditingProjectInfo ? "Cancel editing" : "Edit project information"}
                     disabled={isSavingProjectInfo}
                   >
-                    Save
+                    {isEditingProjectInfo ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
                   </button>
-                )}
-                <button
-                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-                  onClick={() => {
-                    if (isEditingProjectInfo) {
-                      setIsEditingProjectInfo(false);
-                      // Reset form to current project values
-                      if (project) {
-                        setProjectInfoForm({
-                          RSVP_Title: project.RSVP_Title || "",
-                          RSVP_Description: project.RSVP_Description || "",
-                          RSVP_Start_Date: project.RSVP_Start_Date ? project.RSVP_Start_Date.split("T")[0] : "",
-                          RSVP_End_Date: project.RSVP_End_Date ? project.RSVP_End_Date.split("T")[0] : "",
-                          RSVP_URL: project.RSVP_URL || "",
-                        });
-                      }
-                    } else {
-                      setIsEditingProjectInfo(true);
-                    }
-                  }}
-                  title={isEditingProjectInfo ? "Cancel editing" : "Edit project information"}
-                  disabled={isSavingProjectInfo}
-                >
-                  {isEditingProjectInfo ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
-                </button>
-              </div>
+                </div>
+              )}
             </div>
 
             {isEditingProjectInfo ? (
@@ -1455,39 +1461,41 @@ export default function ProjectDetailPage({
           <div className="bg-card border border-border rounded-lg p-6">
             <div className="flex justify-between items-start mb-6">
               <h2 className="text-xl font-semibold text-foreground">General Settings</h2>
-              <div className="flex items-center gap-2">
-                {isEditingGeneralSettings && (
+              {permissions.canEdit && (
+                <div className="flex items-center gap-2">
+                  {isEditingGeneralSettings && (
+                    <button
+                      className="px-3 py-1.5 text-sm bg-[#61bc47] text-white hover:bg-[#51a839] rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => handleSaveGeneralSettings()}
+                      disabled={isSavingGeneralSettings}
+                    >
+                      Save
+                    </button>
+                  )}
                   <button
-                    className="px-3 py-1.5 text-sm bg-[#61bc47] text-white hover:bg-[#51a839] rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    onClick={() => handleSaveGeneralSettings()}
+                    className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                    onClick={() => {
+                      if (isEditingGeneralSettings) {
+                        setIsEditingGeneralSettings(false);
+                        // Reset form to current project values
+                        if (project) {
+                          setGeneralSettingsForm({
+                            RSVP_Is_Active: project.RSVP_Is_Active ?? false,
+                            RSVP_Require_Contact_Lookup: project.RSVP_Require_Contact_Lookup ?? false,
+                            RSVP_Allow_Guest_Submission: project.RSVP_Allow_Guest_Submission ?? false,
+                          });
+                        }
+                      } else {
+                        setIsEditingGeneralSettings(true);
+                      }
+                    }}
+                    title={isEditingGeneralSettings ? "Cancel editing" : "Edit general settings"}
                     disabled={isSavingGeneralSettings}
                   >
-                    Save
+                    {isEditingGeneralSettings ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
                   </button>
-                )}
-                <button
-                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-                  onClick={() => {
-                    if (isEditingGeneralSettings) {
-                      setIsEditingGeneralSettings(false);
-                      // Reset form to current project values
-                      if (project) {
-                        setGeneralSettingsForm({
-                          RSVP_Is_Active: project.RSVP_Is_Active ?? false,
-                          RSVP_Require_Contact_Lookup: project.RSVP_Require_Contact_Lookup ?? false,
-                          RSVP_Allow_Guest_Submission: project.RSVP_Allow_Guest_Submission ?? false,
-                        });
-                      }
-                    } else {
-                      setIsEditingGeneralSettings(true);
-                    }
-                  }}
-                  title={isEditingGeneralSettings ? "Cancel editing" : "Edit general settings"}
-                  disabled={isSavingGeneralSettings}
-                >
-                  {isEditingGeneralSettings ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
-                </button>
-              </div>
+                </div>
+              )}
             </div>
 
             {isEditingGeneralSettings ? (
@@ -1582,14 +1590,16 @@ export default function ProjectDetailPage({
           <div className="bg-card border border-border rounded-lg p-6">
             <div className="flex justify-between items-start mb-6">
               <h2 className="text-xl font-semibold text-foreground">Emails</h2>
-              <button
-                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-                onClick={() => setIsEditingTemplates(!isEditingTemplates)}
-                title={isEditingTemplates ? "Cancel editing" : "Edit email configuration"}
-                disabled={isSavingTemplates}
-              >
-                {isEditingTemplates ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
-              </button>
+              {permissions.canEdit && (
+                <button
+                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                  onClick={() => setIsEditingTemplates(!isEditingTemplates)}
+                  title={isEditingTemplates ? "Cancel editing" : "Edit email configuration"}
+                  disabled={isSavingTemplates}
+                >
+                  {isEditingTemplates ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
+                </button>
+              )}
             </div>
 
             {isEditingTemplates ? (
@@ -1690,40 +1700,42 @@ export default function ProjectDetailPage({
             <div className="bg-card border border-border rounded-lg p-6">
               <div className="flex justify-between items-start mb-6">
                 <h2 className="text-xl font-semibold text-foreground">Colors</h2>
-                <div className="flex items-center gap-2">
-                  {isEditingColors && (
+                {permissions.canEdit && (
+                  <div className="flex items-center gap-2">
+                    {isEditingColors && (
+                      <button
+                        className="px-3 py-1.5 text-sm bg-[#61bc47] text-white hover:bg-[#51a839] rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => handleSaveColors()}
+                        disabled={isSavingColors}
+                      >
+                        Save
+                      </button>
+                    )}
                     <button
-                      className="px-3 py-1.5 text-sm bg-[#61bc47] text-white hover:bg-[#51a839] rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      onClick={() => handleSaveColors()}
+                      className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                      onClick={() => {
+                        if (isEditingColors) {
+                          setIsEditingColors(false);
+                          // Reset form to current project values
+                          if (project) {
+                            setColorsForm({
+                              RSVP_Primary_Color: project.RSVP_Primary_Color || "",
+                              RSVP_Secondary_Color: project.RSVP_Secondary_Color || "",
+                              RSVP_Accent_Color: project.RSVP_Accent_Color || "",
+                              RSVP_Background_Color: project.RSVP_Background_Color || "",
+                            });
+                          }
+                        } else {
+                          setIsEditingColors(true);
+                        }
+                      }}
+                      title={isEditingColors ? "Cancel editing" : "Edit colors"}
                       disabled={isSavingColors}
                     >
-                      Save
+                      {isEditingColors ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
                     </button>
-                  )}
-                  <button
-                    className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-                    onClick={() => {
-                      if (isEditingColors) {
-                        setIsEditingColors(false);
-                        // Reset form to current project values
-                        if (project) {
-                          setColorsForm({
-                            RSVP_Primary_Color: project.RSVP_Primary_Color || "",
-                            RSVP_Secondary_Color: project.RSVP_Secondary_Color || "",
-                            RSVP_Accent_Color: project.RSVP_Accent_Color || "",
-                            RSVP_Background_Color: project.RSVP_Background_Color || "",
-                          });
-                        }
-                      } else {
-                        setIsEditingColors(true);
-                      }
-                    }}
-                    title={isEditingColors ? "Cancel editing" : "Edit colors"}
-                    disabled={isSavingColors}
-                  >
-                    {isEditingColors ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
-                  </button>
-                </div>
+                  </div>
+                )}
               </div>
 
               {isEditingColors ? (
@@ -1890,14 +1902,16 @@ export default function ProjectDetailPage({
             <div className="bg-card border border-border rounded-lg p-6">
               <div className="flex justify-between items-start mb-6">
                 <h2 className="text-xl font-semibold text-foreground">Images</h2>
-                <button
-                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-                  onClick={() => setIsEditingImages(!isEditingImages)}
-                  title={isEditingImages ? "Cancel editing" : "Edit images"}
-                  disabled={isUploadingImage}
-                >
-                  {isEditingImages ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
-                </button>
+                {permissions.canEdit && (
+                  <button
+                    className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                    onClick={() => setIsEditingImages(!isEditingImages)}
+                    title={isEditingImages ? "Cancel editing" : "Edit images"}
+                    disabled={isUploadingImage}
+                  >
+                    {isEditingImages ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
+                  </button>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2097,16 +2111,18 @@ export default function ProjectDetailPage({
                             </button>
                           </div>
                         ) : (
-                          <button
-                            className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-                            onClick={() => {
-                              setEditingMeetingInstructions(campus.Public_Event_ID!);
-                              setMeetingInstructionsForm(campus.Meeting_Instructions || "");
-                            }}
-                            title="Edit meeting instructions"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
+                          permissions.canEdit && (
+                            <button
+                              className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                              onClick={() => {
+                                setEditingMeetingInstructions(campus.Public_Event_ID!);
+                                setMeetingInstructionsForm(campus.Meeting_Instructions || "");
+                              }}
+                              title="Edit meeting instructions"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                          )
                         )}
                       </div>
                       {editingMeetingInstructions === campus.Public_Event_ID ? (
@@ -2210,19 +2226,21 @@ export default function ProjectDetailPage({
                               </button>
                             </div>
                           ) : (
-                            <button
-                              className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-                              onClick={() => {
-                                setEditingEventCapacity(event.Event_ID);
-                                setEventCapacityForm({
-                                  capacity: event.Capacity,
-                                  modifier: event.RSVP_Capacity_Modifier
-                                });
-                              }}
-                              title="Edit event capacity"
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </button>
+                            permissions.canEdit && (
+                              <button
+                                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                                onClick={() => {
+                                  setEditingEventCapacity(event.Event_ID);
+                                  setEventCapacityForm({
+                                    capacity: event.Capacity,
+                                    modifier: event.RSVP_Capacity_Modifier
+                                  });
+                                }}
+                                title="Edit event capacity"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                            )
                           )}
                         </div>
 
@@ -2360,21 +2378,23 @@ export default function ProjectDetailPage({
                             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                               Amenities
                             </span>
-                            <button
-                              className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
-                              onClick={() => {
-                                const eventName = `${event.Event_Start_Date
-                                  ? new Date(event.Event_Start_Date).toLocaleTimeString("en-US", {
-                                      hour: "numeric",
-                                      minute: "2-digit",
-                                    })
-                                  : "Event"}`;
-                                setEditingAmenities({ eventId: event.Event_ID, eventName });
-                              }}
-                              title="Edit amenities"
-                            >
-                              <Pencil className="w-3 h-3" />
-                            </button>
+                            {permissions.canEdit && (
+                              <button
+                                className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+                                onClick={() => {
+                                  const eventName = `${event.Event_Start_Date
+                                    ? new Date(event.Event_Start_Date).toLocaleTimeString("en-US", {
+                                        hour: "numeric",
+                                        minute: "2-digit",
+                                      })
+                                    : "Event"}`;
+                                  setEditingAmenities({ eventId: event.Event_ID, eventName });
+                                }}
+                                title="Edit amenities"
+                              >
+                                <Pencil className="w-3 h-3" />
+                              </button>
+                            )}
                           </div>
                           {eventAmenities[event.Event_ID] && eventAmenities[event.Event_ID].length > 0 ? (
                             <div className="flex flex-wrap gap-2">
@@ -2427,13 +2447,15 @@ export default function ProjectDetailPage({
                         Other {campus.Campus_Name} Events
                       </h4>
                     </div>
-                    <button
-                      className="px-3 py-1.5 text-sm border border-border rounded-md text-foreground hover:bg-muted transition-colors flex items-center gap-1.5"
-                      onClick={() => handleOpenCarouselDialog("create", campus.Congregation_ID)}
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add Carousel
-                    </button>
+                    {permissions.canEdit && (
+                      <button
+                        className="px-3 py-1.5 text-sm border border-border rounded-md text-foreground hover:bg-muted transition-colors flex items-center gap-1.5"
+                        onClick={() => handleOpenCarouselDialog("create", campus.Congregation_ID)}
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Carousel
+                      </button>
+                    )}
                   </div>
 
                   {/* Display each carousel or empty state */}
@@ -2447,31 +2469,37 @@ export default function ProjectDetailPage({
                               {carousel.Carousel_Name}
                             </h5>
                             <div className="flex items-center gap-2">
-                              <button
-                                className="px-2 py-1 text-xs border border-border rounded-md text-foreground hover:bg-muted transition-colors flex items-center gap-1"
-                                onClick={() => handleOpenCarouselDialog("add", campus.Congregation_ID, carousel.Carousel_Name)}
-                              >
-                                <Plus className="w-3 h-3" />
-                                Add Event
-                              </button>
-                              <button
-                                className="px-2 py-1 text-xs border border-border rounded-md text-foreground hover:bg-muted transition-colors"
-                                onClick={() => handleEditCarouselName(carousel.Carousel_Name, campus.Congregation_ID)}
-                                title="Edit carousel name"
-                              >
-                                <Pencil className="w-3 h-3" />
-                              </button>
-                              <button
-                                className="px-2 py-1 text-xs border border-destructive text-destructive rounded-md hover:bg-destructive/10 transition-colors"
-                                onClick={() => {
-                                  if (confirm(`Delete carousel "${carousel.Carousel_Name}"? This will remove the carousel name from all ${carousel.Events.length} event(s).`)) {
-                                    handleDeleteCarousel(carousel.Carousel_Name, campus.Congregation_ID);
-                                  }
-                                }}
-                                title="Delete carousel"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
+                              {permissions.canEdit && (
+                                <>
+                                  <button
+                                    className="px-2 py-1 text-xs border border-border rounded-md text-foreground hover:bg-muted transition-colors flex items-center gap-1"
+                                    onClick={() => handleOpenCarouselDialog("add", campus.Congregation_ID, carousel.Carousel_Name)}
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                    Add Event
+                                  </button>
+                                  <button
+                                    className="px-2 py-1 text-xs border border-border rounded-md text-foreground hover:bg-muted transition-colors"
+                                    onClick={() => handleEditCarouselName(carousel.Carousel_Name, campus.Congregation_ID)}
+                                    title="Edit carousel name"
+                                  >
+                                    <Pencil className="w-3 h-3" />
+                                  </button>
+                                </>
+                              )}
+                              {permissions.canDelete && (
+                                <button
+                                  className="px-2 py-1 text-xs border border-destructive text-destructive rounded-md hover:bg-destructive/10 transition-colors"
+                                  onClick={() => {
+                                    if (confirm(`Delete carousel "${carousel.Carousel_Name}"? This will remove the carousel name from all ${carousel.Events.length} event(s).`)) {
+                                      handleDeleteCarousel(carousel.Carousel_Name, campus.Congregation_ID);
+                                    }
+                                  }}
+                                  title="Delete carousel"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              )}
                             </div>
                           </div>
 
@@ -2585,24 +2613,26 @@ export default function ProjectDetailPage({
                           return (
                             <div key={card.Card_ID} className="bg-card border border-border rounded-lg p-6 w-fit max-w-md relative">
                               {/* Edit Button */}
-                              <button
-                                className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-                                onClick={() => {
-                                  setEditingConfirmationCard({
-                                    cardId: card.Card_ID,
-                                    config: {
-                                      title: config.title || card.Card_Type_Name,
-                                      bullets: (config.bullets || []).map(b => ({
-                                        icon: b.icon || "Info",
-                                        text: b.text || ""
-                                      }))
-                                    }
-                                  });
-                                }}
-                                title="Edit confirmation card"
-                              >
-                                <Pencil className="w-4 h-4" />
-                              </button>
+                              {permissions.canEdit && (
+                                <button
+                                  className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                                  onClick={() => {
+                                    setEditingConfirmationCard({
+                                      cardId: card.Card_ID,
+                                      config: {
+                                        title: config.title || card.Card_Type_Name,
+                                        bullets: (config.bullets || []).map(b => ({
+                                          icon: b.icon || "Info",
+                                          text: b.text || ""
+                                        }))
+                                      }
+                                    });
+                                  }}
+                                  title="Edit confirmation card"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                              )}
 
                               <div className="flex items-center gap-4 mb-6">
                                 <h4 className="text-xl font-semibold text-foreground">

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MinistryPlatformClient } from "@/providers/MinistryPlatform/core/ministryPlatformClient";
+import { checkRsvpAppAccess } from "@/lib/mpAuth";
+import { getUserIdFromSession } from "@/utils/auth";
 
 /**
  * GET /api/rsvp/projects/[projectId]/files
@@ -10,6 +12,15 @@ export async function GET(
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
+    // Check if user has access to the RSVP app
+    const { hasAccess } = await checkRsvpAppAccess();
+    if (!hasAccess) {
+      return NextResponse.json(
+        { error: "Forbidden - You don't have permission to access the RSVP app" },
+        { status: 403 }
+      );
+    }
+
     const { projectId: id } = await params;
     const projectId = parseInt(id, 10);
 
@@ -49,6 +60,24 @@ export async function POST(
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
+    // Check if user has permission to edit (upload files)
+    const { hasAccess, canEdit } = await checkRsvpAppAccess();
+    if (!hasAccess || !canEdit) {
+      return NextResponse.json(
+        { error: "Forbidden - You don't have permission to upload files in the RSVP app" },
+        { status: 403 }
+      );
+    }
+
+    // Get User_ID for auditing
+    const userId = await getUserIdFromSession();
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized - No valid session" },
+        { status: 401 }
+      );
+    }
+
     const { projectId: id } = await params;
     const projectId = parseInt(id, 10);
 
@@ -87,7 +116,7 @@ export async function POST(
     // Step 2: If file exists, delete it first
     if (existingFile) {
       console.log(`Deleting existing file: ${fileName} (File_ID: ${existingFile.FileId})`);
-      await mp.delete(`/files/${existingFile.FileId}`);
+      await mp.delete(`/files/${existingFile.FileId}`, { $userId: userId });
     }
 
     // Step 3: Upload the new file with the correct filename
@@ -102,7 +131,7 @@ export async function POST(
     const uploadResponse = await mp.postFormData(
       `/files/Projects/${projectId}`,
       uploadFormData,
-      { $default: false } // Pass default as query parameter
+      { $default: false, $userId: userId } // Pass default and userId as query parameters
     );
 
     console.log(`Successfully uploaded ${fileName} for project ${projectId}`);
@@ -126,6 +155,24 @@ export async function DELETE(
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
+    // Check if user has permission to delete
+    const { hasAccess, canDelete } = await checkRsvpAppAccess();
+    if (!hasAccess || !canDelete) {
+      return NextResponse.json(
+        { error: "Forbidden - You don't have permission to delete files in the RSVP app" },
+        { status: 403 }
+      );
+    }
+
+    // Get User_ID for auditing
+    const userId = await getUserIdFromSession();
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized - No valid session" },
+        { status: 401 }
+      );
+    }
+
     const { projectId: id } = await params;
     const projectId = parseInt(id, 10);
 
@@ -150,7 +197,7 @@ export async function DELETE(
     await mp.ensureValidToken();
 
     // Delete the file
-    await mp.delete(`/files/${fileId}`);
+    await mp.delete(`/files/${fileId}`, { $userId: userId });
 
     console.log(`Successfully deleted file ${fileId} for project ${projectId}`);
 

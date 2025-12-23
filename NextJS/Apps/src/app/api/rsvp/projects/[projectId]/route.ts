@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getProjectRSVPService } from "@/services/projectRsvpService";
 import { UpdateProjectSchema } from "@/providers/MinistryPlatform/entities/ProjectSchema";
+import { checkRsvpAppAccess } from "@/lib/mpAuth";
+import { getUserIdFromSession } from "@/utils/auth";
 
 /**
  * GET /api/rsvp/projects/[projectId]
@@ -11,6 +13,15 @@ export async function GET(
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
+    // Check if user has access to the RSVP app
+    const { hasAccess } = await checkRsvpAppAccess();
+    if (!hasAccess) {
+      return NextResponse.json(
+        { error: "Forbidden - You don't have permission to access the RSVP app" },
+        { status: 403 }
+      );
+    }
+
     const { projectId } = await params;
     const id = parseInt(projectId);
 
@@ -43,6 +54,24 @@ export async function PATCH(
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
+    // Check if user has permission to edit
+    const { hasAccess, canEdit } = await checkRsvpAppAccess();
+    if (!hasAccess || !canEdit) {
+      return NextResponse.json(
+        { error: "Forbidden - You don't have permission to edit in the RSVP app" },
+        { status: 403 }
+      );
+    }
+
+    // Get User_ID for auditing
+    const userId = await getUserIdFromSession();
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized - No valid session" },
+        { status: 401 }
+      );
+    }
+
     const { projectId } = await params;
     const id = parseInt(projectId);
 
@@ -62,7 +91,7 @@ export async function PATCH(
     });
 
     const service = await getProjectRSVPService();
-    const updated = await service.updateProject(validated);
+    const updated = await service.updateProject(validated, userId);
 
     return NextResponse.json(updated);
   } catch (error) {
