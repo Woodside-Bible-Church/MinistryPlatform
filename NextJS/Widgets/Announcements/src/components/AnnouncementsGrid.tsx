@@ -257,19 +257,10 @@ export function AnnouncementsGrid({ data, mode = 'grid' }: AnnouncementsGridProp
                 className={
                   isCarousel
                     ? 'flex gap-6'
-                    : (() => {
-                        const count = data.Campus!.Announcements.length;
-                        if (count === 1) return 'grid gap-3 md:gap-4 grid-cols-1';
-                        if (count === 2) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2';
-                        if (count === 3) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-6 md:grid-rows-2';
-                        if (count === 4) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2';
-                        if (count === 5) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-6';
-                        // 6+ announcements: flexible grid
-                        return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-3';
-                      })()
+                    : 'flex flex-wrap gap-3 md:gap-4'
                 }
               >
-                {data.Campus!.Announcements.map((announcement, index) => {
+                {data.Campus!.Announcements.map((announcement) => {
                   if (isCarousel) {
                     const heading = announcement.CallToAction?.Heading || announcement.Title;
                     const subHeading = announcement.CallToAction?.SubHeading || announcement.Body;
@@ -324,33 +315,9 @@ export function AnnouncementsGrid({ data, mode = 'grid' }: AnnouncementsGridProp
                     );
                   }
 
-                  // Dynamic bento-box style grid with varied card sizes
-                  const count = data.Campus!.Announcements.length;
-                  let cardClass = '';
-
-                  if (!isCarousel) {
-                    if (count === 2) {
-                      // 2-column grid: equal width cards
-                      cardClass = '';
-                    } else if (count === 3) {
-                      // 6-column, 2-row grid: [4x2] + [2x1] + [2x1]
-                      // First card is wider (4 cols) = taller at 16:9, spans 2 rows
-                      // Other cards are narrower (2 cols) = shorter at 16:9, 1 row each
-                      // Math: 4*(9/16) = 2.25, and 2*(2*(9/16)) = 2*1.125 = 2.25 ✓
-                      if (index === 0) cardClass = 'md:col-span-4 md:row-span-2';
-                      else cardClass = 'md:col-span-2';
-                    } else if (count === 4) {
-                      // 2-column, 2-row grid: all equal size
-                      cardClass = '';
-                    } else if (count === 5) {
-                      // 6-column grid: 2 + 2 + 2 + 3 + 3
-                      if (index < 3) cardClass = 'md:col-span-2';
-                      else cardClass = 'md:col-span-3';
-                    }
-                  }
-
+                  // Flexbox with minimum width - cards will wrap naturally
                   return (
-                    <div key={announcement.ID} className={cardClass}>
+                    <div key={announcement.ID} className="flex-1 min-w-[280px] max-w-full md:min-w-[320px]">
                       <AnnouncementCard
                         announcement={announcement}
                       />

@@ -34,7 +34,7 @@ export function AnnouncementCard({
         outlineOffset: '-10px'
       } as React.CSSProperties}
     >
-      <span className="text-white font-extrabold uppercase leading-tight text-center text-xl md:text-3xl tracking-tight">
+      <span className="text-white font-extrabold uppercase leading-tight text-center tracking-tight" style={{ fontSize: 'clamp(1rem, 8cqw, 1.875rem)' }}>
         {announcement.Title}
       </span>
     </div>
@@ -42,7 +42,7 @@ export function AnnouncementCard({
 
   return (
     <article
-      className={cn('bg-white flex flex-col overflow-hidden group', className)}
+      className={cn('bg-white flex flex-col overflow-hidden group @container', className)}
       data-announcement-id={announcement.ID}
     >
       <a
@@ -56,11 +56,11 @@ export function AnnouncementCard({
         href={hasLink || '#'}
         className="p-3 md:p-4 flex flex-col overflow-hidden hover:underline"
       >
-        <h3 className="font-extrabold text-lg md:text-xl leading-tight mb-1 line-clamp-1">
+        <h3 className="font-extrabold leading-tight mb-1 line-clamp-1" style={{ fontSize: 'clamp(0.875rem, 5cqw, 1.25rem)' }}>
           {heading}
         </h3>
         {subHeading && (
-          <p className="text-primary/65 text-sm leading-snug line-clamp-2">
+          <p className="text-primary/65 leading-snug line-clamp-2" style={{ fontSize: 'clamp(0.75rem, 3.5cqw, 0.875rem)' }}>
             {subHeading.replace(/<[^>]*>/g, '').trim().substring(0, 140)}
           </p>
         )}
