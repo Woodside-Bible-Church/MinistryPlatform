@@ -67,33 +67,37 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
   return (
     <div className={isCarousel ? 'relative px-4 md:px-8 pt-4 md:pt-8 pb-2 mt-4 md:mt-8' : ''}>
       {isCarousel && (
-        <div className="flex justify-between items-center gap-3 pb-4 md:pb-8 mb-2 md:mb-4">
-          <div className="flex-1 min-w-0">
-            <div className="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide mb-0.5 md:mb-1">
-              {labels.carouselHeading1 || 'Upcoming'}
+        <div className="pb-4 md:pb-8 mb-2 md:mb-4">
+          {/* Header with heading and button (desktop only shows button) */}
+          <div className="flex justify-between items-center gap-3 md:mb-0">
+            <div className="flex-1 min-w-0">
+              <div className="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide mb-0.5 md:mb-1">
+                {labels.carouselHeading1 || 'Upcoming'}
+              </div>
+              <h2 className="text-xl md:text-4xl font-bold truncate">{labels.carouselHeading2 || 'at Woodside'}</h2>
             </div>
-            <h2 className="text-xl md:text-4xl font-bold truncate">{labels.carouselHeading2 || 'at Woodside'}</h2>
+            {/* Button visible on desktop only */}
+            <a
+              href="https://woodsidebible.org/Announcements"
+              className="hidden md:inline-block flex-shrink-0 min-w-[160px] px-[10px] py-[15px] border-[3px] border-solid font-bold text-sm leading-none uppercase text-center no-underline"
+              style={{
+                backgroundColor: '#62bb46',
+                borderColor: '#62bb46',
+                color: '#fff',
+                transition: 'background .3s, color .3s, border-color .3s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = '#62bb46';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#62bb46';
+                e.currentTarget.style.color = '#fff';
+              }}
+            >
+              {labels.viewAllButton || 'View All Announcements'}
+            </a>
           </div>
-          <a
-            href="https://woodsidebible.org/Announcements"
-            className="inline-block flex-shrink-0 min-w-[100px] md:min-w-[160px] px-[10px] py-[12px] md:py-[15px] border-[3px] border-solid font-bold text-xs md:text-sm leading-none uppercase text-center no-underline"
-            style={{
-              backgroundColor: '#62bb46',
-              borderColor: '#62bb46',
-              color: '#fff',
-              transition: 'background .3s, color .3s, border-color .3s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = '#62bb46';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#62bb46';
-              e.currentTarget.style.color = '#fff';
-            }}
-          >
-            {labels.viewAllButton || 'View All Announcements'}
-          </a>
         </div>
       )}
 
@@ -364,6 +368,32 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
             className="h-full w-full bg-secondary origin-left transition-transform duration-[60ms] linear"
             style={{ transform: 'scaleX(0)' }}
           />
+        </div>
+      )}
+
+      {/* Mobile button below carousel */}
+      {isCarousel && (
+        <div className="mt-6 flex justify-center md:hidden">
+          <a
+            href="https://woodsidebible.org/Announcements"
+            className="inline-block px-[10px] py-[12px] border-[3px] border-solid font-bold text-xs leading-none uppercase text-center no-underline"
+            style={{
+              backgroundColor: '#62bb46',
+              borderColor: '#62bb46',
+              color: '#fff',
+              transition: 'background .3s, color .3s, border-color .3s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = '#62bb46';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#62bb46';
+              e.currentTarget.style.color = '#fff';
+            }}
+          >
+            {labels.viewAllButton || 'View All Announcements'}
+          </a>
         </div>
       )}
     </div>
