@@ -315,9 +315,10 @@ export function AnnouncementsGrid({ data, mode = 'grid' }: AnnouncementsGridProp
                     );
                   }
 
-                  // Flexbox with minimum width - cards will wrap naturally
+                  // Flexbox with minimum and maximum width - cards will wrap naturally
+                  // and maintain consistent size across rows
                   return (
-                    <div key={announcement.ID} className="flex-1 min-w-[280px] max-w-full md:min-w-[320px]">
+                    <div key={announcement.ID} className="flex-1 min-w-[280px] max-w-[480px] md:min-w-[320px] md:max-w-[420px]">
                       <AnnouncementCard
                         announcement={announcement}
                       />
