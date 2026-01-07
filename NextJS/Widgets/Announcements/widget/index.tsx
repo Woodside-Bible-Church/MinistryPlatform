@@ -33,7 +33,7 @@ class AnnouncementsWidget {
 
   constructor(config: WidgetConfig = {}) {
     this.config = {
-      apiBaseUrl: config.apiBaseUrl || window.location.origin,
+      apiBaseUrl: config.apiBaseUrl || 'https://announcements-widget.vercel.app',
       containerId: config.containerId || 'announcements-widget-root',
       mode: config.mode || 'grid',
       ...config
@@ -215,7 +215,7 @@ if (typeof window !== 'undefined') {
       const dataParams = htmlContainer.getAttribute('data-params');
 
       const config: WidgetConfig = {
-        apiBaseUrl: window.ANNOUNCEMENTS_WIDGET_CONFIG?.apiBaseUrl || window.location.origin,
+        apiBaseUrl: window.ANNOUNCEMENTS_WIDGET_CONFIG?.apiBaseUrl || 'https://announcements-widget.vercel.app',
         containerId: containerId,
         mode: dataMode || 'grid',
       };
