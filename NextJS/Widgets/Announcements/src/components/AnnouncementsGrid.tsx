@@ -315,8 +315,7 @@ export function AnnouncementsGrid({ data, mode = 'grid' }: AnnouncementsGridProp
                     );
                   }
 
-                  // Flexbox with minimum and maximum width - cards will wrap naturally
-                  // and maintain consistent size across rows
+                  // Flexbox with consistent sizing - cards maintain same width across all rows
                   return (
                     <div key={announcement.ID} className="flex-1 min-w-[280px] max-w-[480px] md:min-w-[320px] md:max-w-[420px]">
                       <AnnouncementCard
@@ -325,6 +324,14 @@ export function AnnouncementsGrid({ data, mode = 'grid' }: AnnouncementsGridProp
                     </div>
                   );
                 })}
+                {/* Invisible filler elements to prevent last row from growing */}
+                {!isCarousel && Array.from({ length: 5 }).map((_, i) => (
+                  <div
+                    key={`filler-${i}`}
+                    className="flex-1 min-w-[280px] max-w-[480px] md:min-w-[320px] md:max-w-[420px] h-0"
+                    aria-hidden="true"
+                  />
+                ))}
               </div>
             </>
           )}
