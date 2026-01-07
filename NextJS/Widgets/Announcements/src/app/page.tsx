@@ -4,6 +4,56 @@ import { useEffect, useState } from 'react';
 import { AnnouncementsGrid } from '@/components/AnnouncementsGrid';
 import { AnnouncementsData } from '@/lib/types';
 
+/**
+ * Helper function to get CongregationID from the selected location cookie
+ * Cookie name: tbx-ws__selected-location
+ * Value: JWT with location_id in the payload
+ */
+function getCongregationIdFromCookie(): string | null {
+  if (typeof document === 'undefined') return null;
+
+  try {
+    // Parse cookies
+    const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+      const [key, value] = cookie.trim().split('=');
+      acc[key] = value;
+      return acc;
+    }, {} as Record<string, string>);
+
+    const cookieValue = cookies['tbx-ws__selected-location'];
+    if (!cookieValue) return null;
+
+    // JWT format: header.payload.signature
+    // We only need to decode the payload (middle section)
+    const parts = cookieValue.split('.');
+    if (parts.length !== 3) return null;
+
+    // Decode the payload (base64url)
+    const payload = parts[1];
+    // Replace base64url chars with base64 chars
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    // Decode base64
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+
+    const data = JSON.parse(jsonPayload);
+
+    // Extract location_id from the JWT payload
+    if (data.location_id) {
+      return String(data.location_id);
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error decoding selected location cookie:', error);
+    return null;
+  }
+}
+
 export default function AnnouncementsPage() {
   const [data, setData] = useState<AnnouncementsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,7 +92,7 @@ export default function AnnouncementsPage() {
         // Build query params from URL or widget config
         const apiParams = new URLSearchParams();
 
-        // First, add params from widget's data-params attribute
+        // First, add params from widget's data-params attribute (highest priority)
         if (dataParamsString) {
           // Decode URL-encoded characters (e.g., %40 -> @)
           const decodedParams = decodeURIComponent(dataParamsString);
@@ -59,13 +109,36 @@ export default function AnnouncementsPage() {
           });
         }
 
-        // Then, add params from URL (these can override widget params)
+        // Handle @CongregationID with priority: data-params > URL param > cookie
+        if (!apiParams.has('@CongregationID')) {
+          let congregationId: string | null = null;
+
+          // Check URL parameters (second priority)
+          if (typeof window !== 'undefined') {
+            const urlParams = new URLSearchParams(window.location.search);
+            congregationId = urlParams.get('CongregationID');
+
+            // If not in URL, check cookie (third priority)
+            if (!congregationId) {
+              congregationId = getCongregationIdFromCookie();
+            }
+          }
+
+          // Add to params if found
+          if (congregationId) {
+            apiParams.set('@CongregationID', congregationId);
+          }
+        }
+
+        // Add other params from URL (only if not already set by data-params)
         if (typeof window !== 'undefined') {
           const urlParams = new URLSearchParams(window.location.search);
-          ['CongregationID', 'GroupID', 'EventID', 'Search', 'AnnouncementIDs', 'Page', 'NumPerPage'].forEach(
+          ['GroupID', 'EventID', 'Search', 'AnnouncementIDs', 'Page', 'NumPerPage'].forEach(
             (key) => {
               const value = urlParams.get(key);
-              if (value) apiParams.set(`@${key}`, value); // Use set to override widget params
+              if (value && !apiParams.has(`@${key}`)) {
+                apiParams.set(`@${key}`, value);
+              }
             }
           );
         }
