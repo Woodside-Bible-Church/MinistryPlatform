@@ -65,7 +65,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
   }
 
   return (
-    <div className={isCarousel ? 'relative p-8 mt-8' : ''}>
+    <div className={isCarousel ? 'relative px-8 pt-8 pb-2 mt-8' : ''}>
       {isCarousel && (
         <div className="flex justify-between items-center pb-8 mb-4">
           <div>
