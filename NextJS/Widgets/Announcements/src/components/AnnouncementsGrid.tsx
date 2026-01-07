@@ -69,7 +69,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
       {isCarousel && (
         <div className="flex justify-between items-center pb-8 mb-4">
           <div>
-            <div className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-1">
+            <div className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-1">
               {labels.carouselHeading1 || 'Upcoming'}
             </div>
             <h2 className="text-4xl font-bold">{labels.carouselHeading2 || 'at Woodside'}</h2>
