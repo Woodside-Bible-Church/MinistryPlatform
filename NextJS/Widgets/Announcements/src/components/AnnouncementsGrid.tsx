@@ -75,7 +75,21 @@ export function AnnouncementsGrid({ data, mode = 'grid' }: AnnouncementsGridProp
           </div>
           <a
             href="https://woodsidebible.org/Announcements"
-            className="px-6 py-4 rounded-full border-2 border-primary/75 text-primary hover:bg-primary hover:text-white transition-all"
+            className="inline-block min-w-[100px] px-[10px] py-[11px] border-[3px] border-solid font-bold text-sm leading-none uppercase text-center no-underline"
+            style={{
+              backgroundColor: '#62bb46',
+              borderColor: '#62bb46',
+              color: '#fff',
+              transition: 'background .3s, color .3s, border-color .3s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = '#62bb46';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#62bb46';
+              e.currentTarget.style.color = '#fff';
+            }}
           >
             View All Announcements
           </a>
