@@ -65,18 +65,18 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
   }
 
   return (
-    <div className={isCarousel ? 'relative px-8 pt-8 pb-2 mt-8' : ''}>
+    <div className={isCarousel ? 'relative px-4 md:px-8 pt-4 md:pt-8 pb-2 mt-4 md:mt-8' : ''}>
       {isCarousel && (
-        <div className="flex justify-between items-center pb-8 mb-4">
-          <div>
-            <div className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-1">
+        <div className="flex justify-between items-center gap-3 pb-4 md:pb-8 mb-2 md:mb-4">
+          <div className="flex-1 min-w-0">
+            <div className="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide mb-0.5 md:mb-1">
               {labels.carouselHeading1 || 'Upcoming'}
             </div>
-            <h2 className="text-4xl font-bold">{labels.carouselHeading2 || 'at Woodside'}</h2>
+            <h2 className="text-xl md:text-4xl font-bold truncate">{labels.carouselHeading2 || 'at Woodside'}</h2>
           </div>
           <a
             href="https://woodsidebible.org/Announcements"
-            className="inline-block min-w-[160px] px-[10px] py-[15px] border-[3px] border-solid font-bold text-sm leading-none uppercase text-center no-underline"
+            className="inline-block flex-shrink-0 min-w-[100px] md:min-w-[160px] px-[10px] py-[12px] md:py-[15px] border-[3px] border-solid font-bold text-xs md:text-sm leading-none uppercase text-center no-underline"
             style={{
               backgroundColor: '#62bb46',
               borderColor: '#62bb46',
@@ -356,7 +356,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
       {/* Progress bar for carousel mode */}
       {isCarousel && hasOverflow && (
         <div
-          className="absolute left-8 right-8 bottom-1 h-1 bg-black/8 rounded-full overflow-hidden pointer-events-none z-20"
+          className="absolute left-4 md:left-8 right-4 md:right-8 bottom-1 h-1 bg-black/8 rounded-full overflow-hidden pointer-events-none z-20"
           aria-hidden="true"
         >
           <div
