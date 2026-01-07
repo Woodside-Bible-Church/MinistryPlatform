@@ -7,7 +7,7 @@ import { AnnouncementsData } from '@/lib/types';
 /**
  * Helper function to get CongregationID from the selected location cookie
  * Cookie name: tbx-ws__selected-location
- * Value: JWT with location_id in the payload
+ * Value: Base64-encoded JSON with location_id field
  */
 function getCongregationIdFromCookie(): string | null {
   if (typeof document === 'undefined') return null;
@@ -23,18 +23,10 @@ function getCongregationIdFromCookie(): string | null {
     const cookieValue = cookies['tbx-ws__selected-location'];
     if (!cookieValue) return null;
 
-    // JWT format: header.payload.signature
-    // We only need to decode the payload (middle section)
-    const parts = cookieValue.split('.');
-    if (parts.length !== 3) return null;
-
-    // Decode the payload (base64url)
-    const payload = parts[1];
-    // Replace base64url chars with base64 chars
-    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-    // Decode base64
+    // Decode base64 to JSON
+    // The cookie is a simple base64-encoded JSON object
     const jsonPayload = decodeURIComponent(
-      atob(base64)
+      atob(cookieValue)
         .split('')
         .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
         .join('')
@@ -42,7 +34,8 @@ function getCongregationIdFromCookie(): string | null {
 
     const data = JSON.parse(jsonPayload);
 
-    // Extract location_id from the JWT payload
+    // Extract location_id
+    // Example payload: {"user_id":201,"location_id":9,"location_name":"Lake Orion",...}
     if (data.location_id) {
       return String(data.location_id);
     }
