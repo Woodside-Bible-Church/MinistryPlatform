@@ -176,7 +176,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                             <div
                               className="w-full h-full grid place-items-center p-4 md:p-7 outline outline-1 outline-white/95"
                               style={{
-                                backgroundColor: '#62bb46',
+                                backgroundColor: '#1c2b39',
                                 backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23ffffff' fill-opacity='0.15'/%3E%3Ccircle cx='12' cy='12' r='1' fill='%23ffffff' fill-opacity='0.25'/%3E%3C/svg%3E\")",
                                 backgroundRepeat: 'repeat',
                                 backgroundSize: '20px 20px',
@@ -299,7 +299,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                             <div
                               className="w-full h-full grid place-items-center p-4 md:p-7 outline outline-1 outline-white/95"
                               style={{
-                                backgroundColor: '#62bb46',
+                                backgroundColor: '#1c2b39',
                                 backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23ffffff' fill-opacity='0.15'/%3E%3Ccircle cx='12' cy='12' r='1' fill='%23ffffff' fill-opacity='0.25'/%3E%3C/svg%3E\")",
                                 backgroundRepeat: 'repeat',
                                 backgroundSize: '20px 20px',
