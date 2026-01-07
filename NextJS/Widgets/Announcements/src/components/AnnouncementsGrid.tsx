@@ -356,7 +356,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
       {/* Progress bar for carousel mode */}
       {isCarousel && hasOverflow && (
         <div
-          className="absolute left-8 right-8 bottom-3 h-1 bg-black/8 rounded-full overflow-hidden pointer-events-none z-20"
+          className="absolute left-8 right-8 bottom-1 h-1 bg-black/8 rounded-full overflow-hidden pointer-events-none z-20"
           aria-hidden="true"
         >
           <div
