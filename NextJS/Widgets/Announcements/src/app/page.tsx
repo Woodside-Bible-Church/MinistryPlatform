@@ -107,9 +107,10 @@ export default function AnnouncementsPage() {
           let congregationId: string | null = null;
 
           // Check URL parameters (second priority)
+          // Look for @CongregationID in the URL
           if (typeof window !== 'undefined') {
             const urlParams = new URLSearchParams(window.location.search);
-            congregationId = urlParams.get('CongregationID');
+            congregationId = urlParams.get('@CongregationID');
 
             // If not in URL, check cookie (third priority)
             if (!congregationId) {
@@ -126,11 +127,11 @@ export default function AnnouncementsPage() {
         // Add other params from URL (only if not already set by data-params)
         if (typeof window !== 'undefined') {
           const urlParams = new URLSearchParams(window.location.search);
-          ['GroupID', 'EventID', 'Search', 'AnnouncementIDs', 'Page', 'NumPerPage'].forEach(
+          ['@GroupID', '@EventID', '@Search', '@AnnouncementIDs', '@Page', '@NumPerPage'].forEach(
             (key) => {
               const value = urlParams.get(key);
-              if (value && !apiParams.has(`@${key}`)) {
-                apiParams.set(`@${key}`, value);
+              if (value && !apiParams.has(key)) {
+                apiParams.set(key, value);
               }
             }
           );
