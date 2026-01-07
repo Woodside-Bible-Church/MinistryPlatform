@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Announcements Widget - Test Page</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      margin-top: 0;
+      color: #333;
+    }
+    .controls {
+      margin: 30px 0;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+    }
+    .control-group {
+      margin-bottom: 15px;
+    }
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #555;
+    }
+    select, input {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      width: 100%;
+      max-width: 400px;
+    }
+    select:focus, input:focus {
+      outline: none;
+      border-color: #62bb46;
+    }
+    .widget-container {
+      margin-top: 30px;
+      min-height: 400px;
+    }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+    .embed-code {
+      margin-top: 20px;
+      padding: 15px;
+      background: #2d2d2d;
+      color: #f8f8f2;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    .embed-code code {
+      background: transparent;
+      color: #f8f8f2;
+      font-size: 12px;
+      line-height: 1.6;
+      display: block;
+      white-space: pre;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Announcements Widget - Test Page</h1>
+    <p>Test the Announcements widget with different configurations.</p>
+
+    <div class="controls">
+      <div class="control-group">
+        <label for="mode-select">Display Mode:</label>
+        <select id="mode-select">
+          <option value="grid">Grid Layout</option>
+          <option value="carousel">Carousel Layout</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="params-input">Data Parameters (optional):</label>
+        <input
+          type="text"
+          id="params-input"
+          placeholder="@CongregationID=1,@NumPerPage=6"
+        />
+        <small style="display: block; margin-top: 5px; color: #666;">
+          Example: <code>@CongregationID=1,@NumPerPage=6</code>
+        </small>
+      </div>
+    </div>
+
+    <div class="embed-code">
+      <strong>Embed Code:</strong>
+      <code id="embed-code-display"></code>
+    </div>
+
+    <div class="widget-container">
+      <div id="announcements-widget-root"></div>
+    </div>
+  </div>
+
+  <!-- Widget Script -->
+  <script src="/widget/announcements-widget.js"></script>
+
+  <script>
+    // Update embed code display
+    function updateEmbedCode() {
+      const mode = document.getElementById('mode-select').value;
+      const params = document.getElementById('params-input').value.trim();
+
+      const modeAttr = mode !== 'grid' ? ` data-mode="${mode}"` : '';
+      const paramsAttr = params ? ` data-params="${params}"` : '';
+
+      const embedCode = `<div id="announcements-widget-root"${modeAttr}${paramsAttr}></div>
+<script src="https://announcements.vercel.app/widget/announcements-widget.js"><\/script>`;
+
+      document.getElementById('embed-code-display').textContent = embedCode;
+    }
+
+    // Reload widget with new configuration
+    function reloadWidget() {
+      const container = document.getElementById('announcements-widget-root');
+      const mode = document.getElementById('mode-select').value;
+      const params = document.getElementById('params-input').value.trim();
+
+      // Remove existing widget
+      container.innerHTML = '';
+
+      // Update attributes
+      if (mode !== 'grid') {
+        container.setAttribute('data-mode', mode);
+      } else {
+        container.removeAttribute('data-mode');
+      }
+
+      if (params) {
+        container.setAttribute('data-params', params);
+      } else {
+        container.removeAttribute('data-params');
+      }
+
+      // Reload the page to reinitialize widget
+      location.reload();
+    }
+
+    // Initialize
+    updateEmbedCode();
+
+    // Update embed code on change
+    document.getElementById('mode-select').addEventListener('change', updateEmbedCode);
+    document.getElementById('params-input').addEventListener('input', updateEmbedCode);
+
+    // Reload widget on change
+    document.getElementById('mode-select').addEventListener('change', reloadWidget);
+    document.getElementById('params-input').addEventListener('blur', function() {
+      if (this.value.trim() !== '') {
+        reloadWidget();
+      }
+    });
+  </script>
+</body>
+</html>

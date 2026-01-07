@@ -65,6 +65,43 @@ export const widgetConfigs: Record<string, WidgetConfig> = {
 <script src="https://prayer-gamma.vercel.app/widget/prayer-widget.js"></script>`;
     },
   },
+
+  announcements: {
+    id: "announcements",
+    name: "Announcements Widget",
+    description: "Display church announcements in grid or carousel layout with images and call-to-action",
+    widgetUrl: "http://localhost:3004",
+    globalName: "AnnouncementsWidget",
+    fields: [
+      {
+        id: "mode",
+        label: "Display Mode",
+        type: "select",
+        helpText: "Choose how announcements are displayed",
+        options: [
+          { value: "grid", label: "Grid Layout" },
+          { value: "carousel", label: "Carousel Layout" },
+        ],
+        defaultValue: "grid",
+      },
+      {
+        id: "dataParams",
+        label: "Data Params",
+        type: "text",
+        placeholder: "@CongregationID=1,@NumPerPage=6",
+        helpText: "Optional parameters (e.g., @CongregationID=1,@NumPerPage=6). Leave empty for defaults.",
+      },
+    ],
+    generateEmbedCode: (values) => {
+      const mode = values.mode || "grid";
+      const dataParamsValue = values.dataParams || "";
+      const dataMode = mode !== "grid" ? ` data-mode="${mode}"` : "";
+      const dataParams = dataParamsValue ? ` data-params="${dataParamsValue}"` : "";
+
+      return `<div id="announcements-widget-root"${dataMode}${dataParams}></div>
+<script src="https://announcements.vercel.app/widget/announcements-widget.js"></script>`;
+    },
+  },
 };
 
 export function getWidgetConfig(widgetId: string): WidgetConfig | undefined {
