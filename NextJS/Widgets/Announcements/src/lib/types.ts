@@ -22,6 +22,15 @@ export interface AnnouncementsData {
   Campus: CampusAnnouncements | null;
 }
 
+export interface AnnouncementsLabels {
+  viewAllButton?: string;
+  churchWideTitle?: string;
+  carouselHeading1?: string;
+  carouselHeading2?: string;
+  campusAnnouncementsSuffix?: string;
+}
+
 export interface AnnouncementsResponse {
   Announcements: AnnouncementsData;
+  Information?: AnnouncementsLabels;
 }

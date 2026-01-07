@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { AnnouncementsGrid } from '@/components/AnnouncementsGrid';
-import { AnnouncementsData } from '@/lib/types';
+import { AnnouncementsData, AnnouncementsLabels } from '@/lib/types';
 
 /**
  * Helper function to get CongregationID from the selected location cookie
@@ -49,6 +49,7 @@ function getCongregationIdFromCookie(): string | null {
 
 export default function AnnouncementsPage() {
   const [data, setData] = useState<AnnouncementsData | null>(null);
+  const [labels, setLabels] = useState<AnnouncementsLabels>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<'grid' | 'carousel'>('grid');
@@ -146,7 +147,9 @@ export default function AnnouncementsPage() {
         const result = await response.json();
         console.log('API response:', result);
         console.log('Announcements data:', result.Announcements);
+        console.log('Labels from Information:', result.Information);
         setData(result.Announcements);
+        setLabels(result.Information || {});
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -191,5 +194,5 @@ export default function AnnouncementsPage() {
     return null;
   }
 
-  return <AnnouncementsGrid data={data} mode={mode} />;
+  return <AnnouncementsGrid data={data} mode={mode} labels={labels} />;
 }

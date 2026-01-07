@@ -1,15 +1,16 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
-import { AnnouncementsData } from '@/lib/types';
+import { AnnouncementsData, AnnouncementsLabels } from '@/lib/types';
 import { AnnouncementCard } from './AnnouncementCard';
 
 interface AnnouncementsGridProps {
   data: AnnouncementsData;
   mode?: 'grid' | 'carousel';
+  labels?: AnnouncementsLabels;
 }
 
-export function AnnouncementsGrid({ data, mode = 'grid' }: AnnouncementsGridProps) {
+export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: AnnouncementsGridProps) {
   const hasChurchWide = data.ChurchWide && data.ChurchWide.length > 0;
   const hasCampus = data.Campus && data.Campus.Announcements && data.Campus.Announcements.length > 0;
 
@@ -69,9 +70,9 @@ export function AnnouncementsGrid({ data, mode = 'grid' }: AnnouncementsGridProp
         <div className="flex justify-between items-center pb-8 mb-4">
           <div>
             <div className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-1">
-              Upcoming
+              {labels.carouselHeading1 || 'Upcoming'}
             </div>
-            <h2 className="text-4xl font-bold">At Woodside</h2>
+            <h2 className="text-4xl font-bold">{labels.carouselHeading2 || 'at Woodside'}</h2>
           </div>
           <a
             href="https://woodsidebible.org/Announcements"
@@ -91,7 +92,7 @@ export function AnnouncementsGrid({ data, mode = 'grid' }: AnnouncementsGridProp
               e.currentTarget.style.color = '#fff';
             }}
           >
-            View All Announcements
+            {labels.viewAllButton || 'View All Announcements'}
           </a>
         </div>
       )}
@@ -103,7 +104,7 @@ export function AnnouncementsGrid({ data, mode = 'grid' }: AnnouncementsGridProp
             <>
               {!isCarousel && (
                 <h2 className="my-8 md:my-4 font-bold text-xl leading-tight tracking-wide text-secondary">
-                  Happening At Woodside
+                  {labels.churchWideTitle || 'Happening At Woodside'}
                 </h2>
               )}
               {isCarousel && (
@@ -115,7 +116,7 @@ export function AnnouncementsGrid({ data, mode = 'grid' }: AnnouncementsGridProp
                     textAlign: 'end',
                   }}
                 >
-                  Happening At Woodside
+                  {labels.churchWideTitle || 'Happening At Woodside'}
                 </h2>
               )}
               <div
@@ -252,7 +253,7 @@ export function AnnouncementsGrid({ data, mode = 'grid' }: AnnouncementsGridProp
             <>
               {!isCarousel && (
                 <h2 className="my-8 md:my-4 font-bold text-xl leading-tight tracking-wide text-secondary">
-                  {data.Campus!.Name || 'Campus'} Announcements
+                  {data.Campus!.Name || 'Campus'} {labels.campusAnnouncementsSuffix || 'Announcements'}
                 </h2>
               )}
               {isCarousel && (
