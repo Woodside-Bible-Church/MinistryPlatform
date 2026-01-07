@@ -76,7 +76,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
           </div>
           <a
             href="https://woodsidebible.org/Announcements"
-            className="inline-block min-w-[100px] px-[10px] py-[11px] border-[3px] border-solid font-bold text-sm leading-none uppercase text-center no-underline"
+            className="inline-block min-w-[100px] px-[10px] py-[15px] border-[3px] border-solid font-bold text-sm leading-none uppercase text-center no-underline"
             style={{
               backgroundColor: '#62bb46',
               borderColor: '#62bb46',
