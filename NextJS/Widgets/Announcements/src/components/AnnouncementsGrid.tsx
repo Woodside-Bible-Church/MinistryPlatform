@@ -65,7 +65,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
   }
 
   return (
-    <div className={isCarousel ? 'relative px-4 md:px-8 pt-4 md:pt-8 pb-2 mt-4 md:mt-8' : ''}>
+    <div className={isCarousel ? 'relative px-4 md:px-8 pt-4 md:pt-8 pb-20 md:pb-2 mt-4 md:mt-8' : ''}>
       {isCarousel && (
         <div className="pb-4 md:pb-8 mb-2 md:mb-4">
           {/* Header with heading and button (desktop only shows button) */}
@@ -371,30 +371,28 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
         </div>
       )}
 
-      {/* Mobile button below carousel */}
+      {/* Mobile button below carousel and progress bar */}
       {isCarousel && (
-        <div className="mt-6 flex justify-center md:hidden">
-          <a
-            href="https://woodsidebible.org/Announcements"
-            className="inline-block px-[10px] py-[12px] border-[3px] border-solid font-bold text-xs leading-none uppercase text-center no-underline"
-            style={{
-              backgroundColor: '#62bb46',
-              borderColor: '#62bb46',
-              color: '#fff',
-              transition: 'background .3s, color .3s, border-color .3s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = '#62bb46';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#62bb46';
-              e.currentTarget.style.color = '#fff';
-            }}
-          >
-            {labels.viewAllButton || 'View All Announcements'}
-          </a>
-        </div>
+        <a
+          href="https://woodsidebible.org/Announcements"
+          className="absolute bottom-4 left-4 right-4 block md:hidden px-[10px] py-[12px] border-[3px] border-solid font-bold text-xs leading-none uppercase text-center no-underline"
+          style={{
+            backgroundColor: '#62bb46',
+            borderColor: '#62bb46',
+            color: '#fff',
+            transition: 'background .3s, color .3s, border-color .3s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = '#62bb46';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#62bb46';
+            e.currentTarget.style.color = '#fff';
+          }}
+        >
+          {labels.viewAllButton || 'View All Announcements'}
+        </a>
       )}
     </div>
   );
