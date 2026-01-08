@@ -32,3 +32,15 @@ h1, h2, h3, h4, h5, h6 {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Scroll snapping for carousel on desktop */
+@media (min-width: 768px) {
+  .scrollbar-hide {
+    scroll-snap-type: x mandatory;
+    scroll-padding: 2rem;
+  }
+}
+
+.carousel-snap-item {
+  scroll-snap-align: start;
+}

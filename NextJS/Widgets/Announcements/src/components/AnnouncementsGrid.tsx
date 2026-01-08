@@ -163,7 +163,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                         {/* Image */}
                         <a
                           href={hasLink || '#'}
-                          className="relative block aspect-video overflow-hidden"
+                          className="relative block aspect-video overflow-hidden carousel-snap-item"
                           aria-label={announcement.Title}
                           style={{
                             gridArea: index === 0 ? 'i1' : index === 1 ? 'i2' : 'i3',
@@ -289,7 +289,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                       <div key={announcement.ID} className="w-[clamp(250px,50vw,400px)] flex flex-col">
                         <a
                           href={hasLink || '#'}
-                          className="relative block aspect-video overflow-hidden"
+                          className="relative block aspect-video overflow-hidden carousel-snap-item"
                           aria-label={announcement.Title}
                         >
                           {announcement.Image ? (
