@@ -113,7 +113,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
               )}
               {isCarousel && (
                 <h2
-                  className="text-[clamp(0.65rem,1.5vw,1rem)] text-primary/65 opacity-65 pr-6"
+                  className="text-[clamp(0.65rem,1.5vw,1rem)] text-primary/65 opacity-65 pr-6 carousel-snap-item"
                   style={{
                     writingMode: 'sideways-lr',
                     textOrientation: 'sideways',
@@ -262,7 +262,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
               )}
               {isCarousel && (
                 <h2
-                  className="text-[clamp(0.65rem,1.5vw,1rem)] text-primary/65 opacity-65 pr-6 ml-9"
+                  className="text-[clamp(0.65rem,1.5vw,1rem)] text-primary/65 opacity-65 pr-6 ml-9 carousel-snap-item"
                   style={{
                     writingMode: 'sideways-lr',
                     textOrientation: 'sideways',
