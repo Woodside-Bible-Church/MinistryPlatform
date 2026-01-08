@@ -16,9 +16,28 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
+  const progressBarContainerRef = useRef<HTMLDivElement>(null);
   const [hasOverflow, setHasOverflow] = useState(false);
 
   const isCarousel = mode === 'carousel';
+
+  // Handle click on progress bar to scroll to position
+  const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!scrollContainerRef.current || !progressBarContainerRef.current) return;
+
+    const rect = progressBarContainerRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percentage = clickX / rect.width;
+
+    const scrollContainer = scrollContainerRef.current;
+    const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+    const targetScroll = maxScroll * percentage;
+
+    scrollContainer.scrollTo({
+      left: targetScroll,
+      behavior: 'smooth'
+    });
+  };
 
   // Track scroll progress for carousel mode
   useEffect(() => {
@@ -360,14 +379,21 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
       {/* Progress bar for carousel mode */}
       {isCarousel && hasOverflow && (
         <div
-          className="absolute left-4 md:left-8 right-4 md:right-8 bottom-20 md:bottom-1 h-1 bg-black/8 rounded-full overflow-hidden pointer-events-none z-20"
-          aria-hidden="true"
+          ref={progressBarContainerRef}
+          onClick={handleProgressBarClick}
+          className="absolute left-4 md:left-8 right-4 md:right-8 bottom-20 md:bottom-1 cursor-pointer z-20 py-2"
+          aria-label="Scroll to position"
+          role="slider"
+          aria-valuemin={0}
+          aria-valuemax={100}
         >
-          <div
-            ref={progressBarRef}
-            className="h-full w-full bg-secondary origin-left transition-transform duration-[60ms] linear"
-            style={{ transform: 'scaleX(0)' }}
-          />
+          <div className="h-1 bg-black/8 rounded-full overflow-hidden">
+            <div
+              ref={progressBarRef}
+              className="h-full w-full bg-secondary origin-left transition-transform duration-[60ms] linear pointer-events-none"
+              style={{ transform: 'scaleX(0)' }}
+            />
+          </div>
         </div>
       )}
 
