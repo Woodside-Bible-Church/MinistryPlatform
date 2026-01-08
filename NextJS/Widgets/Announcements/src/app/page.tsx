@@ -104,17 +104,23 @@ export default function AnnouncementsPage() {
         }
 
         // Handle @CongregationID with priority: data-params > URL param > cookie
+        // Also check for friendly 'campus' URL param
         if (!apiParams.has('@CongregationID')) {
           let congregationId: string | null = null;
+          let campusSlug: string | null = null;
 
           // Check URL parameters (second priority)
-          // Look for @CongregationID in the URL
           if (typeof window !== 'undefined') {
             const urlParams = new URLSearchParams(window.location.search);
+
+            // Try @CongregationID first
             congregationId = urlParams.get('@CongregationID');
 
+            // Also check for friendly 'campus' param (without @)
+            campusSlug = urlParams.get('campus');
+
             // If not in URL, check cookie (third priority)
-            if (!congregationId) {
+            if (!congregationId && !campusSlug) {
               congregationId = getCongregationIdFromCookie();
             }
           }
@@ -122,6 +128,9 @@ export default function AnnouncementsPage() {
           // Add to params if found
           if (congregationId) {
             apiParams.set('@CongregationID', congregationId);
+          } else if (campusSlug) {
+            // Pass campus slug to API - stored proc will resolve it
+            apiParams.set('@Campus', campusSlug);
           }
         }
 

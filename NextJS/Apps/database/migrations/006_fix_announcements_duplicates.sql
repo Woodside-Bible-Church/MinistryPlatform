@@ -1,48 +1,22 @@
 -- =============================================
--- Migration: Add Announcements Widget
--- Description: Registers the Announcements widget in the widgets table
--- Date: 2026-01-06
+-- Migration: Fix Announcements Widget Duplicate Fields
+-- Description: Remove duplicate widget fields for announcements
+-- Date: 2026-01-08
 -- =============================================
 
--- Insert Announcements Widget
-INSERT INTO widgets (
-  name,
-  key,
-  description,
-  source,
-  script_url,
-  container_element_id,
-  global_name,
-  preview_url,
-  is_active,
-  sort_order
-)
-VALUES (
-  'Announcements Widget',
-  'announcements',
-  'Display church announcements in grid or carousel layout with images and call-to-action',
-  'custom',
-  'https://announcements-widget.vercel.app/widget/announcements-widget.js',
-  'announcements-widget-root',
-  'AnnouncementsWidget',
-  'http://localhost:3004',
-  true,
-  3
-)
-ON CONFLICT (key) DO UPDATE SET
-  name = EXCLUDED.name,
-  description = EXCLUDED.description,
-  script_url = EXCLUDED.script_url,
-  container_element_id = EXCLUDED.container_element_id,
-  global_name = EXCLUDED.global_name,
-  preview_url = EXCLUDED.preview_url,
-  updated_at = NOW();
+-- Delete all widget fields for announcements widget
+DELETE FROM widget_fields
+WHERE widget_id IN (
+  SELECT id FROM widgets WHERE key = 'announcements'
+);
 
--- Delete existing widget fields and URL parameters for announcements (if any)
-DELETE FROM widget_fields WHERE widget_id IN (SELECT id FROM widgets WHERE key = 'announcements');
-DELETE FROM widget_url_parameters WHERE widget_id IN (SELECT id FROM widgets WHERE key = 'announcements');
+-- Delete all URL parameters for announcements widget
+DELETE FROM widget_url_parameters
+WHERE widget_id IN (
+  SELECT id FROM widgets WHERE key = 'announcements'
+);
 
--- Add widget fields for Announcements widget
+-- Re-insert widget fields (only once)
 -- Field 1: Display Mode
 INSERT INTO widget_fields (
   widget_id,
@@ -99,8 +73,7 @@ SELECT
 FROM widgets w
 WHERE w.key = 'announcements';
 
--- Document URL parameters that can be passed to the Announcements widget
--- Parameter 1: CongregationID (via data-params)
+-- Re-insert URL parameters
 INSERT INTO widget_url_parameters (
   widget_id,
   parameter_key,
@@ -121,8 +94,6 @@ SELECT
 FROM widgets w
 WHERE w.key = 'announcements';
 
-
--- Parameter 2: NumPerPage (via data-params)
 INSERT INTO widget_url_parameters (
   widget_id,
   parameter_key,
@@ -143,8 +114,6 @@ SELECT
 FROM widgets w
 WHERE w.key = 'announcements';
 
-
--- Parameter 3: GroupID (via data-params)
 INSERT INTO widget_url_parameters (
   widget_id,
   parameter_key,
@@ -165,8 +134,6 @@ SELECT
 FROM widgets w
 WHERE w.key = 'announcements';
 
-
--- Parameter 4: EventID (via data-params)
 INSERT INTO widget_url_parameters (
   widget_id,
   parameter_key,
@@ -187,8 +154,6 @@ SELECT
 FROM widgets w
 WHERE w.key = 'announcements';
 
-
--- Parameter 5: Search (via data-params)
 INSERT INTO widget_url_parameters (
   widget_id,
   parameter_key,
@@ -209,8 +174,6 @@ SELECT
 FROM widgets w
 WHERE w.key = 'announcements';
 
-
--- Parameter 6: AnnouncementIDs (via data-params)
 INSERT INTO widget_url_parameters (
   widget_id,
   parameter_key,
@@ -231,8 +194,6 @@ SELECT
 FROM widgets w
 WHERE w.key = 'announcements';
 
-
--- Parameter 7: Page (via data-params)
 INSERT INTO widget_url_parameters (
   widget_id,
   parameter_key,
@@ -252,4 +213,3 @@ SELECT
   false
 FROM widgets w
 WHERE w.key = 'announcements';
-
