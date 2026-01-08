@@ -113,7 +113,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
               )}
               {isCarousel && (
                 <h2
-                  className="text-[clamp(0.65rem,1.5vw,1rem)] text-primary/65 opacity-65 pr-6"
+                  className="text-[clamp(0.65rem,1.5vw,1rem)] text-primary/65 opacity-65 pr-6 carousel-snap-item"
                   style={{
                     writingMode: 'sideways-lr',
                     textOrientation: 'sideways',
@@ -126,7 +126,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
               <div
                 className={
                   isCarousel
-                    ? 'grid gap-6 pb-8'
+                    ? 'grid gap-6 pb-8 carousel-snap-item'
                     : (() => {
                         const count = data.ChurchWide.length;
                         if (count === 1) return 'grid gap-3 md:gap-4 grid-cols-1';
@@ -262,7 +262,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
               )}
               {isCarousel && (
                 <h2
-                  className="text-[clamp(0.65rem,1.5vw,1rem)] text-primary/65 opacity-65 pr-6 ml-9"
+                  className="text-[clamp(0.65rem,1.5vw,1rem)] text-primary/65 opacity-65 pr-6 ml-9 carousel-snap-item"
                   style={{
                     writingMode: 'sideways-lr',
                     textOrientation: 'sideways',
@@ -286,7 +286,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                     const hasLink = announcement.CallToAction?.Link;
 
                     return (
-                      <div key={announcement.ID} className="w-[clamp(250px,50vw,400px)] flex flex-col">
+                      <div key={announcement.ID} className="w-[clamp(250px,50vw,400px)] flex flex-col carousel-snap-item">
                         <a
                           href={hasLink || '#'}
                           className="relative block aspect-video overflow-hidden"
