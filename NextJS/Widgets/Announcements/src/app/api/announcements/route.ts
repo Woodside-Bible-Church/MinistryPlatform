@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
     // Map query params to stored procedure params
     const paramMap: Record<string, string> = {
       CongregationID: '@CongregationID',
+      Campus: '@Campus',
       GroupID: '@GroupID',
       EventID: '@EventID',
       Search: '@Search',
