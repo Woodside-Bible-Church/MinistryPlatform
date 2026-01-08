@@ -18,6 +18,8 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
   const progressBarRef = useRef<HTMLDivElement>(null);
   const progressBarContainerRef = useRef<HTMLDivElement>(null);
   const [hasOverflow, setHasOverflow] = useState(false);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   const isCarousel = mode === 'carousel';
 
@@ -39,6 +41,26 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
     });
   };
 
+  // Scroll left by viewport width
+  const scrollLeft = () => {
+    if (!scrollContainerRef.current) return;
+    const scrollAmount = scrollContainerRef.current.clientWidth * 0.8;
+    scrollContainerRef.current.scrollBy({
+      left: -scrollAmount,
+      behavior: 'smooth'
+    });
+  };
+
+  // Scroll right by viewport width
+  const scrollRight = () => {
+    if (!scrollContainerRef.current) return;
+    const scrollAmount = scrollContainerRef.current.clientWidth * 0.8;
+    scrollContainerRef.current.scrollBy({
+      left: scrollAmount,
+      behavior: 'smooth'
+    });
+  };
+
   // Track scroll progress for carousel mode
   useEffect(() => {
     if (!isCarousel || !scrollContainerRef.current) return;
@@ -53,16 +75,20 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
     const updateProgress = () => {
       checkOverflow();
 
-      if (progressBarRef.current) {
-        const scrollLeft = scrollContainer.scrollLeft;
-        const scrollWidth = scrollContainer.scrollWidth - scrollContainer.clientWidth;
-        const scrollPercentage = scrollWidth > 0 ? scrollLeft / scrollWidth : 0;
+      const scrollLeft = scrollContainer.scrollLeft;
+      const scrollWidth = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+      const scrollPercentage = scrollWidth > 0 ? scrollLeft / scrollWidth : 0;
 
+      // Update progress bar
+      if (progressBarRef.current) {
         // Show a minimum of 5% progress to indicate the progress bar exists
         const displayPercentage = Math.max(0.05, scrollPercentage);
-
         progressBarRef.current.style.transform = `scaleX(${displayPercentage})`;
       }
+
+      // Update arrow visibility
+      setCanScrollLeft(scrollLeft > 10); // Show left arrow if scrolled more than 10px
+      setCanScrollRight(scrollLeft < scrollWidth - 10); // Show right arrow if not at end
     };
 
     scrollContainer.addEventListener('scroll', updateProgress);
@@ -375,6 +401,37 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
           )}
         </div>
       </div>
+
+      {/* Navigation arrows for desktop */}
+      {isCarousel && hasOverflow && (
+        <>
+          {/* Left arrow */}
+          {canScrollLeft && (
+            <button
+              onClick={scrollLeft}
+              className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 items-center justify-center bg-white/90 hover:bg-white rounded-full shadow-lg transition-all duration-200 z-30 border border-black/10"
+              aria-label="Scroll left"
+            >
+              <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          )}
+
+          {/* Right arrow */}
+          {canScrollRight && (
+            <button
+              onClick={scrollRight}
+              className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 items-center justify-center bg-white/90 hover:bg-white rounded-full shadow-lg transition-all duration-200 z-30 border border-black/10"
+              aria-label="Scroll right"
+            >
+              <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          )}
+        </>
+      )}
 
       {/* Progress bar for carousel mode */}
       {isCarousel && hasOverflow && (
