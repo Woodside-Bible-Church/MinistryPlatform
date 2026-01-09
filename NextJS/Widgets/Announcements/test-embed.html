@@ -10,6 +10,11 @@
       margin: 0;
       padding: 20px;
       background: #f5f5f5;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark {
+      background: #1a1a1a;
+      color: #e0e0e0;
     }
     .container {
       max-width: 1400px;
@@ -18,10 +23,18 @@
       padding: 40px;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark .container {
+      background: #2d2d2d;
+      color: #e0e0e0;
     }
     h1 {
       margin-top: 0;
       color: #333;
+    }
+    body.dark h1 {
+      color: #f0f0f0;
     }
     .controls {
       margin: 30px 0;
@@ -29,6 +42,11 @@
       background: #f9f9f9;
       border-radius: 6px;
       border: 1px solid #e0e0e0;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    body.dark .controls {
+      background: #1a1a1a;
+      border-color: #404040;
     }
     .control-group {
       margin-bottom: 15px;
@@ -42,6 +60,9 @@
       margin-bottom: 8px;
       color: #555;
     }
+    body.dark label {
+      color: #b0b0b0;
+    }
     select, input {
       padding: 8px 12px;
       border: 1px solid #ddd;
@@ -49,6 +70,13 @@
       font-size: 14px;
       width: 100%;
       max-width: 400px;
+      background: white;
+      color: #333;
+    }
+    body.dark select, body.dark input {
+      background: #3d3d3d;
+      border-color: #555;
+      color: #e0e0e0;
     }
     select:focus, input:focus {
       outline: none;
@@ -127,6 +155,17 @@
       </div>
 
       <div class="control-group">
+        <label for="theme-select">Theme:</label>
+        <select id="theme-select">
+          <option value="light">Light Mode</option>
+          <option value="dark">Dark Mode</option>
+        </select>
+        <small style="display: block; margin-top: 5px; color: #666;">
+          Changes both the page and widget theme
+        </small>
+      </div>
+
+      <div class="control-group">
         <button id="reinit-button" onclick="reloadWidget()">
           🔄 Reload Widget (No Page Refresh)
         </button>
@@ -151,14 +190,30 @@
     function updateEmbedCode() {
       const mode = document.getElementById('mode-select').value;
       const params = document.getElementById('params-input').value.trim();
+      const theme = document.getElementById('theme-select').value;
 
       const modeAttr = mode !== 'grid' ? ` data-mode="${mode}"` : '';
       const paramsAttr = params ? ` data-params="${params}"` : '';
+      const themeAttr = theme !== 'light' ? ` data-theme="${theme}"` : '';
 
-      const embedCode = `<div id="announcements-widget-root"${modeAttr}${paramsAttr}></div>
+      const embedCode = `<div id="announcements-widget-root"${modeAttr}${paramsAttr}${themeAttr}></div>
 <script src="https://announcements.vercel.app/widget/announcements-widget.js"><\/script>`;
 
       document.getElementById('embed-code-display').textContent = embedCode;
+    }
+
+    // Toggle theme
+    function toggleTheme(theme) {
+      if (theme === 'dark') {
+        document.body.classList.add('dark');
+      } else {
+        document.body.classList.remove('dark');
+      }
+
+      // Update widget theme using the new SetWidgetTheme function
+      if (typeof SetWidgetTheme === 'function') {
+        SetWidgetTheme('announcements-widget-root', theme);
+      }
     }
 
     // Reload widget with new configuration (WITHOUT page refresh!)
@@ -207,6 +262,11 @@
     // Update embed code on change
     document.getElementById('mode-select').addEventListener('change', updateEmbedCode);
     document.getElementById('params-input').addEventListener('input', updateEmbedCode);
+    document.getElementById('theme-select').addEventListener('change', function() {
+      const theme = this.value;
+      toggleTheme(theme);
+      updateEmbedCode();
+    });
   </script>
 </body>
 </html>
