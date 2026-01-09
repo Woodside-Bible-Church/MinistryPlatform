@@ -170,16 +170,50 @@ export default function AnnouncementsPage() {
   }, []);
 
   if (loading) {
+    // Carousel skeleton
+    if (mode === 'carousel') {
+      return (
+        <div className="px-4 md:px-8 pt-4 md:pt-8 pb-20 md:pb-2 mt-4 md:mt-8">
+          <div className="animate-pulse">
+            {/* Header skeleton */}
+            <div className="pb-4 md:pb-8 mb-2 md:mb-4">
+              <div className="flex justify-between items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20 mb-2" />
+                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-48" />
+                </div>
+                <div className="hidden md:block w-40 h-12 bg-gray-200 dark:bg-gray-700 rounded" />
+              </div>
+            </div>
+
+            {/* Carousel items skeleton */}
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="inline-flex gap-6">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="w-[clamp(250px,50vw,400px)]">
+                    <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded mb-3" />
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2" />
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Grid skeleton
     return (
       <div className="p-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4" />
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="space-y-3">
-                <div className="aspect-video bg-gray-200 rounded" />
-                <div className="h-4 bg-gray-200 rounded w-3/4" />
-                <div className="h-4 bg-gray-200 rounded w-1/2" />
+                <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded" />
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
               </div>
             ))}
           </div>
