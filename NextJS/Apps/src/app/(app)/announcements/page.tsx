@@ -20,7 +20,24 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCampus } from "@/contexts/CampusContext";
+import { useTheme } from "next-themes";
 import type { Announcement, AnnouncementFormData, CongregationOption } from "@/types/announcements";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { SortableAnnouncementCard } from "@/components/SortableAnnouncementCard";
 
 function formatDate(dateString: string) {
   if (!dateString) return "N/A";
@@ -45,6 +62,7 @@ function formatDate(dateString: string) {
 
 export default function AnnouncementsPage() {
   const { selectedCampus } = useCampus();
+  const { resolvedTheme } = useTheme();
   const widgetRef = useRef<HTMLDivElement>(null);
 
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -90,6 +108,14 @@ export default function AnnouncementsPage() {
   const [eventOptions, setEventOptions] = useState<Array<{ value: number; label: string }>>([]);
   const [opportunitySearch, setOpportunitySearch] = useState("");
   const [opportunityOptions, setOpportunityOptions] = useState<Array<{ value: number; label: string }>>([]);
+
+  // Drag-and-drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Fetch announcements
   useEffect(() => {
@@ -187,6 +213,19 @@ export default function AnnouncementsPage() {
       }
     }
   }, [selectedCampus]);
+
+  // Update widget theme when site theme changes
+  useEffect(() => {
+    if (widgetRef.current && resolvedTheme) {
+      // Update the data-theme attribute
+      widgetRef.current.setAttribute('data-theme', resolvedTheme);
+
+      // Programmatically update the theme if widget is loaded
+      if (typeof (window as any).SetWidgetTheme === 'function') {
+        (window as any).SetWidgetTheme('announcements-widget-root', resolvedTheme);
+      }
+    }
+  }, [resolvedTheme]);
 
   // Update relation type and clear opposite field
   useEffect(() => {
@@ -510,6 +549,73 @@ export default function AnnouncementsPage() {
     }
   }
 
+  // Handle drag end for reordering
+  async function handleDragEnd(event: DragEndEvent, sectionType: "church-wide" | "campus") {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    // Get the correct section's announcements
+    const sectionAnnouncements = sectionType === "church-wide"
+      ? churchWideAnnouncements
+      : campusAnnouncements;
+
+    const oldIndex = sectionAnnouncements.findIndex((a) => a.ID === active.id);
+    const newIndex = sectionAnnouncements.findIndex((a) => a.ID === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    // Optimistically update the order
+    const reorderedItems = arrayMove(sectionAnnouncements, oldIndex, newIndex);
+
+    // Recalculate sort numbers
+    // Start from the lowest sort number in the section to maintain gaps
+    const sortNumbers = sectionAnnouncements.map((a) => a.Sort).sort((a, b) => a - b);
+    const baseSortNumber = sortNumbers[0] || 1;
+
+    const updates = reorderedItems.map((item, index) => ({
+      id: item.ID,
+      sort: baseSortNumber + index,
+    }));
+
+    // Update local state optimistically
+    setAnnouncements((prev) =>
+      prev.map((a) => {
+        const update = updates.find((u) => u.id === a.ID);
+        return update ? { ...a, Sort: update.sort } : a;
+      })
+    );
+
+    try {
+      const response = await fetch("/api/announcements/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ updates }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to reorder announcements");
+      }
+
+      toast.success("Announcements reordered successfully");
+
+      // Refresh widget
+      refreshWidget();
+    } catch (err) {
+      // Revert on error
+      toast.error(err instanceof Error ? err.message : "Failed to reorder");
+
+      // Fetch fresh data to revert
+      const params = new URLSearchParams();
+      if (searchQuery) params.append("search", searchQuery);
+      const fetchResponse = await fetch(`/api/announcements?${params.toString()}`);
+      if (fetchResponse.ok) {
+        const data = await fetchResponse.json();
+        setAnnouncements(data);
+      }
+    }
+  }
+
   // Filter announcements by status and campus
   const filteredAnnouncements = announcements.filter((announcement) => {
     // Filter by status
@@ -682,6 +788,7 @@ export default function AnnouncementsPage() {
           ref={widgetRef}
           id="announcements-widget-root"
           data-mode={widgetMode}
+          data-theme={resolvedTheme || "light"}
           data-params={
             selectedCampus && selectedCampus.Congregation_ID !== 1
               ? `@CongregationID=${selectedCampus.Congregation_ID}`
@@ -770,20 +877,28 @@ export default function AnnouncementsPage() {
                 <Star className="w-5 h-5 text-[#61BC47]" />
                 Church-Wide Announcements
               </h3>
-              <div className="space-y-4">
-                {churchWideAnnouncements.map((announcement) => (
-                  <div
-                    key={announcement.ID}
-                    className={`bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all ${
-                      processingIds.has(announcement.ID)
-                        ? "opacity-50 scale-[0.98] pointer-events-none"
-                        : ""
-                    }`}
-                  >
-                    {renderAnnouncementCard(announcement)}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={(e) => handleDragEnd(e, "church-wide")}
+              >
+                <SortableContext
+                  items={churchWideAnnouncements.map((a) => a.ID)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-4">
+                    {churchWideAnnouncements.map((announcement) => (
+                      <SortableAnnouncementCard
+                        key={announcement.ID}
+                        id={announcement.ID}
+                        isProcessing={processingIds.has(announcement.ID)}
+                      >
+                        {renderAnnouncementCard(announcement)}
+                      </SortableAnnouncementCard>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </SortableContext>
+              </DndContext>
             </div>
           )}
 
@@ -794,20 +909,28 @@ export default function AnnouncementsPage() {
                 <MapPin className="w-5 h-5 text-[#61BC47]" />
                 {selectedCampus?.Congregation_Name || "Campus"} Announcements
               </h3>
-              <div className="space-y-4">
-                {campusAnnouncements.map((announcement) => (
-                  <div
-                    key={announcement.ID}
-                    className={`bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all ${
-                      processingIds.has(announcement.ID)
-                        ? "opacity-50 scale-[0.98] pointer-events-none"
-                        : ""
-                    }`}
-                  >
-                    {renderAnnouncementCard(announcement)}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={(e) => handleDragEnd(e, "campus")}
+              >
+                <SortableContext
+                  items={campusAnnouncements.map((a) => a.ID)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-4">
+                    {campusAnnouncements.map((announcement) => (
+                      <SortableAnnouncementCard
+                        key={announcement.ID}
+                        id={announcement.ID}
+                        isProcessing={processingIds.has(announcement.ID)}
+                      >
+                        {renderAnnouncementCard(announcement)}
+                      </SortableAnnouncementCard>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </SortableContext>
+              </DndContext>
             </div>
           )}
         </div>

@@ -233,6 +233,47 @@ export class AnnouncementsService {
   }
 
   /**
+   * Bulk update sort order for announcements
+   */
+  async bulkUpdateSortOrder(
+    updates: Array<{ id: number; sort: number }>,
+    userId: number
+  ): Promise<void> {
+    // Get all announcements that need updating
+    const records: AnnouncementRecord[] = [];
+
+    for (const update of updates) {
+      // Fetch the current announcement data
+      const existing = await this.getAnnouncementById(update.id);
+      if (!existing) {
+        throw new Error(`Announcement ${update.id} not found`);
+      }
+
+      records.push({
+        Announcement_ID: update.id,
+        Announcement_Title: existing.Title,
+        Announcement_Body: existing.Body,
+        Active: existing.Active,
+        Top_Priority: existing.TopPriority,
+        Announcement_Start_Date: existing.StartDate,
+        Announcement_End_Date: existing.EndDate,
+        Sort: update.sort,
+        Congregation_ID: existing.CongregationID,
+        Call_To_Action_URL: existing.CallToActionURL,
+        Call_To_Action_Label: existing.CallToActionLabel,
+        Event_ID: existing.EventID,
+        Opportunity_ID: existing.OpportunityID,
+        Domain_ID: 1,
+      });
+    }
+
+    // Update all records in bulk
+    await this.tableService.updateTableRecords("Announcements", records, {
+      $userId: userId,
+    });
+  }
+
+  /**
    * Get congregations for dropdown
    */
   async getCongregations(): Promise<Array<{ value: number; label: string; slug: string }>> {
