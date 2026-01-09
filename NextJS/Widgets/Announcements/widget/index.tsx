@@ -190,6 +190,74 @@ class AnnouncementsWidget {
   }
 
   /**
+   * Reinitialize the widget with updated configuration from container attributes
+   */
+  reinit() {
+    const container = document.getElementById(this.config.containerId!);
+
+    if (!container) {
+      console.error(`Announcements Widget: Container #${this.config.containerId} not found`);
+      return;
+    }
+
+    console.log('Reinitializing widget...');
+
+    // Destroy existing React root
+    this.destroy();
+
+    // Read updated attributes from container
+    const dataMode = container.getAttribute('data-mode') as 'grid' | 'carousel' | null;
+    const dataParams = container.getAttribute('data-params');
+
+    // Update config
+    this.config.mode = dataMode || 'grid';
+
+    // Reuse existing shadow root (can't detach and reattach)
+    if (!this.shadowRoot) {
+      this.shadowRoot = container.shadowRoot as ShadowRoot;
+    }
+
+    if (!this.shadowRoot) {
+      console.error('Shadow root not found. Creating new widget...');
+      this.init();
+      return;
+    }
+
+    // Clear shadow DOM content
+    while (this.shadowRoot.firstChild) {
+      this.shadowRoot.removeChild(this.shadowRoot.firstChild);
+    }
+
+    // Create a new mount point inside shadow DOM
+    const mountPoint = document.createElement('div');
+    mountPoint.id = 'announcements-widget-app';
+    this.shadowRoot.appendChild(mountPoint);
+
+    // Re-inject styles
+    this.injectStyles();
+
+    // Update global config
+    (window as any).__ANNOUNCEMENTS_WIDGET_CONFIG__ = {
+      ...this.config,
+      dataParams
+    };
+
+    console.log('Widget reinitialized with new config:', {
+      mode: this.config.mode,
+      params: dataParams,
+      config: (window as any).__ANNOUNCEMENTS_WIDGET_CONFIG__
+    });
+
+    // Create new React root and render
+    this.root = createRoot(mountPoint);
+    this.root.render(
+      <React.StrictMode>
+        <AnnouncementsPage />
+      </React.StrictMode>
+    );
+  }
+
+  /**
    * Cleanup and unmount the widget
    */
   destroy() {
@@ -199,6 +267,9 @@ class AnnouncementsWidget {
     }
   }
 }
+
+// Store widget instances globally
+const widgetInstances = new Map<string, AnnouncementsWidget>();
 
 // Auto-initialize all widget instances
 if (typeof window !== 'undefined') {
@@ -229,6 +300,9 @@ if (typeof window !== 'undefined') {
       const widget = new AnnouncementsWidget(config);
       widget.init();
 
+      // Store widget instance for later reinit
+      widgetInstances.set(containerId, widget);
+
       // Store first widget as default
       if (!window.AnnouncementsWidget) {
         window.AnnouncementsWidget = widget;
@@ -242,6 +316,25 @@ if (typeof window !== 'undefined') {
   } else {
     initializeWidgets();
   }
+
+  /**
+   * Global function to reinitialize a widget from outside the shadow DOM
+   * Usage: ReInitWidget('announcements-widget-root')
+   */
+  (window as any).ReInitWidget = function(containerId: string = 'announcements-widget-root') {
+    const widget = widgetInstances.get(containerId);
+
+    if (!widget) {
+      console.error(`No widget found with container ID: ${containerId}`);
+      console.log('Available widget IDs:', Array.from(widgetInstances.keys()));
+      return false;
+    }
+
+    widget.reinit();
+    return true;
+  };
+
+  console.log('Announcements Widget: ReInitWidget() function is now available globally');
 }
 
 export default AnnouncementsWidget;
