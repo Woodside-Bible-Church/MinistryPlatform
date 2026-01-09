@@ -103,6 +103,64 @@
       margin-top: 30px;
       min-height: 400px;
     }
+    .theme-switcher {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 15px;
+      background: white;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    body.dark .theme-toggle {
+      background: #2d2d2d;
+      border-color: #555;
+    }
+    .theme-toggle:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    .theme-toggle-switch {
+      position: relative;
+      width: 50px;
+      height: 26px;
+      background: #ddd;
+      border-radius: 13px;
+      transition: background 0.3s;
+    }
+    body.dark .theme-toggle-switch {
+      background: #62bb46;
+    }
+    .theme-toggle-slider {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    body.dark .theme-toggle-slider {
+      transform: translateX(24px);
+    }
+    .theme-toggle-label {
+      font-weight: 600;
+      font-size: 14px;
+      color: #555;
+    }
+    body.dark .theme-toggle-label {
+      color: #b0b0b0;
+    }
     code {
       background: #f4f4f4;
       padding: 2px 6px;
@@ -129,6 +187,16 @@
   </style>
 </head>
 <body>
+  <!-- Floating Theme Switcher -->
+  <div class="theme-switcher">
+    <div class="theme-toggle" onclick="quickToggleTheme()">
+      <span class="theme-toggle-label" id="theme-label">Light</span>
+      <div class="theme-toggle-switch">
+        <div class="theme-toggle-slider"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="container">
     <h1>Announcements Widget - Test Page</h1>
     <p>Test the Announcements widget with different configurations.</p>
@@ -214,6 +282,19 @@
       if (typeof SetWidgetTheme === 'function') {
         SetWidgetTheme('announcements-widget-root', theme);
       }
+
+      // Update label
+      document.getElementById('theme-label').textContent = theme === 'dark' ? 'Dark' : 'Light';
+    }
+
+    // Quick toggle for floating button
+    function quickToggleTheme() {
+      const currentTheme = document.body.classList.contains('dark') ? 'light' : 'dark';
+      toggleTheme(currentTheme);
+
+      // Update dropdown to match
+      document.getElementById('theme-select').value = currentTheme;
+      updateEmbedCode();
     }
 
     // Reload widget with new configuration (WITHOUT page refresh!)
