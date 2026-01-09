@@ -42,7 +42,7 @@ export function AnnouncementCard({
 
   return (
     <article
-      className={cn('bg-white flex flex-col overflow-hidden group @container', className)}
+      className={cn('flex flex-col overflow-hidden group @container', className)}
       data-announcement-id={announcement.ID}
     >
       <a
@@ -56,11 +56,11 @@ export function AnnouncementCard({
         href={hasLink || '#'}
         className="p-3 md:p-4 flex flex-col overflow-hidden hover:underline"
       >
-        <h3 className="font-extrabold leading-tight mb-1 line-clamp-1" style={{ fontSize: 'clamp(0.875rem, 5cqw, 1.25rem)' }}>
+        <h3 className="font-extrabold leading-tight mb-1 line-clamp-1 text-primary dark:text-white" style={{ fontSize: 'clamp(0.875rem, 5cqw, 1.25rem)' }}>
           {heading}
         </h3>
         {subHeading && (
-          <p className="text-primary/65 leading-snug line-clamp-2" style={{ fontSize: 'clamp(0.75rem, 3.5cqw, 0.875rem)' }}>
+          <p className="text-primary/65 dark:text-white/70 leading-snug line-clamp-2" style={{ fontSize: 'clamp(0.75rem, 3.5cqw, 0.875rem)' }}>
             {subHeading.replace(/<[^>]*>/g, '').trim().substring(0, 140)}
           </p>
         )}
