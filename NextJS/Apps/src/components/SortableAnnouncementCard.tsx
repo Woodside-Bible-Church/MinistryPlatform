@@ -32,13 +32,24 @@ export function SortableAnnouncementCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all cursor-grab active:cursor-grabbing ${
+      className={`bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all ${
         isProcessing ? "opacity-50 scale-[0.98] pointer-events-none" : ""
-      } ${isDragging ? "z-50 shadow-2xl cursor-grabbing" : ""}`}
+      } ${isDragging ? "z-50 shadow-2xl cursor-grabbing" : "cursor-grab"}`}
       {...attributes}
-      {...listeners}
     >
-      {children}
+      <div
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing [&_button]:cursor-pointer [&_a]:cursor-pointer"
+        onPointerDown={(e) => {
+          // Prevent drag from starting when clicking on buttons or links
+          const target = e.target as HTMLElement;
+          if (target.closest('button') || target.closest('a')) {
+            e.stopPropagation();
+          }
+        }}
+      >
+        {children}
+      </div>
     </div>
   );
 }
