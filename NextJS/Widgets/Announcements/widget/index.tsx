@@ -30,6 +30,7 @@ class AnnouncementsWidget {
   private root: ReturnType<typeof createRoot> | null = null;
   private shadowRoot: ShadowRoot | null = null;
   private config: WidgetConfig;
+  private themeObserver: MutationObserver | null = null;
 
   constructor(config: WidgetConfig = {}) {
     this.config = {
@@ -61,6 +62,12 @@ class AnnouncementsWidget {
     const mountPoint = document.createElement('div');
     mountPoint.id = 'announcements-widget-app';
     this.shadowRoot.appendChild(mountPoint);
+
+    // Apply initial theme
+    this.applyTheme(container);
+
+    // Watch for theme changes on container
+    this.observeThemeChanges(container);
 
     // Inject styles into shadow DOM
     this.injectStyles();
@@ -233,6 +240,10 @@ class AnnouncementsWidget {
     mountPoint.id = 'announcements-widget-app';
     this.shadowRoot.appendChild(mountPoint);
 
+    // Apply theme and start observing
+    this.applyTheme(container);
+    this.observeThemeChanges(container);
+
     // Re-inject styles
     this.injectStyles();
 
@@ -258,12 +269,59 @@ class AnnouncementsWidget {
   }
 
   /**
+   * Apply theme from data-theme attribute to the mount point
+   */
+  private applyTheme(container: HTMLElement) {
+    const theme = container.getAttribute('data-theme');
+    const mountPoint = this.shadowRoot?.getElementById('announcements-widget-app');
+
+    if (mountPoint) {
+      if (theme === 'dark') {
+        mountPoint.classList.add('dark');
+      } else {
+        mountPoint.classList.remove('dark');
+      }
+    }
+  }
+
+  /**
+   * Watch for changes to data-theme attribute
+   */
+  private observeThemeChanges(container: HTMLElement) {
+    // Disconnect any existing observer
+    if (this.themeObserver) {
+      this.themeObserver.disconnect();
+    }
+
+    // Create a new observer to watch for attribute changes
+    this.themeObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+          this.applyTheme(container);
+          console.log('Theme updated:', container.getAttribute('data-theme'));
+        }
+      });
+    });
+
+    // Start observing
+    this.themeObserver.observe(container, {
+      attributes: true,
+      attributeFilter: ['data-theme']
+    });
+  }
+
+  /**
    * Cleanup and unmount the widget
    */
   destroy() {
     if (this.root) {
       this.root.unmount();
       this.root = null;
+    }
+
+    if (this.themeObserver) {
+      this.themeObserver.disconnect();
+      this.themeObserver = null;
     }
   }
 }
@@ -334,7 +392,24 @@ if (typeof window !== 'undefined') {
     return true;
   };
 
-  console.log('Announcements Widget: ReInitWidget() function is now available globally');
+  /**
+   * Global function to set the theme for a widget
+   * Usage: SetWidgetTheme('announcements-widget-root', 'dark')
+   * or: SetWidgetTheme('announcements-widget-root', 'light')
+   */
+  (window as any).SetWidgetTheme = function(containerId: string = 'announcements-widget-root', theme: 'light' | 'dark') {
+    const container = document.getElementById(containerId);
+
+    if (!container) {
+      console.error(`Container #${containerId} not found`);
+      return false;
+    }
+
+    container.setAttribute('data-theme', theme);
+    return true;
+  };
+
+  console.log('Announcements Widget: ReInitWidget() and SetWidgetTheme() functions are now available globally');
 }
 
 export default AnnouncementsWidget;
