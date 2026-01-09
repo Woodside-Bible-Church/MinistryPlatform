@@ -7,6 +7,14 @@
   --color-secondary-dark: #4a9035;
 }
 
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-scheme: light;
+  }
+}
+
+@variant dark (&:is(.dark, .dark *));
+
 * {
   box-sizing: border-box;
 }

@@ -275,11 +275,15 @@ class AnnouncementsWidget {
     const theme = container.getAttribute('data-theme');
     const mountPoint = this.shadowRoot?.getElementById('announcements-widget-app');
 
+    console.log('applyTheme called:', { theme, mountPoint, hasDarkClass: mountPoint?.classList.contains('dark') });
+
     if (mountPoint) {
       if (theme === 'dark') {
         mountPoint.classList.add('dark');
+        console.log('Added dark class. Classes:', mountPoint.className);
       } else {
         mountPoint.classList.remove('dark');
+        console.log('Removed dark class. Classes:', mountPoint.className);
       }
     }
   }
