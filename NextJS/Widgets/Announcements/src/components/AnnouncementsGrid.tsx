@@ -158,7 +158,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
               )}
               {isCarousel && (
                 <h2
-                  className="text-[clamp(0.65rem,1.5vw,1rem)] text-primary/65 opacity-65 pr-6 carousel-snap-item"
+                  className="text-[clamp(0.65rem,1.5vw,1rem)] text-primary/65 dark:text-white/70 opacity-65 pr-6 carousel-snap-item"
                   style={{
                     writingMode: 'sideways-lr',
                     textOrientation: 'sideways',
@@ -247,11 +247,11 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                             width: 'clamp(250px, 50vw, 400px)',
                           }}
                         >
-                          <h3 className="font-extrabold leading-tight mb-0.5 line-clamp-1 text-[clamp(0.8rem,1vw,1rem)]">
+                          <h3 className="font-extrabold leading-tight mb-0.5 line-clamp-1 text-[clamp(0.8rem,1vw,1rem)] text-primary dark:text-white">
                             {heading}
                           </h3>
                           {subHeading && (
-                            <p className="text-primary/65 leading-snug line-clamp-2 text-[clamp(0.75rem,0.9vw,0.8rem)] m-0 p-0">
+                            <p className="text-primary/65 dark:text-white/70 leading-snug line-clamp-2 text-[clamp(0.75rem,0.9vw,0.8rem)] m-0 p-0">
                               {subHeading.replace(/<[^>]*>/g, '').trim().substring(0, 140)}
                             </p>
                           )}
@@ -307,7 +307,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
               )}
               {isCarousel && (
                 <h2
-                  className="text-[clamp(0.65rem,1.5vw,1rem)] text-primary/65 opacity-65 pr-6 ml-9 carousel-snap-item"
+                  className="text-[clamp(0.65rem,1.5vw,1rem)] text-primary/65 dark:text-white/70 opacity-65 pr-6 ml-9 carousel-snap-item"
                   style={{
                     writingMode: 'sideways-lr',
                     textOrientation: 'sideways',
@@ -366,11 +366,11 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                           className="p-2 mt-3 flex flex-col overflow-hidden hover:underline"
                           style={{ width: 'clamp(250px, 50vw, 400px)' }}
                         >
-                          <h3 className="font-extrabold leading-tight mb-0.5 line-clamp-1 text-[clamp(0.8rem,1vw,1rem)]">
+                          <h3 className="font-extrabold leading-tight mb-0.5 line-clamp-1 text-[clamp(0.8rem,1vw,1rem)] text-primary dark:text-white">
                             {heading}
                           </h3>
                           {subHeading && (
-                            <p className="text-primary/65 leading-snug line-clamp-2 text-[clamp(0.75rem,0.9vw,0.8rem)] m-0 p-0">
+                            <p className="text-primary/65 dark:text-white/70 leading-snug line-clamp-2 text-[clamp(0.75rem,0.9vw,0.8rem)] m-0 p-0">
                               {subHeading.replace(/<[^>]*>/g, '').trim().substring(0, 140)}
                             </p>
                           )}
