@@ -24,8 +24,8 @@ export class AnnouncementsService {
   private client: MinistryPlatformClient;
   private tableService: TableService;
 
-  constructor(userToken?: string) {
-    this.client = new MinistryPlatformClient(userToken);
+  constructor() {
+    this.client = new MinistryPlatformClient();
     this.tableService = new TableService(this.client);
   }
 
