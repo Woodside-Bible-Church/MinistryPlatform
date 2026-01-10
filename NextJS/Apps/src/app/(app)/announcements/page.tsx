@@ -588,7 +588,7 @@ export default function AnnouncementsPage() {
               <Star className="w-5 h-5 text-yellow-500 fill-current drop-shadow-md" />
             )}
             <span
-              className={`px-2 py-1 text-xs font-medium rounded-full shadow-md ${
+              className={`px-2 py-1 text-xs font-medium rounded shadow-md ${
                 announcement.Status === "active"
                   ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
                   : announcement.Status === "scheduled"
@@ -638,23 +638,23 @@ export default function AnnouncementsPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => handleEdit(announcement)}
-                className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                className="p-2 hover:bg-zinc-400 dark:hover:bg-zinc-700 rounded transition-colors"
                 title="Edit"
               >
-                <Pencil className="w-5 h-5" />
+                <Pencil className="w-5 h-5 text-muted-foreground" />
               </button>
               <button
                 onClick={() =>
                   handleDelete(announcement.ID, announcement.Title)
                 }
                 disabled={processingIds.has(announcement.ID)}
-                className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Delete"
               >
                 {processingIds.has(announcement.ID) ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin text-red-600 dark:text-red-400" />
                 ) : (
-                  <Trash2 className="w-5 h-5" />
+                  <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
                 )}
               </button>
             </div>
