@@ -16,9 +16,14 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get("q") || "";
+    const congregationID = searchParams.get("congregationID");
 
+    // Use client credentials (no userToken) for searching opportunities
     const service = new AnnouncementsService();
-    const opportunities = await service.searchOpportunities(query);
+    const opportunities = await service.searchOpportunities(
+      query,
+      congregationID ? parseInt(congregationID) : undefined
+    );
 
     return NextResponse.json(opportunities);
   } catch (error) {

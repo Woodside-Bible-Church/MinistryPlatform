@@ -17,6 +17,9 @@ import {
   Loader2,
   X,
   Save,
+  Church,
+  Upload,
+  Image as ImageIcon,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCampus } from "@/contexts/CampusContext";
@@ -64,6 +67,8 @@ export default function AnnouncementsPage() {
   const { selectedCampus } = useCampus();
   const { resolvedTheme } = useTheme();
   const widgetRef = useRef<HTMLDivElement>(null);
+  const [svgLoaded, setSvgLoaded] = useState(false);
+  const [svgError, setSvgError] = useState(false);
 
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -104,10 +109,31 @@ export default function AnnouncementsPage() {
   // Dropdowns data
   const [congregations, setCongregations] = useState<CongregationOption[]>([]);
   const [relationType, setRelationType] = useState<"none" | "event" | "opportunity">("none");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [eventSearch, setEventSearch] = useState("");
-  const [eventOptions, setEventOptions] = useState<Array<{ value: number; label: string }>>([]);
+  const [eventSearchLoading, setEventSearchLoading] = useState(false);
+  const [eventOptions, setEventOptions] = useState<Array<{
+    value: number;
+    label: string;
+    startDate: string;
+    endDate: string;
+    congregationName: string;
+    link: string;
+    imageUrl: string | null;
+  }>>([]);
   const [opportunitySearch, setOpportunitySearch] = useState("");
-  const [opportunityOptions, setOpportunityOptions] = useState<Array<{ value: number; label: string }>>([]);
+  const [opportunitySearchLoading, setOpportunitySearchLoading] = useState(false);
+  const [opportunityOptions, setOpportunityOptions] = useState<Array<{
+    value: number;
+    label: string;
+    shiftStart: string;
+    shiftEnd: string;
+    programName: string;
+    congregationName: string;
+    groupName: string | null;
+    minimumNeeded: number;
+    maximumNeeded: number;
+  }>>([]);
 
   // Drag-and-drop sensors
   const sensors = useSensors(
@@ -159,43 +185,91 @@ export default function AnnouncementsPage() {
   useEffect(() => {
     if (relationType !== "event" || eventSearch.length < 2) {
       setEventOptions([]);
+      setEventSearchLoading(false);
       return;
     }
 
+    setEventSearchLoading(true);
     const timer = setTimeout(async () => {
       try {
-        const response = await fetch(`/api/announcements/events?q=${encodeURIComponent(eventSearch)}`);
-        if (!response.ok) throw new Error("Failed to search events");
+        console.log("Searching events with query:", eventSearch);
+        const response = await fetch(
+          `/api/announcements/events?q=${encodeURIComponent(eventSearch)}&congregationID=${formData.congregationID}`
+        );
+        console.log("Events API response status:", response.status);
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Events API error:", errorData);
+          throw new Error(errorData.error || "Failed to search events");
+        }
+
         const data = await response.json();
-        setEventOptions(data);
+        console.log("Events data received:", data);
+
+        // Ensure data is an array
+        if (Array.isArray(data)) {
+          setEventOptions(data);
+        } else {
+          console.error("Events API returned non-array:", data);
+          setEventOptions([]);
+        }
       } catch (err) {
         console.error("Error searching events:", err);
+        toast.error(err instanceof Error ? err.message : "Failed to search events");
+        setEventOptions([]);
+      } finally {
+        setEventSearchLoading(false);
       }
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [eventSearch, relationType]);
+  }, [eventSearch, relationType, formData.congregationID]);
 
   // Search opportunities
   useEffect(() => {
     if (relationType !== "opportunity" || opportunitySearch.length < 2) {
       setOpportunityOptions([]);
+      setOpportunitySearchLoading(false);
       return;
     }
 
+    setOpportunitySearchLoading(true);
     const timer = setTimeout(async () => {
       try {
-        const response = await fetch(`/api/announcements/opportunities?q=${encodeURIComponent(opportunitySearch)}`);
-        if (!response.ok) throw new Error("Failed to search opportunities");
+        console.log("Searching opportunities with query:", opportunitySearch);
+        const response = await fetch(
+          `/api/announcements/opportunities?q=${encodeURIComponent(opportunitySearch)}&congregationID=${formData.congregationID}`
+        );
+        console.log("Opportunities API response status:", response.status);
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Opportunities API error:", errorData);
+          throw new Error(errorData.error || "Failed to search opportunities");
+        }
+
         const data = await response.json();
-        setOpportunityOptions(data);
+        console.log("Opportunities data received:", data);
+
+        // Ensure data is an array
+        if (Array.isArray(data)) {
+          setOpportunityOptions(data);
+        } else {
+          console.error("Opportunities API returned non-array:", data);
+          setOpportunityOptions([]);
+        }
       } catch (err) {
         console.error("Error searching opportunities:", err);
+        toast.error(err instanceof Error ? err.message : "Failed to search opportunities");
+        setOpportunityOptions([]);
+      } finally {
+        setOpportunitySearchLoading(false);
       }
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [opportunitySearch, relationType]);
+  }, [opportunitySearch, relationType, formData.congregationID]);
 
   // Refresh widget when campus changes
   useEffect(() => {
@@ -233,10 +307,27 @@ export default function AnnouncementsPage() {
       setFormData((prev) => ({ ...prev, eventID: null, opportunityID: null }));
     } else if (relationType === "event") {
       setFormData((prev) => ({ ...prev, opportunityID: null }));
+      setSelectedFile(null); // Clear file when switching to event
     } else if (relationType === "opportunity") {
       setFormData((prev) => ({ ...prev, eventID: null }));
+      setSelectedFile(null); // Clear file when switching to opportunity
     }
   }, [relationType]);
+
+  // Recalculate sort number when congregation changes (for new announcements only)
+  useEffect(() => {
+    // Only recalculate for new announcements, not when editing
+    if (editingId !== null || !isModalOpen) return;
+
+    const existingInCongregation = announcements.filter(
+      (a) => a.CongregationID === formData.congregationID
+    );
+    const maxSort = existingInCongregation.length > 0
+      ? Math.max(...existingInCongregation.map((a) => a.Sort))
+      : 0;
+
+    setFormData((prev) => ({ ...prev, sort: maxSort + 1 }));
+  }, [formData.congregationID, editingId, isModalOpen, announcements]);
 
   // Refresh widget after CRUD operations
   function refreshWidget() {
@@ -252,6 +343,16 @@ export default function AnnouncementsPage() {
   // Open modal for new announcement
   function handleNew() {
     setEditingId(null);
+
+    // Use the currently selected campus, or default to Church-Wide (ID = 1)
+    const defaultCongregation = selectedCampus?.Congregation_ID || 1;
+    const existingInCongregation = announcements.filter(
+      (a) => a.CongregationID === defaultCongregation
+    );
+    const maxSort = existingInCongregation.length > 0
+      ? Math.max(...existingInCongregation.map((a) => a.Sort))
+      : 0;
+
     setFormData({
       title: "",
       body: "",
@@ -259,14 +360,20 @@ export default function AnnouncementsPage() {
       topPriority: false,
       startDate: new Date().toISOString().slice(0, 16),
       endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
-      sort: 10,
-      congregationID: congregations[0]?.value || 1,
+      sort: maxSort + 1,
+      congregationID: defaultCongregation,
       callToActionURL: null,
       callToActionLabel: null,
       eventID: null,
       opportunityID: null,
     });
     setRelationType("none");
+    // Clear search states
+    setEventSearch("");
+    setEventOptions([]);
+    setOpportunitySearch("");
+    setOpportunityOptions([]);
+    setSelectedFile(null);
     setIsModalOpen(true);
   }
 
@@ -300,8 +407,16 @@ export default function AnnouncementsPage() {
 
     if (announcement.EventID) {
       setRelationType("event");
+      // Pre-populate event search with event title to trigger search
+      if (announcement.EventTitle) {
+        setEventSearch(announcement.EventTitle);
+      }
     } else if (announcement.OpportunityID) {
       setRelationType("opportunity");
+      // Pre-populate opportunity search with opportunity title
+      if (announcement.OpportunityTitle) {
+        setOpportunitySearch(announcement.OpportunityTitle);
+      }
     } else {
       setRelationType("none");
     }
@@ -341,10 +456,21 @@ export default function AnnouncementsPage() {
       const url = editingId ? `/api/announcements/${editingId}` : "/api/announcements";
       const method = editingId ? "PUT" : "POST";
 
+      // Ensure proper IDs are cleared based on relation type
+      const dataToSave = { ...formData };
+      if (relationType === "none") {
+        dataToSave.eventID = null;
+        dataToSave.opportunityID = null;
+      } else if (relationType === "event") {
+        dataToSave.opportunityID = null;
+      } else if (relationType === "opportunity") {
+        dataToSave.eventID = null;
+      }
+
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSave),
       });
 
       if (!response.ok) {
@@ -388,16 +514,16 @@ export default function AnnouncementsPage() {
     return (
       <div className="flex flex-col md:flex-row gap-6">
         {/* Image or Fallback */}
-        <div className="flex-shrink-0 relative">
+        <div className="flex-shrink-0 relative w-full md:w-48 aspect-video md:aspect-auto md:h-32">
           {announcement.ImageURL ? (
             <img
               src={announcement.ImageURL}
               alt={announcement.Title}
-              className="w-full md:w-48 h-32 object-cover rounded-lg"
+              className="w-full h-full object-cover rounded-lg"
             />
           ) : (
             <div
-              className="w-full md:w-48 h-32 grid place-items-center p-4 rounded-lg relative"
+              className="w-full h-full grid place-items-center p-4 rounded-lg relative"
               style={{
                 backgroundColor: '#1c2b39',
                 backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23ffffff' fill-opacity='0.15'/%3E%3Ccircle cx='12' cy='12' r='1' fill='%23ffffff' fill-opacity='0.25'/%3E%3C/svg%3E\")",
@@ -443,8 +569,8 @@ export default function AnnouncementsPage() {
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-4 mb-3">
+        <div className="flex-1 min-w-0 flex flex-col">
+          <div className="flex items-start justify-between gap-4 mb-3 flex-1">
             <div className="flex-1">
               {announcement.CallToActionLabel && (
                 <h3 className="text-lg font-bold text-foreground mb-2">
@@ -458,27 +584,15 @@ export default function AnnouncementsPage() {
                 </p>
               )}
 
-              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  <span>
-                    {formatDate(announcement.StartDate)} - {formatDate(announcement.EndDate)}
-                  </span>
-                </div>
-                {announcement.EventTitle && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 px-2 py-1 rounded">
-                      Event: {announcement.EventTitle}
-                    </span>
-                  </div>
-                )}
-                {announcement.OpportunityTitle && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400 px-2 py-1 rounded">
-                      Serve: {announcement.OpportunityTitle}
-                    </span>
-                  </div>
-                )}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="w-4 h-4" />
+                <span>
+                  {formatDate(announcement.StartDate)}
+                  {formatDate(announcement.EndDate) === "N/A"
+                    ? " - Ongoing"
+                    : ` - ${formatDate(announcement.EndDate)}`
+                  }
+                </span>
               </div>
             </div>
 
@@ -507,6 +621,22 @@ export default function AnnouncementsPage() {
               </button>
             </div>
           </div>
+
+          {/* Event/Opportunity badges at bottom */}
+          {(announcement.EventTitle || announcement.OpportunityTitle) && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {announcement.EventTitle && (
+                <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 px-2 py-1 rounded">
+                  Event: {announcement.EventTitle}
+                </span>
+              )}
+              {announcement.OpportunityTitle && (
+                <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400 px-2 py-1 rounded">
+                  Serve: {announcement.OpportunityTitle}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -637,27 +767,22 @@ export default function AnnouncementsPage() {
   });
 
   // Separate Church-Wide and Campus-specific announcements
-  // Sort to match stored procedure: Top_Priority DESC, Sort ASC, Announcement_Start_Date ASC, Announcement_ID ASC
+  // Sort by: Sort ASC, Announcement_Start_Date ASC, Announcement_ID ASC
   const sortAnnouncements = (announcements: Announcement[]) => {
     return [...announcements].sort((a, b) => {
-      // 1. Top Priority (DESC - true/1 comes before false/0)
-      if (a.TopPriority !== b.TopPriority) {
-        return b.TopPriority ? 1 : -1;
-      }
-
-      // 2. Sort (ASC - lower numbers first)
+      // 1. Sort (ASC - lower numbers first)
       if (a.Sort !== b.Sort) {
         return a.Sort - b.Sort;
       }
 
-      // 3. Start Date (ASC - earlier dates first)
+      // 2. Start Date (ASC - earlier dates first)
       const dateA = new Date(a.StartDate).getTime();
       const dateB = new Date(b.StartDate).getTime();
       if (dateA !== dateB) {
         return dateA - dateB;
       }
 
-      // 4. ID (ASC - lower IDs first)
+      // 3. ID (ASC - lower IDs first)
       return a.ID - b.ID;
     });
   };
@@ -668,12 +793,6 @@ export default function AnnouncementsPage() {
   const campusAnnouncements = sortAnnouncements(
     filteredAnnouncements.filter((a) => a.CongregationID !== 1)
   );
-
-  // Count by status (using all announcements for accurate counts)
-  const statusCounts = announcements.reduce((acc, a) => {
-    acc[a.Status || "active"] = (acc[a.Status || "active"] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
 
   if (isLoading) {
     return (
@@ -810,8 +929,8 @@ export default function AnnouncementsPage() {
       />
 
       {/* Search and Filter */}
-      <div className="mb-6 space-y-4">
-        <div className="relative">
+      <div className="mb-6 flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <input
             type="text"
@@ -822,27 +941,19 @@ export default function AnnouncementsPage() {
           />
         </div>
 
-        {/* Status Filter Tabs */}
-        <div className="flex gap-2 overflow-x-auto">
-          {[
-            { value: "all", label: "All", count: announcements.length },
-            { value: "active", label: "Active", count: statusCounts.active || 0 },
-            { value: "scheduled", label: "Scheduled", count: statusCounts.scheduled || 0 },
-            { value: "inactive", label: "Inactive", count: statusCounts.inactive || 0 },
-            { value: "expired", label: "Expired", count: statusCounts.expired || 0 },
-          ].map((status) => (
-            <button
-              key={status.value}
-              onClick={() => setFilterStatus(status.value)}
-              className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
-                filterStatus === status.value
-                  ? "bg-[#61BC47] text-white"
-                  : "bg-card border border-border text-foreground hover:bg-gray-50 dark:hover:bg-gray-800"
-              }`}
-            >
-              {status.label} ({status.count})
-            </button>
-          ))}
+        {/* Status Filter Dropdown */}
+        <div className="w-full md:w-48">
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] cursor-pointer"
+          >
+            <option value="all">All</option>
+            <option value="active">Active</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="inactive">Inactive</option>
+            <option value="expired">Expired</option>
+          </select>
         </div>
       </div>
 
@@ -874,7 +985,7 @@ export default function AnnouncementsPage() {
           {churchWideAnnouncements.length > 0 && (
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                <Star className="w-5 h-5 text-[#61BC47]" />
+                <Church className="w-5 h-5 text-[#61BC47]" />
                 Church-Wide Announcements
               </h3>
               <DndContext
@@ -906,7 +1017,21 @@ export default function AnnouncementsPage() {
           {campusAnnouncements.length > 0 && (
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-[#61BC47]" />
+                {selectedCampus?.Campus_SVG_URL && !svgError ? (
+                  <>
+                    <img
+                      src={selectedCampus.Campus_SVG_URL}
+                      alt=""
+                      className={`w-6 h-6 transition-opacity ${svgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                      onLoad={() => setSvgLoaded(true)}
+                      onError={() => setSvgError(true)}
+                      style={{ display: svgLoaded ? 'block' : 'none' }}
+                    />
+                    {!svgLoaded && <MapPin className="w-6 h-6 text-[#61BC47]" />}
+                  </>
+                ) : (
+                  <MapPin className="w-6 h-6 text-[#61BC47]" />
+                )}
                 {selectedCampus?.Congregation_Name || "Campus"} Announcements
               </h3>
               <DndContext
@@ -956,6 +1081,79 @@ export default function AnnouncementsPage() {
 
             {/* Modal Body */}
             <div className="p-6 space-y-6">
+              {/* Campus Toggle */}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-3">
+                  Campus <span className="text-red-500">*</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Toggle between selected campus and Church-Wide (ID = 1)
+                    const isChurchWide = formData.congregationID === 1;
+                    const newCongregationID = isChurchWide
+                      ? (selectedCampus?.Congregation_ID || 1)
+                      : 1;
+                    setFormData((prev) => ({
+                      ...prev,
+                      congregationID: newCongregationID,
+                    }));
+                  }}
+                  className="relative w-full inline-flex rounded-xl bg-zinc-100 dark:bg-zinc-800 p-1 shadow-inner cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                  disabled={isSaving}
+                >
+                  {/* Sliding background indicator */}
+                  <div
+                    className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#61BC47] rounded-lg shadow-md transition-all duration-300 ease-in-out pointer-events-none ${
+                      formData.congregationID === 1 ? "left-1" : "left-[calc(50%+4px-1px)]"
+                    }`}
+                  />
+
+                  {/* Labels */}
+                  <div
+                    className={`relative z-10 flex-1 py-2.5 rounded-lg font-medium text-center transition-all duration-300 pointer-events-none ${
+                      formData.congregationID === 1
+                        ? "text-white"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <Church className="w-4 h-4" />
+                      <span>Church-Wide</span>
+                    </div>
+                  </div>
+                  <div
+                    className={`relative z-10 flex-1 py-2.5 rounded-lg font-medium text-center transition-all duration-300 pointer-events-none ${
+                      formData.congregationID !== 1
+                        ? "text-white"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      {selectedCampus?.Campus_SVG_URL && !svgError ? (
+                        <>
+                          <img
+                            src={selectedCampus.Campus_SVG_URL}
+                            alt=""
+                            className={`w-4 h-4 transition-opacity ${svgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                            onLoad={() => setSvgLoaded(true)}
+                            onError={() => setSvgError(true)}
+                            style={{ display: svgLoaded ? 'block' : 'none' }}
+                          />
+                          {!svgLoaded && <MapPin className="w-4 h-4" />}
+                        </>
+                      ) : (
+                        <MapPin className="w-4 h-4" />
+                      )}
+                      <span>{selectedCampus?.Congregation_Name || "Campus"}</span>
+                    </div>
+                  </div>
+                </button>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Church-Wide announcements appear for all campuses
+                </p>
+              </div>
+
               {/* Title */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
@@ -1003,12 +1201,12 @@ export default function AnnouncementsPage() {
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Sub Heading
                   </label>
-                  <textarea
+                  <input
+                    type="text"
                     value={formData.body || ""}
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, body: e.target.value || null }))
                     }
-                    rows={3}
                     className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
                     disabled={isSaving}
                   />
@@ -1066,30 +1264,6 @@ export default function AnnouncementsPage() {
                 </div>
               </div>
 
-              {/* Campus */}
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Campus <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={formData.congregationID}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      congregationID: parseInt(e.target.value),
-                    }))
-                  }
-                  className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
-                  disabled={isSaving}
-                >
-                  {congregations.map((c) => (
-                    <option key={c.value} value={c.value}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               {/* Related To Dropdown */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
@@ -1109,39 +1283,168 @@ export default function AnnouncementsPage() {
                 </select>
               </div>
 
+              {/* Image Upload - only when no event/opportunity selected */}
+              {relationType === "none" && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Upload Image (Optional)
+                  </label>
+                  <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-[#61bc47] transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                      className="hidden"
+                      id="image-upload"
+                      disabled={isSaving}
+                    />
+                    <label
+                      htmlFor="image-upload"
+                      className="cursor-pointer flex flex-col items-center gap-3"
+                    >
+                      {selectedFile ? (
+                        <>
+                          <ImageIcon className="w-10 h-10 text-[#61bc47]" />
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-sm font-medium text-foreground">
+                              {selectedFile.name}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setSelectedFile(null);
+                            }}
+                            className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                          >
+                            Remove
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-10 h-10 text-muted-foreground" />
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-sm font-medium text-foreground">
+                              Click to upload or drag and drop
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              PNG, JPG, GIF up to 10MB
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </label>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    If no image is uploaded or event/opportunity selected, the title will be displayed
+                  </p>
+                </div>
+              )}
+
               {/* Event Search */}
               {relationType === "event" && (
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Search Event
+                    Event
                   </label>
-                  <input
-                    type="text"
-                    value={eventSearch}
-                    onChange={(e) => setEventSearch(e.target.value)}
-                    placeholder="Type to search events..."
-                    className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] mb-2"
-                    disabled={isSaving}
-                  />
-                  {eventOptions.length > 0 && (
-                    <select
-                      value={formData.eventID || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          eventID: e.target.value ? parseInt(e.target.value) : null,
-                        }))
-                      }
-                      className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={eventSearch}
+                      onChange={(e) => setEventSearch(e.target.value)}
+                      placeholder="Type at least 2 characters to search..."
+                      className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] mb-3"
                       disabled={isSaving}
-                    >
-                      <option value="">Select an event...</option>
-                      {eventOptions.map((e) => (
-                        <option key={e.value} value={e.value}>
-                          {e.label}
-                        </option>
-                      ))}
-                    </select>
+                    />
+                    {eventSearchLoading && (
+                      <div className="absolute right-3 top-2.5">
+                        <Loader2 className="w-5 h-5 animate-spin text-[#61bc47]" />
+                      </div>
+                    )}
+                  </div>
+                  {eventSearch.length >= 2 && !eventSearchLoading && eventOptions.length === 0 && (
+                    <div className="text-sm text-muted-foreground italic mb-3">
+                      No events found matching "{eventSearch}"
+                    </div>
+                  )}
+                  {eventOptions.length > 0 && (
+                    <div className="border border-border rounded-lg overflow-hidden max-h-96 overflow-y-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-muted sticky top-0">
+                          <tr>
+                            <th className="text-left p-3 font-medium">ID</th>
+                            <th className="text-left p-3 font-medium">Title</th>
+                            <th className="text-left p-3 font-medium">Campus</th>
+                            <th className="text-left p-3 font-medium">Dates</th>
+                            <th className="text-left p-3 font-medium">Link</th>
+                            <th className="w-16"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {eventOptions.map((event) => (
+                            <tr
+                              key={event.value}
+                              className={`border-t border-border hover:bg-muted/50 transition-colors ${
+                                formData.eventID === event.value ? "bg-[#61bc47]/10" : ""
+                              }`}
+                            >
+                              <td className="p-3 text-muted-foreground">{event.value}</td>
+                              <td className="p-3">
+                                <div className="flex items-center gap-2">
+                                  {event.imageUrl && (
+                                    <img
+                                      src={event.imageUrl}
+                                      alt={event.label}
+                                      className="w-12 h-8 object-cover rounded"
+                                    />
+                                  )}
+                                  <span className="font-medium">{event.label}</span>
+                                </div>
+                              </td>
+                              <td className="p-3 text-muted-foreground">{event.congregationName}</td>
+                              <td className="p-3 text-muted-foreground text-xs">
+                                {formatDate(event.startDate)}
+                                <br />
+                                to {formatDate(event.endDate)}
+                              </td>
+                              <td className="p-3">
+                                <a
+                                  href={event.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[#61bc47] hover:underline text-xs"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  View
+                                </a>
+                              </td>
+                              <td className="p-3">
+                                <button
+                                  onClick={() =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      eventID: event.value,
+                                    }))
+                                  }
+                                  className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                                    formData.eventID === event.value
+                                      ? "bg-[#61bc47] text-white"
+                                      : "bg-muted hover:bg-muted/80 text-foreground"
+                                  }`}
+                                  disabled={isSaving}
+                                >
+                                  {formData.eventID === event.value ? "Selected" : "Select"}
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   )}
                 </div>
               )}
@@ -1150,60 +1453,96 @@ export default function AnnouncementsPage() {
               {relationType === "opportunity" && (
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Search Opportunity
+                    Opportunity
                   </label>
-                  <input
-                    type="text"
-                    value={opportunitySearch}
-                    onChange={(e) => setOpportunitySearch(e.target.value)}
-                    placeholder="Type to search opportunities..."
-                    className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] mb-2"
-                    disabled={isSaving}
-                  />
-                  {opportunityOptions.length > 0 && (
-                    <select
-                      value={formData.opportunityID || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          opportunityID: e.target.value ? parseInt(e.target.value) : null,
-                        }))
-                      }
-                      className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={opportunitySearch}
+                      onChange={(e) => setOpportunitySearch(e.target.value)}
+                      placeholder="Type at least 2 characters to search..."
+                      className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47] mb-3"
                       disabled={isSaving}
-                    >
-                      <option value="">Select an opportunity...</option>
-                      {opportunityOptions.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
+                    />
+                    {opportunitySearchLoading && (
+                      <div className="absolute right-3 top-2.5">
+                        <Loader2 className="w-5 h-5 animate-spin text-[#61bc47]" />
+                      </div>
+                    )}
+                  </div>
+                  {opportunitySearch.length >= 2 && !opportunitySearchLoading && opportunityOptions.length === 0 && (
+                    <div className="text-sm text-muted-foreground italic mb-3">
+                      No opportunities found matching "{opportunitySearch}"
+                    </div>
+                  )}
+                  {opportunityOptions.length > 0 && (
+                    <div className="border border-border rounded-lg overflow-hidden max-h-96 overflow-y-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-muted sticky top-0">
+                          <tr>
+                            <th className="text-left p-3 font-medium">ID</th>
+                            <th className="text-left p-3 font-medium">Title</th>
+                            <th className="text-left p-3 font-medium">Program</th>
+                            <th className="text-left p-3 font-medium">Campus</th>
+                            <th className="text-left p-3 font-medium">Dates</th>
+                            <th className="text-left p-3 font-medium">Needed</th>
+                            <th className="w-16"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {opportunityOptions.map((opp) => (
+                            <tr
+                              key={opp.value}
+                              className={`border-t border-border hover:bg-muted/50 transition-colors ${
+                                formData.opportunityID === opp.value ? "bg-[#61bc47]/10" : ""
+                              }`}
+                            >
+                              <td className="p-3 text-muted-foreground">{opp.value}</td>
+                              <td className="p-3">
+                                <div className="font-medium">{opp.label}</div>
+                                {opp.groupName && (
+                                  <div className="text-xs text-muted-foreground">{opp.groupName}</div>
+                                )}
+                              </td>
+                              <td className="p-3 text-muted-foreground text-xs">{opp.programName}</td>
+                              <td className="p-3 text-muted-foreground text-xs">{opp.congregationName}</td>
+                              <td className="p-3 text-muted-foreground text-xs">
+                                {formatDate(opp.shiftStart)}
+                                <br />
+                                to {formatDate(opp.shiftEnd)}
+                              </td>
+                              <td className="p-3 text-muted-foreground text-xs">
+                                {opp.minimumNeeded}-{opp.maximumNeeded}
+                              </td>
+                              <td className="p-3">
+                                <button
+                                  onClick={() =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      opportunityID: opp.value,
+                                    }))
+                                  }
+                                  className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                                    formData.opportunityID === opp.value
+                                      ? "bg-[#61bc47] text-white"
+                                      : "bg-muted hover:bg-muted/80 text-foreground"
+                                  }`}
+                                  disabled={isSaving}
+                                >
+                                  {formData.opportunityID === opp.value ? "Selected" : "Select"}
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   )}
                 </div>
               )}
 
-              {/* Sort Order */}
+              {/* Active Checkbox */}
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Sort Order
-                </label>
-                <input
-                  type="number"
-                  value={formData.sort}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      sort: parseInt(e.target.value) || 0,
-                    }))
-                  }
-                  className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
-                  disabled={isSaving}
-                />
-              </div>
-
-              {/* Checkboxes */}
-              <div className="space-y-3">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -1215,18 +1554,6 @@ export default function AnnouncementsPage() {
                     disabled={isSaving}
                   />
                   <span className="text-sm font-medium text-foreground">Active</span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.topPriority}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, topPriority: e.target.checked }))
-                    }
-                    className="w-5 h-5 text-[#61bc47] border-border rounded focus:ring-[#61bc47]"
-                    disabled={isSaving}
-                  />
-                  <span className="text-sm font-medium text-foreground">Top Priority</span>
                 </label>
               </div>
             </div>

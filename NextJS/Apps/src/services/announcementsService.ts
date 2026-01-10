@@ -24,8 +24,8 @@ export class AnnouncementsService {
   private client: MinistryPlatformClient;
   private tableService: TableService;
 
-  constructor() {
-    this.client = new MinistryPlatformClient();
+  constructor(userToken?: string) {
+    this.client = new MinistryPlatformClient(userToken);
     this.tableService = new TableService(this.client);
   }
 
@@ -225,8 +225,32 @@ export class AnnouncementsService {
 
   /**
    * Delete an announcement
+   * First deletes related records from Announcement_Congregations (legacy table)
    */
   async deleteAnnouncement(id: number, userId: number): Promise<void> {
+    // First, get all Announcement_Congregations records for this announcement
+    const announcementCongregations = await this.tableService.getTableRecords<{
+      Announcement_Congregation_ID: number;
+    }>("Announcement_Congregations", {
+      $select: "Announcement_Congregation_ID",
+      $filter: `Announcement_ID=${id}`,
+    });
+
+    // Delete all related Announcement_Congregations records
+    if (announcementCongregations.length > 0) {
+      const idsToDelete = announcementCongregations.map(
+        (ac) => ac.Announcement_Congregation_ID
+      );
+      await this.tableService.deleteTableRecords(
+        "Announcement_Congregations",
+        idsToDelete,
+        {
+          $userId: userId,
+        }
+      );
+    }
+
+    // Now delete the announcement
     await this.tableService.deleteTableRecords("Announcements", [id], {
       $userId: userId,
     });
@@ -295,68 +319,72 @@ export class AnnouncementsService {
   }
 
   /**
-   * Search events for dropdown
+   * Search events for dropdown with basic information
+   * Uses Events table directly for search
+   * Filters by congregation (campus) - includes selected campus and church-wide (Congregation_ID = 1)
    */
-  async searchEvents(query: string, limit: number = 10): Promise<Array<{
+  async searchEvents(query: string, congregationID?: number, limit: number = 20): Promise<Array<{
     value: number;
     label: string;
-    startDate: string;
-    endDate: string;
   }>> {
     if (!query || query.trim().length < 2) {
       return [];
     }
 
+    // Build filter: search query + congregation filter (selected campus OR church-wide)
+    let filter = `Event_Title LIKE '%${query.trim()}%'`;
+    if (congregationID) {
+      filter += ` AND (Congregation_ID = ${congregationID} OR Congregation_ID = 1)`;
+    }
+
     const events = await this.tableService.getTableRecords<{
       Event_ID: number;
       Event_Title: string;
-      Event_Start_Date: string;
-      Event_End_Date: string;
     }>("Events", {
-      $select: "Event_ID,Event_Title,Event_Start_Date,Event_End_Date",
-      $filter: `Event_Title LIKE '%${query.trim()}%'`,
-      $orderby: "Event_Start_Date DESC",
+      $select: "Event_ID,Event_Title",
+      $filter: filter,
+      $orderby: "Event_ID DESC",
       $top: limit,
     });
 
     return events.map((e) => ({
       value: e.Event_ID,
       label: e.Event_Title,
-      startDate: e.Event_Start_Date,
-      endDate: e.Event_End_Date,
     }));
   }
 
   /**
-   * Search opportunities for dropdown
+   * Search opportunities for dropdown with basic information
+   * Uses Opportunities table directly for search
+   * Filters by congregation (campus) - includes selected campus and church-wide (Congregation_ID = 1)
    */
-  async searchOpportunities(query: string, limit: number = 10): Promise<Array<{
+  async searchOpportunities(query: string, congregationID?: number, limit: number = 20): Promise<Array<{
     value: number;
     label: string;
-    shiftStart: string;
-    shiftEnd: string;
   }>> {
     if (!query || query.trim().length < 2) {
       return [];
     }
 
+    // Build filter: search query + congregation filter (selected campus OR church-wide)
+    let filter = `Opportunity_Title LIKE '%${query.trim()}%'`;
+    if (congregationID) {
+      filter += ` AND (Congregation_ID = ${congregationID} OR Congregation_ID = 1)`;
+    }
+
     const opportunities = await this.tableService.getTableRecords<{
       Opportunity_ID: number;
       Opportunity_Title: string;
-      Shift_Start: string;
-      Shift_End: string;
     }>("Opportunities", {
-      $select: "Opportunity_ID,Opportunity_Title,Shift_Start,Shift_End",
-      $filter: `Opportunity_Title LIKE '%${query.trim()}%'`,
-      $orderby: "Shift_Start DESC",
+      $select: "Opportunity_ID,Opportunity_Title",
+      $filter: filter,
+      $orderby: "Opportunity_ID DESC",
       $top: limit,
     });
 
     return opportunities.map((o) => ({
       value: o.Opportunity_ID,
       label: o.Opportunity_Title,
-      shiftStart: o.Shift_Start,
-      shiftEnd: o.Shift_End,
     }));
   }
 }
