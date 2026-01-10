@@ -143,7 +143,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
   }
 
   return (
-    <div className={isCarousel ? 'px-2 md:px-8 pt-4 md:pt-8 mt-4 md:mt-8' : ''}>
+    <div>
       {isCarousel && (
         <div className="pb-4 md:pb-8 mb-2 md:mb-4 px-2 md:px-0">
           {/* Header with heading and navigation arrows */}
@@ -193,12 +193,12 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
 
       {/* Sticky section headers for carousel - mobile only */}
       {isCarousel && showChurchWideHeader && (
-        <h2 className="md:hidden sticky top-0 left-0 right-0 bg-white dark:bg-[#1c2b39] z-20 py-3 px-4 text-xs font-medium text-primary/60 dark:text-white/60 uppercase tracking-wide -mx-2 transition-opacity duration-200">
+        <h2 className="md:hidden sticky top-0 left-0 right-0 bg-white dark:bg-[#1c2b39] z-20 py-3 pr-4 text-xs font-medium text-primary/60 dark:text-white/60 uppercase tracking-wide transition-opacity duration-200">
           {labels.churchWideTitle || 'Happening At Woodside'}
         </h2>
       )}
       {isCarousel && showCampusHeader && (
-        <h2 className="md:hidden sticky top-0 left-0 right-0 bg-white dark:bg-[#1c2b39] z-20 py-3 px-4 text-xs font-medium text-primary/60 dark:text-white/60 uppercase tracking-wide -mx-2 transition-opacity duration-200">
+        <h2 className="md:hidden sticky top-0 left-0 right-0 bg-white dark:bg-[#1c2b39] z-20 py-3 pr-4 text-xs font-medium text-primary/60 dark:text-white/60 uppercase tracking-wide transition-opacity duration-200">
           {data.Campus!.Name || 'Campus'}
         </h2>
       )}
