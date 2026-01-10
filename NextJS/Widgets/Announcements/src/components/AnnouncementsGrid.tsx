@@ -17,9 +17,13 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const progressBarContainerRef = useRef<HTMLDivElement>(null);
+  const churchWideSectionRef = useRef<HTMLDivElement>(null);
+  const campusSectionRef = useRef<HTMLDivElement>(null);
   const [hasOverflow, setHasOverflow] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [showChurchWideHeader, setShowChurchWideHeader] = useState(true);
+  const [showCampusHeader, setShowCampusHeader] = useState(false);
 
   const isCarousel = mode === 'carousel';
 
@@ -89,6 +93,31 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
       // Update arrow visibility
       setCanScrollLeft(scrollLeft > 10); // Show left arrow if scrolled more than 10px
       setCanScrollRight(scrollLeft < scrollWidth - 10); // Show right arrow if not at end
+
+      // Update sticky header visibility based on section visibility
+      if (churchWideSectionRef.current && campusSectionRef.current) {
+        const churchWideRect = churchWideSectionRef.current.getBoundingClientRect();
+        const campusRect = campusSectionRef.current.getBoundingClientRect();
+        const containerRect = scrollContainer.getBoundingClientRect();
+
+        const churchWideVisible = churchWideRect.left < containerRect.right && churchWideRect.right > containerRect.left;
+        const campusVisible = campusRect.left < containerRect.right && campusRect.right > containerRect.left;
+
+        // Only show one header at a time - prioritize campus when both are visible
+        if (campusVisible && campusRect.left < containerRect.left + 100) {
+          setShowChurchWideHeader(false);
+          setShowCampusHeader(true);
+        } else if (churchWideVisible) {
+          setShowChurchWideHeader(true);
+          setShowCampusHeader(false);
+        } else {
+          setShowChurchWideHeader(churchWideVisible);
+          setShowCampusHeader(campusVisible);
+        }
+      } else if (churchWideSectionRef.current) {
+        setShowChurchWideHeader(true);
+        setShowCampusHeader(false);
+      }
     };
 
     scrollContainer.addEventListener('scroll', updateProgress);
@@ -110,10 +139,10 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
   }
 
   return (
-    <div className={isCarousel ? 'relative px-4 md:px-8 pt-4 md:pt-8 pb-20 md:pb-2 mt-4 md:mt-8' : ''}>
+    <div className={isCarousel ? 'px-2 md:px-8 pt-4 md:pt-8 mt-4 md:mt-8' : ''}>
       {isCarousel && (
-        <div className="pb-4 md:pb-8 mb-2 md:mb-4">
-          {/* Header with heading and button (desktop only shows button) */}
+        <div className="pb-4 md:pb-8 mb-2 md:mb-4 px-2 md:px-0">
+          {/* Header with heading and navigation arrows */}
           <div className="flex justify-between items-center gap-3 md:mb-0">
             <div className="flex-1 min-w-0">
               <div className="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide mb-0.5 md:mb-1">
@@ -121,57 +150,69 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
               </div>
               <h2 className="text-xl md:text-4xl font-bold truncate">{labels.carouselHeading2 || 'at Woodside'}</h2>
             </div>
-            {/* Button visible on desktop only */}
-            <a
-              href="https://woodsidebible.org/Announcements"
-              className="hidden md:inline-block flex-shrink-0 min-w-[160px] px-[10px] py-[15px] border-[3px] border-solid font-bold text-sm leading-none uppercase text-center no-underline"
-              style={{
-                backgroundColor: '#62bb46',
-                borderColor: '#62bb46',
-                color: '#fff',
-                transition: 'background .3s, color .3s, border-color .3s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = '#62bb46';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#62bb46';
-                e.currentTarget.style.color = '#fff';
-              }}
-            >
-              {labels.viewAllButton || 'View All Announcements'}
-            </a>
+            {/* Navigation arrows visible on desktop only */}
+            {hasOverflow && (
+              <div className="hidden md:flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={scrollLeft}
+                  disabled={!canScrollLeft}
+                  className={`w-10 h-10 flex items-center justify-center rounded-full border border-black/10 transition-all duration-200 ${
+                    canScrollLeft
+                      ? 'bg-white/90 hover:bg-white hover:scale-110'
+                      : 'bg-gray-100 opacity-40 cursor-not-allowed'
+                  }`}
+                  aria-label="Scroll left"
+                >
+                  <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={scrollRight}
+                  disabled={!canScrollRight}
+                  className={`w-10 h-10 flex items-center justify-center rounded-full border border-black/10 transition-all duration-200 ${
+                    canScrollRight
+                      ? 'bg-white/90 hover:bg-white hover:scale-110'
+                      : 'bg-gray-100 opacity-40 cursor-not-allowed'
+                  }`}
+                  aria-label="Scroll right"
+                >
+                  <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      <div ref={scrollContainerRef} className={isCarousel ? 'overflow-x-auto scrollbar-hide' : ''}>
+      {/* Sticky section headers for carousel */}
+      {isCarousel && showChurchWideHeader && (
+        <h2 className="sticky top-0 left-0 right-0 bg-white dark:bg-[#1c2b39] z-20 py-3 px-4 text-xs md:text-sm font-medium md:font-semibold text-primary/60 md:text-primary/80 dark:text-white/60 md:dark:text-white/80 uppercase tracking-wide -mx-2 md:-mx-8 transition-opacity duration-200">
+          {labels.churchWideTitle || 'Happening At Woodside'}
+        </h2>
+      )}
+      {isCarousel && showCampusHeader && (
+        <h2 className="sticky top-0 left-0 right-0 bg-white dark:bg-[#1c2b39] z-20 py-3 px-4 text-xs md:text-sm font-medium md:font-semibold text-primary/60 md:text-primary/80 dark:text-white/60 md:dark:text-white/80 uppercase tracking-wide -mx-2 md:-mx-8 transition-opacity duration-200">
+          {data.Campus!.Name || 'Campus'}
+        </h2>
+      )}
+
+      <div ref={scrollContainerRef} className={isCarousel ? 'overflow-x-auto scrollbar-hide snap-x snap-mandatory' : ''}>
         <div className={isCarousel ? 'inline-flex' : 'block'}>
           {/* Church-wide Featured Announcements */}
           {hasChurchWide && (
-            <>
+            <div ref={churchWideSectionRef}>
               {!isCarousel && (
                 <h2 className="my-8 md:my-4 font-bold text-xl leading-tight tracking-wide text-secondary">
-                  {labels.churchWideTitle || 'Happening At Woodside'}
-                </h2>
-              )}
-              {isCarousel && (
-                <h2
-                  className="text-[clamp(0.65rem,1.5vw,1rem)] text-primary/65 dark:text-white/70 opacity-65 pr-6 carousel-snap-item"
-                  style={{
-                    writingMode: 'sideways-lr',
-                    textOrientation: 'sideways',
-                    textAlign: 'end',
-                  }}
-                >
                   {labels.churchWideTitle || 'Happening At Woodside'}
                 </h2>
               )}
               <div
                 className={
                   isCarousel
-                    ? 'grid gap-6 pb-8'
+                    ? 'grid gap-6 pb-2 md:pb-8'
                     : (() => {
                         const count = data.ChurchWide.length;
                         if (count === 1) return 'grid gap-3 md:gap-4 grid-cols-1';
@@ -190,7 +231,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                           data.ChurchWide.length === 1 ? '"i1" "d1"' :
                           data.ChurchWide.length === 2 ? '"i1 i2" "d1 d2"' :
                           '"i1 i2 i3" "d1 d2 d3"',
-                        gridTemplateColumns: `repeat(${Math.min(data.ChurchWide.length, 3)}, clamp(250px, 50vw, 400px))`,
+                        gridTemplateColumns: `repeat(${Math.min(data.ChurchWide.length, 3)}, clamp(260px, 70vw, 400px))`,
                         gridTemplateRows: 'auto auto',
                         rowGap: '0.75rem',
                       }
@@ -204,11 +245,11 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
 
                   if (isCarousel) {
                     return (
-                      <div key={announcement.ID} className="contents">
+                      <div key={announcement.ID} className="contents snap-start">
                         {/* Image */}
                         <a
                           href={hasLink || '#'}
-                          className="relative block aspect-video overflow-hidden carousel-snap-item"
+                          className="relative block aspect-video overflow-hidden carousel-snap-item snap-start"
                           aria-label={announcement.Title}
                           style={{
                             gridArea: index === 0 ? 'i1' : index === 1 ? 'i2' : 'i3',
@@ -244,7 +285,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                           className="p-2 flex flex-col overflow-hidden hover:underline"
                           style={{
                             gridArea: index === 0 ? 'd1' : index === 1 ? 'd2' : 'd3',
-                            width: 'clamp(250px, 50vw, 400px)',
+                            width: 'clamp(260px, 70vw, 400px)',
                           }}
                         >
                           <h3 className="font-extrabold leading-tight mb-0.5 line-clamp-1 text-[clamp(0.8rem,1vw,1rem)] text-primary dark:text-white">
@@ -294,27 +335,15 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                   );
                 })}
               </div>
-            </>
+            </div>
           )}
 
           {/* Campus Announcements */}
           {hasCampus && (
-            <>
+            <div ref={campusSectionRef} className={isCarousel ? 'ml-6' : ''}>
               {!isCarousel && (
                 <h2 className="my-8 md:my-4 font-bold text-xl leading-tight tracking-wide text-secondary">
                   {data.Campus!.Name || 'Campus'} {labels.campusAnnouncementsSuffix || 'Announcements'}
-                </h2>
-              )}
-              {isCarousel && (
-                <h2
-                  className="text-[clamp(0.65rem,1.5vw,1rem)] text-primary/65 dark:text-white/70 opacity-65 pr-6 ml-9 carousel-snap-item"
-                  style={{
-                    writingMode: 'sideways-lr',
-                    textOrientation: 'sideways',
-                    textAlign: 'end',
-                  }}
-                >
-                  {data.Campus!.Name || 'Campus'}
                 </h2>
               )}
               <div
@@ -331,7 +360,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                     const hasLink = announcement.CallToAction?.Link;
 
                     return (
-                      <div key={announcement.ID} className="w-[clamp(250px,50vw,400px)] flex flex-col">
+                      <div key={announcement.ID} className="w-[clamp(260px,70vw,400px)] flex flex-col snap-start">
                         <a
                           href={hasLink || '#'}
                           className="relative block aspect-video overflow-hidden carousel-snap-item"
@@ -364,7 +393,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                         <a
                           href={hasLink || '#'}
                           className="p-2 mt-3 flex flex-col overflow-hidden hover:underline"
-                          style={{ width: 'clamp(250px, 50vw, 400px)' }}
+                          style={{ width: 'clamp(260px, 70vw, 400px)' }}
                         >
                           <h3 className="font-extrabold leading-tight mb-0.5 line-clamp-1 text-[clamp(0.8rem,1vw,1rem)] text-primary dark:text-white">
                             {heading}
@@ -397,68 +426,57 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                   />
                 ))}
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Navigation arrows for desktop */}
-      {isCarousel && hasOverflow && (
-        <>
-          {/* Left arrow */}
-          {canScrollLeft && (
-            <button
-              onClick={scrollLeft}
-              className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 items-center justify-center bg-white/90 hover:bg-white rounded-full shadow-lg transition-all duration-200 z-30 border border-black/10"
-              aria-label="Scroll left"
-            >
-              <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-          )}
-
-          {/* Right arrow */}
-          {canScrollRight && (
-            <button
-              onClick={scrollRight}
-              className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 items-center justify-center bg-white/90 hover:bg-white rounded-full shadow-lg transition-all duration-200 z-30 border border-black/10"
-              aria-label="Scroll right"
-            >
-              <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          )}
-        </>
-      )}
-
       {/* Progress bar for carousel mode */}
       {isCarousel && hasOverflow && (
-        <div
-          ref={progressBarContainerRef}
-          onClick={handleProgressBarClick}
-          className="absolute left-4 md:left-8 right-4 md:right-8 bottom-20 md:bottom-1 cursor-pointer z-20 py-2"
-          aria-label="Scroll to position"
-          role="slider"
-          aria-valuemin={0}
-          aria-valuemax={100}
-        >
-          <div className="h-1 bg-black/8 rounded-full overflow-hidden">
-            <div
-              ref={progressBarRef}
-              className="h-full w-full bg-secondary origin-left transition-transform duration-[60ms] linear pointer-events-none"
-              style={{ transform: 'scaleX(0)' }}
-            />
+        <div>
+          <div
+            ref={progressBarContainerRef}
+            onClick={handleProgressBarClick}
+            className="cursor-pointer py-2"
+            aria-label="Scroll to position"
+            role="slider"
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
+            <div className="h-1 bg-black/8 rounded-full overflow-hidden">
+              <div
+                ref={progressBarRef}
+                className="h-full w-full bg-secondary origin-left transition-transform duration-[60ms] linear pointer-events-none"
+                style={{ transform: 'scaleX(0)' }}
+              />
+            </div>
+          </div>
+
+          {/* Desktop subtle link below progress bar */}
+          <div className="hidden md:flex justify-end mt-3">
+            <a
+              href="https://woodsidebible.org/Announcements"
+              className="flex items-center gap-1.5 text-base font-semibold text-primary/70 dark:text-white/70 hover:text-primary dark:hover:text-white transition-colors duration-200 group uppercase tracking-wide"
+            >
+              <span>{labels.viewAllButton || 'View All Announcements'}</span>
+              <svg
+                className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
           </div>
         </div>
       )}
 
-      {/* Mobile button below carousel and progress bar */}
+      {/* Mobile button */}
       {isCarousel && (
         <a
           href="https://woodsidebible.org/Announcements"
-          className="absolute bottom-4 left-4 right-4 block md:hidden px-[10px] py-[12px] border-[3px] border-solid font-bold text-xs leading-none uppercase text-center no-underline"
+          className="block md:hidden mt-6 px-[10px] py-[12px] border-[3px] border-solid font-bold text-xs leading-none uppercase text-center no-underline"
           style={{
             backgroundColor: '#62bb46',
             borderColor: '#62bb46',
