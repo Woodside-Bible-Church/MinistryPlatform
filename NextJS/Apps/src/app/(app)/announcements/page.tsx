@@ -63,6 +63,48 @@ function formatDate(dateString: string) {
   });
 }
 
+function formatOpportunityDate(opportunityDate: string | null, durationInHours: number | null) {
+  if (!opportunityDate) return "No date specified";
+
+  const startDate = new Date(opportunityDate.replace(" ", "T"));
+  if (isNaN(startDate.getTime())) {
+    return "Invalid date";
+  }
+
+  const formattedStart = startDate.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  if (!durationInHours) {
+    return formattedStart;
+  }
+
+  // Calculate end date by adding duration hours
+  const endDate = new Date(startDate.getTime() + durationInHours * 60 * 60 * 1000);
+  const formattedEnd = endDate.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  // If same day, show time range
+  if (formattedStart === formattedEnd) {
+    const startTime = startDate.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const endTime = endDate.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return `${formattedStart} (${startTime} - ${endTime})`;
+  }
+
+  return `${formattedStart} to ${formattedEnd}`;
+}
+
 export default function AnnouncementsPage() {
   const { selectedCampus } = useCampus();
   const { resolvedTheme } = useTheme();
@@ -126,13 +168,9 @@ export default function AnnouncementsPage() {
   const [opportunityOptions, setOpportunityOptions] = useState<Array<{
     value: number;
     label: string;
-    shiftStart: string;
-    shiftEnd: string;
-    programName: string;
     congregationName: string;
-    groupName: string | null;
-    minimumNeeded: number;
-    maximumNeeded: number;
+    opportunityDate: string | null;
+    durationInHours: number | null;
   }>>([]);
 
   // Drag-and-drop sensors
@@ -1063,8 +1101,19 @@ export default function AnnouncementsPage() {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-background border border-border rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            // Close modal if clicking on the overlay (not the modal content)
+            if (e.target === e.currentTarget && !isSaving) {
+              setIsModalOpen(false);
+            }
+          }}
+        >
+          <div
+            className="bg-background border border-border rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Modal Header */}
             <div className="sticky top-0 bg-background border-b border-border px-6 py-4 flex justify-between items-center">
               <h2 className="text-2xl font-bold text-foreground">
@@ -1482,10 +1531,8 @@ export default function AnnouncementsPage() {
                           <tr>
                             <th className="text-left p-3 font-medium">ID</th>
                             <th className="text-left p-3 font-medium">Title</th>
-                            <th className="text-left p-3 font-medium">Program</th>
                             <th className="text-left p-3 font-medium">Campus</th>
-                            <th className="text-left p-3 font-medium">Dates</th>
-                            <th className="text-left p-3 font-medium">Needed</th>
+                            <th className="text-left p-3 font-medium">Date</th>
                             <th className="w-16"></th>
                           </tr>
                         </thead>
@@ -1500,19 +1547,10 @@ export default function AnnouncementsPage() {
                               <td className="p-3 text-muted-foreground">{opp.value}</td>
                               <td className="p-3">
                                 <div className="font-medium">{opp.label}</div>
-                                {opp.groupName && (
-                                  <div className="text-xs text-muted-foreground">{opp.groupName}</div>
-                                )}
                               </td>
-                              <td className="p-3 text-muted-foreground text-xs">{opp.programName}</td>
                               <td className="p-3 text-muted-foreground text-xs">{opp.congregationName}</td>
                               <td className="p-3 text-muted-foreground text-xs">
-                                {formatDate(opp.shiftStart)}
-                                <br />
-                                to {formatDate(opp.shiftEnd)}
-                              </td>
-                              <td className="p-3 text-muted-foreground text-xs">
-                                {opp.minimumNeeded}-{opp.maximumNeeded}
+                                {formatOpportunityDate(opp.opportunityDate, opp.durationInHours)}
                               </td>
                               <td className="p-3">
                                 <button

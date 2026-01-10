@@ -326,6 +326,11 @@ export class AnnouncementsService {
   async searchEvents(query: string, congregationID?: number, limit: number = 20): Promise<Array<{
     value: number;
     label: string;
+    startDate: string;
+    endDate: string;
+    congregationName: string;
+    link: string;
+    imageUrl: string | null;
   }>> {
     if (!query || query.trim().length < 2) {
       return [];
@@ -334,57 +339,126 @@ export class AnnouncementsService {
     // Build filter: search query + congregation filter (selected campus OR church-wide)
     let filter = `Event_Title LIKE '%${query.trim()}%'`;
     if (congregationID) {
-      filter += ` AND (Congregation_ID = ${congregationID} OR Congregation_ID = 1)`;
+      filter += ` AND (Events.Congregation_ID = ${congregationID} OR Events.Congregation_ID = 1)`;
     }
 
     const events = await this.tableService.getTableRecords<{
       Event_ID: number;
       Event_Title: string;
+      Event_Start_Date: string;
+      Event_End_Date: string;
+      Congregation_ID_Table_Congregation_Name?: string;
+      "Congregation_ID_Table.Congregation_Name"?: string;
+      Primary_Contact_Table_Email_Address?: string;
+      [key: string]: any;
     }>("Events", {
-      $select: "Event_ID,Event_Title",
+      $select: "Event_ID,Event_Title,Event_Start_Date,Event_End_Date,Congregation_ID_Table.Congregation_Name,Primary_Contact_Table.Email_Address",
       $filter: filter,
       $orderby: "Event_ID DESC",
       $top: limit,
     });
 
-    return events.map((e) => ({
-      value: e.Event_ID,
-      label: e.Event_Title,
-    }));
+    return events.map((e) => {
+      // Try different possible property names for the congregation name
+      const congregationName =
+        e.Congregation_ID_Table_Congregation_Name ||
+        e["Congregation_ID_Table.Congregation_Name"] ||
+        e["Congregation_ID_Table_Congregation_Name"] ||
+        (Object.keys(e).find(key => key.includes("Congregation_Name")) ? e[Object.keys(e).find(key => key.includes("Congregation_Name"))!] : "Unknown");
+
+      console.log("Event record keys:", Object.keys(e));
+      console.log("Event congregation name value:", congregationName);
+
+      return {
+        value: e.Event_ID,
+        label: e.Event_Title,
+        startDate: e.Event_Start_Date,
+        endDate: e.Event_End_Date,
+        congregationName: congregationName as string,
+        link: `/events/${e.Event_ID}`,
+        imageUrl: null, // Events table doesn't have a direct image field
+      };
+    });
   }
 
   /**
    * Search opportunities for dropdown with basic information
-   * Uses Opportunities table directly for search
-   * Filters by congregation (campus) - includes selected campus and church-wide (Congregation_ID = 1)
+   * Uses Opportunities table with Program_ID_Table navigation
+   * Note: Cannot filter by congregation in WHERE clause due to MinistryPlatform limitations
    */
   async searchOpportunities(query: string, congregationID?: number, limit: number = 20): Promise<Array<{
     value: number;
     label: string;
+    congregationName: string;
+    opportunityDate: string | null;
+    durationInHours: number | null;
   }>> {
     if (!query || query.trim().length < 2) {
       return [];
     }
 
-    // Build filter: search query + congregation filter (selected campus OR church-wide)
-    let filter = `Opportunity_Title LIKE '%${query.trim()}%'`;
-    if (congregationID) {
-      filter += ` AND (Congregation_ID = ${congregationID} OR Congregation_ID = 1)`;
-    }
+    // Only filter by title - cannot filter by Program's Congregation_ID in WHERE clause
+    const filter = `Opportunity_Title LIKE '%${query.trim()}%'`;
 
     const opportunities = await this.tableService.getTableRecords<{
       Opportunity_ID: number;
       Opportunity_Title: string;
+      Program_ID_Table_Program_Name?: string;
+      Program_ID_Table_Congregation_ID?: number;
+      "Program_ID_Table.Congregation_ID"?: number;
+      Program_ID_Table_Congregation_ID_Table_Congregation_Name?: string;
+      "Program_ID_Table_Congregation_ID_Table.Congregation_Name"?: string;
+      Opportunity_Date: string | null;
+      Duration_in_Hours: number | null;
+      [key: string]: any;
     }>("Opportunities", {
-      $select: "Opportunity_ID,Opportunity_Title",
+      $select: "Opportunity_ID,Opportunity_Title,Program_ID_Table.Program_Name,Program_ID_Table.Congregation_ID,Program_ID_Table_Congregation_ID_Table.Congregation_Name,Opportunity_Date,Duration_in_Hours",
       $filter: filter,
       $orderby: "Opportunity_ID DESC",
-      $top: limit,
+      $top: limit * 3, // Get more results since we'll filter client-side
     });
 
-    return opportunities.map((o) => ({
-      value: o.Opportunity_ID,
-      label: o.Opportunity_Title,
-    }));
+    console.log("Raw opportunities response:", JSON.stringify(opportunities, null, 2));
+
+    // Try different possible property names for the congregation name and ID
+    const mappedOpportunities = opportunities.map((o) => {
+      const congregationName =
+        o.Program_ID_Table_Congregation_ID_Table_Congregation_Name ||
+        o["Program_ID_Table_Congregation_ID_Table.Congregation_Name"] ||
+        (Object.keys(o).find(key => key.includes("Congregation_Name")) ? o[Object.keys(o).find(key => key.includes("Congregation_Name"))!] : "Unknown");
+
+      // Try to get the Congregation_ID
+      const congregationID =
+        o.Program_ID_Table_Congregation_ID ||
+        o["Program_ID_Table.Congregation_ID"] ||
+        (Object.keys(o).find(key => key.includes("Congregation_ID") && !key.includes("Congregation_Name")) ? o[Object.keys(o).find(key => key.includes("Congregation_ID") && !key.includes("Congregation_Name"))!] : null);
+
+      console.log("Opportunity record keys:", Object.keys(o));
+      console.log("Congregation name value:", congregationName);
+      console.log("Congregation ID value:", congregationID);
+
+      return {
+        value: o.Opportunity_ID,
+        label: o.Opportunity_Title,
+        congregationName: congregationName as string,
+        congregationID: congregationID as number | null,
+        opportunityDate: o.Opportunity_Date,
+        durationInHours: o.Duration_in_Hours,
+      };
+    });
+
+    // If no congregation filter, return all results
+    if (!congregationID) {
+      return mappedOpportunities.slice(0, limit);
+    }
+
+    // Client-side filtering: show opportunities from selected campus OR church-wide (ID 1)
+    // Note: This is a workaround since we can't filter by Program's Congregation_ID in SQL
+    const filtered = mappedOpportunities.filter(opp => {
+      // Include if: opportunity belongs to selected congregation OR church-wide (ID 1)
+      return opp.congregationID === congregationID || opp.congregationID === 1;
+    });
+
+    return filtered.slice(0, limit);
   }
 }
