@@ -104,7 +104,11 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
         const campusVisible = campusRect.left < containerRect.right && campusRect.right > containerRect.left;
 
         // Only show one header at a time - prioritize campus when both are visible
-        if (campusVisible && campusRect.left < containerRect.left + 100) {
+        // On desktop, show campus header when campus section is at least 40% in view
+        const campusInViewAmount = Math.min(containerRect.right, campusRect.right) - Math.max(containerRect.left, campusRect.left);
+        const campusInViewPercent = campusInViewAmount / containerRect.width;
+
+        if (campusVisible && campusInViewPercent > 0.4) {
           setShowChurchWideHeader(false);
           setShowCampusHeader(true);
         } else if (churchWideVisible) {
@@ -187,14 +191,14 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
         </div>
       )}
 
-      {/* Sticky section headers for carousel */}
+      {/* Sticky section headers for carousel - mobile only */}
       {isCarousel && showChurchWideHeader && (
-        <h2 className="sticky top-0 left-0 right-0 bg-white dark:bg-[#1c2b39] z-20 py-3 px-4 text-xs md:text-sm font-medium md:font-semibold text-primary/60 md:text-primary/80 dark:text-white/60 md:dark:text-white/80 uppercase tracking-wide -mx-2 md:-mx-8 transition-opacity duration-200">
+        <h2 className="md:hidden sticky top-0 left-0 right-0 bg-white dark:bg-[#1c2b39] z-20 py-3 px-4 text-xs font-medium text-primary/60 dark:text-white/60 uppercase tracking-wide -mx-2 transition-opacity duration-200">
           {labels.churchWideTitle || 'Happening At Woodside'}
         </h2>
       )}
       {isCarousel && showCampusHeader && (
-        <h2 className="sticky top-0 left-0 right-0 bg-white dark:bg-[#1c2b39] z-20 py-3 px-4 text-xs md:text-sm font-medium md:font-semibold text-primary/60 md:text-primary/80 dark:text-white/60 md:dark:text-white/80 uppercase tracking-wide -mx-2 md:-mx-8 transition-opacity duration-200">
+        <h2 className="md:hidden sticky top-0 left-0 right-0 bg-white dark:bg-[#1c2b39] z-20 py-3 px-4 text-xs font-medium text-primary/60 dark:text-white/60 uppercase tracking-wide -mx-2 transition-opacity duration-200">
           {data.Campus!.Name || 'Campus'}
         </h2>
       )}
@@ -206,6 +210,11 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
             <div ref={churchWideSectionRef}>
               {!isCarousel && (
                 <h2 className="my-8 md:my-4 font-bold text-xl leading-tight tracking-wide text-secondary">
+                  {labels.churchWideTitle || 'Happening At Woodside'}
+                </h2>
+              )}
+              {isCarousel && (
+                <h2 className="hidden md:block mb-4 text-sm font-semibold text-primary/80 dark:text-white/80 uppercase tracking-wide">
                   {labels.churchWideTitle || 'Happening At Woodside'}
                 </h2>
               )}
@@ -344,6 +353,11 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
               {!isCarousel && (
                 <h2 className="my-8 md:my-4 font-bold text-xl leading-tight tracking-wide text-secondary">
                   {data.Campus!.Name || 'Campus'} {labels.campusAnnouncementsSuffix || 'Announcements'}
+                </h2>
+              )}
+              {isCarousel && (
+                <h2 className="hidden md:block mb-4 text-sm font-semibold text-primary/80 dark:text-white/80 uppercase tracking-wide">
+                  {data.Campus!.Name || 'Campus'}
                 </h2>
               )}
               <div
