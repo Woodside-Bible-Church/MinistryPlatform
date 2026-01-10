@@ -20,6 +20,8 @@ import {
   Church,
   Upload,
   Image as ImageIcon,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCampus } from "@/contexts/CampusContext";
@@ -548,7 +550,15 @@ export default function AnnouncementsPage() {
   }
 
   // Render announcement card
-  function renderAnnouncementCard(announcement: Announcement) {
+  function renderAnnouncementCard(
+    announcement: Announcement,
+    arrowControls?: {
+      onMoveUp: () => void;
+      onMoveDown: () => void;
+      isFirst: boolean;
+      isLast: boolean;
+    }
+  ) {
     return (
       <div className="flex flex-col md:flex-row gap-6">
         {/* Image or Fallback */}
@@ -608,19 +618,21 @@ export default function AnnouncementsPage() {
 
         {/* Content */}
         <div className="flex-1 min-w-0 flex flex-col">
-          <div className="flex items-start justify-between gap-4 mb-3 flex-1">
-            <div className="flex-1">
-              {announcement.CallToActionLabel && (
-                <h3 className="text-lg font-bold text-foreground mb-2">
-                  {announcement.CallToActionLabel}
-                </h3>
-              )}
+          <div className="flex items-center justify-between gap-4 mb-3">
+            <div className="flex-1 flex flex-col justify-between">
+              <div>
+                {announcement.CallToActionLabel && (
+                  <h3 className="text-lg font-bold text-foreground mb-2">
+                    {announcement.CallToActionLabel}
+                  </h3>
+                )}
 
-              {announcement.Body && (
-                <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                  {announcement.Body}
-                </p>
-              )}
+                {announcement.Body && (
+                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                    {announcement.Body}
+                  </p>
+                )}
+              </div>
 
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="w-4 h-4" />
@@ -634,11 +646,12 @@ export default function AnnouncementsPage() {
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex gap-2">
+            {/* Actions and Arrow Controls - Grid Layout */}
+            <div className="grid grid-cols-[auto_auto_auto] grid-rows-2 gap-x-2 gap-y-1 items-center h-32">
+              {/* Row 1: Edit, Delete, Up Arrow */}
               <button
                 onClick={() => handleEdit(announcement)}
-                className="p-2 hover:bg-zinc-400 dark:hover:bg-zinc-700 rounded transition-colors"
+                className="p-2 hover:bg-zinc-400 dark:hover:bg-zinc-700 rounded transition-colors row-start-1"
                 title="Edit"
               >
                 <Pencil className="w-5 h-5 text-muted-foreground" />
@@ -648,7 +661,7 @@ export default function AnnouncementsPage() {
                   handleDelete(announcement.ID, announcement.Title)
                 }
                 disabled={processingIds.has(announcement.ID)}
-                className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed row-start-1"
                 title="Delete"
               >
                 {processingIds.has(announcement.ID) ? (
@@ -657,24 +670,44 @@ export default function AnnouncementsPage() {
                   <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
                 )}
               </button>
+              {arrowControls && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!arrowControls.isFirst) {
+                      arrowControls.onMoveUp();
+                    }
+                  }}
+                  disabled={processingIds.has(announcement.ID) || arrowControls.isFirst}
+                  className="p-1.5 rounded-md bg-background border border-border hover:bg-[#61BC47] hover:text-white hover:border-[#61BC47] transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-background disabled:hover:text-foreground disabled:hover:border-border shadow-sm row-start-1"
+                  title="Move up"
+                  aria-label="Move announcement up"
+                >
+                  <ChevronUp className="w-4 h-4" />
+                </button>
+              )}
+
+              {/* Row 2: Empty, Empty, Down Arrow */}
+              <div className="row-start-2 col-start-1"></div>
+              <div className="row-start-2 col-start-2"></div>
+              {arrowControls && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!arrowControls.isLast) {
+                      arrowControls.onMoveDown();
+                    }
+                  }}
+                  disabled={processingIds.has(announcement.ID) || arrowControls.isLast}
+                  className="p-1.5 rounded-md bg-background border border-border hover:bg-[#61BC47] hover:text-white hover:border-[#61BC47] transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-background disabled:hover:text-foreground disabled:hover:border-border shadow-sm row-start-2 col-start-3"
+                  title="Move down"
+                  aria-label="Move announcement down"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
-
-          {/* Event/Opportunity badges at bottom */}
-          {(announcement.EventTitle || announcement.OpportunityTitle) && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {announcement.EventTitle && (
-                <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 px-2 py-1 rounded">
-                  Event: {announcement.EventTitle}
-                </span>
-              )}
-              {announcement.OpportunityTitle && (
-                <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400 px-2 py-1 rounded">
-                  Serve: {announcement.OpportunityTitle}
-                </span>
-              )}
-            </div>
-          )}
         </div>
       </div>
     );
@@ -766,6 +799,72 @@ export default function AnnouncementsPage() {
       }
 
       toast.success("Announcements reordered successfully");
+
+      // Refresh widget
+      refreshWidget();
+    } catch (err) {
+      // Revert on error
+      toast.error(err instanceof Error ? err.message : "Failed to reorder");
+
+      // Fetch fresh data to revert
+      const params = new URLSearchParams();
+      if (searchQuery) params.append("search", searchQuery);
+      const fetchResponse = await fetch(`/api/announcements?${params.toString()}`);
+      if (fetchResponse.ok) {
+        const data = await fetchResponse.json();
+        setAnnouncements(data);
+      }
+    }
+  }
+
+  // Handle move up/down for arrow controls
+  async function handleMove(id: number, direction: "up" | "down", sectionType: "church-wide" | "campus") {
+    // Get the correct section's announcements
+    const sectionAnnouncements = sectionType === "church-wide"
+      ? churchWideAnnouncements
+      : campusAnnouncements;
+
+    const currentIndex = sectionAnnouncements.findIndex((a) => a.ID === id);
+    if (currentIndex === -1) return;
+
+    // Calculate new index
+    const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+
+    // Check bounds
+    if (newIndex < 0 || newIndex >= sectionAnnouncements.length) return;
+
+    // Optimistically update the order
+    const reorderedItems = arrayMove(sectionAnnouncements, currentIndex, newIndex);
+
+    // Recalculate sort numbers
+    const sortNumbers = sectionAnnouncements.map((a) => a.Sort).sort((a, b) => a - b);
+    const baseSortNumber = sortNumbers[0] || 1;
+
+    const updates = reorderedItems.map((item, index) => ({
+      id: item.ID,
+      sort: baseSortNumber + index,
+    }));
+
+    // Update local state optimistically
+    setAnnouncements((prev) =>
+      prev.map((a) => {
+        const update = updates.find((u) => u.id === a.ID);
+        return update ? { ...a, Sort: update.sort } : a;
+      })
+    );
+
+    try {
+      const response = await fetch("/api/announcements/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ updates }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to reorder announcements");
+      }
+
+      toast.success("Announcement moved successfully");
 
       // Refresh widget
       refreshWidget();
@@ -1036,13 +1135,18 @@ export default function AnnouncementsPage() {
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-4">
-                    {churchWideAnnouncements.map((announcement) => (
+                    {churchWideAnnouncements.map((announcement, index) => (
                       <SortableAnnouncementCard
                         key={announcement.ID}
                         id={announcement.ID}
                         isProcessing={processingIds.has(announcement.ID)}
                       >
-                        {renderAnnouncementCard(announcement)}
+                        {renderAnnouncementCard(announcement, {
+                          onMoveUp: () => handleMove(announcement.ID, "up", "church-wide"),
+                          onMoveDown: () => handleMove(announcement.ID, "down", "church-wide"),
+                          isFirst: index === 0,
+                          isLast: index === churchWideAnnouncements.length - 1,
+                        })}
                       </SortableAnnouncementCard>
                     ))}
                   </div>
@@ -1082,13 +1186,18 @@ export default function AnnouncementsPage() {
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-4">
-                    {campusAnnouncements.map((announcement) => (
+                    {campusAnnouncements.map((announcement, index) => (
                       <SortableAnnouncementCard
                         key={announcement.ID}
                         id={announcement.ID}
                         isProcessing={processingIds.has(announcement.ID)}
                       >
-                        {renderAnnouncementCard(announcement)}
+                        {renderAnnouncementCard(announcement, {
+                          onMoveUp: () => handleMove(announcement.ID, "up", "campus"),
+                          onMoveDown: () => handleMove(announcement.ID, "down", "campus"),
+                          isFirst: index === 0,
+                          isLast: index === campusAnnouncements.length - 1,
+                        })}
                       </SortableAnnouncementCard>
                     ))}
                   </div>

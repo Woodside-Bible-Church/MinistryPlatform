@@ -1,7 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ReactNode, useState, useEffect } from "react";
-import { GripVertical } from "lucide-react";
 
 interface SortableAnnouncementCardProps {
   id: number;
@@ -109,6 +108,7 @@ export function SortableAnnouncementCard({
           {isDragging ? "Repositioning..." : "Drag to reorder"}
         </div>
       )}
+
       {children}
     </div>
   );
