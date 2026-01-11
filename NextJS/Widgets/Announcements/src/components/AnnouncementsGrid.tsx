@@ -342,7 +342,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                       key={announcement.ID}
                       className={cardClass}
                       style={{
-                        animation: `cardSlideIn 0.8s ease-out ${0.5 + (index * 0.6)}s both`
+                        animation: `cardSlideIn 0.8s ease-out ${1.0 + (index * 0.6)}s both`
                       }}
                     >
                       <AnnouncementCard
