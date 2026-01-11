@@ -211,7 +211,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
           {hasChurchWide && (
             <div ref={churchWideSectionRef}>
               {!isCarousel && (
-                <h2 className="mb-4 md:mb-6 text-lg md:text-3xl lg:text-4xl font-bold text-primary dark:text-white uppercase tracking-tight animate-[fadeInDown_1.25s_ease-out_0.3s_both]">
+                <h2 className="mb-4 md:mb-6 text-lg md:text-3xl lg:text-4xl font-bold text-primary dark:text-white uppercase tracking-tight animate-[fadeInDown_1.25s_ease-out_0.8s_both]">
                   {labels.churchWideTitle || 'Happening At Woodside'}
                 </h2>
               )}
@@ -353,7 +353,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
           {hasCampus && (
             <div ref={campusSectionRef} className={isCarousel ? 'ml-6' : 'mt-12 md:mt-16'}>
               {!isCarousel && (
-                <h2 className="mb-4 md:mb-6 text-lg md:text-3xl lg:text-4xl font-bold text-primary dark:text-white uppercase tracking-tight animate-[fadeInDown_1.25s_ease-out_0.3s_both]">
+                <h2 className="mb-4 md:mb-6 text-lg md:text-3xl lg:text-4xl font-bold text-primary dark:text-white uppercase tracking-tight animate-[fadeInDown_1.25s_ease-out_0.8s_both]">
                   {data.Campus!.Name || 'Campus'}
                 </h2>
               )}
