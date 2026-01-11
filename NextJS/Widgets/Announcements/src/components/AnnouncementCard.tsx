@@ -57,7 +57,7 @@ export function AnnouncementCard({
         className="p-4 md:p-5 flex items-center gap-3 overflow-hidden group/link"
       >
         <div className="flex-1 min-w-0">
-          <h3 className="font-bold leading-tight mb-1.5 line-clamp-2 text-primary dark:text-white transition-colors duration-200 group-hover/link:text-secondary dark:group-hover/link:text-secondary" style={{ fontSize: 'clamp(0.9375rem, 5cqw, 1.125rem)' }}>
+          <h3 className="font-bold leading-tight mb-0.5 line-clamp-2 text-primary dark:text-white transition-colors duration-200 group-hover/link:text-secondary dark:group-hover/link:text-secondary" style={{ fontSize: 'clamp(0.9375rem, 5cqw, 1.125rem)' }}>
             {heading}
           </h3>
           {subHeading && (
