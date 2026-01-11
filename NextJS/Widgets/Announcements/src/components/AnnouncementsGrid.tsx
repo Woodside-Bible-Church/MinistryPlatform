@@ -211,7 +211,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
           {hasChurchWide && (
             <div ref={churchWideSectionRef}>
               {!isCarousel && (
-                <h2 className="mb-4 md:mb-6 text-lg md:text-3xl lg:text-4xl font-bold text-primary dark:text-white uppercase tracking-tight animate-[fadeInDown_1.25s_ease-out_0.8s_both]">
+                <h2 className="mb-4 md:mb-6 text-lg md:text-3xl lg:text-4xl font-bold text-primary dark:text-white uppercase tracking-tight animate-[fadeInFromRight_1.25s_ease-out_0.8s_both]">
                   {labels.churchWideTitle || 'Happening At Woodside'}
                 </h2>
               )}
@@ -358,11 +358,25 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
           {/* Campus Announcements */}
           {hasCampus && (
             <div ref={campusSectionRef} className={isCarousel ? 'ml-6' : 'mt-6 md:mt-8'}>
-              {!isCarousel && (
-                <h2 className="mb-4 md:mb-6 text-lg md:text-3xl lg:text-4xl font-bold text-primary dark:text-white uppercase tracking-tight animate-[fadeInDown_1.25s_ease-out_0.8s_both]">
-                  {data.Campus!.Name || 'Campus'}
-                </h2>
-              )}
+              {!isCarousel && (() => {
+                // Calculate when campus section should start animating
+                // Church-wide cards start at 1.0s with 0.6s stagger and 0.8s duration
+                const churchWideCount = hasChurchWide ? data.ChurchWide.length : 0;
+                const lastChurchWideCardStart = 1.0 + ((churchWideCount - 1) * 0.6);
+                const lastChurchWideCardEnd = lastChurchWideCardStart + 0.8;
+                const campusHeaderDelay = hasChurchWide ? lastChurchWideCardEnd : 0.8;
+
+                return (
+                  <h2
+                    className="mb-4 md:mb-6 text-lg md:text-3xl lg:text-4xl font-bold text-primary dark:text-white uppercase tracking-tight"
+                    style={{
+                      animation: `fadeInFromRight 1.25s ease-out ${campusHeaderDelay}s both`
+                    }}
+                  >
+                    {data.Campus!.Name || 'Campus'}
+                  </h2>
+                );
+              })()}
               {isCarousel && (
                 <h2 className="hidden md:block mb-4 text-sm font-semibold text-primary/80 dark:text-white/80 uppercase tracking-wide">
                   {data.Campus!.Name || 'Campus'}
@@ -372,10 +386,10 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                 className={
                   isCarousel
                     ? 'flex gap-6'
-                    : 'flex flex-wrap gap-3 md:gap-4 animate-[fadeInUp_1.25s_ease-out_0.4s_both]'
+                    : 'flex flex-wrap gap-3 md:gap-4'
                 }
               >
-                {data.Campus!.Announcements.map((announcement) => {
+                {data.Campus!.Announcements.map((announcement, index) => {
                   if (isCarousel) {
                     const heading = announcement.CallToAction?.Heading || announcement.Title;
                     const subHeading = announcement.CallToAction?.SubHeading || announcement.Body;
@@ -430,9 +444,23 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                     );
                   }
 
+                  // Calculate when campus cards should start animating
+                  // Start cards shortly after header begins (0.3s overlap for smoother flow)
+                  const churchWideCount = hasChurchWide ? data.ChurchWide.length : 0;
+                  const lastChurchWideCardStart = 1.0 + ((churchWideCount - 1) * 0.6);
+                  const lastChurchWideCardEnd = lastChurchWideCardStart + 0.8;
+                  const campusHeaderDelay = hasChurchWide ? lastChurchWideCardEnd : 0.8;
+                  const campusCardsStart = campusHeaderDelay + 0.3;
+
                   // Flexbox with consistent sizing - cards maintain same width across all rows
                   return (
-                    <div key={announcement.ID} className="flex-1 min-w-[280px] max-w-[480px] md:min-w-[320px] md:max-w-[420px]">
+                    <div
+                      key={announcement.ID}
+                      className="flex-1 min-w-[280px] max-w-[480px] md:min-w-[320px] md:max-w-[420px]"
+                      style={{
+                        animation: `cardSlideIn 0.8s ease-out ${campusCardsStart + (index * 0.6)}s both`
+                      }}
+                    >
                       <AnnouncementCard
                         announcement={announcement}
                       />
