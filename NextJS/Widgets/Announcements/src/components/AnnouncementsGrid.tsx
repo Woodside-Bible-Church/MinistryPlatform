@@ -144,52 +144,53 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
 
   return (
     <div>
-      {isCarousel && (
-        <div className="pb-4 md:pb-8 mb-2 md:mb-4 px-2 md:px-0">
-          {/* Header with heading and navigation arrows */}
-          <div className="flex justify-between items-center gap-3 md:mb-0">
-            <div className="flex-1 min-w-0">
-              <div className="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide mb-0.5 md:mb-1">
-                {labels.carouselHeading1 || 'Upcoming'}
-              </div>
-              <h2 className="text-xl md:text-4xl font-bold truncate">{labels.carouselHeading2 || 'at Woodside'}</h2>
+      {/* Main heading - shows for both carousel and grid modes */}
+      <div className={isCarousel ? 'pb-4 md:pb-8 mb-2 md:mb-4 px-2 md:px-0' : 'pb-6 md:pb-12 mb-4 md:mb-8 px-2 md:px-0'}>
+        {/* Header with heading and navigation arrows */}
+        <div className="flex justify-between items-center gap-3 md:mb-0">
+          <div className={isCarousel ? 'flex-1 min-w-0' : 'flex-1 min-w-0 text-right'}>
+            <div className={isCarousel ? 'text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide mb-0.5 md:mb-1' : 'text-sm md:text-base font-normal text-gray-400 uppercase tracking-widest mb-2 md:mb-3'}>
+              {labels.carouselHeading1 || 'Stay in the know'}
             </div>
-            {/* Navigation arrows visible on desktop only */}
-            {hasOverflow && (
-              <div className="hidden md:flex items-center gap-2 flex-shrink-0">
-                <button
-                  onClick={scrollLeft}
-                  disabled={!canScrollLeft}
-                  className={`w-10 h-10 flex items-center justify-center rounded-full border border-black/10 transition-all duration-200 ${
-                    canScrollLeft
-                      ? 'bg-white/90 hover:bg-white hover:scale-110'
-                      : 'bg-gray-100 opacity-40 cursor-not-allowed'
-                  }`}
-                  aria-label="Scroll left"
-                >
-                  <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <button
-                  onClick={scrollRight}
-                  disabled={!canScrollRight}
-                  className={`w-10 h-10 flex items-center justify-center rounded-full border border-black/10 transition-all duration-200 ${
-                    canScrollRight
-                      ? 'bg-white/90 hover:bg-white hover:scale-110'
-                      : 'bg-gray-100 opacity-40 cursor-not-allowed'
-                  }`}
-                  aria-label="Scroll right"
-                >
-                  <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-            )}
+            <h1 className={isCarousel ? 'text-xl md:text-4xl font-bold truncate' : 'text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight'}>
+              {labels.carouselHeading2 || 'Announcements'}
+            </h1>
           </div>
+          {/* Navigation arrows visible on desktop only - carousel mode only */}
+          {isCarousel && hasOverflow && (
+            <div className="hidden md:flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={scrollLeft}
+                disabled={!canScrollLeft}
+                className={`w-10 h-10 flex items-center justify-center rounded-full border border-black/10 transition-all duration-200 ${
+                  canScrollLeft
+                    ? 'bg-white/90 hover:bg-white hover:scale-110'
+                    : 'bg-gray-100 opacity-40 cursor-not-allowed'
+                }`}
+                aria-label="Scroll left"
+              >
+                <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={scrollRight}
+                disabled={!canScrollRight}
+                className={`w-10 h-10 flex items-center justify-center rounded-full border border-black/10 transition-all duration-200 ${
+                  canScrollRight
+                    ? 'bg-white/90 hover:bg-white hover:scale-110'
+                    : 'bg-gray-100 opacity-40 cursor-not-allowed'
+                }`}
+                aria-label="Scroll right"
+              >
+                <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Sticky section headers for carousel - mobile only */}
       {isCarousel && showChurchWideHeader && (
@@ -209,7 +210,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
           {hasChurchWide && (
             <div ref={churchWideSectionRef}>
               {!isCarousel && (
-                <h2 className="my-8 md:my-4 font-bold text-xl leading-tight tracking-wide text-secondary">
+                <h2 className="mb-4 md:mb-6 text-xs md:text-sm font-medium text-primary/60 dark:text-white/60 uppercase tracking-wide">
                   {labels.churchWideTitle || 'Happening At Woodside'}
                 </h2>
               )}
@@ -349,10 +350,10 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
 
           {/* Campus Announcements */}
           {hasCampus && (
-            <div ref={campusSectionRef} className={isCarousel ? 'ml-6' : ''}>
+            <div ref={campusSectionRef} className={isCarousel ? 'ml-6' : 'mt-8 md:mt-12'}>
               {!isCarousel && (
-                <h2 className="my-8 md:my-4 font-bold text-xl leading-tight tracking-wide text-secondary">
-                  {data.Campus!.Name || 'Campus'} {labels.campusAnnouncementsSuffix || 'Announcements'}
+                <h2 className="mb-4 md:mb-6 text-xs md:text-sm font-medium text-primary/60 dark:text-white/60 uppercase tracking-wide">
+                  {data.Campus!.Name || 'Campus'}
                 </h2>
               )}
               {isCarousel && (

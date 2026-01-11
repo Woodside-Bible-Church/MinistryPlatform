@@ -54,16 +54,26 @@ export function AnnouncementCard({
       </a>
       <a
         href={hasLink || '#'}
-        className="p-3 md:p-4 flex flex-col overflow-hidden hover:underline"
+        className="p-4 md:p-5 flex items-center gap-3 overflow-hidden group/link"
       >
-        <h3 className="font-extrabold leading-tight mb-1 line-clamp-1 text-primary dark:text-white" style={{ fontSize: 'clamp(0.875rem, 5cqw, 1.25rem)' }}>
-          {heading}
-        </h3>
-        {subHeading && (
-          <p className="text-primary/65 dark:text-white/70 leading-snug line-clamp-2" style={{ fontSize: 'clamp(0.75rem, 3.5cqw, 0.875rem)' }}>
-            {subHeading.replace(/<[^>]*>/g, '').trim().substring(0, 140)}
-          </p>
-        )}
+        <div className="flex-1 min-w-0">
+          <h3 className="font-bold leading-tight mb-1.5 line-clamp-2 text-primary dark:text-white transition-colors duration-200 group-hover/link:text-secondary dark:group-hover/link:text-secondary" style={{ fontSize: 'clamp(0.9375rem, 5cqw, 1.125rem)' }}>
+            {heading}
+          </h3>
+          {subHeading && (
+            <p className="text-primary/60 dark:text-white/60 leading-relaxed line-clamp-2" style={{ fontSize: 'clamp(0.8125rem, 3.5cqw, 0.9375rem)' }}>
+              {subHeading.replace(/<[^>]*>/g, '').trim().substring(0, 140)}
+            </p>
+          )}
+        </div>
+        <svg
+          className="w-5 h-5 flex-shrink-0 text-primary/40 dark:text-white/40 transition-all duration-200 group-hover/link:text-secondary group-hover/link:translate-x-1"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
       </a>
     </article>
   );
