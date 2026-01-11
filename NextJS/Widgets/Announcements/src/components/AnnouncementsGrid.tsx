@@ -145,9 +145,19 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
   return (
     <div>
       {/* Main heading - shows for both carousel and grid modes */}
-      <div className={isCarousel ? 'pb-4 md:pb-8 mb-2 md:mb-4 px-2 md:px-0' : 'pb-6 md:pb-12 mb-4 md:mb-8 px-2 md:px-0'}>
+      <div className={isCarousel ? 'pb-4 md:pb-8 mb-2 md:mb-4 px-2 md:px-0' : 'pb-6 md:pb-6 mb-4 md:mb-8 px-2 md:px-0 relative overflow-visible'}>
+        {/* Background Woodside logo for grid mode */}
+        {!isCarousel && (
+          <div className="hidden md:block absolute right-8 top-4 pointer-events-none" style={{ width: '300px', height: '300px', opacity: 0.08 }}>
+            <svg viewBox="0 0 822.73 822.41" className="w-full h-full text-gray-400">
+              <path d="M482.59,292.96c-28.5,75.56-63.52,148.62-91.88,224.24-22.85,60.93-44.5,165.54,5.99,218.03,53.19,55.31,103.27-36.03,126.36-76.12,29.77-51.67,60.19-102.91,92.51-153.1,37.77-58.65,82.78-117.18,128.05-170.34,17.33-20.35,35.58-39.9,55.18-58.05,1.32-.3,1.67.72,2.19,1.61,2.7,4.68,6.16,19.72,7.79,25.79,55.59,207.53-59.67,424.44-261.39,494.49-162.86,56.55-343.5,6.03-452.97-125.71l.02-2.82c22.1-29.38,43.34-59.51,66.31-88.22,46.87-58.59,104.84-117,159.18-168.95,39.21-37.49,94.79-86.04,141.88-112.38,2.97-1.66,18.74-10.3,20.79-8.46Z" fill="currentColor"/>
+              <path d="M454.78,615.29c-.4-37.26,12.31-73.93,23.96-108.91,21.35-64.11,58.46-144.93,65.26-211.05,10.09-98.15-75.84-54.82-121.59-23.71-87.22,59.32-157.97,140.42-238.72,207.44-1.08.9-1.56,2.33-3.36,1.91,29.91-61.5,79.75-118.22,92.63-187.03,26.62-142.2-143-109.97-223.13-77.75-1.54-1.51,19.5-33.71,21.85-37.14C170.36,35.21,348.48-31.19,518.31,14.05c111.97,29.83,206.98,107.78,259.7,210.54l-1.23,3.19c-101.38,85.68-182.57,188.93-258.5,297.03-21.17,30.14-40.81,61.47-63.5,90.48Z" fill="currentColor"/>
+              <path d="M38.3,581.71c-6.2-9.05-10.4-20.99-14.14-31.42C-1.72,478.2-6.79,400.44,8.86,325.38c1.73-8.3,5.99-29.98,9.5-36.56,1.25-2.35,11.96-9.93,14.86-12.01,41.76-29.96,121.9-63.33,173.22-50.74,49.51,12.15,15.29,70.69-.39,97.86-34.22,59.31-78.86,114.75-116.32,172.48-18.06,27.83-35.65,56.1-51.43,85.3Z" fill="currentColor"/>
+            </svg>
+          </div>
+        )}
         {/* Header with heading and navigation arrows */}
-        <div className="flex justify-between items-center gap-3 md:mb-0">
+        <div className="flex justify-between items-center gap-3 md:mb-0 relative z-10">
           <div className={isCarousel ? 'flex-1 min-w-0' : 'flex-1 min-w-0 text-right'}>
             <div className={isCarousel ? 'text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide mb-0.5 md:mb-1' : 'text-sm md:text-base font-normal text-gray-400 uppercase tracking-widest mb-2 md:mb-3'}>
               {labels.carouselHeading1 || 'Stay in the know'}
@@ -210,7 +220,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
           {hasChurchWide && (
             <div ref={churchWideSectionRef}>
               {!isCarousel && (
-                <h2 className="mb-4 md:mb-6 text-xs md:text-sm font-medium text-primary/60 dark:text-white/60 uppercase tracking-wide">
+                <h2 className="mb-4 md:mb-6 text-lg md:text-3xl lg:text-4xl font-bold text-primary dark:text-white uppercase tracking-tight">
                   {labels.churchWideTitle || 'Happening At Woodside'}
                 </h2>
               )}
@@ -350,9 +360,9 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
 
           {/* Campus Announcements */}
           {hasCampus && (
-            <div ref={campusSectionRef} className={isCarousel ? 'ml-6' : 'mt-8 md:mt-12'}>
+            <div ref={campusSectionRef} className={isCarousel ? 'ml-6' : 'mt-12 md:mt-16'}>
               {!isCarousel && (
-                <h2 className="mb-4 md:mb-6 text-xs md:text-sm font-medium text-primary/60 dark:text-white/60 uppercase tracking-wide">
+                <h2 className="mb-4 md:mb-6 text-lg md:text-3xl lg:text-4xl font-bold text-primary dark:text-white uppercase tracking-tight">
                   {data.Campus!.Name || 'Campus'}
                 </h2>
               )}
