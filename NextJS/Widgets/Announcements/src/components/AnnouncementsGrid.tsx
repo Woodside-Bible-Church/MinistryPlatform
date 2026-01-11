@@ -153,7 +153,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
             <div className={isCarousel ? 'text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide mb-0.5 md:mb-1' : 'text-sm md:text-base font-normal text-gray-400 uppercase tracking-widest'}>
               {labels.carouselHeading1 || 'Stay in the know'}
             </div>
-            <h1 className={isCarousel ? 'text-xl md:text-4xl font-bold truncate' : 'text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter'}>
+            <h1 className={isCarousel ? 'text-xl md:text-4xl font-bold truncate' : 'text-3xl md:text-7xl lg:text-8xl font-bold tracking-tighter'}>
               {labels.carouselHeading2 || 'Announcements'}
             </h1>
           </div>
@@ -226,13 +226,13 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                     ? 'grid gap-6 pb-2 md:pb-8'
                     : (() => {
                         const count = data.ChurchWide.length;
-                        if (count === 1) return 'grid gap-3 md:gap-4 grid-cols-1 animate-[fadeInUp_1.25s_ease-out_0.4s_both]';
-                        if (count === 2) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 animate-[fadeInUp_1.25s_ease-out_0.4s_both]';
-                        if (count === 3) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-6 md:grid-rows-2 animate-[fadeInUp_1.25s_ease-out_0.4s_both]';
-                        if (count === 4) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 animate-[fadeInUp_1.25s_ease-out_0.4s_both]';
-                        if (count === 5) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-6 animate-[fadeInUp_1.25s_ease-out_0.4s_both]';
+                        if (count === 1) return 'grid gap-3 md:gap-4 grid-cols-1';
+                        if (count === 2) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2';
+                        if (count === 3) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-6 md:grid-rows-2';
+                        if (count === 4) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2';
+                        if (count === 5) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-6';
                         // 6+ announcements: masonry-style grid
-                        return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-3 animate-[fadeInUp_1.25s_ease-out_0.4s_both]';
+                        return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-3';
                       })()
                 }
                 style={
@@ -338,7 +338,13 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                   }
 
                   return (
-                    <div key={announcement.ID} className={cardClass}>
+                    <div
+                      key={announcement.ID}
+                      className={cardClass}
+                      style={{
+                        animation: `cardSlideIn 0.8s ease-out ${0.5 + (index * 0.6)}s both`
+                      }}
+                    >
                       <AnnouncementCard
                         announcement={announcement}
                       />
