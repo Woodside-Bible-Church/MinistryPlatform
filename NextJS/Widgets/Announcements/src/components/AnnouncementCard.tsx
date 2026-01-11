@@ -61,7 +61,7 @@ export function AnnouncementCard({
             {heading}
           </h3>
           {subHeading && (
-            <p className="text-sm md:text-base font-normal text-gray-400 uppercase tracking-widest line-clamp-2">
+            <p className="text-xs md:text-sm font-normal text-gray-400 uppercase tracking-widest line-clamp-2">
               {subHeading.replace(/<[^>]*>/g, '').trim().substring(0, 140)}
             </p>
           )}
