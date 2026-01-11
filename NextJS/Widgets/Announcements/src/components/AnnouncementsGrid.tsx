@@ -357,7 +357,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
 
           {/* Campus Announcements */}
           {hasCampus && (
-            <div ref={campusSectionRef} className={isCarousel ? 'ml-6' : 'mt-12 md:mt-16'}>
+            <div ref={campusSectionRef} className={isCarousel ? 'ml-6' : 'mt-6 md:mt-8'}>
               {!isCarousel && (
                 <h2 className="mb-4 md:mb-6 text-lg md:text-3xl lg:text-4xl font-bold text-primary dark:text-white uppercase tracking-tight animate-[fadeInDown_1.25s_ease-out_0.8s_both]">
                   {data.Campus!.Name || 'Campus'}
