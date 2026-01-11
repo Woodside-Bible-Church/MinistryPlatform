@@ -53,6 +53,62 @@ export default function AnnouncementsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<'grid' | 'carousel'>('grid');
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Single logo element that persists through loading and after
+  // Grid mode only - logo transitions from center with spinner to top-right corner
+  const logoElement = mode === 'grid' && (
+    <div
+      className="hidden md:block absolute transition-all ease-out pointer-events-none"
+      style={{
+        top: loading && !isTransitioning ? '1.5rem' : '1rem',
+        width: loading && !isTransitioning ? '200px' : '275px',
+        height: loading && !isTransitioning ? '200px' : '275px',
+        right: loading && !isTransitioning ? 'calc(50% - 100px)' : '2rem', // Center: 50% - half width (100px), Final: 2rem from edge
+        opacity: loading && !isTransitioning ? 0.15 : 0.08,
+        transitionDuration: '0.8s',
+        zIndex: loading ? 50 : 0
+      }}
+    >
+      <div className="relative w-full h-full">
+        {/* Spinning loading circle - only visible during loading, fades out with opacity */}
+        <div
+          className="absolute inset-0 animate-spin transition-opacity"
+          style={{
+            animationDuration: '2s',
+            opacity: loading && !isTransitioning ? 0.3 : 0,
+            transitionDuration: '0.8s'
+          }}
+        >
+          <svg className="w-full h-full" viewBox="0 0 100 100">
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeDasharray="70 200"
+              strokeLinecap="round"
+              className="text-primary dark:text-white"
+            />
+          </svg>
+        </div>
+
+        {/* Woodside logo */}
+        <div className="w-full h-full p-4">
+          <svg
+            viewBox="0 0 822.73 822.41"
+            className="w-full h-full text-primary dark:text-white"
+          >
+            <path d="M482.59,292.96c-28.5,75.56-63.52,148.62-91.88,224.24-22.85,60.93-44.5,165.54,5.99,218.03,53.19,55.31,103.27-36.03,126.36-76.12,29.77-51.67,60.19-102.91,92.51-153.1,37.77-58.65,82.78-117.18,128.05-170.34,17.33-20.35,35.58-39.9,55.18-58.05,1.32-.3,1.67.72,2.19,1.61,2.7,4.68,6.16,19.72,7.79,25.79,55.59,207.53-59.67,424.44-261.39,494.49-162.86,56.55-343.5,6.03-452.97-125.71l.02-2.82c22.1-29.38,43.34-59.51,66.31-88.22,46.87-58.59,104.84-117,159.18-168.95,39.21-37.49,94.79-86.04,141.88-112.38,2.97-1.66,18.74-10.3,20.79-8.46Z" fill="currentColor"/>
+            <path d="M454.78,615.29c-.4-37.26,12.31-73.93,23.96-108.91,21.35-64.11,58.46-144.93,65.26-211.05,10.09-98.15-75.84-54.82-121.59-23.71-87.22,59.32-157.97,140.42-238.72,207.44-1.08.9-1.56,2.33-3.36,1.91,29.91-61.5,79.75-118.22,92.63-187.03,26.62-142.2-143-109.97-223.13-77.75-1.54-1.51,19.5-33.71,21.85-37.14C170.36,35.21,348.48-31.19,518.31,14.05c111.97,29.83,206.98,107.78,259.7,210.54l-1.23,3.19c-101.38,85.68-182.57,188.93-258.5,297.03-21.17,30.14-40.81,61.47-63.5,90.48Z" fill="currentColor"/>
+            <path d="M38.3,581.71c-6.2-9.05-10.4-20.99-14.14-31.42C-1.72,478.2-6.79,400.44,8.86,325.38c1.73-8.3,5.99-29.98,9.5-36.56,1.25-2.35,11.96-9.93,14.86-12.01,41.76-29.96,121.9-63.33,173.22-50.74,49.51,12.15,15.29,70.69-.39,97.86-34.22,59.31-78.86,114.75-116.32,172.48-18.06,27.83-35.65,56.1-51.43,85.3Z" fill="currentColor"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     // Get mode from:
@@ -159,9 +215,19 @@ export default function AnnouncementsPage() {
         console.log('Labels from Information:', result.Information);
         setData(result.Announcements);
         setLabels(result.Information || {});
+
+        // Trigger transition for grid mode
+        if (modeToUse === 'grid') {
+          // Wait a frame to ensure the DOM is ready, then start transition
+          requestAnimationFrame(() => {
+            setIsTransitioning(true);
+            setLoading(false); // Show content immediately when transition starts
+          });
+        } else {
+          setLoading(false);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
         setLoading(false);
       }
     };
@@ -203,21 +269,12 @@ export default function AnnouncementsPage() {
       );
     }
 
-    // Grid skeleton
+    // Grid loading - show persistent logo element with placeholder for content
     return (
-      <div className="p-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="space-y-3">
-                <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded" />
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
-              </div>
-            ))}
-          </div>
-        </div>
+      <div className="relative p-8">
+        {logoElement}
+        {/* Placeholder for content area */}
+        <div className="min-h-[60vh]"></div>
       </div>
     );
   }
@@ -235,6 +292,15 @@ export default function AnnouncementsPage() {
 
   if (!data) {
     return null;
+  }
+
+  if (mode === 'grid') {
+    return (
+      <div className="relative">
+        {logoElement}
+        <AnnouncementsGrid data={data} mode={mode} labels={labels} />
+      </div>
+    );
   }
 
   return <AnnouncementsGrid data={data} mode={mode} labels={labels} />;
