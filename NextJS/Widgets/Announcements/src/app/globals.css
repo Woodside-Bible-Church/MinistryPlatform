@@ -109,6 +109,17 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+@keyframes cardSlideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* Loading logo animation - moves from center-top to top-right corner */
 @keyframes logoLoadToPosition {
   0% {
