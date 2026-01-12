@@ -458,7 +458,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                       key={announcement.ID}
                       className="flex-1 min-w-[280px] max-w-[480px] md:min-w-[320px] md:max-w-[420px]"
                       style={{
-                        animation: `cardSlideInFromRight 0.8s ease-out ${campusCardsStart + (index * 0.6)}s both`
+                        animation: `cardSlideInFromLeft 0.8s ease-out ${campusCardsStart + (index * 0.6)}s both`
                       }}
                     >
                       <AnnouncementCard
