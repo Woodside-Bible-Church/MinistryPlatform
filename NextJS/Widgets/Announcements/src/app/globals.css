@@ -87,6 +87,17 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+@keyframes fadeInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
