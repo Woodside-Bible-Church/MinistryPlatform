@@ -24,8 +24,8 @@ export class AnnouncementsService {
   private client: MinistryPlatformClient;
   private tableService: TableService;
 
-  constructor() {
-    this.client = new MinistryPlatformClient();
+  constructor(accessToken?: string) {
+    this.client = new MinistryPlatformClient(accessToken);
     this.tableService = new TableService(this.client);
   }
 
@@ -337,7 +337,9 @@ export class AnnouncementsService {
     }
 
     // Build filter: search query + congregation filter (selected campus OR church-wide)
-    let filter = `Event_Title LIKE '%${query.trim()}%'`;
+    // Escape single quotes by doubling them for SQL
+    const escapedQuery = query.trim().replace(/'/g, "''");
+    let filter = `Event_Title LIKE '%${escapedQuery}%'`;
     if (congregationID) {
       filter += ` AND (Events.Congregation_ID = ${congregationID} OR Events.Congregation_ID = 1)`;
     }
@@ -460,5 +462,48 @@ export class AnnouncementsService {
     });
 
     return filtered.slice(0, limit);
+  }
+
+  /**
+   * Get Application Labels for the Announcements Widget
+   */
+  async getApplicationLabels(): Promise<Array<{
+    Application_Label_ID: number;
+    Label_Name: string;
+    English: string;
+  }>> {
+    const labels = await this.tableService.getTableRecords<{
+      Application_Label_ID: number;
+      Label_Name: string;
+      English: string;
+    }>("dp_Application_Labels", {
+      $select: "Application_Label_ID,Label_Name,English",
+      $filter: "Label_Name LIKE 'customWidgets.announcementsWidget.%'",
+      $orderby: "Label_Name ASC",
+    });
+
+    return labels;
+  }
+
+  /**
+   * Update an Application Label
+   */
+  async updateApplicationLabel(
+    id: number,
+    english: string,
+    userId: number
+  ): Promise<void> {
+    await this.tableService.updateTableRecords(
+      "dp_Application_Labels",
+      [
+        {
+          Application_Label_ID: id,
+          English: english,
+        },
+      ],
+      {
+        $userId: userId,
+      }
+    );
   }
 }

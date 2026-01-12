@@ -27,6 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCampus } from "@/contexts/CampusContext";
 import { useTheme } from "next-themes";
 import type { Announcement, AnnouncementFormData, CongregationOption } from "@/types/announcements";
+import { useAnnouncementsPermissions } from "@/hooks/useAnnouncementsPermissions";
 import {
   DndContext,
   closestCenter,
@@ -110,6 +111,7 @@ function formatOpportunityDate(opportunityDate: string | null, durationInHours: 
 export default function AnnouncementsPage() {
   const { selectedCampus } = useCampus();
   const { resolvedTheme } = useTheme();
+  const permissions = useAnnouncementsPermissions();
   const widgetRef = useRef<HTMLDivElement>(null);
   const [svgLoaded, setSvgLoaded] = useState(false);
   const [svgError, setSvgError] = useState(false);
@@ -175,6 +177,19 @@ export default function AnnouncementsPage() {
     durationInHours: number | null;
   }>>([]);
 
+  // Application Labels state
+  const [showLabelsEditor, setShowLabelsEditor] = useState(false);
+  const [labels, setLabels] = useState<Array<{
+    Application_Label_ID: number;
+    Label_Name: string;
+    English: string;
+  }>>([]);
+  const [labelsLoading, setLabelsLoading] = useState(false);
+  const [editingLabel, setEditingLabel] = useState<{
+    id: number;
+    value: string;
+  } | null>(null);
+
   // Drag-and-drop sensors
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -220,6 +235,28 @@ export default function AnnouncementsPage() {
     }
     loadCongregations();
   }, []);
+
+  // Load application labels when editor is opened
+  useEffect(() => {
+    if (!showLabelsEditor) return;
+
+    async function loadLabels() {
+      try {
+        setLabelsLoading(true);
+        const response = await fetch("/api/announcements/labels");
+        if (!response.ok) throw new Error("Failed to load labels");
+        const data = await response.json();
+        setLabels(data);
+      } catch (err) {
+        console.error("Error loading labels:", err);
+        toast.error("Failed to load application labels");
+      } finally {
+        setLabelsLoading(false);
+      }
+    }
+
+    loadLabels();
+  }, [showLabelsEditor]);
 
   // Search events
   useEffect(() => {
@@ -559,6 +596,13 @@ export default function AnnouncementsPage() {
       isLast: boolean;
     }
   ) {
+    // Check if this is a church-wide announcement
+    const isChurchWide = announcement.CongregationID === 1;
+
+    // Determine if user can edit/delete this announcement
+    const canEdit = isChurchWide ? permissions.canEditChurchWide : permissions.canEdit;
+    const canDelete = isChurchWide ? permissions.canDeleteChurchWide : permissions.canDelete;
+
     return (
       <div className="flex flex-col md:flex-row gap-6">
         {/* Image or Fallback */}
@@ -649,27 +693,31 @@ export default function AnnouncementsPage() {
             {/* Actions and Arrow Controls - Grid Layout */}
             <div className="grid grid-cols-[auto_auto_auto] grid-rows-2 gap-x-2 gap-y-1 items-center h-32">
               {/* Row 1: Edit, Delete, Up Arrow */}
-              <button
-                onClick={() => handleEdit(announcement)}
-                className="p-2 hover:bg-zinc-400 dark:hover:bg-zinc-700 rounded transition-colors row-start-1"
-                title="Edit"
-              >
-                <Pencil className="w-5 h-5 text-muted-foreground" />
-              </button>
-              <button
-                onClick={() =>
-                  handleDelete(announcement.ID, announcement.Title)
-                }
-                disabled={processingIds.has(announcement.ID)}
-                className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed row-start-1"
-                title="Delete"
-              >
-                {processingIds.has(announcement.ID) ? (
-                  <Loader2 className="w-5 h-5 animate-spin text-red-600 dark:text-red-400" />
-                ) : (
-                  <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
-                )}
-              </button>
+              {canEdit && (
+                <button
+                  onClick={() => handleEdit(announcement)}
+                  className="p-2 hover:bg-zinc-400 dark:hover:bg-zinc-700 rounded transition-colors row-start-1"
+                  title="Edit"
+                >
+                  <Pencil className="w-5 h-5 text-muted-foreground" />
+                </button>
+              )}
+              {canDelete && (
+                <button
+                  onClick={() =>
+                    handleDelete(announcement.ID, announcement.Title)
+                  }
+                  disabled={processingIds.has(announcement.ID)}
+                  className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed row-start-1"
+                  title="Delete"
+                >
+                  {processingIds.has(announcement.ID) ? (
+                    <Loader2 className="w-5 h-5 animate-spin text-red-600 dark:text-red-400" />
+                  ) : (
+                    <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  )}
+                </button>
+              )}
               {arrowControls && (
                 <button
                   onClick={(e) => {
@@ -814,6 +862,39 @@ export default function AnnouncementsPage() {
         const data = await fetchResponse.json();
         setAnnouncements(data);
       }
+    }
+  }
+
+  // Handle label update
+  async function handleLabelUpdate(id: number, english: string) {
+    try {
+      const response = await fetch("/api/announcements/labels", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, english }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update label");
+      }
+
+      // Update local state
+      setLabels((prev) =>
+        prev.map((label) =>
+          label.Application_Label_ID === id
+            ? { ...label, English: english }
+            : label
+        )
+      );
+
+      setEditingLabel(null);
+      toast.success("Label updated successfully");
+
+      // Refresh widget
+      refreshWidget();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update label");
     }
   }
 
@@ -986,6 +1067,138 @@ export default function AnnouncementsPage() {
         </button>
       </div>
 
+      {/* Application Labels Editor - Only for IT Team Group and Communications */}
+      {permissions.canEditLabels && (
+        <div className="mb-8">
+          <button
+            onClick={() => setShowLabelsEditor(!showLabelsEditor)}
+            className="inline-flex items-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm font-medium"
+          >
+            <svg
+              className={`w-4 h-4 transition-transform ${showLabelsEditor ? "rotate-90" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+            Labels
+          </button>
+
+          {showLabelsEditor && (
+          <div className="mt-4 border border-border rounded-lg p-6 bg-card">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">Application Labels</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Customize the text displayed in the Announcements widget. Changes will reflect immediately on the website.
+                </p>
+              </div>
+            </div>
+
+            {labelsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-[#61bc47]" />
+                <span className="ml-2 text-muted-foreground">Loading labels...</span>
+              </div>
+            ) : labels.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No labels found. Please ensure labels exist in MinistryPlatform with Label_Name starting with 'customWidgets.announcementsWidget.'
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {labels.map((label) => {
+                  const isEditing = editingLabel?.id === label.Application_Label_ID;
+                  // Extract the field name from Label_Name (e.g., "customWidgets.announcementsWidget.carouselHeading1" -> "carouselHeading1")
+                  const fieldName = label.Label_Name.replace('customWidgets.announcementsWidget.', '');
+                  const friendlyFieldName = fieldName
+                    .replace(/([A-Z])/g, " $1")
+                    .replace(/^./, (str) => str.toUpperCase())
+                    .trim();
+
+                  return (
+                    <div
+                      key={label.Application_Label_ID}
+                      className="flex items-center gap-4 p-4 border border-border rounded-lg bg-background"
+                    >
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          {friendlyFieldName}
+                          <span className="ml-2 text-xs text-muted-foreground font-normal">
+                            ({fieldName})
+                          </span>
+                        </label>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={editingLabel.value}
+                            onChange={(e) =>
+                              setEditingLabel({
+                                id: label.Application_Label_ID,
+                                value: e.target.value,
+                              })
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                handleLabelUpdate(label.Application_Label_ID, editingLabel.value);
+                              } else if (e.key === "Escape") {
+                                setEditingLabel(null);
+                              }
+                            }}
+                            className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
+                            autoFocus
+                          />
+                        ) : (
+                          <div className="text-sm text-foreground px-3 py-2 border border-transparent rounded-lg">
+                            {label.English}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isEditing ? (
+                          <>
+                            <button
+                              onClick={() =>
+                                handleLabelUpdate(label.Application_Label_ID, editingLabel.value)
+                              }
+                              className="p-2 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
+                              title="Save"
+                            >
+                              <Save className="w-5 h-5 text-green-600 dark:text-green-400" />
+                            </button>
+                            <button
+                              onClick={() => setEditingLabel(null)}
+                              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                              title="Cancel"
+                            >
+                              <X className="w-5 h-5 text-muted-foreground" />
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              setEditingLabel({
+                                id: label.Application_Label_ID,
+                                value: label.English,
+                              })
+                            }
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                            title="Edit"
+                          >
+                            <Pencil className="w-5 h-5 text-muted-foreground" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          )}
+        </div>
+      )}
+
       {/* Widget Toggle and Display */}
       <div className="mb-8">
         {/* View Toggle */}
@@ -1125,33 +1338,46 @@ export default function AnnouncementsPage() {
                 <Church className="w-5 h-5 text-[#61BC47]" />
                 Church-Wide Announcements
               </h3>
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={(e) => handleDragEnd(e, "church-wide")}
-              >
-                <SortableContext
-                  items={churchWideAnnouncements.map((a) => a.ID)}
-                  strategy={verticalListSortingStrategy}
+              {permissions.canEditChurchWide ? (
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={(e) => handleDragEnd(e, "church-wide")}
                 >
-                  <div className="space-y-4">
-                    {churchWideAnnouncements.map((announcement, index) => (
-                      <SortableAnnouncementCard
-                        key={announcement.ID}
-                        id={announcement.ID}
-                        isProcessing={processingIds.has(announcement.ID)}
-                      >
-                        {renderAnnouncementCard(announcement, {
-                          onMoveUp: () => handleMove(announcement.ID, "up", "church-wide"),
-                          onMoveDown: () => handleMove(announcement.ID, "down", "church-wide"),
-                          isFirst: index === 0,
-                          isLast: index === churchWideAnnouncements.length - 1,
-                        })}
-                      </SortableAnnouncementCard>
-                    ))}
-                  </div>
-                </SortableContext>
-              </DndContext>
+                  <SortableContext
+                    items={churchWideAnnouncements.map((a) => a.ID)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-4">
+                      {churchWideAnnouncements.map((announcement, index) => (
+                        <SortableAnnouncementCard
+                          key={announcement.ID}
+                          id={announcement.ID}
+                          isProcessing={processingIds.has(announcement.ID)}
+                        >
+                          {renderAnnouncementCard(announcement, {
+                            onMoveUp: () => handleMove(announcement.ID, "up", "church-wide"),
+                            onMoveDown: () => handleMove(announcement.ID, "down", "church-wide"),
+                            isFirst: index === 0,
+                            isLast: index === churchWideAnnouncements.length - 1,
+                          })}
+                        </SortableAnnouncementCard>
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
+              ) : (
+                <div className="space-y-4">
+                  {churchWideAnnouncements.map((announcement) => (
+                    <div
+                      key={announcement.ID}
+                      className="bg-card border border-border rounded-lg p-6 shadow-sm"
+                    >
+                      {renderAnnouncementCard(announcement)}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -1239,77 +1465,107 @@ export default function AnnouncementsPage() {
 
             {/* Modal Body */}
             <div className="p-6 space-y-6">
-              {/* Campus Toggle */}
+              {/* Campus Toggle or Display */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-3">
                   Campus <span className="text-red-500">*</span>
                 </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Toggle between selected campus and Church-Wide (ID = 1)
-                    const isChurchWide = formData.congregationID === 1;
-                    const newCongregationID = isChurchWide
-                      ? (selectedCampus?.Congregation_ID || 1)
-                      : 1;
-                    setFormData((prev) => ({
-                      ...prev,
-                      congregationID: newCongregationID,
-                    }));
-                  }}
-                  className="relative w-full inline-flex rounded-xl bg-zinc-100 dark:bg-zinc-800 p-1 shadow-inner cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-                  disabled={isSaving}
-                >
-                  {/* Sliding background indicator */}
-                  <div
-                    className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#61BC47] rounded-lg shadow-md transition-all duration-300 ease-in-out pointer-events-none ${
-                      formData.congregationID === 1 ? "left-1" : "left-[calc(50%+4px-1px)]"
-                    }`}
-                  />
+                {permissions.canEditChurchWide ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Toggle between selected campus and Church-Wide (ID = 1)
+                        const isChurchWide = formData.congregationID === 1;
+                        const newCongregationID = isChurchWide
+                          ? (selectedCampus?.Congregation_ID || 1)
+                          : 1;
+                        setFormData((prev) => ({
+                          ...prev,
+                          congregationID: newCongregationID,
+                        }));
+                      }}
+                      className="relative w-full inline-flex rounded-xl bg-zinc-100 dark:bg-zinc-800 p-1 shadow-inner cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                      disabled={isSaving}
+                    >
+                      {/* Sliding background indicator */}
+                      <div
+                        className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#61BC47] rounded-lg shadow-md transition-all duration-300 ease-in-out pointer-events-none ${
+                          formData.congregationID === 1 ? "left-1" : "left-[calc(50%+4px-1px)]"
+                        }`}
+                      />
 
-                  {/* Labels */}
-                  <div
-                    className={`relative z-10 flex-1 py-2.5 rounded-lg font-medium text-center transition-all duration-300 pointer-events-none ${
-                      formData.congregationID === 1
-                        ? "text-white"
-                        : "text-muted-foreground"
-                    }`}
-                  >
-                    <div className="flex items-center justify-center gap-2">
-                      <Church className="w-4 h-4" />
-                      <span>Church-Wide</span>
+                      {/* Labels */}
+                      <div
+                        className={`relative z-10 flex-1 py-2.5 rounded-lg font-medium text-center transition-all duration-300 pointer-events-none ${
+                          formData.congregationID === 1
+                            ? "text-white"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          <Church className="w-4 h-4" />
+                          <span>Church-Wide</span>
+                        </div>
+                      </div>
+                      <div
+                        className={`relative z-10 flex-1 py-2.5 rounded-lg font-medium text-center transition-all duration-300 pointer-events-none ${
+                          formData.congregationID !== 1
+                            ? "text-white"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          {selectedCampus?.Campus_SVG_URL && !svgError ? (
+                            <>
+                              <img
+                                src={selectedCampus.Campus_SVG_URL}
+                                alt=""
+                                className={`w-4 h-4 transition-opacity ${svgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                onLoad={() => setSvgLoaded(true)}
+                                onError={() => setSvgError(true)}
+                                style={{ display: svgLoaded ? 'block' : 'none' }}
+                              />
+                              {!svgLoaded && <MapPin className="w-4 h-4" />}
+                            </>
+                          ) : (
+                            <MapPin className="w-4 h-4" />
+                          )}
+                          <span>{selectedCampus?.Congregation_Name || "Campus"}</span>
+                        </div>
+                      </div>
+                    </button>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Church-Wide announcements appear for all campuses
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-full px-4 py-3 border border-border rounded-lg bg-muted/50">
+                      <div className="flex items-center gap-2">
+                        {selectedCampus?.Campus_SVG_URL && !svgError ? (
+                          <>
+                            <img
+                              src={selectedCampus.Campus_SVG_URL}
+                              alt=""
+                              className={`w-5 h-5 transition-opacity ${svgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                              onLoad={() => setSvgLoaded(true)}
+                              onError={() => setSvgError(true)}
+                              style={{ display: svgLoaded ? 'block' : 'none' }}
+                            />
+                            {!svgLoaded && <MapPin className="w-5 h-5" />}
+                          </>
+                        ) : (
+                          <MapPin className="w-5 h-5" />
+                        )}
+                        <span className="font-medium">{selectedCampus?.Congregation_Name || "Campus"}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div
-                    className={`relative z-10 flex-1 py-2.5 rounded-lg font-medium text-center transition-all duration-300 pointer-events-none ${
-                      formData.congregationID !== 1
-                        ? "text-white"
-                        : "text-muted-foreground"
-                    }`}
-                  >
-                    <div className="flex items-center justify-center gap-2">
-                      {selectedCampus?.Campus_SVG_URL && !svgError ? (
-                        <>
-                          <img
-                            src={selectedCampus.Campus_SVG_URL}
-                            alt=""
-                            className={`w-4 h-4 transition-opacity ${svgLoaded ? 'opacity-100' : 'opacity-0'}`}
-                            onLoad={() => setSvgLoaded(true)}
-                            onError={() => setSvgError(true)}
-                            style={{ display: svgLoaded ? 'block' : 'none' }}
-                          />
-                          {!svgLoaded && <MapPin className="w-4 h-4" />}
-                        </>
-                      ) : (
-                        <MapPin className="w-4 h-4" />
-                      )}
-                      <span>{selectedCampus?.Congregation_Name || "Campus"}</span>
-                    </div>
-                  </div>
-                </button>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Church-Wide announcements appear for all campuses
-                </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      This announcement will only appear for {selectedCampus?.Congregation_Name || "this campus"}
+                    </p>
+                  </>
+                )}
               </div>
 
               {/* Title */}
