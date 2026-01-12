@@ -145,7 +145,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
   return (
     <div>
       {/* Main heading - shows for both carousel and grid modes */}
-      <div className={isCarousel ? 'pb-4 md:pb-8 mb-2 md:mb-4 px-2 md:px-0' : 'pb-6 md:pb-0 mb-4 md:mb-8 px-2 md:px-0 relative overflow-visible animate-[fadeInDown_1.25s_ease-out_0s_both]'}>
+      <div className={isCarousel ? 'pb-4 md:pb-8 mb-2 md:mb-4 px-2 md:px-0' : 'pb-6 md:pb-0 mb-4 md:mb-8 px-2 md:px-0 relative overflow-visible animate-[fadeInFromRight_1.25s_ease-out_0s_both]'}>
         {/* Background Woodside logo is now rendered by the loading state transition - no static logo needed */}
         {/* Header with heading and navigation arrows */}
         <div className="flex justify-between items-center gap-3 md:mb-0 relative z-10">
