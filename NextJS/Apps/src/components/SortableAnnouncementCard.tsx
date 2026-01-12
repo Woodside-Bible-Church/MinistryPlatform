@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode } from "react";
 
 interface SortableAnnouncementCardProps {
   id: number;
@@ -13,10 +13,6 @@ export function SortableAnnouncementCard({
   children,
   isProcessing = false,
 }: SortableAnnouncementCardProps) {
-  const [showHint, setShowHint] = useState(false);
-  const [hoverTimer, setHoverTimer] = useState<NodeJS.Timeout | null>(null);
-  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
-
   const {
     attributes,
     listeners,
@@ -34,38 +30,6 @@ export function SortableAnnouncementCard({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-  };
-
-  // Clean up timer on unmount
-  useEffect(() => {
-    return () => {
-      if (hoverTimer) clearTimeout(hoverTimer);
-    };
-  }, [hoverTimer]);
-
-  const handleMouseEnter = () => {
-    // Show hint after hovering for 500ms
-    const timer = setTimeout(() => {
-      setShowHint(true);
-    }, 500);
-    setHoverTimer(timer);
-  };
-
-  const handleMouseLeave = () => {
-    if (hoverTimer) {
-      clearTimeout(hoverTimer);
-      setHoverTimer(null);
-    }
-    setShowHint(false);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    // Get cursor position relative to the card
-    const rect = e.currentTarget.getBoundingClientRect();
-    setCursorPosition({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
   };
 
   // Create listeners that filter out button/link clicks
@@ -91,24 +55,7 @@ export function SortableAnnouncementCard({
       } ${isDragging ? "z-50 shadow-2xl !cursor-grabbing" : ""}`}
       {...attributes}
       {...filteredListeners}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onMouseMove={handleMouseMove}
     >
-      {/* Drag Hint - Follows cursor position */}
-      {(showHint || isDragging) && !isProcessing && (
-        <div
-          className="absolute text-foreground text-xs font-medium pointer-events-none z-10 whitespace-nowrap opacity-60"
-          style={{
-            left: `${cursorPosition.x}px`,
-            top: `${cursorPosition.y + 20}px`,
-            transform: 'translateX(-50%)',
-          }}
-        >
-          {isDragging ? "Repositioning..." : "Drag to reorder"}
-        </div>
-      )}
-
       {children}
     </div>
   );
