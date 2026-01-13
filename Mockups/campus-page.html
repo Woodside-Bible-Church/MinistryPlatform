@@ -197,11 +197,14 @@
             <div class="mb-8">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
                     <!-- Series Image -->
-                    <div class="relative shadow-xl" style="background-image: url('VerticalBG.png'); background-size: cover; background-position: center;">
+                    <button onclick="document.getElementById('seriesInfoModal').classList.remove('hidden')" class="relative shadow-xl cursor-pointer hover:shadow-2xl transition w-full text-left" style="background-image: url('VerticalBG.png'); background-size: cover; background-position: center;">
+                        <div class="absolute top-4 right-4 text-white/70 group-hover:text-white transition z-10">
+                            <i data-lucide="info" class="w-5 h-5"></i>
+                        </div>
                         <div class="flex items-center justify-center p-8" style="aspect-ratio: 1080/1350;">
                             <img src="SermonSeriesForeground.png" alt="Missio Dei: God's Story, Our Role" class="w-5/6 h-auto object-contain">
                         </div>
-                    </div>
+                    </button>
 
                     <!-- Sermon Series Selector -->
                     <div class="flex flex-col shadow-xl" style="background-image: url('VerticalBG.png'); background-size: cover; background-position: center;">
@@ -269,8 +272,8 @@
                         <div class="space-y-8 flex-1 flex flex-col justify-center">
                             <div>
                                 <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="map-pin" class="w-5 h-5 flex-shrink-0" style="color: #DE5856;"></i>
-                                    <div class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Location</div>
+                                    <i data-lucide="map-pin" class="w-5 h-5 flex-shrink-0" style="color: #E65E5B;"></i>
+                                    <div class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Where</div>
                                 </div>
                                 <div class="text-base font-bold text-gray-900 uppercase leading-snug ml-7">
                                     Civic Center Park<br>
@@ -281,8 +284,8 @@
 
                             <div>
                                 <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="calendar" class="w-5 h-5 flex-shrink-0" style="color: #DE5856;"></i>
-                                    <div class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Date</div>
+                                    <i data-lucide="calendar" class="w-5 h-5 flex-shrink-0" style="color: #E65E5B;"></i>
+                                    <div class="text-sm font-semibold text-gray-600 uppercase tracking-wide">When</div>
                                 </div>
 
                                 <div class="space-y-4">
@@ -306,9 +309,9 @@
                                                 <div class="text-lg font-bold text-gray-900">8:30 AM</div>
                                                 <div class="flex-1 h-px bg-gray-600/30"></div>
                                                 <div class="flex items-center gap-2">
-                                                    <i data-lucide="baby" class="w-4 h-4" style="color: #DE5856;"></i>
+                                                    <i data-lucide="baby" class="w-4 h-4" style="color: #E65E5B;"></i>
                                                     <i data-lucide="hand" class="w-4 h-4" style="color: #39AEDA;"></i>
-                                                    <i data-lucide="coffee" class="w-4 h-4" style="color: #DE5856;"></i>
+                                                    <i data-lucide="coffee" class="w-4 h-4" style="color: #E65E5B;"></i>
                                                 </div>
                                             </div>
                                             <!-- 10:00 AM -->
@@ -316,9 +319,9 @@
                                                 <div class="text-lg font-bold text-gray-900">10:00 AM</div>
                                                 <div class="flex-1 h-px bg-gray-600/30"></div>
                                                 <div class="flex items-center gap-2">
-                                                    <i data-lucide="baby" class="w-4 h-4" style="color: #DE5856;"></i>
+                                                    <i data-lucide="baby" class="w-4 h-4" style="color: #E65E5B;"></i>
                                                     <i data-lucide="hand" class="w-4 h-4" style="color: #39AEDA;"></i>
-                                                    <i data-lucide="coffee" class="w-4 h-4" style="color: #DE5856;"></i>
+                                                    <i data-lucide="coffee" class="w-4 h-4" style="color: #E65E5B;"></i>
                                                 </div>
                                             </div>
                                             <!-- 11:30 AM -->
@@ -326,7 +329,7 @@
                                                 <div class="text-lg font-bold text-gray-900">11:30 AM</div>
                                                 <div class="flex-1 h-px bg-gray-600/30"></div>
                                                 <div class="flex items-center gap-2">
-                                                    <i data-lucide="baby" class="w-4 h-4" style="color: #DE5856;"></i>
+                                                    <i data-lucide="baby" class="w-4 h-4" style="color: #E65E5B;"></i>
                                                 </div>
                                             </div>
                                         </div>
@@ -336,7 +339,7 @@
                                 <!-- Legend -->
                                 <div class="flex items-center justify-center gap-x-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">
                                     <div class="flex items-center gap-1.5">
-                                        <i data-lucide="baby" class="w-3.5 h-3.5" style="color: #DE5856;"></i>
+                                        <i data-lucide="baby" class="w-3.5 h-3.5" style="color: #E65E5B;"></i>
                                         <span>Kids (0-4yrs)</span>
                                     </div>
                                     <div class="flex items-center gap-1.5">
@@ -344,7 +347,7 @@
                                         <span>ASL</span>
                                     </div>
                                     <div class="flex items-center gap-1.5">
-                                        <i data-lucide="coffee" class="w-3.5 h-3.5" style="color: #DE5856;"></i>
+                                        <i data-lucide="coffee" class="w-3.5 h-3.5" style="color: #E65E5B;"></i>
                                         <span>Cafe</span>
                                     </div>
                                 </div>
@@ -352,8 +355,8 @@
                         </div>
 
                         <div class="flex gap-3 mt-8">
-                            <a href="#" class="inline-flex items-center justify-center gap-2 px-8 py-4 text-white font-bold transition uppercase tracking-wide flex-1 shadow-md" style="background-color: #DE5856;" onmouseover="this.style.backgroundColor='#C25E58'" onmouseout="this.style.backgroundColor='#DE5856'">
-                                <i data-lucide="notebook-pen" class="w-5 h-5"></i>
+                            <a href="#" class="inline-flex items-center justify-center gap-2 px-8 py-4 font-bold transition uppercase tracking-wide flex-1 shadow-md" style="background-color: #E65E5B; color: #F3D54B;" onmouseover="this.style.backgroundColor='#D04F4C'" onmouseout="this.style.backgroundColor='#E65E5B'">
+                                <i data-lucide="notebook-pen" class="w-5 h-5" style="color: #F3D54B;"></i>
                                 Notes
                             </a>
                             <a href="#" class="relative inline-flex items-center justify-center gap-2 px-8 py-4 text-white font-semibold transition uppercase tracking-wide flex-1 shadow-md" style="background-color: #39AEDA;" onmouseover="this.style.backgroundColor='#2A9BC8'" onmouseout="this.style.backgroundColor='#39AEDA'">
@@ -389,7 +392,7 @@
                         <div class="p-6 pt-0">
                             <div class="flex flex-wrap gap-4">
                                 <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
-                                    <i data-lucide="baby" class="w-3 h-3" style="color: #DE5856;"></i>
+                                    <i data-lucide="baby" class="w-3 h-3" style="color: #E65E5B;"></i>
                                     Kids (0-4yrs)
                                 </span>
                                 <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
@@ -397,7 +400,7 @@
                                     ASL
                                 </span>
                                 <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
-                                    <i data-lucide="coffee" class="w-3 h-3" style="color: #DE5856;"></i>
+                                    <i data-lucide="coffee" class="w-3 h-3" style="color: #E65E5B;"></i>
                                     Cafe
                                 </span>
                             </div>
@@ -417,7 +420,7 @@
                         <div class="p-6 pt-0">
                             <div class="flex flex-wrap gap-4">
                                 <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
-                                    <i data-lucide="baby" class="w-3 h-3" style="color: #DE5856;"></i>
+                                    <i data-lucide="baby" class="w-3 h-3" style="color: #E65E5B;"></i>
                                     Kids (0-4yrs)
                                 </span>
                                 <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
@@ -425,7 +428,7 @@
                                     ASL
                                 </span>
                                 <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
-                                    <i data-lucide="coffee" class="w-3 h-3" style="color: #DE5856;"></i>
+                                    <i data-lucide="coffee" class="w-3 h-3" style="color: #E65E5B;"></i>
                                     Cafe
                                 </span>
                             </div>
@@ -445,7 +448,7 @@
                         <div class="p-6 pt-0">
                             <div class="flex flex-wrap gap-4">
                                 <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
-                                    <i data-lucide="baby" class="w-3 h-3" style="color: #DE5856;"></i>
+                                    <i data-lucide="baby" class="w-3 h-3" style="color: #E65E5B;"></i>
                                     Kids (0-4yrs)
                                 </span>
                             </div>
@@ -535,6 +538,41 @@
                     allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
                     allowfullscreen>
                 </iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Series Info Modal -->
+    <div id="seriesInfoModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target === this) this.classList.add('hidden')">
+        <div class="bg-white rounded-lg max-w-3xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="document.getElementById('seriesInfoModal').classList.add('hidden')" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition z-10">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+
+            <!-- Series Image Header -->
+            <div class="relative" style="background-image: url('VerticalBG.png'); background-size: cover; background-position: center;">
+                <div class="flex items-center justify-center p-8">
+                    <img src="SermonSeriesForeground.png" alt="Missio Dei: God's Story, Our Role" class="w-1/2 h-auto object-contain">
+                </div>
+            </div>
+
+            <div class="p-12">
+                <!-- Series Title -->
+                <div class="text-center mb-8">
+                    <div class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Message Series</div>
+                    <h3 class="text-4xl font-black text-gray-900 uppercase mb-2">Missio Dei</h3>
+                    <p class="text-lg text-gray-600 italic">God's Story, Our Role</p>
+                </div>
+
+                <!-- Series Description -->
+                <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed">
+                    <p class="mb-4">
+                        Your greatest mission is right in front of you. Will you decide to live it out? Our world is overflowing with objectives and end goals, but what if your purpose was already written on your identity?
+                    </p>
+                    <p>
+                        This January, we're debuting a new message series that will uncover the incredible story of God's global purpose and your place in it. Whether you're exploring faith or already following Jesus, <em>Missio Dei</em> (the mission of God), will explore how God calls us to bring justice, hope, and restoration to the ends of the earth.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
