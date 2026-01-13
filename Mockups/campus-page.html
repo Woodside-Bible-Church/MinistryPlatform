@@ -114,126 +114,267 @@
         </div>
     </div>
 
-    <!-- Campus Info Bar -->
-    <div class="bg-white">
-        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
-                <div class="flex items-center gap-4">
-                    <img src="Campus.svg" alt="Lake Orion Campus" class="w-16 h-16">
-                    <div class="flex-1 min-w-0">
-                        <h1 class="text-xl md:text-4xl font-bold text-gray-900 uppercase truncate">Lake Orion</h1>
-                        <div class="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide">Campus</div>
+    <!-- Hero Image with Campus Info Overlay -->
+    <div class="relative">
+        <!-- Hero Image -->
+        <img src="HeroImage.jpg" alt="Lake Orion Campus" class="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover">
+
+        <!-- Gradient Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+
+        <!-- Campus Info Overlay -->
+        <div class="absolute bottom-0 left-0 right-0">
+            <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pb-8 md:pb-12">
+                <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-3">
+                    <button onclick="document.getElementById('campusInfoModal').classList.remove('hidden')" class="flex items-center gap-4 group cursor-pointer hover:opacity-90 transition text-left">
+                        <img src="Campus.svg" alt="Lake Orion Campus" class="w-16 h-16 grayscale group-hover:grayscale-0 transition-all duration-300">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <h1 class="text-xl md:text-4xl font-bold text-white uppercase truncate">Lake Orion</h1>
+                                <div class="text-white/70 group-hover:text-white transition">
+                                    <i data-lucide="info" class="w-4 h-4 md:w-5 md:h-5"></i>
+                                </div>
+                            </div>
+                            <div class="text-xs md:text-sm font-medium text-gray-300 uppercase tracking-wide">Campus</div>
+                        </div>
+                    </button>
+
+                    <!-- Campus Pastor -->
+                    <div>
+                        <button onclick="openPastorVideo()" class="flex items-center gap-4 hover:opacity-80 transition cursor-pointer">
+                            <div class="text-right flex-1 min-w-0">
+                                <div class="text-xl md:text-4xl font-bold text-white uppercase truncate">Jim Dahlke</div>
+                                <div class="text-xs md:text-sm font-medium text-gray-300 uppercase tracking-wide">Campus Pastor</div>
+                            </div>
+                            <div class="relative">
+                                <img src="Pastor.png" alt="Jim Dahlke" class="w-16 h-16 rounded-full object-cover ring-2 ring-white/50">
+                                <div class="absolute bottom-0 left-0 w-6 h-6 rounded-full bg-white/80 flex items-center justify-center">
+                                    <i data-lucide="play" class="w-3 h-3 text-woodside-green ml-0.5 fill-woodside-green"></i>
+                                </div>
+                            </div>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Campus Pastor -->
-                <div>
-                    <a href="#" class="flex items-center gap-4 hover:opacity-80 transition">
-                        <div class="text-right flex-1 min-w-0">
-                            <div class="text-xl md:text-4xl font-bold text-gray-900 uppercase truncate">Jim Dahlke</div>
-                            <div class="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide">Campus Pastor</div>
-                        </div>
-                        <img src="Pastor.png" alt="Jim Dahlke" class="w-16 h-16 rounded-full object-cover">
-                    </a>
-                </div>
-            </div>
-
-            <div class="space-y-2">
-                <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-400">
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-200">
                     <div class="flex items-center gap-2">
                         <i data-lucide="map-pin" class="w-4 h-4 text-woodside-green"></i>
                         <span class="font-medium uppercase tracking-wide">2500 Joslyn Rd, Lake Orion, MI 48360</span>
                     </div>
-                    <div class="hidden md:block w-1 h-1 rounded-full bg-gray-400"></div>
+                    <div class="hidden md:block w-1 h-1 rounded-full bg-gray-300"></div>
                     <div class="flex items-center gap-2">
                         <i data-lucide="phone" class="w-4 h-4 text-woodside-green"></i>
                         <a href="tel:248-481-8069" class="hover:text-woodside-green transition font-medium uppercase tracking-wide">248-481-8069</a>
                     </div>
+                    <div class="hidden md:block w-1 h-1 rounded-full bg-gray-300"></div>
+                    <button class="inline-flex items-center gap-2 text-woodside-green hover:text-green-400 transition font-medium uppercase tracking-wide">
+                        <i data-lucide="heart" class="w-4 h-4"></i>
+                        <span>Set as Home</span>
+                    </button>
                 </div>
-                <button class="inline-flex items-center gap-2 text-woodside-green hover:text-green-700 transition text-sm font-medium uppercase tracking-wide">
-                    <i data-lucide="heart" class="w-4 h-4"></i>
-                    <span>Set as Home</span>
-                </button>
             </div>
         </div>
     </div>
 
     <!-- This Week at Lake Orion -->
     <div class="bg-white">
-        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-24">
+            <!-- Section Header -->
+            <div class="mb-16 relative">
+                <!-- Woodside Logo Background -->
+                <div class="absolute top-6 left-8 opacity-5 pointer-events-none z-0">
+                    <img src="woodside-logo.svg" alt="" class="w-56 h-56 grayscale">
+                </div>
+                <div class="flex items-end justify-between relative z-10">
+                    <div>
+                        <div class="text-sm font-medium text-gray-400 uppercase tracking-wider mb-2">Current Series</div>
+                        <h2 class="text-6xl md:text-7xl font-black text-gray-900 uppercase leading-none" style="letter-spacing: -0.02em;">Missio Dei</h2>
+                    </div>
+                </div>
+            </div>
+
             <!-- Current Series & Services Section -->
-            <div class="mb-24">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start mb-12">
+            <div class="mb-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
                     <!-- Series Image -->
-                    <div class="relative">
-                        <img src="SermonSeries.jpg" alt="Missio Dei: God's Story, Our Role" class="w-full h-auto shadow-xl">
+                    <div class="relative shadow-xl" style="background-image: url('VerticalBG.png'); background-size: cover; background-position: center;">
+                        <div class="flex items-center justify-center p-8" style="aspect-ratio: 1080/1350;">
+                            <img src="SermonSeriesForeground.png" alt="Missio Dei: God's Story, Our Role" class="w-5/6 h-auto object-contain">
+                        </div>
+                    </div>
+
+                    <!-- Sermon Series Selector -->
+                    <div class="flex flex-col shadow-xl" style="background-image: url('VerticalBG.png'); background-size: cover; background-position: center;">
+                        <div class="flex-1 flex flex-col justify-between p-6">
+                            <div class="flex-1 flex flex-col justify-center space-y-3">
+                                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded transition hover:bg-black/5">
+                                    <img src="Pastor.png" alt="Part 1 Speaker" class="w-16 h-16 rounded-full object-cover flex-shrink-0">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Part 1:&nbsp;&nbsp;Jan 4</div>
+                                        <div class="text-base font-bold text-gray-900 uppercase leading-tight">God's Mission, God's Image</div>
+                                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mt-1">Jim Dahlke</div>
+                                    </div>
+                                </a>
+                                <div class="relative flex items-center gap-3 px-4 py-3 text-white shadow-md" style="background-color: #39AEDA;">
+                                    <img src="Speaker.jpg" alt="Denzel Wright" class="w-16 h-16 rounded-full object-cover flex-shrink-0">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-xs font-semibold text-white uppercase tracking-wide">Part 2:&nbsp;&nbsp;Jan 11 - 12</div>
+                                        <div class="text-base font-bold uppercase leading-tight">Jesus: The Salvation of God</div>
+                                        <div class="text-xs font-semibold text-white uppercase tracking-wide mt-1">Denzel Wright</div>
+                                    </div>
+                                    <div class="absolute top-2 right-2 inline-flex items-center gap-1 text-red-500 font-bold text-[10px] live-indicator">
+                                        <i data-lucide="radio" class="w-3 h-3"></i>
+                                        LIVE
+                                    </div>
+                                </div>
+                                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded transition hover:bg-black/5">
+                                    <img src="Pastor.png" alt="Part 3 Speaker" class="w-16 h-16 rounded-full object-cover flex-shrink-0">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Part 3:&nbsp;&nbsp;Jan 17 - 18</div>
+                                        <div class="text-base font-bold text-gray-900 uppercase leading-tight">A Blessing to All Nations</div>
+                                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mt-1">Jim Dahlke</div>
+                                    </div>
+                                </a>
+                                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded transition hover:bg-black/5">
+                                    <img src="AltPastor.jpg" alt="Part 4 Speaker" class="w-16 h-16 rounded-full object-cover flex-shrink-0">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Part 4:&nbsp;&nbsp;Jan 25</div>
+                                        <div class="text-base font-bold text-gray-900 uppercase leading-tight">Saved for a Greater Purpose</div>
+                                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mt-1">Brad House</div>
+                                    </div>
+                                </a>
+                                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded transition hover:bg-black/5">
+                                    <div class="w-16 h-16 flex-shrink-0"></div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Part 5:&nbsp;&nbsp;Feb 1</div>
+                                        <div class="text-base font-bold text-gray-900 uppercase leading-tight">A Servant for the Nations</div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <!-- View Series Button -->
+                            <div class="mt-4 px-4">
+                                <a href="#" class="flex items-center justify-center gap-2 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wide hover:text-gray-900 transition">
+                                    <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+                                    View Full Series
+                                </a>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Sermon Info -->
-                    <div class="flex flex-col justify-between h-full lg:pl-8">
-                        <div>
-                            <h3 class="text-xl md:text-2xl font-bold text-gray-900 uppercase mb-6">Jesus: The Salvation of God</h3>
+                    <div class="flex flex-col p-8 shadow-xl" style="background-image: url('VerticalBG.png'); background-size: cover; background-position: center;">
+                        <img src="SermonName.png" alt="Jesus: The Salvation of God" class="w-full h-auto mb-6">
 
-                            <div class="space-y-4 pl-6">
-                                <div>
-                                    <div class="flex items-center gap-3">
-                                        <i data-lucide="calendar" class="w-4 h-4 flex-shrink-0" style="color: #D46D66;"></i>
-                                        <div class="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide">Date</div>
-                                    </div>
-                                    <div class="pl-7">
-                                        <div class="text-base md:text-lg font-bold text-gray-900 uppercase">Sunday, January 12</div>
-                                    </div>
+                        <div class="space-y-8 flex-1 flex flex-col justify-center">
+                            <div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <i data-lucide="map-pin" class="w-5 h-5 flex-shrink-0" style="color: #DE5856;"></i>
+                                    <div class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Location</div>
+                                </div>
+                                <div class="text-base font-bold text-gray-900 uppercase leading-snug ml-7">
+                                    Civic Center Park<br>
+                                    2525 Joslyn Rd<br>
+                                    Orion Township, MI 48360
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <i data-lucide="calendar" class="w-5 h-5 flex-shrink-0" style="color: #DE5856;"></i>
+                                    <div class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Date</div>
                                 </div>
 
-                                <div class="flex items-center">
-                                    <i data-lucide="mic" class="w-4 h-4 flex-shrink-0 self-start mr-3" style="color: #D46D66;"></i>
+                                <div class="space-y-4">
+                                    <!-- Saturday Service -->
                                     <div>
-                                        <div class="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide">Speaker</div>
-                                        <div class="text-base md:text-lg font-bold text-gray-900 uppercase">Denzel Wright</div>
+                                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2 ml-7">Saturday — January 11</div>
+                                        <div class="space-y-2 ml-10">
+                                            <div class="flex items-center justify-between gap-3">
+                                                <div class="text-lg font-bold text-gray-900">5:00 PM</div>
+                                                <div class="flex-1 h-px bg-gray-600/30"></div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <img src="Speaker.jpg" alt="Denzel Wright" class="w-12 h-12 rounded-full object-cover flex-shrink-0 ml-6">
-                                </div>
 
-                                <div>
-                                    <div class="flex items-center gap-3 text-gray-700">
-                                        <i data-lucide="map-pin" class="w-4 h-4 flex-shrink-0" style="color: #D46D66;"></i>
-                                        <div class="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide">Civic Center Park</div>
-                                    </div>
-                                    <div class="pl-7">
-                                        <div class="text-base md:text-lg font-bold text-gray-900 uppercase">
-                                            2525 Joslyn Rd, Orion Township, MI 48360
+                                    <!-- Sunday Services -->
+                                    <div>
+                                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2 ml-7">Sunday — January 12</div>
+                                        <div class="space-y-2 ml-10 mb-3">
+                                            <!-- 8:30 AM -->
+                                            <div class="flex items-center justify-between gap-3">
+                                                <div class="text-lg font-bold text-gray-900">8:30 AM</div>
+                                                <div class="flex-1 h-px bg-gray-600/30"></div>
+                                                <div class="flex items-center gap-2">
+                                                    <i data-lucide="baby" class="w-4 h-4" style="color: #DE5856;"></i>
+                                                    <i data-lucide="hand" class="w-4 h-4" style="color: #39AEDA;"></i>
+                                                    <i data-lucide="coffee" class="w-4 h-4" style="color: #DE5856;"></i>
+                                                </div>
+                                            </div>
+                                            <!-- 10:00 AM -->
+                                            <div class="flex items-center justify-between gap-3">
+                                                <div class="text-lg font-bold text-gray-900">10:00 AM</div>
+                                                <div class="flex-1 h-px bg-gray-600/30"></div>
+                                                <div class="flex items-center gap-2">
+                                                    <i data-lucide="baby" class="w-4 h-4" style="color: #DE5856;"></i>
+                                                    <i data-lucide="hand" class="w-4 h-4" style="color: #39AEDA;"></i>
+                                                    <i data-lucide="coffee" class="w-4 h-4" style="color: #DE5856;"></i>
+                                                </div>
+                                            </div>
+                                            <!-- 11:30 AM -->
+                                            <div class="flex items-center justify-between gap-3">
+                                                <div class="text-lg font-bold text-gray-900">11:30 AM</div>
+                                                <div class="flex-1 h-px bg-gray-600/30"></div>
+                                                <div class="flex items-center gap-2">
+                                                    <i data-lucide="baby" class="w-4 h-4" style="color: #DE5856;"></i>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div>
-                                    <div class="flex items-center gap-3 text-gray-700">
-                                        <i data-lucide="book-open" class="w-4 h-4 flex-shrink-0" style="color: #D46D66;"></i>
-                                        <div class="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide">Series</div>
+                                <!-- Legend -->
+                                <div class="flex items-center justify-center gap-x-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                                    <div class="flex items-center gap-1.5">
+                                        <i data-lucide="baby" class="w-3.5 h-3.5" style="color: #DE5856;"></i>
+                                        <span>Kids (0-4yrs)</span>
                                     </div>
-                                    <a href="#" class="pl-7 text-base md:text-lg font-bold text-gray-900 uppercase transition inline-flex items-center gap-1.5" style="color: inherit;" onmouseover="this.style.color='#D46D66'" onmouseout="this.style.color='inherit'">
-                                        Missio Dei
-                                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                                    </a>
+                                    <div class="flex items-center gap-1.5">
+                                        <i data-lucide="hand" class="w-3.5 h-3.5" style="color: #39AEDA;"></i>
+                                        <span>ASL</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5">
+                                        <i data-lucide="coffee" class="w-3.5 h-3.5" style="color: #DE5856;"></i>
+                                        <span>Cafe</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="flex gap-3 mt-6">
-                            <a href="#" class="inline-flex items-center justify-center gap-2 px-6 py-3 text-white font-bold transition uppercase tracking-wide flex-1" style="background-color: #D46D66;" onmouseover="this.style.backgroundColor='#C25E58'" onmouseout="this.style.backgroundColor='#D46D66'">
-                                <i data-lucide="notebook-pen" class="w-4 h-4"></i>
-                                Take Notes
+                        <div class="flex gap-3 mt-8">
+                            <a href="#" class="inline-flex items-center justify-center gap-2 px-8 py-4 text-white font-bold transition uppercase tracking-wide flex-1 shadow-md" style="background-color: #DE5856;" onmouseover="this.style.backgroundColor='#C25E58'" onmouseout="this.style.backgroundColor='#DE5856'">
+                                <i data-lucide="notebook-pen" class="w-5 h-5"></i>
+                                Notes
                             </a>
-                            <a href="#" class="inline-flex items-center justify-center gap-2 px-6 py-3 text-white font-semibold transition uppercase tracking-wide flex-1" style="background-color: #39AEDA;" onmouseover="this.style.backgroundColor='#2A9BC8'" onmouseout="this.style.backgroundColor='#39AEDA'">
-                                <i data-lucide="tv" class="w-4 h-4"></i>
-                                Watch Live
+                            <a href="#" class="relative inline-flex items-center justify-center gap-2 px-8 py-4 text-white font-semibold transition uppercase tracking-wide flex-1 shadow-md" style="background-color: #39AEDA;" onmouseover="this.style.backgroundColor='#2A9BC8'" onmouseout="this.style.backgroundColor='#39AEDA'">
+                                <i data-lucide="play" class="w-5 h-5 fill-white"></i>
+                                Watch
+                                <div class="absolute top-2 right-2 inline-flex items-center gap-1 text-red-500 font-bold text-[10px] live-indicator">
+                                    <i data-lucide="radio" class="w-3 h-3"></i>
+                                    LIVE
+                                </div>
                             </a>
                         </div>
                     </div>
                 </div>
 
+                <!-- View All Series Link -->
+                <div class="flex justify-end mt-4">
+                    <a href="#" class="text-xs font-semibold text-gray-600/70 uppercase tracking-wide hover:text-gray-900 transition">View All Sermon Series →</a>
+                </div>
+
                 <!-- Sunday Morning Services -->
-                <div>
+                <div class="hidden">
                 <div class="service-grid max-w-4xl">
                     <!-- 8:30 AM - LIVE NOW -->
                     <div class="service-card bg-gray-50 shadow-lg overflow-hidden">
@@ -248,7 +389,7 @@
                         <div class="p-6 pt-0">
                             <div class="flex flex-wrap gap-4">
                                 <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
-                                    <i data-lucide="baby" class="w-3 h-3" style="color: #D46D66;"></i>
+                                    <i data-lucide="baby" class="w-3 h-3" style="color: #DE5856;"></i>
                                     Kids (0-4yrs)
                                 </span>
                                 <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
@@ -256,7 +397,7 @@
                                     ASL
                                 </span>
                                 <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
-                                    <i data-lucide="coffee" class="w-3 h-3" style="color: #D46D66;"></i>
+                                    <i data-lucide="coffee" class="w-3 h-3" style="color: #DE5856;"></i>
                                     Cafe
                                 </span>
                             </div>
@@ -276,7 +417,7 @@
                         <div class="p-6 pt-0">
                             <div class="flex flex-wrap gap-4">
                                 <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
-                                    <i data-lucide="baby" class="w-3 h-3" style="color: #D46D66;"></i>
+                                    <i data-lucide="baby" class="w-3 h-3" style="color: #DE5856;"></i>
                                     Kids (0-4yrs)
                                 </span>
                                 <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
@@ -284,7 +425,7 @@
                                     ASL
                                 </span>
                                 <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
-                                    <i data-lucide="coffee" class="w-3 h-3" style="color: #D46D66;"></i>
+                                    <i data-lucide="coffee" class="w-3 h-3" style="color: #DE5856;"></i>
                                     Cafe
                                 </span>
                             </div>
@@ -304,7 +445,7 @@
                         <div class="p-6 pt-0">
                             <div class="flex flex-wrap gap-4">
                                 <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
-                                    <i data-lucide="baby" class="w-3 h-3" style="color: #D46D66;"></i>
+                                    <i data-lucide="baby" class="w-3 h-3" style="color: #DE5856;"></i>
                                     Kids (0-4yrs)
                                 </span>
                             </div>
@@ -331,9 +472,91 @@
     <!-- Footer Spacer -->
     <div class="h-20 bg-white"></div>
 
+    <!-- Campus Info Modal -->
+    <div id="campusInfoModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target === this) this.classList.add('hidden')">
+        <div class="bg-white rounded-lg max-w-2xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="document.getElementById('campusInfoModal').classList.add('hidden')" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition z-10">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+
+            <div class="p-12">
+                <!-- Pastor Info -->
+                <div class="text-center mb-8">
+                    <img src="Pastor.png" alt="Jim Dahlke" class="w-32 h-32 rounded-full object-cover mx-auto mb-4 ring-4 ring-gray-100">
+                    <div class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Campus Pastor</div>
+                    <h3 class="text-3xl font-bold text-gray-900">Jim Dahlke</h3>
+                </div>
+
+                <!-- Campus Description -->
+                <p class="text-gray-700 leading-relaxed text-base mb-8">
+                    Welcome to the Woodside Bible Church Lake Orion Campus! We were launched in 2009 and have been on an incredible journey of trusting God for His provision. We've seen Him lead us into new opportunities to serve Him and make Him known in our community. In 2015 we moved into our new home in the 85,000 sq. ft. formerly "Always Christmas" store at Canterbury Village. We hope you enjoy learning more about our Lake Orion church and would love to meet you.
+                </p>
+
+                <!-- Contact -->
+                <div class="mb-6">
+                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Contact</div>
+                    <div class="text-xl font-bold text-gray-900">248-481-8069</div>
+                </div>
+
+                <!-- Location -->
+                <div class="mb-10">
+                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Location</div>
+                    <div class="text-base text-gray-900 font-bold">2500 JOSLYN RD.</div>
+                    <div class="text-base text-gray-700">LAKE ORION, MI 48360</div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex gap-4">
+                    <button class="flex-1 bg-woodside-green text-white font-bold py-4 px-8 uppercase tracking-wide hover:opacity-90 transition text-sm">
+                        Message Us
+                    </button>
+                    <button class="flex-1 bg-white border-2 border-gray-900 text-gray-900 font-bold py-4 px-8 uppercase tracking-wide hover:bg-gray-50 transition text-sm">
+                        Staff Directory
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pastor Video Modal -->
+    <div id="pastorVideoModal" class="hidden fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4" onclick="if(event.target === this) closePastorVideo()">
+        <div class="relative w-full max-w-4xl">
+            <button onclick="closePastorVideo()" class="absolute -top-12 right-0 text-white/70 hover:text-white transition z-10">
+                <i data-lucide="x" class="w-8 h-8"></i>
+            </button>
+            <div class="relative" style="padding-top: 56.25%;">
+                <iframe
+                    id="pastorVideoIframe"
+                    title="vimeo-player"
+                    src=""
+                    class="absolute top-0 left-0 w-full h-full"
+                    frameborder="0"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
+                    allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Initialize Lucide icons
         lucide.createIcons();
+
+        // Pastor video modal functions
+        function openPastorVideo() {
+            const modal = document.getElementById('pastorVideoModal');
+            const iframe = document.getElementById('pastorVideoIframe');
+            iframe.src = 'https://player.vimeo.com/video/756459653?h=93d5a3f773&autoplay=1&muted=0';
+            modal.classList.remove('hidden');
+        }
+
+        function closePastorVideo() {
+            const modal = document.getElementById('pastorVideoModal');
+            const iframe = document.getElementById('pastorVideoIframe');
+            iframe.src = '';
+            modal.classList.add('hidden');
+        }
 
         // Countdown timer simulation
         let minutes = 12;
@@ -341,11 +564,12 @@
 
         function updateCountdown() {
             const countdownEl = document.getElementById('countdown');
-            if (!countdownEl) return;
+            const countdownInlineEl = document.getElementById('countdown-inline');
 
             if (seconds === 0) {
                 if (minutes === 0) {
-                    countdownEl.textContent = 'Now';
+                    if (countdownEl) countdownEl.textContent = 'Now';
+                    if (countdownInlineEl) countdownInlineEl.textContent = 'Now';
                     return;
                 }
                 minutes--;
@@ -354,11 +578,9 @@
                 seconds--;
             }
 
-            if (minutes === 0) {
-                countdownEl.textContent = `${seconds}s`;
-            } else {
-                countdownEl.textContent = `${minutes}m`;
-            }
+            const displayText = minutes === 0 ? `${seconds}s` : `${minutes}m`;
+            if (countdownEl) countdownEl.textContent = displayText;
+            if (countdownInlineEl) countdownInlineEl.textContent = displayText;
         }
 
         // Update countdown every second
