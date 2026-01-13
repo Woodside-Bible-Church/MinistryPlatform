@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lake Orion Campus - Woodside Bible Church</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'woodside-green': '#62BB46',
+                        'woodside-dark': '#1a202c',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 31px;
+            top: 60px;
+            bottom: 60px;
+            width: 2px;
+            background: linear-gradient(to bottom, #e5e7eb 0%, #e5e7eb 100%);
+        }
+
+        .timeline-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 3px solid white;
+            position: absolute;
+            left: 24px;
+            top: 32px;
+            z-index: 10;
+        }
+
+        .live-indicator {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+
+        .service-card {
+            transition: all 0.3s ease;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+        }
+
+        .service-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .service-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .pastor-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: #62BB46;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .pastor-profile:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(98, 187, 70, 0.4);
+        }
+
+        .pastor-profile img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid white;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <!-- Main Site Header (Screenshot) -->
+    <div class="bg-white py-4 border-b border-gray-200">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+            <img src="HeaderScreenshot.png" alt="Woodside Bible Church Header" class="w-full">
+        </div>
+    </div>
+
+    <!-- Campus Info Bar -->
+    <div class="bg-white">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
+                <div class="flex items-center gap-4">
+                    <img src="Campus.svg" alt="Lake Orion Campus" class="w-16 h-16">
+                    <div class="flex-1 min-w-0">
+                        <h1 class="text-xl md:text-4xl font-bold text-gray-900 uppercase truncate">Lake Orion</h1>
+                        <div class="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide">Campus</div>
+                    </div>
+                </div>
+
+                <!-- Campus Pastor -->
+                <div>
+                    <a href="#" class="flex items-center gap-4 hover:opacity-80 transition">
+                        <div class="text-right flex-1 min-w-0">
+                            <div class="text-xl md:text-4xl font-bold text-gray-900 uppercase truncate">Jim Dahlke</div>
+                            <div class="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide">Campus Pastor</div>
+                        </div>
+                        <img src="Pastor.png" alt="Jim Dahlke" class="w-16 h-16 rounded-full object-cover">
+                    </a>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-400">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="map-pin" class="w-4 h-4 text-woodside-green"></i>
+                        <span class="font-medium uppercase tracking-wide">2500 Joslyn Rd, Lake Orion, MI 48360</span>
+                    </div>
+                    <div class="hidden md:block w-1 h-1 rounded-full bg-gray-400"></div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="phone" class="w-4 h-4 text-woodside-green"></i>
+                        <a href="tel:248-481-8069" class="hover:text-woodside-green transition font-medium uppercase tracking-wide">248-481-8069</a>
+                    </div>
+                </div>
+                <button class="inline-flex items-center gap-2 text-woodside-green hover:text-green-700 transition text-sm font-medium uppercase tracking-wide">
+                    <i data-lucide="heart" class="w-4 h-4"></i>
+                    <span>Set as Home</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- This Week at Lake Orion -->
+    <div class="bg-white">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <!-- Current Series & Services Section -->
+            <div class="mb-24">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start mb-12">
+                    <!-- Series Image -->
+                    <div class="relative">
+                        <img src="SermonSeries.jpg" alt="Missio Dei: God's Story, Our Role" class="w-full h-auto shadow-xl">
+                    </div>
+
+                    <!-- Sermon Info -->
+                    <div class="flex flex-col justify-between h-full lg:pl-8">
+                        <div>
+                            <h3 class="text-xl md:text-2xl font-bold text-gray-900 uppercase mb-6">Jesus: The Salvation of God</h3>
+
+                            <div class="space-y-4 pl-6">
+                                <div>
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="calendar" class="w-4 h-4 flex-shrink-0" style="color: #D46D66;"></i>
+                                        <div class="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide">Date</div>
+                                    </div>
+                                    <div class="pl-7">
+                                        <div class="text-base md:text-lg font-bold text-gray-900 uppercase">Sunday, January 12</div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center">
+                                    <i data-lucide="mic" class="w-4 h-4 flex-shrink-0 self-start mr-3" style="color: #D46D66;"></i>
+                                    <div>
+                                        <div class="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide">Speaker</div>
+                                        <div class="text-base md:text-lg font-bold text-gray-900 uppercase">Denzel Wright</div>
+                                    </div>
+                                    <img src="Speaker.jpg" alt="Denzel Wright" class="w-12 h-12 rounded-full object-cover flex-shrink-0 ml-6">
+                                </div>
+
+                                <div>
+                                    <div class="flex items-center gap-3 text-gray-700">
+                                        <i data-lucide="map-pin" class="w-4 h-4 flex-shrink-0" style="color: #D46D66;"></i>
+                                        <div class="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide">Civic Center Park</div>
+                                    </div>
+                                    <div class="pl-7">
+                                        <div class="text-base md:text-lg font-bold text-gray-900 uppercase">
+                                            2525 Joslyn Rd, Orion Township, MI 48360
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex items-center gap-3 text-gray-700">
+                                        <i data-lucide="book-open" class="w-4 h-4 flex-shrink-0" style="color: #D46D66;"></i>
+                                        <div class="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wide">Series</div>
+                                    </div>
+                                    <a href="#" class="pl-7 text-base md:text-lg font-bold text-gray-900 uppercase transition inline-flex items-center gap-1.5" style="color: inherit;" onmouseover="this.style.color='#D46D66'" onmouseout="this.style.color='inherit'">
+                                        Missio Dei
+                                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 mt-6">
+                            <a href="#" class="inline-flex items-center justify-center gap-2 px-6 py-3 text-white font-bold transition uppercase tracking-wide flex-1" style="background-color: #D46D66;" onmouseover="this.style.backgroundColor='#C25E58'" onmouseout="this.style.backgroundColor='#D46D66'">
+                                <i data-lucide="notebook-pen" class="w-4 h-4"></i>
+                                Take Notes
+                            </a>
+                            <a href="#" class="inline-flex items-center justify-center gap-2 px-6 py-3 text-white font-semibold transition uppercase tracking-wide flex-1" style="background-color: #39AEDA;" onmouseover="this.style.backgroundColor='#2A9BC8'" onmouseout="this.style.backgroundColor='#39AEDA'">
+                                <i data-lucide="tv" class="w-4 h-4"></i>
+                                Watch Live
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sunday Morning Services -->
+                <div>
+                <div class="service-grid max-w-4xl">
+                    <!-- 8:30 AM - LIVE NOW -->
+                    <div class="service-card bg-gray-50 shadow-lg overflow-hidden">
+                        <div class="p-6 flex items-start justify-between gap-4">
+                            <div class="text-3xl font-bold text-gray-900">8:30 AM</div>
+                            <div class="inline-flex items-center gap-2 text-red-500 font-bold text-xs live-indicator flex-shrink-0">
+                                <i data-lucide="radio" class="w-3 h-3"></i>
+                                LIVE
+                            </div>
+                        </div>
+                        <div class="px-6"></div>
+                        <div class="p-6 pt-0">
+                            <div class="flex flex-wrap gap-4">
+                                <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
+                                    <i data-lucide="baby" class="w-3 h-3" style="color: #D46D66;"></i>
+                                    Kids (0-4yrs)
+                                </span>
+                                <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
+                                    <i data-lucide="hand" class="w-3 h-3" style="color: #39AEDA;"></i>
+                                    ASL
+                                </span>
+                                <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
+                                    <i data-lucide="coffee" class="w-3 h-3" style="color: #D46D66;"></i>
+                                    Cafe
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 10:00 AM - NEXT UP -->
+                    <div class="service-card bg-gray-50 shadow overflow-hidden">
+                        <div class="p-6 flex items-start justify-between gap-4">
+                            <div class="text-3xl font-bold text-gray-900">10:00 AM</div>
+                            <div class="inline-flex items-center gap-1.5 text-gray-600 text-xs flex-shrink-0">
+                                <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                                <span class="font-medium" id="countdown">12m</span>
+                            </div>
+                        </div>
+                        <div class="px-6"></div>
+                        <div class="p-6 pt-0">
+                            <div class="flex flex-wrap gap-4">
+                                <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
+                                    <i data-lucide="baby" class="w-3 h-3" style="color: #D46D66;"></i>
+                                    Kids (0-4yrs)
+                                </span>
+                                <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
+                                    <i data-lucide="hand" class="w-3 h-3" style="color: #39AEDA;"></i>
+                                    ASL
+                                </span>
+                                <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
+                                    <i data-lucide="coffee" class="w-3 h-3" style="color: #D46D66;"></i>
+                                    Cafe
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 11:30 AM - Future -->
+                    <div class="service-card bg-gray-50 shadow overflow-hidden">
+                        <div class="p-6 flex items-start justify-between gap-4">
+                            <div class="text-3xl font-bold text-gray-900">11:30 AM</div>
+                            <div class="inline-flex items-center gap-1.5 text-gray-600 text-xs flex-shrink-0">
+                                <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                                <span class="font-medium">1h 42m</span>
+                            </div>
+                        </div>
+                        <div class="px-6"></div>
+                        <div class="p-6 pt-0">
+                            <div class="flex flex-wrap gap-4">
+                                <span class="inline-flex items-center gap-1.5 text-gray-700 text-xs font-medium">
+                                    <i data-lucide="baby" class="w-3 h-3" style="color: #D46D66;"></i>
+                                    Kids (0-4yrs)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Announcements Section -->
+    <div class="bg-white">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
+            <!-- Announcements Widget -->
+            <div data-params="@CongregationID=9" data-mode="carousel" id="announcements-widget-root"></div>
+        </div>
+    </div>
+
+    <div class="bg-white">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Footer Spacer -->
+    <div class="h-20 bg-white"></div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Countdown timer simulation
+        let minutes = 12;
+        let seconds = 0;
+
+        function updateCountdown() {
+            const countdownEl = document.getElementById('countdown');
+            if (!countdownEl) return;
+
+            if (seconds === 0) {
+                if (minutes === 0) {
+                    countdownEl.textContent = 'Now';
+                    return;
+                }
+                minutes--;
+                seconds = 59;
+            } else {
+                seconds--;
+            }
+
+            if (minutes === 0) {
+                countdownEl.textContent = `${seconds}s`;
+            } else {
+                countdownEl.textContent = `${minutes}m`;
+            }
+        }
+
+        // Update countdown every second
+        setInterval(updateCountdown, 1000);
+    </script>
+
+    <!-- Load announcements widget -->
+    <script src="https://announcements-widget.vercel.app/widget/announcements-widget.js"></script>
+</body>
+</html>
