@@ -154,7 +154,7 @@ export default function AnnouncementsPage() {
 
   // Dropdowns data
   const [congregations, setCongregations] = useState<CongregationOption[]>([]);
-  const [relationType, setRelationType] = useState<"none" | "event" | "opportunity">("none");
+  const [relationType, setRelationType] = useState<"none" | "event" | "opportunity">("event");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [eventSearch, setEventSearch] = useState("");
   const [eventSearchLoading, setEventSearchLoading] = useState(false);
@@ -444,7 +444,7 @@ export default function AnnouncementsPage() {
       eventID: null,
       opportunityID: null,
     });
-    setRelationType("none");
+    setRelationType("event");
     // Clear search states
     setEventSearch("");
     setEventOptions([]);
