@@ -1647,10 +1647,10 @@ export default function AnnouncementsPage() {
               </div>
 
               {/* Dates */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Start Date <span className="text-red-500">*</span>
+                    When do you want to start announcing this? <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="datetime-local"
@@ -1664,7 +1664,7 @@ export default function AnnouncementsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    End Date <span className="text-red-500">*</span>
+                    When do you want to stop announcing this? <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="datetime-local"
