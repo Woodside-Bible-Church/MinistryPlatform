@@ -170,7 +170,7 @@
 
         <!-- Campus Info Overlay -->
         <div class="absolute bottom-0 left-0 right-0">
-            <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pb-8 md:pb-12">
+            <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pb-4 md:pb-6">
                 <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-3">
                     <button onclick="document.getElementById('campusInfoModal').classList.remove('hidden')" class="flex items-center gap-4 group cursor-pointer hover:opacity-90 transition text-left">
                         <img src="Campus.svg" alt="Lake Orion Campus" class="w-16 h-16 grayscale group-hover:grayscale-0 transition-all duration-300">
@@ -274,29 +274,38 @@
                                 <a href="#" class="flex items-center gap-3 px-4 py-3 rounded transition hover:bg-black/5">
                                     <img src="Pastor.png" alt="Part 1 Speaker" class="w-16 h-16 rounded-full object-cover flex-shrink-0">
                                     <div class="flex-1 min-w-0">
-                                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Part 1:&nbsp;&nbsp;Jan 4</div>
+                                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Part 1:&nbsp;&nbsp;Jan 3 - 4</div>
                                         <div class="text-base font-bold text-gray-900 uppercase leading-tight">God's Mission, God's Image</div>
                                         <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mt-1">Jim Dahlke</div>
                                     </div>
                                 </a>
                                 <div class="relative flex items-center gap-3 px-4 py-3 text-white shadow-md" style="background-color: #39AEDA;">
-                                    <img src="Speaker.jpg" alt="Denzel Wright" class="w-16 h-16 rounded-full object-cover flex-shrink-0">
+                                    <div class="relative">
+                                        <img src="Speaker.jpg" alt="Denzel Wright" class="w-16 h-16 rounded-full object-cover flex-shrink-0">
+                                        <div class="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center live-indicator">
+                                            <i data-lucide="radio" class="w-2.5 h-2.5 text-white"></i>
+                                        </div>
+                                    </div>
                                     <div class="flex-1 min-w-0">
                                         <div class="text-xs font-semibold text-white uppercase tracking-wide">Part 2:&nbsp;&nbsp;Jan 11 - 12</div>
                                         <div class="text-base font-bold uppercase leading-tight">Jesus: The Salvation of God</div>
                                         <div class="text-xs font-semibold text-white uppercase tracking-wide mt-1">Denzel Wright</div>
                                     </div>
-                                    <div class="absolute top-2 right-2 inline-flex items-center gap-1 text-red-500 font-bold text-[10px] live-indicator">
-                                        <i data-lucide="radio" class="w-3 h-3"></i>
-                                        LIVE
+                                    <div class="absolute top-2 right-2 inline-flex items-center gap-1 text-white font-bold text-[10px]">
+                                        <i data-lucide="map-pin" class="w-3 h-3"></i>
+                                        CHURCH IN THE PARK!
                                     </div>
                                 </div>
-                                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded transition hover:bg-black/5">
+                                <a href="#" class="relative flex items-center gap-3 px-4 py-3 rounded transition hover:bg-black/5">
                                     <img src="Pastor.png" alt="Part 3 Speaker" class="w-16 h-16 rounded-full object-cover flex-shrink-0">
                                     <div class="flex-1 min-w-0">
-                                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Part 3:&nbsp;&nbsp;Jan 17 - 18</div>
+                                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Part 3:&nbsp;&nbsp;Jan 18</div>
                                         <div class="text-base font-bold text-gray-900 uppercase leading-tight">A Blessing to All Nations</div>
                                         <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mt-1">Jim Dahlke</div>
+                                    </div>
+                                    <div class="absolute top-2 right-2 inline-flex items-center gap-1 text-orange-500 font-bold text-[10px]">
+                                        <i data-lucide="clock" class="w-3 h-3"></i>
+                                        NEW TIMES!
                                     </div>
                                 </a>
                                 <a href="#" class="flex items-center gap-3 px-4 py-3 rounded transition hover:bg-black/5">
@@ -425,9 +434,8 @@
                             <a href="#" class="relative inline-flex items-center justify-center gap-2 px-8 py-4 text-white font-semibold transition uppercase tracking-wide flex-1 shadow-md" style="background-color: #39AEDA;" onmouseover="this.style.backgroundColor='#2A9BC8'" onmouseout="this.style.backgroundColor='#39AEDA'">
                                 <i data-lucide="play" class="w-5 h-5 fill-white"></i>
                                 Watch
-                                <div class="absolute top-2 right-2 inline-flex items-center gap-1 text-red-500 font-bold text-[10px] live-indicator">
-                                    <i data-lucide="radio" class="w-3 h-3"></i>
-                                    LIVE
+                                <div class="absolute top-2 right-2 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center live-indicator">
+                                    <i data-lucide="radio" class="w-2.5 h-2.5 text-white"></i>
                                 </div>
                             </a>
                         </div>
