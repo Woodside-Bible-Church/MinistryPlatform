@@ -109,6 +109,17 @@
         .series-card {
             position: relative;
             overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .series-card:hover {
+            transform: scale(1.01);
+            box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.25);
+        }
+
+        .series-card:active {
+            transform: scale(1.005);
+            box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.2);
         }
 
         .series-image {
