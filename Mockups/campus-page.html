@@ -150,6 +150,43 @@
             transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1),
                         opacity 0.8s cubic-bezier(0.8, 0, 1, 1);
         }
+
+        /* Podcast popover with glassmorphism */
+        .podcast-popover {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(30px) saturate(200%);
+            -webkit-backdrop-filter: blur(30px) saturate(200%);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+        }
+
+        .podcast-popover.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-12px);
+        }
+
+        .podcast-popover::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid rgba(255, 255, 255, 0.4);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
     </style>
 </head>
 <body class="bg-white">
@@ -241,7 +278,7 @@
 
             <!-- Current Series & Services Section -->
             <div class="mb-8">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12 lg:grid-rows-1">
                     <!-- Series Image - Slide/Scale Card -->
                     <div class="series-card shadow-xl cursor-pointer" id="seriesCard" onclick="this.classList.toggle('expanded')" style="aspect-ratio: 1080/1350; background-image: url('VerticalBG.png'); background-size: cover; background-position: center;">
                         <!-- Info Icon -->
@@ -271,7 +308,7 @@
                     <div class="flex flex-col shadow-xl" style="background-image: url('VerticalBG.png'); background-size: cover; background-position: center;">
                         <div class="flex-1 flex flex-col justify-between p-6">
                             <div class="flex-1 flex flex-col justify-center space-y-3">
-                                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded transition hover:bg-black/5">
+                                <a href="#" onclick="switchSermon(1); return false;" class="sermon-link flex items-center gap-3 px-4 py-3 transition hover:bg-black/5" data-sermon="1">
                                     <img src="Pastor.png" alt="Part 1 Speaker" class="w-16 h-16 rounded-full object-cover flex-shrink-0">
                                     <div class="flex-1 min-w-0">
                                         <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Part 1:&nbsp;&nbsp;Jan 3 - 4</div>
@@ -279,7 +316,7 @@
                                         <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mt-1">Jim Dahlke</div>
                                     </div>
                                 </a>
-                                <div class="relative flex items-center gap-3 px-4 py-3 text-white shadow-md" style="background-color: #39AEDA;">
+                                <a href="#" onclick="switchSermon(2); return false;" class="sermon-link relative flex items-center gap-3 px-4 py-3 text-white" style="background-color: #39AEDA;" data-sermon="2">
                                     <div class="relative">
                                         <img src="Speaker.jpg" alt="Denzel Wright" class="w-16 h-16 rounded-full object-cover flex-shrink-0">
                                         <div class="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center live-indicator">
@@ -287,42 +324,46 @@
                                         </div>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <div class="text-xs font-semibold text-white uppercase tracking-wide">Part 2:&nbsp;&nbsp;Jan 11 - 12</div>
+                                        <div class="text-xs font-semibold text-white uppercase tracking-wide">Part 2:&nbsp;&nbsp;Jan 12</div>
                                         <div class="text-base font-bold uppercase leading-tight">Jesus: The Salvation of God</div>
                                         <div class="text-xs font-semibold text-white uppercase tracking-wide mt-1">Denzel Wright</div>
                                     </div>
-                                    <div class="absolute top-2 right-2 inline-flex items-center gap-1 text-white font-bold text-[10px]">
+                                    <div class="absolute top-2 right-2 inline-flex items-center gap-1 font-bold text-[10px] badge-text" style="color: #E65E5B;">
                                         <i data-lucide="map-pin" class="w-3 h-3"></i>
-                                        CHURCH IN THE PARK!
+                                        CHURCH IN THE PARK
                                     </div>
-                                </div>
-                                <a href="#" class="relative flex items-center gap-3 px-4 py-3 rounded transition hover:bg-black/5">
+                                </a>
+                                <a href="#" onclick="switchSermon(3); return false;" class="sermon-link relative flex items-center gap-3 px-4 py-3 transition hover:bg-black/5" data-sermon="3">
                                     <img src="Pastor.png" alt="Part 3 Speaker" class="w-16 h-16 rounded-full object-cover flex-shrink-0">
                                     <div class="flex-1 min-w-0">
                                         <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Part 3:&nbsp;&nbsp;Jan 18</div>
                                         <div class="text-base font-bold text-gray-900 uppercase leading-tight">A Blessing to All Nations</div>
                                         <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mt-1">Jim Dahlke</div>
                                     </div>
-                                    <div class="absolute top-2 right-2 inline-flex items-center gap-1 text-orange-500 font-bold text-[10px]">
-                                        <i data-lucide="clock" class="w-3 h-3"></i>
-                                        NEW TIMES!
-                                    </div>
                                 </a>
-                                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded transition hover:bg-black/5">
+                                <a href="#" onclick="switchSermon(4); return false;" class="sermon-link relative flex items-center gap-3 px-4 py-3 transition hover:bg-black/5" data-sermon="4">
                                     <img src="AltPastor.jpg" alt="Part 4 Speaker" class="w-16 h-16 rounded-full object-cover flex-shrink-0">
                                     <div class="flex-1 min-w-0">
                                         <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Part 4:&nbsp;&nbsp;Jan 25</div>
                                         <div class="text-base font-bold text-gray-900 uppercase leading-tight">Saved for a Greater Purpose</div>
                                         <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mt-1">Brad House</div>
                                     </div>
+                                    <div class="absolute top-2 right-2 inline-flex items-center gap-1 font-bold text-[10px] badge-text" style="color: #E65E5B;">
+                                        <i data-lucide="clock" class="w-3 h-3"></i>
+                                        NEW SERVICE TIMES!
+                                    </div>
                                 </a>
-                                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded transition hover:bg-black/5">
+                                <a href="#" onclick="switchSermon(5); return false;" class="sermon-link relative flex items-center gap-3 px-4 py-3 transition hover:bg-black/5" data-sermon="5">
                                     <div class="w-16 h-16 flex-shrink-0 rounded-full bg-gray-200/60 flex items-center justify-center">
                                         <span class="text-3xl font-bold text-gray-500">5</span>
                                     </div>
                                     <div class="flex-1 min-w-0">
                                         <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Part 5:&nbsp;&nbsp;Feb 1</div>
                                         <div class="text-base font-bold text-gray-900 uppercase leading-tight">A Servant for the Nations</div>
+                                    </div>
+                                    <div class="absolute top-2 right-2 inline-flex items-center gap-1 font-bold text-[10px] badge-text" style="color: #E65E5B;">
+                                        <i data-lucide="calendar-check" class="w-3 h-3"></i>
+                                        RSVP TODAY!
                                     </div>
                                 </a>
                             </div>
@@ -331,120 +372,21 @@
                             <div class="mt-4 px-4">
                                 <a href="#" class="flex items-center justify-center gap-2 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wide hover:text-gray-900 transition">
                                     <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
-                                    View Full Series
+                                    View Series
                                 </a>
                             </div>
                         </div>
                     </div>
 
                     <!-- Sermon Info -->
-                    <div class="flex flex-col p-8 shadow-xl" style="background-image: url('VerticalBG.png'); background-size: cover; background-position: center;">
-                        <img src="SermonName.png" alt="Jesus: The Salvation of God" class="w-full h-auto mb-6">
-
-                        <div class="space-y-8 flex-1 flex flex-col justify-center">
-                            <div>
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="map-pin" class="w-5 h-5 flex-shrink-0" style="color: #E65E5B;"></i>
-                                    <div class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Where</div>
-                                </div>
-                                <div class="text-base font-bold text-gray-900 uppercase leading-snug ml-7">
-                                    Civic Center Park<br>
-                                    2525 Joslyn Rd<br>
-                                    Orion Township, MI 48360
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="clock" class="w-5 h-5 flex-shrink-0" style="color: #E65E5B;"></i>
-                                    <div class="text-sm font-semibold text-gray-600 uppercase tracking-wide">When</div>
-                                </div>
-
-                                <div class="space-y-4">
-                                    <!-- Saturday Service -->
-                                    <div>
-                                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2 ml-7">Saturday — January 11</div>
-                                        <div class="space-y-2 ml-10">
-                                            <div class="flex items-center justify-between gap-3">
-                                                <div class="text-xl font-bold text-gray-900">5:00 PM</div>
-                                                <div class="flex-1 h-px bg-gray-600/30"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Sunday Services -->
-                                    <div>
-                                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2 ml-7">Sunday — January 12</div>
-                                        <div class="space-y-2 ml-10 mb-3">
-                                            <!-- 8:30 AM -->
-                                            <div class="flex items-center justify-between gap-3">
-                                                <div class="text-xl font-bold text-gray-900">8:30 AM</div>
-                                                <div class="flex-1 h-px bg-gray-600/30"></div>
-                                                <div class="flex items-center gap-2">
-                                                    <i data-lucide="baby" class="w-5 h-5" style="color: #E65E5B;"></i>
-                                                    <i data-lucide="hand" class="w-5 h-5" style="color: #39AEDA;"></i>
-                                                    <i data-lucide="coffee" class="w-5 h-5" style="color: #E65E5B;"></i>
-                                                </div>
-                                            </div>
-                                            <!-- 10:00 AM -->
-                                            <div class="flex items-center justify-between gap-3">
-                                                <div class="text-xl font-bold text-gray-900">10:00 AM</div>
-                                                <div class="flex-1 h-px bg-gray-600/30"></div>
-                                                <div class="flex items-center gap-2">
-                                                    <i data-lucide="baby" class="w-5 h-5" style="color: #E65E5B;"></i>
-                                                    <i data-lucide="hand" class="w-5 h-5" style="color: #39AEDA;"></i>
-                                                    <i data-lucide="coffee" class="w-5 h-5" style="color: #E65E5B;"></i>
-                                                </div>
-                                            </div>
-                                            <!-- 11:30 AM -->
-                                            <div class="flex items-center justify-between gap-3">
-                                                <div class="text-xl font-bold text-gray-900">11:30 AM</div>
-                                                <div class="flex-1 h-px bg-gray-600/30"></div>
-                                                <div class="flex items-center gap-2">
-                                                    <i data-lucide="baby" class="w-5 h-5" style="color: #E65E5B;"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Legend -->
-                                <div class="flex items-center justify-center gap-x-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                                    <div class="flex items-center gap-1.5">
-                                        <i data-lucide="baby" class="w-3.5 h-3.5" style="color: #E65E5B;"></i>
-                                        <span>Kids (0-4yrs)</span>
-                                    </div>
-                                    <div class="flex items-center gap-1.5">
-                                        <i data-lucide="hand" class="w-3.5 h-3.5" style="color: #39AEDA;"></i>
-                                        <span>ASL</span>
-                                    </div>
-                                    <div class="flex items-center gap-1.5">
-                                        <i data-lucide="coffee" class="w-3.5 h-3.5" style="color: #E65E5B;"></i>
-                                        <span>Cafe</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-3 mt-8">
-                            <a href="#" class="inline-flex items-center justify-center gap-2 px-8 py-4 font-bold transition uppercase tracking-wide flex-1 shadow-md" style="background-color: #E65E5B; color: #F3D54B;" onmouseover="this.style.backgroundColor='#D04F4C'" onmouseout="this.style.backgroundColor='#E65E5B'">
-                                <i data-lucide="notebook-pen" class="w-5 h-5" style="color: #F3D54B;"></i>
-                                Notes
-                            </a>
-                            <a href="#" class="relative inline-flex items-center justify-center gap-2 px-8 py-4 text-white font-semibold transition uppercase tracking-wide flex-1 shadow-md" style="background-color: #39AEDA;" onmouseover="this.style.backgroundColor='#2A9BC8'" onmouseout="this.style.backgroundColor='#39AEDA'">
-                                <i data-lucide="play" class="w-5 h-5 fill-white"></i>
-                                Watch
-                                <div class="absolute top-2 right-2 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center live-indicator">
-                                    <i data-lucide="radio" class="w-2.5 h-2.5 text-white"></i>
-                                </div>
-                            </a>
-                        </div>
+                    <div id="sermonInfo" class="flex flex-col p-8 shadow-xl" style="background-image: url('VerticalBG.png'); background-size: cover; background-position: center;">
+                        <!-- Content will be dynamically inserted here -->
                     </div>
                 </div>
 
                 <!-- View All Series Link -->
                 <div class="flex justify-end mt-4">
-                    <a href="#" class="text-xs font-semibold text-gray-600/70 uppercase tracking-wide hover:text-gray-900 transition">View All Sermon Series →</a>
+                    <a href="#" class="text-xs font-semibold text-gray-600/70 uppercase tracking-wide hover:text-gray-900 transition">View All Sermons →</a>
                 </div>
 
                 <!-- Sunday Morning Services -->
@@ -534,7 +476,7 @@
 
     <!-- Announcements Section -->
     <div class="bg-white">
-        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pb-8">
             <!-- Announcements Widget -->
             <div data-params="@CongregationID=9" data-mode="carousel" id="announcements-widget-root"></div>
         </div>
@@ -632,6 +574,395 @@
             modal.classList.add('hidden');
         }
 
+        // Sermon data
+        const sermonData = {
+            1: {
+                title: "God's Mission, God's Image",
+                isPast: true,
+                scripture: {
+                    reference: "Genesis 1:26-31",
+                    url: "https://www.bible.com/bible/59/GEN.1.ESV"
+                },
+                bigIdea: "God created humanity in His image to fill the earth with His glory.",
+                points: [
+                    "Humanity was given God's image. (vv. 26-27)",
+                    "Humanity was given God's blessing. (vv. 28a, 29-30)",
+                    "Humanity was given God's mission. (v. 28b, 31)"
+                ]
+            },
+            2: {
+                title: "Jesus: The Salvation of God",
+                location: "Civic Center Park<br>2525 Joslyn Rd<br>Orion Township, MI 48360",
+                dates: {
+                    sunday: "January 12"
+                },
+                times: [
+                    { time: "10:00 AM", day: "sunday", amenities: ["baby", "coffee"] }
+                ],
+                isLive: true,
+                instructions: "Park in the Civic Center Park lot off Joslyn Rd. Setup begins at 9:00 AM."
+            },
+            3: {
+                title: "A Blessing to All Nations",
+                location: "2500 Joslyn Rd<br>Lake Orion, MI 48360",
+                dates: {
+                    sunday: "January 19"
+                },
+                times: [
+                    { time: "9:30 AM", day: "sunday", amenities: ["baby", "hand", "coffee"] },
+                    { time: "11:00 AM", day: "sunday", amenities: ["baby", "hand", "coffee"] }
+                ],
+                isLive: false
+            },
+            4: {
+                title: "Saved for a Greater Purpose",
+                location: "2500 Joslyn Rd<br>Lake Orion, MI 48360",
+                dates: {
+                    sunday: "January 26"
+                },
+                times: [
+                    { time: "8:30 AM", day: "sunday", amenities: ["baby", "hand", "coffee"] },
+                    { time: "10:00 AM", day: "sunday", amenities: ["baby", "hand", "coffee"] },
+                    { time: "11:30 AM", day: "sunday", amenities: ["baby"] }
+                ],
+                isLive: false
+            },
+            5: {
+                title: "A Servant for the Nations",
+                location: "2500 Joslyn Rd<br>Lake Orion, MI 48360",
+                dates: {
+                    sunday: "February 2"
+                },
+                times: [
+                    { time: "8:30 AM", day: "sunday", amenities: ["baby", "hand", "coffee"] },
+                    { time: "10:00 AM", day: "sunday", amenities: ["baby", "hand", "coffee"] },
+                    { time: "11:30 AM", day: "sunday", amenities: ["baby"] }
+                ],
+                isLive: false
+            }
+        };
+
+        // Switch sermon function
+        function switchSermon(sermonId) {
+            const sermon = sermonData[sermonId];
+            if (!sermon) return;
+
+            // Update active state
+            document.querySelectorAll('.sermon-link').forEach(link => {
+                const linkSermonId = parseInt(link.getAttribute('data-sermon'));
+                const badge = link.querySelector('.badge-text');
+                const speakerImg = link.querySelector('img');
+
+                if (linkSermonId === sermonId) {
+                    // Set as active (blue background, white text, shadow, color image)
+                    link.style.backgroundColor = '#39AEDA';
+                    link.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+                    link.classList.remove('hover:bg-black/5');
+
+                    // Remove grayscale from speaker image
+                    if (speakerImg) {
+                        speakerImg.style.filter = '';
+                    }
+
+                    // Change badge to white when selected
+                    if (badge) {
+                        badge.style.color = 'white';
+                    }
+
+                    link.querySelectorAll('.text-gray-600, .text-gray-900').forEach(el => {
+                        if (!el.closest('.absolute')) { // Don't change badge text
+                            el.classList.remove('text-gray-600', 'text-gray-900');
+                            el.classList.add('text-white');
+                        }
+                    });
+                } else {
+                    // All other parts return to gray/default state (no shadow, grayscale image)
+                    link.style.backgroundColor = '';
+                    link.style.boxShadow = '';
+                    link.classList.add('hover:bg-black/5');
+
+                    // Add grayscale to speaker image
+                    if (speakerImg) {
+                        speakerImg.style.filter = 'grayscale(100%)';
+                    }
+
+                    // Change badge to red when not selected
+                    if (badge) {
+                        badge.style.color = '#E65E5B';
+                    }
+
+                    link.querySelectorAll('.text-white').forEach(el => {
+                        if (!el.closest('.absolute')) { // Don't change badge text
+                            el.classList.remove('text-white');
+                            el.classList.add('text-gray-600');
+                        }
+                    });
+                    link.querySelectorAll('.text-base').forEach(el => {
+                        if (!el.closest('.absolute')) {
+                            el.classList.remove('text-white');
+                            el.classList.add('text-gray-900');
+                        }
+                    });
+                }
+            });
+
+            // Only process times and amenities if this is not a past sermon
+            let timesHTML = '';
+            let legendHTML = '';
+
+            if (!sermon.isPast && sermon.times) {
+                // Collect unique amenities present in this sermon first
+                const uniqueAmenities = new Set();
+                sermon.times.forEach(service => {
+                    service.amenities.forEach(amenity => uniqueAmenities.add(amenity));
+                });
+
+                // Build amenity color mapping with alternating colors
+                const colors = ['#E65E5B', '#39AEDA'];
+                const amenityColors = {};
+                Array.from(uniqueAmenities).forEach((amenity, index) => {
+                    amenityColors[amenity] = colors[index % colors.length];
+                });
+
+                // Build amenity icons HTML using dynamic colors
+                const amenityIcons = {};
+                Object.keys(amenityColors).forEach(amenity => {
+                    amenityIcons[amenity] = `<i data-lucide="${amenity}" class="w-5 h-5" style="color: ${amenityColors[amenity]};"></i>`;
+                });
+
+                // Group times by day
+                const saturdayTimes = sermon.times.filter(t => t.day === 'saturday');
+                const sundayTimes = sermon.times.filter(t => t.day === 'sunday');
+
+                timesHTML = '<div class="space-y-4">';
+
+                // Saturday services
+                if (saturdayTimes.length > 0) {
+                    timesHTML += `
+                        <div>
+                            <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2 ml-7">Saturday — ${sermon.dates.saturday}</div>
+                            <div class="space-y-2 ml-10">`;
+
+                    saturdayTimes.forEach(service => {
+                        timesHTML += `
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="text-xl font-bold text-gray-900">${service.time}</div>
+                                <div class="flex-1 h-px bg-gray-600/30"></div>
+                                ${service.amenities.length > 0 ? `<div class="flex items-center gap-2">${service.amenities.map(a => amenityIcons[a]).join('')}</div>` : ''}
+                            </div>`;
+                    });
+
+                    timesHTML += `</div></div>`;
+                }
+
+                // Sunday services
+                if (sundayTimes.length > 0) {
+                    timesHTML += `
+                        <div>
+                            <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2 ml-7">Sunday — ${sermon.dates.sunday}</div>
+                            <div class="space-y-2 ml-10 mb-3">`;
+
+                    sundayTimes.forEach(service => {
+                        timesHTML += `
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="text-xl font-bold text-gray-900">${service.time}</div>
+                                <div class="flex-1 h-px bg-gray-600/30"></div>
+                                ${service.amenities.length > 0 ? `<div class="flex items-center gap-2">${service.amenities.map(a => amenityIcons[a]).join('')}</div>` : ''}
+                            </div>`;
+                    });
+
+                    timesHTML += `</div></div>`;
+                }
+
+                timesHTML += '</div>';
+
+                // Build legend with alternating colors
+                const amenityLabels = {
+                    baby: 'Kids (0-4yrs)',
+                    hand: 'ASL',
+                    coffee: 'Cafe'
+                };
+
+                if (uniqueAmenities.size > 0) {
+                    const amenitiesArray = Array.from(uniqueAmenities);
+                    legendHTML = '<div class="flex items-center justify-center gap-x-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">';
+
+                    amenitiesArray.forEach((amenity, index) => {
+                        const color = colors[index % colors.length];
+                        legendHTML += `
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="${amenity}" class="w-3.5 h-3.5" style="color: ${color};"></i>
+                                <span>${amenityLabels[amenity]}</span>
+                            </div>
+                        `;
+                    });
+
+                    legendHTML += '</div>';
+                }
+            }
+
+            // Build complete HTML
+            const html = `
+                <div class="relative mb-6">
+                    <div class="absolute top-0 right-0 opacity-[0.08] pointer-events-none" style="line-height: 1;">
+                        <div class="text-[180px] font-black text-gray-900">${sermonId}</div>
+                    </div>
+                    <div class="relative py-4">
+                        <h3 class="text-xl md:text-2xl font-black text-gray-900 uppercase tracking-tight leading-tight text-left">${sermon.title}</h3>
+                    </div>
+                </div>
+
+                ${sermon.isPast ? `
+                    <div class="space-y-6 flex-1 flex flex-col">
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <i data-lucide="book-open" class="w-5 h-5 flex-shrink-0" style="color: #E65E5B;"></i>
+                                <div class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Scripture</div>
+                            </div>
+                            <div class="ml-7">
+                                <a href="${sermon.scripture.url}" target="_blank" class="text-base font-bold text-gray-900 uppercase leading-snug hover:underline" style="color: #39AEDA;">
+                                    ${sermon.scripture.reference}
+                                </a>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <i data-lucide="lightbulb" class="w-5 h-5 flex-shrink-0" style="color: #E65E5B;"></i>
+                                <div class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Big Idea</div>
+                            </div>
+                            <div class="text-base text-gray-900 leading-relaxed ml-7">
+                                ${sermon.bigIdea}
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center gap-2 mb-3">
+                                <i data-lucide="list" class="w-5 h-5 flex-shrink-0" style="color: #E65E5B;"></i>
+                                <div class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Points</div>
+                            </div>
+                            <div class="ml-7 space-y-2">
+                                ${sermon.points.map((point, index) => `
+                                    <div class="flex gap-3">
+                                        <span class="text-sm font-bold text-gray-600">${index + 1}.</span>
+                                        <span class="text-base text-gray-900">${point}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                ` : `
+                    <div class="space-y-8 flex-1 flex flex-col">
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <i data-lucide="map-pin" class="w-5 h-5 flex-shrink-0" style="color: #E65E5B;"></i>
+                                <div class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Where</div>
+                            </div>
+                            <div class="text-base font-bold text-gray-900 uppercase leading-snug ml-7">
+                                ${sermon.location}
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <i data-lucide="clock" class="w-5 h-5 flex-shrink-0" style="color: #E65E5B;"></i>
+                                <div class="text-sm font-semibold text-gray-600 uppercase tracking-wide">When</div>
+                            </div>
+
+                            ${timesHTML}
+
+                            <!-- Legend (dynamic based on available amenities) -->
+                            ${legendHTML}
+                        </div>
+
+                        ${sermon.instructions ? `
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <i data-lucide="info" class="w-5 h-5 flex-shrink-0" style="color: #E65E5B;"></i>
+                                <div class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Instructions</div>
+                            </div>
+                            <div class="text-base font-bold text-gray-900 uppercase leading-snug ml-7">
+                                ${sermon.instructions}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                `}
+
+                <div class="flex gap-3 mt-8">
+                    ${sermonId === 1 ? `
+                        <a href="#" class="inline-flex items-center justify-center gap-2 px-8 py-4 font-bold transition uppercase tracking-wide flex-1 shadow-md" style="background-color: #E65E5B; color: #F3D54B;" onmouseover="this.style.backgroundColor='#D04F4C'" onmouseout="this.style.backgroundColor='#E65E5B'">
+                            <i data-lucide="notebook-pen" class="w-5 h-5" style="color: #F3D54B;"></i>
+                            Notes
+                        </a>
+                        <button onclick="togglePodcastPopover(event)" class="relative inline-flex items-center justify-center gap-2 px-8 py-4 text-white font-semibold transition uppercase tracking-wide flex-1 shadow-md" style="background-color: #39AEDA;" onmouseover="this.style.backgroundColor='#2A9BC8'" onmouseout="this.style.backgroundColor='#39AEDA'">
+                            <i data-lucide="play" class="w-5 h-5 fill-white"></i>
+                            Watch
+                            <div id="podcastPopover" class="podcast-popover shadow-2xl pt-2 pb-3 px-3">
+                                <div class="flex items-center gap-2">
+                                    <a href="#" class="flex flex-col items-center gap-1.5 p-2 rounded-lg hover:bg-white/40 transition group">
+                                        <svg class="w-10 h-10" viewBox="0 0 496 512" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M248 8C111.1 8 0 119.1 0 256s111.1 248 248 248 248-111.1 248-248S384.9 8 248 8zm100.7 364.9c-4.2 0-6.8-1.3-10.7-3.6-62.4-37.6-135-39.2-206.7-24.5-3.9 1-9 2.6-11.9 2.6-9.7 0-15.8-7.7-15.8-15.8 0-10.3 6.1-15.2 13.6-16.8 81.9-18.1 165.6-16.5 237 26.2 6.1 3.9 9.7 7.4 9.7 16.5s-7.1 15.4-15.2 15.4zm26.9-65.6c-5.2 0-8.7-2.3-12.3-4.2-62.5-37-155.7-51.9-238.6-29.4-4.8 1.3-7.4 2.6-11.9 2.6-10.7 0-19.4-8.7-19.4-19.4s5.2-17.8 15.5-20.7c27.8-7.8 56.2-13.6 97.8-13.6 64.9 0 127.6 16.1 177 45.5 8.1 4.8 11.3 11 11.3 19.7-.1 10.8-8.5 19.5-19.4 19.5zm31-76.2c-5.2 0-8.4-1.3-12.9-3.9-71.2-42.5-198.5-52.7-280.9-29.7-3.6 1-8.1 2.6-12.9 2.6-13.2 0-23.3-10.3-23.3-23.6 0-13.6 8.4-21.3 17.4-23.9 35.2-10.3 74.6-15.2 117.5-15.2 73 0 149.5 15.2 205.4 47.8 7.8 4.5 12.9 10.7 12.9 22.6 0 13.6-11 23.3-23.2 23.3z" fill="#1DB954"/>
+                                        </svg>
+                                        <span class="text-[10px] font-bold text-gray-800 uppercase tracking-wide">Spotify</span>
+                                    </a>
+                                    <a href="#" class="flex flex-col items-center gap-1.5 p-2 rounded-lg hover:bg-white/40 transition group">
+                                        <svg class="w-10 h-10" viewBox="0 0 461.001 461.001" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M365.257,67.393H95.744C42.866,67.393,0,110.259,0,163.137v134.728c0,52.878,42.866,95.744,95.744,95.744h269.513c52.878,0,95.744-42.866,95.744-95.744V163.137C461.001,110.259,418.135,67.393,365.257,67.393z M300.506,237.056l-126.06,60.123c-3.359,1.602-7.239-0.847-7.239-4.568V168.607c0-3.774,3.982-6.22,7.348-4.514l126.06,63.881C304.363,229.873,304.298,235.248,300.506,237.056z" fill="#FF0000"/>
+                                        </svg>
+                                        <span class="text-[10px] font-bold text-gray-800 uppercase tracking-wide">YouTube</span>
+                                    </a>
+                                    <a href="#" class="flex flex-col items-center gap-1.5 p-2 rounded-lg hover:bg-white/40 transition group">
+                                        <svg class="w-10 h-10" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <defs>
+                                                <linearGradient id="applePodcastGradient" x1="50%" y1="0%" x2="50%" y2="100%">
+                                                    <stop offset="0%" style="stop-color:#F452FF;stop-opacity:1" />
+                                                    <stop offset="100%" style="stop-color:#832BC1;stop-opacity:1" />
+                                                </linearGradient>
+                                            </defs>
+                                            <circle cx="12" cy="12" r="12" fill="url(#applePodcastGradient)"/>
+                                            <path d="M12 6C8.7 6 6 8.7 6 12c0 3.3 2.7 6 6 6s6-2.7 6-6c0-3.3-2.7-6-6-6zm0 10.5c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2 4.5-4.5 4.5z" fill="white"/>
+                                            <circle cx="12" cy="12" r="2" fill="white"/>
+                                            <path d="M12 14.5v3" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                                        </svg>
+                                        <span class="text-[10px] font-bold text-gray-800 uppercase tracking-wide">Apple</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </button>
+                    ` : sermonId === 3 ? `
+                        <a href="#" class="inline-flex items-center justify-center gap-2 px-8 py-4 font-bold transition uppercase tracking-wide flex-1 shadow-md" style="background-color: #E65E5B; color: #F3D54B;" onmouseover="this.style.backgroundColor='#D04F4C'" onmouseout="this.style.backgroundColor='#E65E5B'">
+                            <i data-lucide="notebook-pen" class="w-5 h-5" style="color: #F3D54B;"></i>
+                            Notes
+                        </a>
+                    ` : sermonId === 4 ? `
+                        <!-- No CTAs for Part 4 -->
+                    ` : sermonId === 5 ? `
+                        <a href="#" class="inline-flex items-center justify-center gap-2 px-8 py-4 text-white font-bold transition uppercase tracking-wide flex-1 shadow-md" style="background-color: #373C46;" onmouseover="this.style.backgroundColor='#2C3038'" onmouseout="this.style.backgroundColor='#373C46'">
+                            <i data-lucide="calendar-check" class="w-5 h-5"></i>
+                            RSVP
+                        </a>
+                    ` : `
+                        <a href="#" class="inline-flex items-center justify-center gap-2 px-8 py-4 font-bold transition uppercase tracking-wide flex-1 shadow-md" style="background-color: #E65E5B; color: #F3D54B;" onmouseover="this.style.backgroundColor='#D04F4C'" onmouseout="this.style.backgroundColor='#E65E5B'">
+                            <i data-lucide="notebook-pen" class="w-5 h-5" style="color: #F3D54B;"></i>
+                            Notes
+                        </a>
+                        <a href="#" class="relative inline-flex items-center justify-center gap-2 px-8 py-4 text-white font-semibold transition uppercase tracking-wide flex-1 shadow-md" style="background-color: #39AEDA;" onmouseover="this.style.backgroundColor='#2A9BC8'" onmouseout="this.style.backgroundColor='#39AEDA'">
+                            <i data-lucide="play" class="w-5 h-5 fill-white"></i>
+                            Watch
+                            ${sermon.isLive ? '<div class="absolute top-2 right-2 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center live-indicator"><i data-lucide="radio" class="w-2.5 h-2.5 text-white"></i></div>' : ''}
+                        </a>
+                    `}
+                </div>
+            `;
+
+            document.getElementById('sermonInfo').innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Initialize with sermon 2 (current/live)
+        switchSermon(2);
+
         // Countdown timer simulation
         let minutes = 12;
         let seconds = 0;
@@ -659,6 +990,27 @@
 
         // Update countdown every second
         setInterval(updateCountdown, 1000);
+
+        // Podcast popover toggle
+        function togglePodcastPopover(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const popover = document.getElementById('podcastPopover');
+            if (popover) {
+                popover.classList.toggle('show');
+            }
+        }
+
+        // Close popover when clicking outside
+        document.addEventListener('click', function(event) {
+            const popover = document.getElementById('podcastPopover');
+            if (popover && popover.classList.contains('show')) {
+                const button = event.target.closest('button[onclick*="togglePodcastPopover"]');
+                if (!button) {
+                    popover.classList.remove('show');
+                }
+            }
+        });
     </script>
 
     <!-- Load announcements widget -->
