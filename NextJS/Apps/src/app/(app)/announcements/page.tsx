@@ -1662,9 +1662,13 @@ export default function AnnouncementsPage() {
                         callToActionLabel: e.target.value || null,
                       }))
                     }
+                    maxLength={30}
                     className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
                     disabled={isSaving}
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {(formData.callToActionLabel || "").length}/30 characters
+                  </p>
                 </div>
 
                 {/* Sub Heading */}
@@ -1678,9 +1682,13 @@ export default function AnnouncementsPage() {
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, body: e.target.value || null }))
                     }
+                    maxLength={30}
                     className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#61bc47]"
                     disabled={isSaving}
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {(formData.body || "").length}/30 characters
+                  </p>
                 </div>
 
                 {/* URL */}
