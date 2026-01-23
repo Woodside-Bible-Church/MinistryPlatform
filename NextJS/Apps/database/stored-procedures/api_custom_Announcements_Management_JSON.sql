@@ -65,7 +65,14 @@ BEGIN
                 o.Shift_End AS [OpportunityEnd],
 
                 -- Computed fields (using vw_wbc_announcements logic)
+                -- Priority: 1) Direct announcement image, 2) Event image, 3) Serve image
                 COALESCE(
+                  (SELECT TOP 1 'https://my.woodsidebible.org/ministryplatformapi/files/' + CAST(f.Unique_File_ID AS nvarchar(50))
+                   FROM dp_Files f
+                   WHERE f.Table_Name = 'Announcements'
+                     AND f.Record_ID = a.Announcement_ID
+                     AND f.Is_Image = 1
+                   ORDER BY f.Is_Default_Image DESC, f.File_ID DESC),
                   NULLIF(CONVERT(nvarchar(max), V.Event_Image), ''),
                   NULLIF(CONVERT(nvarchar(max), V.Serve_Image), '')
                 ) AS [ImageURL],
@@ -126,8 +133,14 @@ BEGIN
             a.Opportunity_ID AS [OpportunityID],
             o.Opportunity_Title AS [OpportunityTitle],
 
-            -- Computed image (using vw_wbc_announcements logic)
+            -- Computed image: 1) Direct announcement image, 2) Event image, 3) Serve image
             COALESCE(
+              (SELECT TOP 1 'https://my.woodsidebible.org/ministryplatformapi/files/' + CAST(f.Unique_File_ID AS nvarchar(50))
+               FROM dp_Files f
+               WHERE f.Table_Name = 'Announcements'
+                 AND f.Record_ID = a.Announcement_ID
+                 AND f.Is_Image = 1
+               ORDER BY f.Is_Default_Image DESC, f.File_ID DESC),
               NULLIF(CONVERT(nvarchar(max), V.Event_Image), ''),
               NULLIF(CONVERT(nvarchar(max), V.Serve_Image), '')
             ) AS [ImageURL],

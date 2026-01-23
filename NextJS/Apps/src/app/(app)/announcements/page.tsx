@@ -555,6 +555,37 @@ export default function AnnouncementsPage() {
         throw new Error(errorData.error || "Failed to save announcement");
       }
 
+      const savedAnnouncement = await response.json();
+      const announcementId = editingId || savedAnnouncement.Announcement_ID;
+
+      // Upload image file if one was selected (only for "none" relation type)
+      if (selectedFile && relationType === "none" && announcementId) {
+        try {
+          const fileFormData = new FormData();
+          fileFormData.append("file", selectedFile);
+          fileFormData.append("isDefault", "true");
+
+          const uploadResponse = await fetch(`/api/announcements/${announcementId}/files`, {
+            method: "POST",
+            body: fileFormData,
+          });
+
+          if (!uploadResponse.ok) {
+            const uploadError = await uploadResponse.json();
+            console.error("Image upload failed:", uploadError);
+            toast.error("Announcement saved, but image upload failed");
+          } else {
+            console.log("Image uploaded successfully");
+          }
+        } catch (uploadErr) {
+          console.error("Image upload error:", uploadErr);
+          toast.error("Announcement saved, but image upload failed");
+        }
+      }
+
+      // Clear the selected file
+      setSelectedFile(null);
+
       toast.success(
         editingId
           ? `"${formData.title}" updated successfully`
