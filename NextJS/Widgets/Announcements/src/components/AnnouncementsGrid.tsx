@@ -226,8 +226,8 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                     ? 'grid gap-6 pb-2 md:pb-8'
                     : (() => {
                         const count = data.ChurchWide.length;
-                        if (count === 1) return 'grid gap-3 md:gap-4 grid-cols-1';
-                        if (count === 2) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2';
+                        // For 1-2 announcements, use flexbox like campus section for consistent sizing
+                        if (count <= 2) return 'flex flex-wrap gap-3 md:gap-4';
                         if (count === 3) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-6 md:grid-rows-2';
                         if (count === 4) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2';
                         if (count === 5) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-6';
@@ -317,9 +317,9 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                   let cardClass = '';
 
                   if (!isCarousel) {
-                    if (count === 2) {
-                      // 2-column grid: equal width cards
-                      cardClass = '';
+                    if (count <= 2) {
+                      // Flexbox layout matching campus section for consistent sizing
+                      cardClass = 'flex-1 min-w-[280px] max-w-[480px] md:min-w-[320px] md:max-w-[420px]';
                     } else if (count === 3) {
                       // 6-column, 2-row grid: [4x2] + [2x1] + [2x1]
                       // First card is wider (4 cols) = taller at 16:9, spans 2 rows
@@ -351,6 +351,14 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                     </div>
                   );
                 })}
+                {/* Invisible filler elements for 1-2 announcements to prevent stretching */}
+                {!isCarousel && data.ChurchWide.length <= 2 && Array.from({ length: 5 }).map((_, i) => (
+                  <div
+                    key={`churchwide-filler-${i}`}
+                    className="flex-1 min-w-[280px] max-w-[480px] md:min-w-[320px] md:max-w-[420px] h-0"
+                    aria-hidden="true"
+                  />
+                ))}
               </div>
             </div>
           )}
