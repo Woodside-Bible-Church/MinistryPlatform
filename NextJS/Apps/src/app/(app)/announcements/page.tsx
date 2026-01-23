@@ -417,6 +417,31 @@ export default function AnnouncementsPage() {
     }
   }
 
+  // Format date for datetime-local input (local timezone, not UTC)
+  function formatDateForInput(dateString: string | null | undefined): string {
+    if (!dateString) {
+      // Default to now
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      const hours = String(now.getHours()).padStart(2, "0");
+      const minutes = String(now.getMinutes()).padStart(2, "0");
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+    const date = new Date(dateString.replace(" ", "T"));
+    if (isNaN(date.getTime())) {
+      return formatDateForInput(null);
+    }
+    // Format as YYYY-MM-DDTHH:mm in local timezone
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
   // Open modal for new announcement
   function handleNew() {
     setEditingId(null);
@@ -430,13 +455,17 @@ export default function AnnouncementsPage() {
       ? Math.max(...existingInCongregation.map((a) => a.Sort))
       : 0;
 
+    const nowFormatted = formatDateForInput(null);
+    const weekFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const weekFromNowFormatted = formatDateForInput(weekFromNow.toISOString());
+
     setFormData({
       title: "",
       body: "",
       active: true,
       topPriority: false,
-      startDate: new Date().toISOString().slice(0, 16),
-      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
+      startDate: nowFormatted,
+      endDate: weekFromNowFormatted,
       sort: maxSort + 1,
       congregationID: defaultCongregation,
       callToActionURL: null,
@@ -459,13 +488,10 @@ export default function AnnouncementsPage() {
     setEditingId(announcement.ID);
 
     // Handle null/undefined dates by providing defaults
-    const startDate = announcement.StartDate
-      ? new Date(announcement.StartDate).toISOString().slice(0, 16)
-      : new Date().toISOString().slice(0, 16);
-
+    const startDate = formatDateForInput(announcement.StartDate);
     const endDate = announcement.EndDate
-      ? new Date(announcement.EndDate).toISOString().slice(0, 16)
-      : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16); // Default to 7 days from now
+      ? formatDateForInput(announcement.EndDate)
+      : formatDateForInput(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()); // Default to 7 days from now
 
     setFormData({
       title: announcement.Title,
