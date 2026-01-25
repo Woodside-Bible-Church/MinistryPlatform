@@ -51,21 +51,38 @@ function getApiBaseUrl(): string {
 }
 
 /**
- * Get congregation ID from cookie
- * Looks for 'congregationId' or similar cookie names
+ * Get congregation/campus from cookie
+ * Returns both ID and name possibilities
  */
-function getCongregationIdFromCookie(): string | null {
+function getCampusFromCookie(): { id?: string; name?: string; slug?: string } | null {
   if (typeof document === 'undefined') return null;
 
   const cookies = document.cookie.split(';');
+  const result: { id?: string; name?: string; slug?: string } = {};
+
   for (const cookie of cookies) {
     const [name, value] = cookie.trim().split('=');
-    // Check common cookie names for congregation/campus
-    if (['congregationId', 'congregation_id', 'campusId', 'campus_id', 'selectedCampus'].includes(name)) {
-      return decodeURIComponent(value);
+    const decodedValue = decodeURIComponent(value || '');
+    const lowerName = name?.toLowerCase();
+
+    // Check for congregation/campus ID cookies
+    if (['congregationid', 'congregation_id', 'campusid', 'campus_id', 'congregation', 'location_id'].includes(lowerName)) {
+      result.id = decodedValue;
+    }
+    // Check for campus name cookies
+    if (['selectedcampus', 'campus', 'location', 'campus_name', 'campusname', 'selectedlocation'].includes(lowerName)) {
+      // Could be a name or slug
+      if (/^\d+$/.test(decodedValue)) {
+        result.id = decodedValue;
+      } else if (decodedValue.includes('-')) {
+        result.slug = decodedValue.toLowerCase();
+      } else {
+        result.name = decodedValue;
+      }
     }
   }
-  return null;
+
+  return Object.keys(result).length > 0 ? result : null;
 }
 
 /**
@@ -141,7 +158,7 @@ export default function CancellationsPage() {
       // But we fetch ALL campuses (no server-side filtering)
       const dataParams = parseDataParams();
       const urlParams = getUrlParams();
-      const cookieId = getCongregationIdFromCookie();
+      const cookieData = getCampusFromCookie();
 
       // Fetch all campuses without filtering
       const url = `${apiBaseUrl}/api/cancellations`;
@@ -173,9 +190,9 @@ export default function CancellationsPage() {
         if (isInitialLoad && data.Campuses.length > 0) {
           // Priority: URL param > data-param > cookie > first affected campus > first campus
           const paramCampusSlug = urlParams.campusSlug || dataParams.campusSlug;
-          const paramCongregationId = urlParams.congregationId || dataParams.congregationId || cookieId;
+          const paramCongregationId = urlParams.congregationId || dataParams.congregationId;
 
-          // Try to match by slug first
+          // Try to match by URL/data-param slug first
           if (paramCampusSlug) {
             const matchingCampus = data.Campuses.find(
               c => c.slug === paramCampusSlug.toLowerCase() ||
@@ -187,11 +204,39 @@ export default function CancellationsPage() {
             }
           }
 
-          // Try to match by congregation ID
+          // Try to match by URL/data-param congregation ID
           if (paramCongregationId) {
             const matchingCampus = data.Campuses.find(
               c => c.id.toString() === paramCongregationId
             );
+            if (matchingCampus) {
+              setSelectedCampus(matchingCampus.name);
+              return;
+            }
+          }
+
+          // Try to match by cookie (supports ID, name, or slug)
+          if (cookieData) {
+            let matchingCampus: Campus | undefined;
+
+            // Match by ID
+            if (cookieData.id) {
+              matchingCampus = data.Campuses.find(c => c.id.toString() === cookieData.id);
+            }
+            // Match by name (case-insensitive)
+            if (!matchingCampus && cookieData.name) {
+              matchingCampus = data.Campuses.find(
+                c => c.name.toLowerCase() === cookieData.name!.toLowerCase()
+              );
+            }
+            // Match by slug
+            if (!matchingCampus && cookieData.slug) {
+              matchingCampus = data.Campuses.find(
+                c => c.slug === cookieData.slug ||
+                     c.name.toLowerCase().replace(/['\s]/g, '-') === cookieData.slug
+              );
+            }
+
             if (matchingCampus) {
               setSelectedCampus(matchingCampus.name);
               return;
