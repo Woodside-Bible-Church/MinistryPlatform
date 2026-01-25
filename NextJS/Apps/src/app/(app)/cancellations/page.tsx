@@ -14,7 +14,6 @@ import {
   Clock,
   MapPin,
   MessageSquare,
-  Settings,
   Plus,
   Trash2,
   ExternalLink,
@@ -490,6 +489,67 @@ export default function CancellationsPage() {
         )}
       </div>
 
+      {/* Widget Labels */}
+      {labels.length > 0 && (
+        <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {labels.map((label) => {
+            const shortName = label.Label_Name.replace(
+              "customWidgets.cancellationsWidget.",
+              ""
+            );
+            const friendlyName = camelCaseToFriendly(shortName);
+            const isEditing = editingLabelId === label.Application_Label_ID;
+
+            return (
+              <div key={label.Application_Label_ID} className="space-y-1">
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400">
+                  {friendlyName}
+                </label>
+                {isEditing ? (
+                  <div className="flex gap-1">
+                    <input
+                      type="text"
+                      value={editingLabelValue}
+                      onChange={(e) => setEditingLabelValue(e.target.value)}
+                      className="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleSaveLabel(label.Application_Label_ID);
+                        } else if (e.key === 'Escape') {
+                          cancelEditingLabel();
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => handleSaveLabel(label.Application_Label_ID)}
+                      className="p-1.5 bg-primary text-white rounded hover:bg-primary/90"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={cancelEditingLabel}
+                      className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => startEditingLabel(label)}
+                    className="px-2 py-1.5 text-sm bg-gray-50 dark:bg-gray-800 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white truncate"
+                    title={label.English}
+                  >
+                    {label.English}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* Campus Status Grid */}
       {filteredCancellations.length === 0 ? (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
@@ -882,75 +942,6 @@ export default function CancellationsPage() {
         </div>
       )}
 
-      {/* Widget Labels Section */}
-      {labels.length > 0 && (
-        <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Settings className="w-5 h-5 text-gray-400" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Widget Labels
-            </h2>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {labels.map((label) => {
-              const shortName = label.Label_Name.replace(
-                "customWidgets.cancellationsWidget.",
-                ""
-              );
-              const friendlyName = camelCaseToFriendly(shortName);
-              const isEditing = editingLabelId === label.Application_Label_ID;
-
-              return (
-                <div key={label.Application_Label_ID} className="space-y-1">
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400">
-                    {friendlyName}
-                  </label>
-                  {isEditing ? (
-                    <div className="flex gap-1">
-                      <input
-                        type="text"
-                        value={editingLabelValue}
-                        onChange={(e) => setEditingLabelValue(e.target.value)}
-                        className="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            handleSaveLabel(label.Application_Label_ID);
-                          } else if (e.key === 'Escape') {
-                            cancelEditingLabel();
-                          }
-                        }}
-                        autoFocus
-                      />
-                      <button
-                        onClick={() => handleSaveLabel(label.Application_Label_ID)}
-                        className="p-1.5 bg-primary text-white rounded hover:bg-primary/90"
-                      >
-                        <Save className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={cancelEditingLabel}
-                        className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div
-                      onClick={() => startEditingLabel(label)}
-                      className="px-2 py-1.5 text-sm bg-gray-50 dark:bg-gray-800 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white truncate"
-                      title={label.English}
-                    >
-                      {label.English}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
