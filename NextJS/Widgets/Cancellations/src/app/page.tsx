@@ -205,9 +205,8 @@ export default function CancellationsPage() {
       if (data.Information) {
         setLabels(data.Information);
       }
-      if (data.LastUpdated) {
-        setLastUpdated(data.LastUpdated);
-      }
+      // Set last updated to current time (when we fetched)
+      setLastUpdated(new Date().toISOString());
       if (data.Campuses) {
         setCampuses(data.Campuses);
 
