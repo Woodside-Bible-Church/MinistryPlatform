@@ -52,6 +52,7 @@ function getApiBaseUrl(): string {
 
 /**
  * Get congregation/campus from cookie
+ * Supports Woodside's tbx-ws__selected-location cookie (base64 encoded JSON)
  * Returns both ID and name possibilities
  */
 function getCampusFromCookie(): { id?: string; name?: string; slug?: string } | null {
@@ -64,6 +65,30 @@ function getCampusFromCookie(): { id?: string; name?: string; slug?: string } | 
     const [name, value] = cookie.trim().split('=');
     const decodedValue = decodeURIComponent(value || '');
     const lowerName = name?.toLowerCase();
+
+    // Check for Woodside's tbx-ws__selected-location cookie (base64 encoded JSON)
+    if (name === 'tbx-ws__selected-location') {
+      try {
+        const jsonStr = atob(decodedValue);
+        const locationData = JSON.parse(jsonStr);
+        if (locationData.location_id) {
+          result.id = locationData.location_id.toString();
+        }
+        if (locationData.location_name) {
+          result.name = locationData.location_name;
+        }
+        // Extract slug from location_url if present
+        if (locationData.location_url) {
+          const urlMatch = locationData.location_url.match(/\/locations\/([^/]+)\/?$/);
+          if (urlMatch) {
+            result.slug = urlMatch[1];
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to parse tbx-ws__selected-location cookie:', e);
+      }
+      continue;
+    }
 
     // Check for congregation/campus ID cookies
     if (['congregationid', 'congregation_id', 'campusid', 'campus_id', 'congregation', 'location_id'].includes(lowerName)) {
