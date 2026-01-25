@@ -65,7 +65,7 @@ export function QuickLinks({ links = defaultQuickLinks }: QuickLinksProps) {
   if (!links || links.length === 0) return null;
 
   return (
-    <div className="flex justify-between md:justify-start items-center w-full md:w-auto gap-x-4 sm:gap-x-6 mt-4 md:mt-3">
+    <div className="flex justify-between md:justify-start items-center w-full md:w-auto gap-x-4 sm:gap-x-6 mt-6 md:mt-5">
       {links.map((link, index) => (
         <a
           key={link.id}
