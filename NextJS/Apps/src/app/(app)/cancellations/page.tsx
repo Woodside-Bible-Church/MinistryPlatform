@@ -656,65 +656,67 @@ export default function CancellationsPage() {
                     </div>
                   )}
 
-                  {/* Status Updates */}
-                  <div className="p-4 flex-1">
-                    <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                      <MessageSquare className="w-3.5 h-3.5" />
-                      Updates
-                    </h4>
+                  {/* Status Updates - only show for non-open statuses */}
+                  {hasContent && (
+                    <div className="p-4 flex-1">
+                      <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        Updates
+                      </h4>
 
-                    <div className="flex gap-2 mb-3">
-                      <input
-                        type="text"
-                        value={getNewUpdateMessage(cancellation.ID)}
-                        onChange={(e) => setNewUpdateMessage(cancellation.ID, e.target.value)}
-                        placeholder="Post an update..."
-                        className="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleAddUpdate(cancellation.ID);
-                          }
-                        }}
-                      />
-                      <button
-                        onClick={() => handleAddUpdate(cancellation.ID)}
-                        className="px-3 py-1.5 bg-primary text-white text-sm rounded hover:bg-primary/90"
-                      >
-                        Post
-                      </button>
-                    </div>
+                      <div className="flex gap-2 mb-3">
+                        <input
+                          type="text"
+                          value={getNewUpdateMessage(cancellation.ID)}
+                          onChange={(e) => setNewUpdateMessage(cancellation.ID, e.target.value)}
+                          placeholder="Post an update..."
+                          className="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleAddUpdate(cancellation.ID);
+                            }
+                          }}
+                        />
+                        <button
+                          onClick={() => handleAddUpdate(cancellation.ID)}
+                          className="px-3 py-1.5 bg-primary text-white text-sm rounded hover:bg-primary/90"
+                        >
+                          Post
+                        </button>
+                      </div>
 
-                    {cancellation.Updates && cancellation.Updates.length > 0 ? (
-                      <ul className="space-y-2 max-h-48 overflow-y-auto">
-                        {cancellation.Updates.map((update) => (
-                          <li
-                            key={update.ID}
-                            className="flex items-start justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded text-sm"
-                          >
-                            <div className="flex-1 min-w-0">
-                              <span className="text-xs text-gray-400">
-                                {formatShortDate(update.Timestamp)}
-                              </span>
-                              <p className="text-gray-700 dark:text-gray-300 mt-0.5">
-                                {update.Message}
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => handleDeleteUpdate(cancellation.ID, update.ID)}
-                              className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded ml-2 flex-shrink-0"
+                      {cancellation.Updates && cancellation.Updates.length > 0 ? (
+                        <ul className="space-y-2 max-h-48 overflow-y-auto">
+                          {cancellation.Updates.map((update) => (
+                            <li
+                              key={update.ID}
+                              className="flex items-start justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded text-sm"
                             >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-xs text-gray-400 dark:text-gray-500 italic">
-                        No updates yet
-                      </p>
-                    )}
-                  </div>
+                              <div className="flex-1 min-w-0">
+                                <span className="text-xs text-gray-400">
+                                  {formatShortDate(update.Timestamp)}
+                                </span>
+                                <p className="text-gray-700 dark:text-gray-300 mt-0.5">
+                                  {update.Message}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => handleDeleteUpdate(cancellation.ID, update.ID)}
+                                className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded ml-2 flex-shrink-0"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-xs text-gray-400 dark:text-gray-500 italic">
+                          No updates yet
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             );
