@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { AnnouncementsData, AnnouncementsLabels } from '@/lib/types';
 import { AnnouncementCard } from './AnnouncementCard';
+import { QuickLinks } from './QuickLinks';
 
 interface AnnouncementsGridProps {
   data: AnnouncementsData;
@@ -156,6 +157,8 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
             <h1 className={isCarousel ? 'text-xl md:text-4xl font-bold truncate' : 'text-3xl md:text-7xl lg:text-8xl font-bold tracking-tighter'}>
               {labels.carouselHeading2 || 'Announcements'}
             </h1>
+            {/* Quick links - grid mode only */}
+            {!isCarousel && <QuickLinks />}
           </div>
           {/* Navigation arrows visible on desktop only - carousel mode only */}
           {isCarousel && hasOverflow && (
