@@ -491,7 +491,7 @@ export default function CancellationsPage() {
 
       {/* Widget Labels */}
       {labels.length > 0 && (
-        <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="py-6 mb-8 border-b border-gray-200 dark:border-gray-700 grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {labels.map((label) => {
             const shortName = label.Label_Name.replace(
               "customWidgets.cancellationsWidget.",
