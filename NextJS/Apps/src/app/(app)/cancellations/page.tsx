@@ -505,7 +505,9 @@ export default function CancellationsPage() {
             ? "grid-cols-1 max-w-2xl"
             : "grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
         }`}>
-          {filteredCancellations.map((cancellation) => {
+          {[...filteredCancellations].sort((a, b) =>
+            a.CongregationName.localeCompare(b.CongregationName)
+          ).map((cancellation) => {
             const config = statusConfig[cancellation.Status];
             const StatusIcon = config.icon;
             const hasContent = cancellation.Status !== 'open';
