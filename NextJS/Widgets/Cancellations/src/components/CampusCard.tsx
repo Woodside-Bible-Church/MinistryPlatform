@@ -91,70 +91,83 @@ export function CampusCard({ campus, campusNames, selectedCampus, onCampusChange
         </div>
       </div>
 
-      {/* Details - Always visible for affected campuses */}
-      {isAffected && (
-        <div className="border-t border-gray-100">
-          <div className="p-4 sm:p-5 pt-4 space-y-4 bg-gray-50/30">
-            {/* Expected Resume Time */}
-            {campus.expectedResumeTime && (
+      {/* Details Section */}
+      <div className="border-t border-gray-100">
+        <div className="p-4 sm:p-5 pt-4 space-y-4 bg-gray-50/30">
+          {/* Open Campus - All activities proceeding */}
+          {!isAffected && (
+            <div className="flex items-center gap-3">
+              <CheckCircle className="w-5 h-5 text-status-open flex-shrink-0" />
               <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
-                  Expected to Resume
-                </h4>
-                <p className="text-sm text-gray-700 font-medium">
-                  {campus.expectedResumeTime}
+                <p className="text-sm font-medium text-gray-700">
+                  All activities are proceeding as scheduled
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  No cancellations or modifications at this time
                 </p>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Affected Activities */}
-            {campus.affectedServices && campus.affectedServices.length > 0 && (
-              <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
-                  Affected Activities
-                </h4>
-                <ul className="space-y-1.5">
-                  {campus.affectedServices.map((service, idx) => (
-                    <li key={idx} className="flex items-center gap-2 text-sm">
-                      <span
-                        className={cn(
-                          'w-1.5 h-1.5 rounded-full flex-shrink-0',
-                          service.status === 'cancelled' && 'bg-status-closed',
-                          service.status === 'modified' && 'bg-status-modified',
-                          service.status === 'delayed' && 'bg-status-modified'
-                        )}
-                      />
-                      <span className="text-gray-700">
-                        {service.name}
-                        {service.details && (
-                          <span className="text-gray-500"> - {service.details}</span>
-                        )}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+          {/* Expected Resume Time - Affected campuses only */}
+          {isAffected && campus.expectedResumeTime && (
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
+                Expected to Resume
+              </h4>
+              <p className="text-sm text-gray-700 font-medium">
+                {campus.expectedResumeTime}
+              </p>
+            </div>
+          )}
 
-            {/* Updates */}
-            {campus.updates && campus.updates.length > 0 && (
-              <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
-                  Updates
-                </h4>
-                <ul className="space-y-2">
-                  {campus.updates.map((update, idx) => (
-                    <li key={idx} className="text-sm">
-                      <span className="text-gray-400 text-xs">{update.timestamp}</span>
-                      <p className="text-gray-700 mt-0.5">{update.message}</p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
+          {/* Affected Activities - Affected campuses only */}
+          {isAffected && campus.affectedServices && campus.affectedServices.length > 0 && (
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
+                Affected Activities
+              </h4>
+              <ul className="space-y-1.5">
+                {campus.affectedServices.map((service, idx) => (
+                  <li key={idx} className="flex items-center gap-2 text-sm">
+                    <span
+                      className={cn(
+                        'w-1.5 h-1.5 rounded-full flex-shrink-0',
+                        service.status === 'cancelled' && 'bg-status-closed',
+                        service.status === 'modified' && 'bg-status-modified',
+                        service.status === 'delayed' && 'bg-status-modified'
+                      )}
+                    />
+                    <span className="text-gray-700">
+                      {service.name}
+                      {service.details && (
+                        <span className="text-gray-500"> - {service.details}</span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Updates - Affected campuses only */}
+          {isAffected && campus.updates && campus.updates.length > 0 && (
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
+                Updates
+              </h4>
+              <ul className="space-y-2">
+                {campus.updates.map((update, idx) => (
+                  <li key={idx} className="text-sm">
+                    <span className="text-gray-400 text-xs">{update.timestamp}</span>
+                    <p className="text-gray-700 mt-0.5">{update.message}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
