@@ -33,7 +33,7 @@ class CancellationsWidget {
 
   constructor(config: WidgetConfig = {}) {
     this.config = {
-      apiBaseUrl: config.apiBaseUrl || 'https://cancellations-widget.vercel.app',
+      apiBaseUrl: config.apiBaseUrl || 'https://cancellations-nu.vercel.app',
       containerId: config.containerId || 'cancellations-widget-root',
       ...config
     };
@@ -325,7 +325,7 @@ if (typeof window !== 'undefined') {
       const dataParams = htmlContainer.getAttribute('data-params');
 
       const config: WidgetConfig = {
-        apiBaseUrl: window.CANCELLATIONS_WIDGET_CONFIG?.apiBaseUrl || 'https://cancellations-widget.vercel.app',
+        apiBaseUrl: window.CANCELLATIONS_WIDGET_CONFIG?.apiBaseUrl || 'https://cancellations-nu.vercel.app',
         containerId: containerId,
       };
 
