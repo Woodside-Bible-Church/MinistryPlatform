@@ -137,27 +137,14 @@ export default function CancellationsPage() {
     try {
       const apiBaseUrl = getApiBaseUrl();
 
-      // Build query params from URL/data-params/cookie
-      // Priority: data-params > URL params > cookie
+      // Get initial campus preference from URL/data-params/cookie
+      // But we fetch ALL campuses (no server-side filtering)
       const dataParams = parseDataParams();
       const urlParams = getUrlParams();
       const cookieId = getCongregationIdFromCookie();
 
-      const queryParams = new URLSearchParams();
-
-      // Add congregation ID if available
-      const congregationId = dataParams.congregationId || urlParams.congregationId || cookieId;
-      if (congregationId) {
-        queryParams.append('@CongregationID', congregationId);
-      }
-
-      // Add campus slug if available (only if no congregation ID)
-      const campusSlug = dataParams.campusSlug || urlParams.campusSlug;
-      if (campusSlug && !congregationId) {
-        queryParams.append('@Campus', campusSlug);
-      }
-
-      const url = `${apiBaseUrl}/api/cancellations?${queryParams.toString()}`;
+      // Fetch all campuses without filtering
+      const url = `${apiBaseUrl}/api/cancellations`;
 
       const response = await fetch(url, {
         cache: 'no-store',
@@ -184,11 +171,26 @@ export default function CancellationsPage() {
 
         // Set initial selected campus if not already set
         if (isInitialLoad && data.Campuses.length > 0) {
-          // Priority: URL/data-param campus > first affected campus > first campus
-          const paramCampus = dataParams.campusSlug || urlParams.campusSlug;
-          if (paramCampus) {
+          // Priority: URL param > data-param > cookie > first affected campus > first campus
+          const paramCampusSlug = urlParams.campusSlug || dataParams.campusSlug;
+          const paramCongregationId = urlParams.congregationId || dataParams.congregationId || cookieId;
+
+          // Try to match by slug first
+          if (paramCampusSlug) {
             const matchingCampus = data.Campuses.find(
-              c => c.slug === paramCampus || c.name.toLowerCase().replace(/['\s]/g, '-') === paramCampus.toLowerCase()
+              c => c.slug === paramCampusSlug.toLowerCase() ||
+                   c.name.toLowerCase().replace(/['\s]/g, '-') === paramCampusSlug.toLowerCase()
+            );
+            if (matchingCampus) {
+              setSelectedCampus(matchingCampus.name);
+              return;
+            }
+          }
+
+          // Try to match by congregation ID
+          if (paramCongregationId) {
+            const matchingCampus = data.Campuses.find(
+              c => c.id.toString() === paramCongregationId
             );
             if (matchingCampus) {
               setSelectedCampus(matchingCampus.name);
