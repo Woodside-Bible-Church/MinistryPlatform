@@ -2,13 +2,14 @@
 
 import { XCircle, AlertTriangle, CheckCircle, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Campus, CampusStatus } from '@/lib/types';
+import type { Campus, CampusStatus, CancellationsInformation } from '@/lib/types';
 
 interface CampusCardProps {
   campus: Campus;
   campusNames: string[];
   selectedCampus: string;
   onCampusChange: (name: string) => void;
+  labels?: CancellationsInformation;
 }
 
 const statusConfig: Record<CampusStatus, {
@@ -41,7 +42,7 @@ const statusConfig: Record<CampusStatus, {
   },
 };
 
-export function CampusCard({ campus, campusNames, selectedCampus, onCampusChange }: CampusCardProps) {
+export function CampusCard({ campus, campusNames, selectedCampus, onCampusChange, labels }: CampusCardProps) {
   const config = statusConfig[campus.status];
   const isAffected = campus.status !== 'open';
 
@@ -100,10 +101,10 @@ export function CampusCard({ campus, campusNames, selectedCampus, onCampusChange
               <CheckCircle className="w-5 h-5 text-status-open flex-shrink-0" />
               <div>
                 <p className="text-sm font-medium text-gray-700">
-                  All activities are proceeding as scheduled
+                  {labels?.openStatusMessage || 'All activities are proceeding as scheduled'}
                 </p>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  No cancellations or modifications at this time
+                  {labels?.openStatusSubtext || 'No cancellations or modifications at this time'}
                 </p>
               </div>
             </div>

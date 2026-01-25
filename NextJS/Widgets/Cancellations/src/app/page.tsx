@@ -1,188 +1,255 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { CampusCard } from '@/components/CampusCard';
 import { formatDateTime } from '@/lib/utils';
-import type { CancellationsData } from '@/lib/types';
+import type { CancellationsApiResponse, Campus, CancellationsInformation } from '@/lib/types';
 
-// Mock data - will be replaced with API call later
-const mockData: CancellationsData = {
-  lastUpdated: new Date().toISOString(),
-  alertTitle: 'Winter Weather Advisory',
+// Polling interval in milliseconds (60 seconds)
+const POLL_INTERVAL = 60000;
+
+// Widget config type for window global
+interface WidgetConfig {
+  apiBaseUrl?: string;
+  dataParams?: string;
+}
+
+// Extend window for widget globals
+declare global {
+  interface Window {
+    __CANCELLATIONS_WIDGET_CONFIG__?: WidgetConfig;
+  }
+}
+
+// Default labels when API hasn't loaded yet
+const defaultLabels: CancellationsInformation = {
+  alertTitle: 'Weather Advisory',
+  mainTitle: 'Cancellations',
   alertMessage: 'Due to hazardous road conditions from winter weather, several church activities have been affected. Please check your campus status below before traveling.',
-  campuses: [
-    {
-      id: 1,
-      name: 'Algonac',
-      address: '419 Michigan St, Algonac, MI 48001',
-      status: 'open',
-    },
-    {
-      id: 2,
-      name: 'Chesterfield',
-      address: '26950 23 Mile Rd, Chesterfield, MI 48051',
-      status: 'open',
-    },
-    {
-      id: 3,
-      name: 'Detroit',
-      address: '80 W Alexandrine, Detroit, MI 48201',
-      status: 'open',
-    },
-    {
-      id: 4,
-      name: 'Downriver',
-      address: '18050 Quarry Rd, Riverview, MI 48193',
-      status: 'open',
-    },
-    {
-      id: 5,
-      name: 'Farmington Hills',
-      address: '28301 Middlebelt Rd, Farmington Hills, MI 48334',
-      status: 'closed',
-      reason: 'Hazardous road conditions due to ice storm',
-      expectedResumeTime: 'Wednesday, January 29 at 9:00 AM',
-      affectedServices: [
-        { name: 'Sunday Services', status: 'cancelled' },
-        { name: 'Student Ministries', status: 'cancelled' },
-        { name: 'Kids Ministry', status: 'cancelled' },
-        { name: 'Office Hours', status: 'cancelled', details: 'Staff working remotely' },
-      ],
-      updates: [
-        { timestamp: 'Jan 25, 2:30 PM', message: 'We encourage you to join us online for our worship service. Stay safe and warm!' },
-        { timestamp: 'Jan 25, 8:00 AM', message: 'Campus closed due to overnight ice storm. All morning activities cancelled.' },
-      ],
-    },
-    {
-      id: 6,
-      name: 'Lake Orion',
-      address: '2500 Joslyn Rd, Lake Orion, MI 48360',
-      status: 'open',
-    },
-    {
-      id: 7,
-      name: 'Lapeer',
-      address: '148 Maple Grove Rd, Lapeer, MI 48446',
-      status: 'open',
-    },
-    {
-      id: 8,
-      name: 'Plymouth',
-      address: '42021 E. Ann Arbor Tr, Plymouth, MI 48170',
-      status: 'open',
-    },
-    {
-      id: 9,
-      name: 'Pontiac',
-      address: '830 Auburn Ave, Pontiac, MI 48342',
-      status: 'modified',
-      reason: 'Limited parking due to snow removal',
-      expectedResumeTime: 'Normal operations resume Monday',
-      affectedServices: [
-        { name: 'Sunday 9:00 AM Service', status: 'cancelled' },
-        { name: 'Sunday 11:00 AM Service', status: 'modified', details: 'Proceeding as scheduled' },
-        { name: 'Kids Ministry', status: 'modified', details: 'Available at 11 AM only' },
-      ],
-      updates: [
-        { timestamp: 'Jan 25, 10:00 AM', message: 'We are holding our 11:00 AM service only. Please allow extra time for parking.' },
-      ],
-    },
-    {
-      id: 10,
-      name: 'Romeo',
-      address: '7800 W 32 Mile Rd, Washington, MI 48095',
-      status: 'open',
-    },
-    {
-      id: 11,
-      name: 'Royal Oak',
-      address: '3620 Rochester Rd, Royal Oak, MI 48073',
-      status: 'open',
-    },
-    {
-      id: 12,
-      name: 'Troy',
-      address: '6600 Rochester Rd, Troy, MI 48085',
-      status: 'closed',
-      reason: 'Power outage affecting the building',
-      expectedResumeTime: 'Pending power restoration - check back for updates',
-      affectedServices: [
-        { name: 'All Services', status: 'cancelled' },
-        { name: 'Office Hours', status: 'cancelled' },
-      ],
-      updates: [
-        { timestamp: 'Jan 25, 11:00 AM', message: 'DTE is working to restore power. We will update this page as soon as we have more information.' },
-      ],
-    },
-    {
-      id: 13,
-      name: 'Troy Español',
-      address: '6600 Rochester Rd, Troy, MI 48085 (The Garage)',
-      status: 'closed',
-      reason: 'Power outage affecting the building',
-      expectedResumeTime: 'Pending power restoration - check back for updates',
-      affectedServices: [
-        { name: 'All Services', status: 'cancelled' },
-      ],
-      updates: [
-        { timestamp: 'Jan 25, 11:00 AM', message: 'DTE is working to restore power. We will update this page as soon as we have more information.' },
-      ],
-    },
-    {
-      id: 14,
-      name: 'Warren',
-      address: '27300 Hoover Rd, Warren, MI 48093',
-      status: 'modified',
-      reason: 'Weather conditions improving',
-      expectedResumeTime: 'Full schedule resumes Sunday',
-      affectedServices: [
-        { name: 'Wednesday Night Activities', status: 'cancelled' },
-        { name: 'Sunday Services', status: 'modified', details: 'Delayed start - 10:30 AM' },
-      ],
-      updates: [
-        { timestamp: 'Jan 25, 9:00 AM', message: 'Sunday services will start at 10:30 AM instead of our normal times. Thank you for your flexibility.' },
-      ],
-    },
-    {
-      id: 15,
-      name: 'White Lake',
-      address: '9000 Highland Rd, White Lake, MI 48386',
-      status: 'open',
-    },
-  ],
+  autoRefreshMessage: 'This page refreshes automatically. Check back for the latest updates.',
+  lastUpdatedPrefix: 'Last updated:',
+  openStatusMessage: 'All activities are proceeding as scheduled',
+  openStatusSubtext: 'No cancellations or modifications at this time',
 };
 
+/**
+ * Get API base URL - works both in Next.js app and widget bundle
+ */
+function getApiBaseUrl(): string {
+  // Check if running in widget context
+  if (typeof window !== 'undefined') {
+    const widgetConfig = window.__CANCELLATIONS_WIDGET_CONFIG__;
+    if (widgetConfig?.apiBaseUrl) {
+      return widgetConfig.apiBaseUrl;
+    }
+  }
+  // Default to current origin for Next.js app, or production URL
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  return 'https://cancellations-nu.vercel.app';
+}
+
+/**
+ * Get congregation ID from cookie
+ * Looks for 'congregationId' or similar cookie names
+ */
+function getCongregationIdFromCookie(): string | null {
+  if (typeof document === 'undefined') return null;
+
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    // Check common cookie names for congregation/campus
+    if (['congregationId', 'congregation_id', 'campusId', 'campus_id', 'selectedCampus'].includes(name)) {
+      return decodeURIComponent(value);
+    }
+  }
+  return null;
+}
+
+/**
+ * Parse data-params attribute for initial values
+ * Format: "@CampusID=1" or "@Campus=troy" or "@CongregationID=12"
+ */
+function parseDataParams(): { congregationId?: string; campusSlug?: string } {
+  if (typeof window === 'undefined') return {};
+
+  const widgetConfig = window.__CANCELLATIONS_WIDGET_CONFIG__;
+  const dataParams = widgetConfig?.dataParams;
+
+  if (!dataParams) return {};
+
+  const result: { congregationId?: string; campusSlug?: string } = {};
+
+  // Parse @Key=Value format
+  const params = dataParams.split('&');
+  for (const param of params) {
+    const match = param.match(/@?(\w+)=(.+)/);
+    if (match) {
+      const [, key, value] = match;
+      const lowerKey = key.toLowerCase();
+      if (lowerKey === 'congregationid' || lowerKey === 'campusid') {
+        result.congregationId = value;
+      } else if (lowerKey === 'campus') {
+        result.campusSlug = value;
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Get URL search params
+ */
+function getUrlParams(): { congregationId?: string; campusSlug?: string } {
+  if (typeof window === 'undefined') return {};
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const result: { congregationId?: string; campusSlug?: string } = {};
+
+  // Check various param names
+  const congregationId = urlParams.get('@CongregationID') || urlParams.get('CongregationID') ||
+    urlParams.get('@congregationId') || urlParams.get('congregationId');
+  const campus = urlParams.get('@Campus') || urlParams.get('Campus') ||
+    urlParams.get('@campus') || urlParams.get('campus');
+
+  if (congregationId) result.congregationId = congregationId;
+  if (campus) result.campusSlug = campus;
+
+  return result;
+}
+
 export default function CancellationsPage() {
-  const [data] = useState<CancellationsData>(mockData);
-  const [selectedCampus, setSelectedCampus] = useState<string>('Troy');
+  const [campuses, setCampuses] = useState<Campus[]>([]);
+  const [labels, setLabels] = useState<CancellationsInformation>(defaultLabels);
+  const [lastUpdated, setLastUpdated] = useState<string>(new Date().toISOString());
+  const [selectedCampus, setSelectedCampus] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Simulate loading for demo (will be replaced with actual API call)
+  /**
+   * Fetch cancellation data from API
+   */
+  const fetchData = useCallback(async (isInitialLoad = false) => {
+    try {
+      const apiBaseUrl = getApiBaseUrl();
+
+      // Build query params from URL/data-params/cookie
+      // Priority: data-params > URL params > cookie
+      const dataParams = parseDataParams();
+      const urlParams = getUrlParams();
+      const cookieId = getCongregationIdFromCookie();
+
+      const queryParams = new URLSearchParams();
+
+      // Add congregation ID if available
+      const congregationId = dataParams.congregationId || urlParams.congregationId || cookieId;
+      if (congregationId) {
+        queryParams.append('@CongregationID', congregationId);
+      }
+
+      // Add campus slug if available (only if no congregation ID)
+      const campusSlug = dataParams.campusSlug || urlParams.campusSlug;
+      if (campusSlug && !congregationId) {
+        queryParams.append('@Campus', campusSlug);
+      }
+
+      const url = `${apiBaseUrl}/api/cancellations?${queryParams.toString()}`;
+
+      const response = await fetch(url, {
+        cache: 'no-store',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data: CancellationsApiResponse = await response.json();
+
+      // Update state with API data
+      if (data.Information) {
+        setLabels(data.Information);
+      }
+      if (data.LastUpdated) {
+        setLastUpdated(data.LastUpdated);
+      }
+      if (data.Campuses) {
+        setCampuses(data.Campuses);
+
+        // Set initial selected campus if not already set
+        if (isInitialLoad && data.Campuses.length > 0) {
+          // Priority: URL/data-param campus > first affected campus > first campus
+          const paramCampus = dataParams.campusSlug || urlParams.campusSlug;
+          if (paramCampus) {
+            const matchingCampus = data.Campuses.find(
+              c => c.slug === paramCampus || c.name.toLowerCase().replace(/['\s]/g, '-') === paramCampus.toLowerCase()
+            );
+            if (matchingCampus) {
+              setSelectedCampus(matchingCampus.name);
+              return;
+            }
+          }
+
+          // Default to first affected campus or first campus
+          const affectedCampus = data.Campuses.find(c => c.status !== 'open');
+          setSelectedCampus(affectedCampus?.name || data.Campuses[0].name);
+        }
+      }
+
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching cancellations:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load data');
+
+      // On initial load error, show empty state
+      if (isInitialLoad) {
+        setCampuses([]);
+      }
+    }
+  }, []);
+
+  // Initial data fetch
   useEffect(() => {
-    const timer = setTimeout(() => {
-      // Wait a frame to ensure the DOM is ready, then start transition
+    const initialFetch = async () => {
+      await fetchData(true);
+
+      // Transition out of loading state
       requestAnimationFrame(() => {
         setIsTransitioning(true);
         setLoading(false);
       });
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
+    };
+
+    initialFetch();
+  }, [fetchData]);
+
+  // Polling for auto-refresh
+  useEffect(() => {
+    const pollInterval = setInterval(() => {
+      fetchData(false);
+    }, POLL_INTERVAL);
+
+    return () => clearInterval(pollInterval);
+  }, [fetchData]);
 
   // Get unique campus names for dropdown
   const campusNames = useMemo(() => {
-    return [...data.campuses].sort((a, b) => a.name.localeCompare(b.name)).map(c => c.name);
-  }, [data.campuses]);
+    return [...campuses].sort((a, b) => a.name.localeCompare(b.name)).map(c => c.name);
+  }, [campuses]);
 
   // Filter and sort campuses
   const filteredCampuses = useMemo(() => {
-    let campuses = [...data.campuses];
-    campuses = campuses.filter(c => c.name === selectedCampus);
-    return campuses.sort((a, b) => a.name.localeCompare(b.name));
-  }, [data.campuses, selectedCampus]);
+    if (!selectedCampus) return campuses;
+    return campuses.filter(c => c.name === selectedCampus).sort((a, b) => a.name.localeCompare(b.name));
+  }, [campuses, selectedCampus]);
 
-  const hasAffectedCampuses = data.campuses.some(c => c.status !== 'open');
+  const hasAffectedCampuses = campuses.some(c => c.status !== 'open');
 
   // Woodside logo element - same pattern as Announcements widget
   // Starts centered during loading, transitions to top-right corner
@@ -249,6 +316,51 @@ export default function CancellationsPage() {
     );
   }
 
+  // Empty state when no campuses
+  if (campuses.length === 0) {
+    return (
+      <div className="relative">
+        {logoElement}
+        <div className="pb-6 md:pb-0 mb-4 md:mb-8 px-2 md:px-0 relative overflow-visible animate-[fadeInFromRight_1.25s_ease-out_0s_both]">
+          <div className="flex-1 min-w-0 text-right">
+            <div className="text-sm md:text-base font-normal text-gray-400 uppercase tracking-widest flex items-center justify-end gap-2">
+              <svg
+                className="w-4 h-4 md:w-5 md:h-5 text-amber-500 animate-pulse"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              {labels.alertTitle}
+            </div>
+            <h1 className="text-3xl md:text-7xl lg:text-8xl font-bold tracking-tighter">
+              {labels.mainTitle}
+            </h1>
+          </div>
+        </div>
+        <div className="text-center py-12 text-gray-500 px-2 md:px-0 animate-[fadeInUp_0.8s_ease-out_0.5s_both]">
+          {error ? (
+            <p>Unable to load campus information. Please try again later.</p>
+          ) : (
+            <>
+              <p className="text-lg font-medium text-gray-700">{labels.openStatusMessage}</p>
+              <p className="mt-2">{labels.openStatusSubtext}</p>
+            </>
+          )}
+        </div>
+        <div
+          className="mt-8 text-center text-sm text-gray-400 px-2 md:px-0"
+          style={{ animation: 'fadeInUp 0.5s ease-out 1.5s both' }}
+        >
+          <p>{labels.autoRefreshMessage}</p>
+          <p className="mt-1">
+            {labels.lastUpdatedPrefix} {formatDateTime(lastUpdated)}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
       {logoElement}
@@ -266,21 +378,21 @@ export default function CancellationsPage() {
               >
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
-              {data.alertTitle || 'Weather Advisory'}
+              {labels.alertTitle}
             </div>
             <h1 className="text-3xl md:text-7xl lg:text-8xl font-bold tracking-tighter">
-              Cancellations
+              {labels.mainTitle}
             </h1>
           </div>
         </div>
 
         {/* Alert Message - Centered and separated */}
-        {data.alertMessage && hasAffectedCampuses && (
+        {labels.alertMessage && hasAffectedCampuses && (
           <div
             className="mb-8 md:mb-10 text-center animate-[fadeInUp_0.8s_ease-out_0.5s_both]"
           >
             <p className="text-sm md:text-base font-normal text-gray-400 uppercase tracking-widest max-w-2xl mx-auto leading-relaxed">
-              {data.alertMessage}
+              {labels.alertMessage}
             </p>
           </div>
         )}
@@ -299,6 +411,7 @@ export default function CancellationsPage() {
                 campusNames={campusNames}
                 selectedCampus={selectedCampus}
                 onCampusChange={setSelectedCampus}
+                labels={labels}
               />
             </div>
           ))}
@@ -317,10 +430,10 @@ export default function CancellationsPage() {
           style={{ animation: 'fadeInUp 0.5s ease-out 1.5s both' }}
         >
           <p>
-            This page refreshes automatically. Check back for the latest updates.
+            {labels.autoRefreshMessage}
           </p>
           <p className="mt-1">
-            Last updated: {formatDateTime(data.lastUpdated)}
+            {labels.lastUpdatedPrefix} {formatDateTime(lastUpdated)}
           </p>
         </div>
       </div>
