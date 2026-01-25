@@ -78,7 +78,7 @@ export function QuickLinks({ links = defaultQuickLinks }: QuickLinksProps) {
           <span className="text-gray-400 group-hover:text-secondary transition-colors duration-200">
             {link.icon}
           </span>
-          <span className="text-xs sm:text-sm font-normal text-gray-400 uppercase tracking-wider sm:tracking-widest whitespace-nowrap">
+          <span className="text-xs sm:text-sm font-normal text-gray-400 group-hover:text-secondary uppercase tracking-wider sm:tracking-widest whitespace-nowrap transition-colors duration-200">
             {link.title}
           </span>
           <svg
