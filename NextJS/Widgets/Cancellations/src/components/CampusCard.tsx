@@ -57,22 +57,23 @@ export function CampusCard({ campus, campusNames, selectedCampus, onCampusChange
       <div className="p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <div className="inline-grid items-center cursor-pointer hover:opacity-80 transition-opacity">
-              {/* Hidden text to size the grid column */}
-              <span className="col-start-1 row-start-1 text-lg font-bold text-transparent uppercase pointer-events-none">
+            <label className="relative inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+              {/* Visible text that sizes the container */}
+              <span className="text-lg font-bold text-primary uppercase">
                 {selectedCampus}
               </span>
+              <ChevronDown className="w-4 h-4 text-primary ml-1 flex-shrink-0" />
+              {/* Invisible select overlaid on top */}
               <select
                 value={selectedCampus}
                 onChange={(e) => onCampusChange(e.target.value)}
-                className="col-start-1 row-start-1 text-lg font-bold text-primary uppercase appearance-none bg-transparent border-none cursor-pointer focus:outline-none pr-6"
+                className="absolute inset-0 opacity-0 cursor-pointer"
               >
                 {campusNames.map(name => (
                   <option key={name} value={name}>{name}</option>
                 ))}
               </select>
-              <ChevronDown className="col-start-2 row-start-1 w-4 h-4 text-primary ml-1" />
-            </div>
+            </label>
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
