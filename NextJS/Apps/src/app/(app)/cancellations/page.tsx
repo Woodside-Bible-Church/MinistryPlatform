@@ -605,29 +605,56 @@ export default function CancellationsPage() {
         )}
       </div>
 
-      {/* Widget Labels */}
-      {labels.length > 0 && (
-        <div className="py-6 mb-8 border-b border-gray-200 dark:border-gray-700 grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {labels.map((label) => {
-            const shortName = label.Label_Name.replace(
-              "customWidgets.cancellationsWidget.",
-              ""
-            );
-            const friendlyName = camelCaseToFriendly(shortName);
-            const isEditing = editingLabelId === label.Application_Label_ID;
+      {/* Widget Labels - Visual Preview */}
+      {labels.length > 0 && (() => {
+        // Helper to get label by short name
+        const getLabel = (shortName: string) =>
+          labels.find(l => l.Label_Name.endsWith(`.${shortName}`));
 
+        // Editable label component
+        const EditableLabel = ({
+          shortName,
+          className = "",
+          inputClassName = "",
+          multiline = false,
+        }: {
+          shortName: string;
+          className?: string;
+          inputClassName?: string;
+          multiline?: boolean;
+        }) => {
+          const label = getLabel(shortName);
+          if (!label) return null;
+
+          const isEditing = editingLabelId === label.Application_Label_ID;
+          const friendlyName = camelCaseToFriendly(shortName);
+
+          if (isEditing) {
             return (
-              <div key={label.Application_Label_ID} className="space-y-1">
-                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400">
-                  {friendlyName}
-                </label>
-                {isEditing ? (
-                  <div className="flex items-center gap-1">
+              <div className="relative group">
+                <div className="flex items-center gap-1">
+                  {multiline ? (
+                    <textarea
+                      value={editingLabelValue}
+                      onChange={(e) => setEditingLabelValue(e.target.value)}
+                      className={`w-full px-2 py-1 text-sm border-2 border-amber-400 bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded focus:outline-none focus:border-amber-500 resize-none ${inputClassName}`}
+                      rows={3}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && e.metaKey) {
+                          e.preventDefault();
+                          handleSaveLabel(label.Application_Label_ID);
+                        } else if (e.key === 'Escape') {
+                          cancelEditingLabel();
+                        }
+                      }}
+                      autoFocus
+                    />
+                  ) : (
                     <input
                       type="text"
                       value={editingLabelValue}
                       onChange={(e) => setEditingLabelValue(e.target.value)}
-                      className="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      className={`w-full px-2 py-1 text-sm border-2 border-amber-400 bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded focus:outline-none focus:border-amber-500 ${inputClassName}`}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
@@ -638,33 +665,122 @@ export default function CancellationsPage() {
                       }}
                       autoFocus
                     />
-                    <button
-                      onClick={() => handleSaveLabel(label.Application_Label_ID)}
-                      className="h-[30px] w-[30px] flex items-center justify-center bg-primary text-white hover:bg-primary/90"
-                    >
-                      <Save className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={cancelEditingLabel}
-                      className="h-[30px] w-[30px] flex items-center justify-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => startEditingLabel(label)}
-                    className="px-2 py-1.5 text-sm bg-gray-50 dark:bg-gray-800 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white truncate"
-                    title={label.English}
+                  )}
+                  <button
+                    onClick={() => handleSaveLabel(label.Application_Label_ID)}
+                    className="shrink-0 h-7 w-7 flex items-center justify-center bg-amber-500 text-white rounded hover:bg-amber-600"
+                    title="Save"
                   >
-                    {label.English}
-                  </div>
-                )}
+                    <Save className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={cancelEditingLabel}
+                    className="shrink-0 h-7 w-7 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
+                    title="Cancel"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <span className="absolute -top-5 left-0 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                  {friendlyName}
+                </span>
               </div>
             );
-          })}
-        </div>
-      )}
+          }
+
+          return (
+            <div className="relative group">
+              <span
+                onClick={() => startEditingLabel(label)}
+                className={`cursor-pointer border border-transparent hover:border-amber-400 hover:border-dashed rounded px-1 -mx-1 transition-colors ${className}`}
+                title={`Click to edit "${friendlyName}"`}
+              >
+                {label.English}
+              </span>
+              <span className="absolute -top-4 left-0 text-[10px] font-medium text-amber-600 dark:text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                {friendlyName}
+              </span>
+              <Pencil className="absolute -right-4 top-1/2 -translate-y-1/2 w-3 h-3 text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+          );
+        };
+
+        return (
+          <div className="mb-8 border-b border-gray-200 dark:border-gray-700 pb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                Widget Labels
+              </h2>
+              <span className="text-xs text-gray-400">(click to edit)</span>
+            </div>
+
+            {/* Visual Preview Container */}
+            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700">
+              {/* Header Section */}
+              <div className="p-6 pb-4 text-right">
+                <div className="flex items-center justify-end gap-2 text-gray-500 dark:text-gray-400 uppercase tracking-widest text-sm mb-1 whitespace-nowrap">
+                  <svg className="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <EditableLabel shortName="alertTitle" className="text-gray-500 dark:text-gray-400" />
+                </div>
+                <div className="text-4xl md:text-5xl font-bold tracking-tighter text-gray-900 dark:text-white">
+                  <EditableLabel shortName="mainTitle" className="text-gray-900 dark:text-white" />
+                </div>
+              </div>
+
+              {/* Alert Message */}
+              <div className="px-6 pb-4 text-center">
+                <div className="text-gray-500 dark:text-gray-400 uppercase tracking-widest text-sm leading-relaxed max-w-xl mx-auto">
+                  <EditableLabel shortName="alertMessage" className="text-gray-500 dark:text-gray-400" multiline />
+                </div>
+              </div>
+
+              {/* Sample Campus Card */}
+              <div className="mx-6 mb-6">
+                <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 rounded-lg overflow-hidden">
+                  {/* Card Header */}
+                  <div className="px-4 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded" />
+                      <span className="font-bold text-green-700 dark:text-green-400 uppercase">Sample Campus</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+                      <CheckCircle className="w-4 h-4" />
+                      <span className="font-medium text-sm">OPEN</span>
+                    </div>
+                  </div>
+                  {/* Card Content */}
+                  <div className="px-4 py-4 bg-white/80 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
+                      <div>
+                        <div className="font-medium text-gray-700 dark:text-gray-200 whitespace-nowrap">
+                          <EditableLabel shortName="openStatusMessage" className="text-gray-700 dark:text-gray-200" />
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                          <EditableLabel shortName="openStatusSubtext" className="text-gray-500 dark:text-gray-400" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 pb-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                <div className="mb-1">
+                  <EditableLabel shortName="autoRefreshMessage" className="text-gray-500 dark:text-gray-400" />
+                </div>
+                <div className="flex items-center justify-center gap-1 whitespace-nowrap">
+                  <EditableLabel shortName="lastUpdatedPrefix" className="text-gray-500 dark:text-gray-400" />
+                  <span className="text-gray-400 dark:text-gray-500">Mon, Jan 26, 7:52 AM</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Campus Status Grid */}
       {filteredCancellations.length === 0 ? (
