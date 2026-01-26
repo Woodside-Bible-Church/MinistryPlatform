@@ -1,5 +1,6 @@
 import { MinistryPlatformClient } from "@/providers/MinistryPlatform/core/ministryPlatformClient";
 import { TableService } from "@/providers/MinistryPlatform/services/tableService";
+import { FileService } from "@/providers/MinistryPlatform/services/fileService";
 import type {
   Cancellation,
   CancellationFormData,
@@ -46,10 +47,12 @@ export interface CancellationUpdateRecord {
 export class CancellationsService {
   private client: MinistryPlatformClient;
   private tableService: TableService;
+  private fileService: FileService;
 
   constructor(accessToken?: string) {
     this.client = new MinistryPlatformClient(accessToken);
     this.tableService = new TableService(this.client);
+    this.fileService = new FileService(this.client);
   }
 
   /**
@@ -86,10 +89,11 @@ export class CancellationsService {
       $orderby: "Congregation_Cancellations.Start_Date DESC",
     });
 
-    // Fetch lookup data for congregations and statuses
-    const [congregationsMap, statusesMap] = await Promise.all([
+    // Fetch lookup data for congregations, statuses, and SVG URLs
+    const [congregationsMap, statusesMap, svgUrlsMap] = await Promise.all([
       this.getCongregationsMap(),
       this.getStatusesMap(),
+      this.getCampusSvgUrls(),
     ]);
 
     // Get services and updates for each cancellation
@@ -110,6 +114,7 @@ export class CancellationsService {
         ID: record.Congregation_Cancellation_ID,
         CongregationID: record.Congregation_ID,
         CongregationName: congregationName,
+        CampusSvgUrl: svgUrlsMap.get(record.Congregation_ID) || null,
         StatusID: record.Cancellation_Status_ID,
         StatusName: statusName,
         Status: this.mapStatusName(statusName),
@@ -533,5 +538,55 @@ export class CancellationsService {
     if (lower === 'closed') return 'closed';
     if (lower === 'modified') return 'modified';
     return 'open';
+  }
+
+  /**
+   * Get campus SVG URLs for all congregations
+   * Returns a map of Congregation_ID -> SVG URL
+   */
+  async getCampusSvgUrls(): Promise<Map<number, string>> {
+    const svgMap = new Map<number, string>();
+
+    try {
+      // Get all congregations
+      const congregations = await this.tableService.getTableRecords<{
+        Congregation_ID: number;
+      }>("Congregations", {
+        $select: "Congregation_ID",
+        $filter: "End_Date IS NULL AND Available_Online = 1 AND Congregation_ID <> 1",
+      });
+
+      console.log(`[CampusSvg] Fetching files for ${congregations.length} congregations`);
+
+      // Fetch files for each congregation in parallel
+      const filePromises = congregations.map(async (c) => {
+        try {
+          const files = await this.fileService.getFilesByRecord("Congregations", c.Congregation_ID);
+          console.log(`[CampusSvg] Congregation ${c.Congregation_ID} has ${files.length} files:`, files.map(f => f.FileName));
+
+          // Find the Campus.svg file
+          const svgFile = files.find(f => f.FileName === "Campus.svg");
+          if (svgFile?.UniqueFileId) {
+            // Construct the file URL using the unique file ID
+            // This endpoint doesn't require authentication
+            // Base URL already includes /ministryplatformapi, so just add /files
+            const baseUrl = process.env.MINISTRY_PLATFORM_BASE_URL || "";
+            const url = `${baseUrl}/files/${svgFile.UniqueFileId}`;
+            console.log(`[CampusSvg] Congregation ${c.Congregation_ID} SVG URL: ${url}`);
+            svgMap.set(c.Congregation_ID, url);
+          }
+        } catch (err) {
+          // Silently ignore errors for individual congregations
+          console.warn(`[CampusSvg] Failed to fetch files for congregation ${c.Congregation_ID}:`, err);
+        }
+      });
+
+      await Promise.all(filePromises);
+      console.log(`[CampusSvg] Found SVG URLs for ${svgMap.size} congregations`);
+    } catch (err) {
+      console.error("[CampusSvg] Error fetching campus SVG URLs:", err);
+    }
+
+    return svgMap;
   }
 }

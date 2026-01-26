@@ -622,12 +622,12 @@ export default function CancellationsPage() {
                   {friendlyName}
                 </label>
                 {isEditing ? (
-                  <div className="flex gap-1">
+                  <div className="flex items-center gap-1">
                     <input
                       type="text"
                       value={editingLabelValue}
                       onChange={(e) => setEditingLabelValue(e.target.value)}
-                      className="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      className="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
@@ -640,13 +640,13 @@ export default function CancellationsPage() {
                     />
                     <button
                       onClick={() => handleSaveLabel(label.Application_Label_ID)}
-                      className="p-1.5 bg-primary text-white rounded hover:bg-primary/90"
+                      className="h-[30px] w-[30px] flex items-center justify-center bg-primary text-white hover:bg-primary/90"
                     >
                       <Save className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={cancelEditingLabel}
-                      className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                      className="h-[30px] w-[30px] flex items-center justify-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -693,7 +693,7 @@ export default function CancellationsPage() {
             return (
               <div
                 key={cancellation.ID}
-                className={`border-2 rounded-lg overflow-hidden ${config.borderColor} flex flex-col relative transition-all duration-300 ${
+                className={`group border-2 rounded-lg overflow-hidden ${config.borderColor} flex flex-col relative transition-all duration-300 ${
                   isSaving ? "opacity-75" : ""
                 } ${isSuccess ? "ring-2 ring-green-500 ring-offset-2" : ""}`}
               >
@@ -720,18 +720,29 @@ export default function CancellationsPage() {
                 <div className={`p-4 ${config.bgColor}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <StatusIcon className={`w-6 h-6 ${config.textColor}`} />
-                      <div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white">
-                          {cancellation.CongregationName}
-                        </h3>
-                        <span className={`text-sm font-medium ${config.textColor}`}>
-                          {config.label}
-                        </span>
+                      {/* Campus SVG Icon */}
+                      <div className="relative w-7 h-7 flex-shrink-0">
+                        {cancellation.CampusSvgUrl ? (
+                          <img
+                            src={cancellation.CampusSvgUrl}
+                            alt=""
+                            className="w-7 h-7"
+                            onError={(e) => {
+                              // Hide the broken image and show fallback
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              target.nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
+                        <MapPin className={`w-5 h-5 text-gray-500 dark:text-gray-400 ${cancellation.CampusSvgUrl ? 'hidden' : ''}`} />
                       </div>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">
+                        {cancellation.CongregationName}
+                      </h3>
                     </div>
 
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={(e) => handleEditStatus(cancellation, e)}
                         className="p-2 hover:bg-white/50 dark:hover:bg-black/20 rounded-lg transition-colors"
@@ -749,12 +760,31 @@ export default function CancellationsPage() {
                       >
                         <ExternalLink className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                       </a>
+                      <span className={`text-sm font-medium ${config.textColor} flex items-center gap-1.5 ml-1`}>
+                        <StatusIcon className="w-4 h-4" />
+                        {config.label}
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Card Content - Always visible */}
                 <div className="bg-white dark:bg-gray-900 flex-1 flex flex-col">
+                  {/* Open Status Message */}
+                  {!hasContent && (
+                    <div className="p-4 flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {labels.find(l => l.Label_Name === 'customWidgets.cancellationsWidget.openStatusMessage')?.English || 'All activities are proceeding as scheduled'}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {labels.find(l => l.Label_Name === 'customWidgets.cancellationsWidget.openStatusSubtext')?.English || 'No cancellations or modifications at this time'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Reason & Expected Resume */}
                   {hasContent && (cancellation.Reason || cancellation.ExpectedResumeTime) && (
                     <div className="p-4 border-b border-gray-100 dark:border-gray-800">
@@ -822,7 +852,7 @@ export default function CancellationsPage() {
                             setNewService(cancellation.ID, { ...getNewService(cancellation.ID), serviceName: e.target.value })
                           }
                           placeholder="Add activity..."
-                          className="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                          className="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                               e.preventDefault();
@@ -838,7 +868,7 @@ export default function CancellationsPage() {
                               serviceStatus: e.target.value as "cancelled" | "modified" | "delayed",
                             })
                           }
-                          className="px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                          className="px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                         >
                           {serviceStatusOptions.map((opt) => (
                             <option key={opt.value} value={opt.value}>
@@ -848,7 +878,7 @@ export default function CancellationsPage() {
                         </select>
                         <button
                           onClick={() => handleAddService(cancellation.ID)}
-                          className="p-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                          className="w-8 h-8 flex items-center justify-center bg-primary text-white hover:bg-primary/90"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
@@ -870,7 +900,7 @@ export default function CancellationsPage() {
                           value={getNewUpdateMessage(cancellation.ID)}
                           onChange={(e) => setNewUpdateMessage(cancellation.ID, e.target.value)}
                           placeholder="Post an update..."
-                          className="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                          className="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                               e.preventDefault();
@@ -880,7 +910,7 @@ export default function CancellationsPage() {
                         />
                         <button
                           onClick={() => handleAddUpdate(cancellation.ID)}
-                          className="px-3 py-1.5 bg-primary text-white text-sm rounded hover:bg-primary/90"
+                          className="px-3 py-1.5 bg-primary text-white text-sm hover:bg-primary/90"
                         >
                           Post
                         </button>

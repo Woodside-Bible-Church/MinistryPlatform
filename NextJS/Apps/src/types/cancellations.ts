@@ -9,6 +9,7 @@ export interface Cancellation {
   CongregationID: number;
   CongregationName: string;
   CampusSlug?: string;
+  CampusSvgUrl?: string | null;
   StatusID: number;
   StatusName: string;
   Status: CancellationStatus;
