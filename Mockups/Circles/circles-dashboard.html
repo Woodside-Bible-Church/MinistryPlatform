@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circles of Commitment - The Hub | Granger Community Church</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'granger-green': '#AAD43C',
+                        'granger-green-alt': '#90c23e',
+                        'granger-black': '#252525',
+                        'granger-dark': '#1a1a1a',
+                    },
+                    fontFamily: {
+                        'poppins': ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Concentric circles visualization */
+        .circles-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+        }
+
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .circle:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(170, 212, 60, 0.3);
+        }
+
+        .circle-community {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border: 3px dashed #AAD43C;
+            top: 0;
+            left: 0;
+        }
+
+        .circle-crowd {
+            width: 320px;
+            height: 320px;
+            background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+            border: 3px solid #AAD43C;
+            top: 40px;
+            left: 40px;
+        }
+
+        .circle-congregation {
+            width: 240px;
+            height: 240px;
+            background: linear-gradient(135deg, #a5d6a7 0%, #81c784 100%);
+            border: 3px solid #90c23e;
+            top: 80px;
+            left: 80px;
+        }
+
+        .circle-committed {
+            width: 160px;
+            height: 160px;
+            background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%);
+            border: 3px solid #90c23e;
+            top: 120px;
+            left: 120px;
+        }
+
+        .circle-core {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #AAD43C 0%, #90c23e 100%);
+            border: 3px solid #252525;
+            top: 160px;
+            left: 160px;
+        }
+
+        .circle-label {
+            position: absolute;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 10px;
+            color: #252525;
+            white-space: nowrap;
+        }
+
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+        }
+
+        .trend-up {
+            color: #AAD43C;
+        }
+
+        .trend-down {
+            color: #ef4444;
+        }
+
+        .sidebar-link {
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-link:hover {
+            background-color: rgba(170, 212, 60, 0.1);
+        }
+
+        .sidebar-link.active {
+            background-color: rgba(170, 212, 60, 0.2);
+            border-left: 3px solid #AAD43C;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Top Navigation -->
+    <nav class="bg-granger-black text-white">
+        <div class="max-w-[1800px] mx-auto px-6">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo & Title -->
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <img src="grangerLogo.svg" alt="Granger" class="w-10 h-10 invert">
+                        <div>
+                            <div class="text-sm font-bold uppercase tracking-wider">THE HUB</div>
+                            <div class="text-xs text-gray-400 uppercase tracking-wide">Granger Community Church</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search -->
+                <div class="flex-1 max-w-md mx-8">
+                    <div class="relative">
+                        <input type="text" placeholder="Search..." class="w-full bg-neutral-700 text-white px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-500 placeholder-neutral-400">
+                        <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                    </div>
+                </div>
+
+                <!-- User Menu -->
+                <div class="flex items-center gap-4">
+                    <button class="relative p-2 hover:bg-gray-800 transition">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-granger-green rounded-full"></span>
+                    </button>
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-granger-green rounded-full flex items-center justify-center">
+                            <span class="text-granger-black font-bold text-sm">JD</span>
+                        </div>
+                        <div class="text-sm">
+                            <div class="font-semibold">John Doe</div>
+                            <div class="text-xs text-gray-400">Staff</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white min-h-[calc(100vh-64px)] border-r border-gray-200">
+            <div class="p-4">
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-3">DASHBOARD</div>
+                <nav class="space-y-1">
+                    <a href="#" class="sidebar-link active flex items-center gap-3 px-3 py-2 text-sm font-medium text-granger-black">
+                        <i data-lucide="target" class="w-4 h-4"></i>
+                        Circles of Commitment
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600">
+                        <i data-lucide="users" class="w-4 h-4"></i>
+                        People
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600">
+                        <i data-lucide="calendar" class="w-4 h-4"></i>
+                        Events
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600">
+                        <i data-lucide="users-round" class="w-4 h-4"></i>
+                        Groups
+                    </a>
+                </nav>
+
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-3 mt-8">APPS</div>
+                <nav class="space-y-1">
+                    <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600">
+                        <i data-lucide="wallet" class="w-4 h-4"></i>
+                        Budgets
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600">
+                        <i data-lucide="x-circle" class="w-4 h-4"></i>
+                        Cancellations
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600">
+                        <i data-lucide="tally-5" class="w-4 h-4"></i>
+                        Counter
+                    </a>
+                </nav>
+
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-3 mt-8">TOOLS</div>
+                <nav class="space-y-1">
+                    <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600">
+                        <i data-lucide="mail" class="w-4 h-4"></i>
+                        Communications
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600">
+                        <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+                        Reports
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600">
+                        <i data-lucide="settings" class="w-4 h-4"></i>
+                        Settings
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8">
+            <!-- Page Header -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-granger-black uppercase tracking-tight">Circles of Commitment</h1>
+                        <p class="text-gray-500 mt-1">Track engagement levels across your congregation</p>
+                    </div>
+                    <div class="flex items-end gap-3">
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Fiscal Year</label>
+                            <select class="bg-white border border-gray-200 px-4 py-2 text-sm font-medium text-granger-black focus:outline-none focus:ring-2 focus:ring-granger-green">
+                                <option>2025-2026</option>
+                                <option>2024-2025</option>
+                                <option>2023-2024</option>
+                            </select>
+                        </div>
+                        <button class="bg-granger-green text-granger-black px-6 py-2 font-bold uppercase text-sm tracking-wide hover:bg-granger-green-alt transition">
+                            Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-5 gap-4 mb-8">
+                <!-- Community -->
+                <div class="stat-card bg-white p-5 shadow-sm border-l-4" style="border-left-color: #e8f5e9;">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Community</div>
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center bg-granger-black">
+                            <i data-lucide="globe" class="w-4 h-4 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold text-granger-black">5,440</div>
+                    <div class="flex items-center gap-1 mt-1">
+                        <i data-lucide="trending-up" class="w-4 h-4 trend-up"></i>
+                        <span class="text-sm font-semibold trend-up">+12.3%</span>
+                        <span class="text-xs text-gray-400 ml-1">vs last month</span>
+                    </div>
+                </div>
+
+                <!-- Crowd -->
+                <div class="stat-card bg-white p-5 shadow-sm border-l-4" style="border-left-color: #c8e6c9;">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Crowd</div>
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center bg-granger-black">
+                            <i data-lucide="users" class="w-4 h-4 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold text-granger-black">2,093</div>
+                    <div class="flex items-center gap-1 mt-1">
+                        <i data-lucide="trending-up" class="w-4 h-4 trend-up"></i>
+                        <span class="text-sm font-semibold trend-up">+8.7%</span>
+                        <span class="text-xs text-gray-400 ml-1">vs last month</span>
+                    </div>
+                </div>
+
+                <!-- Congregation -->
+                <div class="stat-card bg-white p-5 shadow-sm border-l-4" style="border-left-color: #a5d6a7;">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Congregation</div>
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center bg-granger-black">
+                            <i data-lucide="church" class="w-4 h-4 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold text-granger-black">1,544</div>
+                    <div class="flex items-center gap-1 mt-1">
+                        <i data-lucide="trending-up" class="w-4 h-4 trend-up"></i>
+                        <span class="text-sm font-semibold trend-up">+5.2%</span>
+                        <span class="text-xs text-gray-400 ml-1">vs last month</span>
+                    </div>
+                </div>
+
+                <!-- Committed -->
+                <div class="stat-card bg-white p-5 shadow-sm border-l-4" style="border-left-color: #81c784;">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Committed</div>
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center bg-granger-black">
+                            <i data-lucide="heart-handshake" class="w-4 h-4 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold text-granger-black">912</div>
+                    <div class="flex items-center gap-1 mt-1">
+                        <i data-lucide="trending-down" class="w-4 h-4 trend-down"></i>
+                        <span class="text-sm font-semibold trend-down">-2.1%</span>
+                        <span class="text-xs text-gray-400 ml-1">vs last month</span>
+                    </div>
+                </div>
+
+                <!-- Core -->
+                <div class="stat-card bg-white p-5 shadow-sm border-l-4 border-granger-green">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Core</div>
+                        <div class="w-8 h-8 rounded-full bg-granger-black flex items-center justify-center">
+                            <i data-lucide="star" class="w-4 h-4 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold text-granger-black">107</div>
+                    <div class="flex items-center gap-1 mt-1">
+                        <i data-lucide="trending-up" class="w-4 h-4 trend-up"></i>
+                        <span class="text-sm font-semibold trend-up">+3.9%</span>
+                        <span class="text-xs text-gray-400 ml-1">vs last month</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="grid grid-cols-3 gap-6 items-stretch">
+                <!-- Circles Visualization -->
+                <div class="bg-white p-6 shadow-sm h-full">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">Overview</h2>
+                        <button class="text-gray-400 hover:text-granger-black transition">
+                            <i data-lucide="maximize-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex justify-center">
+                        <div class="circles-container">
+                            <div class="circle circle-community" data-level="community">
+                                <span class="circle-label" style="top: 10px; left: 50%; transform: translateX(-50%);">Community</span>
+                            </div>
+                            <div class="circle circle-crowd" data-level="crowd">
+                                <span class="circle-label" style="top: 10px; left: 50%; transform: translateX(-50%);">Crowd</span>
+                            </div>
+                            <div class="circle circle-congregation" data-level="congregation">
+                                <span class="circle-label" style="top: 10px; left: 50%; transform: translateX(-50%);">Congregation</span>
+                            </div>
+                            <div class="circle circle-committed" data-level="committed">
+                                <span class="circle-label" style="top: 10px; left: 50%; transform: translateX(-50%);">Committed</span>
+                            </div>
+                            <div class="circle circle-core" data-level="core">
+                                <span class="circle-label" style="top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 9px;">Core</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="mt-6 pt-6 border-t border-gray-100">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Circle Definitions</div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-start gap-2">
+                                <div class="w-3 h-3 rounded-full mt-0.5 flex-shrink-0" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 1px dashed #AAD43C;"></div>
+                                <div><span class="font-semibold">Community:</span> <span class="text-gray-500">The unchurched in immediate area</span></div>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <div class="w-3 h-3 rounded-full mt-0.5 flex-shrink-0" style="background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%); border: 1px solid #AAD43C;"></div>
+                                <div><span class="font-semibold">Crowd:</span> <span class="text-gray-500">Regular service attendees</span></div>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <div class="w-3 h-3 rounded-full mt-0.5 flex-shrink-0" style="background: linear-gradient(135deg, #a5d6a7 0%, #81c784 100%); border: 1px solid #90c23e;"></div>
+                                <div><span class="font-semibold">Congregation:</span> <span class="text-gray-500">Official members</span></div>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <div class="w-3 h-3 rounded-full mt-0.5 flex-shrink-0" style="background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%); border: 1px solid #90c23e;"></div>
+                                <div><span class="font-semibold">Committed:</span> <span class="text-gray-500">Pray, give, and in training</span></div>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <div class="w-3 h-3 rounded-full mt-0.5 flex-shrink-0" style="background: linear-gradient(135deg, #AAD43C 0%, #90c23e 100%); border: 1px solid #252525;"></div>
+                                <div><span class="font-semibold">Core:</span> <span class="text-gray-500">Ministers and leaders</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Trends Chart -->
+                <div class="bg-white p-6 shadow-sm col-span-2 flex flex-col h-full">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">Movement</h2>
+                        <div class="flex items-center gap-2">
+                            <button class="px-3 py-1 text-xs font-semibold uppercase tracking-wide bg-granger-green text-granger-black">YTD</button>
+                            <button class="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-400 hover:bg-gray-100 transition">6M</button>
+                            <button class="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-400 hover:bg-gray-100 transition">12M</button>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-h-0">
+                        <canvas id="trendsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Section -->
+            <div class="grid grid-cols-2 gap-6 mt-6">
+                <!-- New Joins This Month -->
+                <div class="bg-white p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">New Joins</h2>
+                        <select class="text-xs font-semibold text-gray-500 bg-transparent border border-gray-200 px-3 py-1 focus:outline-none focus:ring-2 focus:ring-granger-green uppercase tracking-wide">
+                            <option>January 2026</option>
+                            <option>December 2025</option>
+                            <option>November 2025</option>
+                            <option>October 2025</option>
+                        </select>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-100">
+                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Circle</th>
+                                    <th class="text-right py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Count</th>
+                                    <th class="text-right py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Change</th>
+                                    <th class="text-right py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Trend</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-gray-50">
+                                    <td class="py-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-2 h-2 rounded-full" style="background-color: #e8f5e9; border: 1px dashed #AAD43C;"></div>
+                                            <span class="font-semibold text-granger-black">Community</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-right font-bold text-granger-black">370</td>
+                                    <td class="py-3 text-right">
+                                        <span class="text-sm font-semibold trend-down">-49.7%</span>
+                                    </td>
+                                    <td class="py-3 text-right">
+                                        <i data-lucide="trending-down" class="w-4 h-4 trend-down inline"></i>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-50">
+                                    <td class="py-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-2 h-2 rounded-full" style="background-color: #c8e6c9;"></div>
+                                            <span class="font-semibold text-granger-black">Crowd</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-right font-bold text-granger-black">64</td>
+                                    <td class="py-3 text-right">
+                                        <span class="text-sm font-semibold trend-up">+113.3%</span>
+                                    </td>
+                                    <td class="py-3 text-right">
+                                        <i data-lucide="trending-up" class="w-4 h-4 trend-up inline"></i>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-50">
+                                    <td class="py-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-2 h-2 rounded-full" style="background-color: #a5d6a7;"></div>
+                                            <span class="font-semibold text-granger-black">Congregation</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-right font-bold text-granger-black">1</td>
+                                    <td class="py-3 text-right">
+                                        <span class="text-sm font-semibold trend-down">-75.0%</span>
+                                    </td>
+                                    <td class="py-3 text-right">
+                                        <i data-lucide="trending-down" class="w-4 h-4 trend-down inline"></i>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-50">
+                                    <td class="py-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-2 h-2 rounded-full" style="background-color: #81c784;"></div>
+                                            <span class="font-semibold text-granger-black">Committed</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-right font-bold text-granger-black">1</td>
+                                    <td class="py-3 text-right">
+                                        <span class="text-sm font-semibold trend-down">-85.7%</span>
+                                    </td>
+                                    <td class="py-3 text-right">
+                                        <i data-lucide="trending-down" class="w-4 h-4 trend-down inline"></i>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-2 h-2 rounded-full bg-granger-green"></div>
+                                            <span class="font-semibold text-granger-black">Core</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-right font-bold text-granger-black">3</td>
+                                    <td class="py-3 text-right">
+                                        <span class="text-sm font-semibold trend-down">-87.5%</span>
+                                    </td>
+                                    <td class="py-3 text-right">
+                                        <i data-lucide="trending-down" class="w-4 h-4 trend-down inline"></i>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-100 text-center">
+                        <a href="#" class="text-sm font-semibold text-granger-green hover:text-granger-green-alt transition uppercase tracking-wide">
+                            View All
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Movement Flow -->
+                <div class="bg-white p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">Flow</h2>
+                        <select class="text-xs font-semibold text-gray-400 bg-transparent border-none focus:outline-none uppercase tracking-wide">
+                            <option>This Month</option>
+                            <option>Last 3 Months</option>
+                            <option>This Year</option>
+                        </select>
+                    </div>
+
+                    <!-- Conversion Funnel -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-24 text-xs font-semibold text-gray-500 uppercase tracking-wide">Community</div>
+                            <div class="flex-1 h-8 bg-gray-100 relative">
+                                <div class="h-full bg-gradient-to-r from-green-100 to-green-200" style="width: 100%;"></div>
+                                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-granger-black">5,440</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <div class="flex items-center gap-2 text-xs text-gray-400">
+                                <i data-lucide="arrow-down" class="w-4 h-4"></i>
+                                <span class="font-semibold">38.5% conversion</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-24 text-xs font-semibold text-gray-500 uppercase tracking-wide">Crowd</div>
+                            <div class="flex-1 h-8 bg-gray-100 relative">
+                                <div class="h-full bg-gradient-to-r from-green-200 to-green-300" style="width: 38.5%;"></div>
+                                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-granger-black">2,093</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <div class="flex items-center gap-2 text-xs text-gray-400">
+                                <i data-lucide="arrow-down" class="w-4 h-4"></i>
+                                <span class="font-semibold">73.8% conversion</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-24 text-xs font-semibold text-gray-500 uppercase tracking-wide">Congregation</div>
+                            <div class="flex-1 h-8 bg-gray-100 relative">
+                                <div class="h-full bg-gradient-to-r from-green-300 to-green-400" style="width: 28.4%;"></div>
+                                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-granger-black">1,544</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <div class="flex items-center gap-2 text-xs text-gray-400">
+                                <i data-lucide="arrow-down" class="w-4 h-4"></i>
+                                <span class="font-semibold">59.1% conversion</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-24 text-xs font-semibold text-gray-500 uppercase tracking-wide">Committed</div>
+                            <div class="flex-1 h-8 bg-gray-100 relative">
+                                <div class="h-full bg-gradient-to-r from-green-400 to-green-500" style="width: 16.8%;"></div>
+                                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-granger-black">912</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <div class="flex items-center gap-2 text-xs text-gray-400">
+                                <i data-lucide="arrow-down" class="w-4 h-4"></i>
+                                <span class="font-semibold">11.7% conversion</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-24 text-xs font-semibold text-gray-500 uppercase tracking-wide">Core</div>
+                            <div class="flex-1 h-8 bg-gray-100 relative">
+                                <div class="h-full bg-granger-green" style="width: 2%;"></div>
+                                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-granger-black">107</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Trends Chart
+        const ctx = document.getElementById('trendsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
+                datasets: [
+                    {
+                        label: 'Community',
+                        data: [369, 375, 496, 552, 374, 335, 296, 403, 446, 460, 447, 736, 370],
+                        borderColor: '#c8e6c9',
+                        backgroundColor: 'rgba(200, 230, 201, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: false
+                    },
+                    {
+                        label: 'Crowd',
+                        data: [251, 244, 318, 329, 243, 262, 190, 245, 106, 105, 106, 30, 64],
+                        borderColor: '#a5d6a7',
+                        backgroundColor: 'rgba(165, 214, 167, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: false
+                    },
+                    {
+                        label: 'Congregation',
+                        data: [207, 252, 293, 259, 192, 240, 173, 174, 24, 37, 78, 4, 1],
+                        borderColor: '#81c784',
+                        backgroundColor: 'rgba(129, 199, 132, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: false
+                    },
+                    {
+                        label: 'Committed',
+                        data: [221, 279, 302, 233, 186, 183, 176, 184, 7, 3, 6, 7, 1],
+                        borderColor: '#66bb6a',
+                        backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: false
+                    },
+                    {
+                        label: 'Core',
+                        data: [0, 0, 2, 3, 0, 57, 13, 7, 0, 0, 3, 24, 3],
+                        borderColor: '#AAD43C',
+                        backgroundColor: 'rgba(170, 212, 60, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                family: 'Poppins',
+                                size: 11,
+                                weight: '600'
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Poppins',
+                                size: 11
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Poppins',
+                                size: 11
+                            }
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+
+        // Circle hover effects
+        document.querySelectorAll('.circle').forEach(circle => {
+            circle.addEventListener('mouseenter', function() {
+                const level = this.dataset.level;
+                // Could show a tooltip or highlight related data
+            });
+        });
+    </script>
+</body>
+</html>
