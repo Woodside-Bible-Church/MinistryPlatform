@@ -728,6 +728,12 @@ export default function CancellationsPage() {
                         <span className={`text-sm font-medium ${config.textColor}`}>
                           {config.label}
                         </span>
+                        {cancellation.ExpectedResumeTime && (
+                          <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1 mt-0.5">
+                            <Clock className="w-3 h-3" />
+                            {cancellation.ExpectedResumeTime}
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -755,20 +761,12 @@ export default function CancellationsPage() {
 
                 {/* Card Content - Always visible */}
                 <div className="bg-white dark:bg-gray-900 flex-1 flex flex-col">
-                  {/* Reason & Expected Resume */}
-                  {hasContent && (cancellation.Reason || cancellation.ExpectedResumeTime) && (
+                  {/* Reason */}
+                  {hasContent && cancellation.Reason && (
                     <div className="p-4 border-b border-gray-100 dark:border-gray-800">
-                      {cancellation.Reason && (
-                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-                          {cancellation.Reason}
-                        </p>
-                      )}
-                      {cancellation.ExpectedResumeTime && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5" />
-                          Expected: {cancellation.ExpectedResumeTime}
-                        </p>
-                      )}
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
+                        {cancellation.Reason}
+                      </p>
                     </div>
                   )}
 
