@@ -132,7 +132,6 @@ export default function CancellationsPage() {
   // Modal state (simplified - just for status editing)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCancellation, setEditingCancellation] = useState<Cancellation | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
 
   // Form data
   const [formData, setFormData] = useState<CancellationFormData>({
@@ -175,6 +174,10 @@ export default function CancellationsPage() {
   }>>([]);
   const [editingLabelId, setEditingLabelId] = useState<number | null>(null);
   const [editingLabelValue, setEditingLabelValue] = useState<string>("");
+
+  // Optimistic UI state - track saving/success per card
+  const [savingCardId, setSavingCardId] = useState<number | null>(null);
+  const [successCardId, setSuccessCardId] = useState<number | null>(null);
 
   // Fetch cancellations
   const fetchCancellations = async () => {
@@ -257,18 +260,44 @@ export default function CancellationsPage() {
     setIsModalOpen(true);
   };
 
-  // Save status changes
+  // Save status changes with optimistic UI
   const handleSave = async () => {
     if (!editingCancellation) return;
 
-    setIsSaving(true);
+    const cancellationId = editingCancellation.ID;
+    const isSettingToOpen = formData.statusID === 1;
+
+    // Find the new status info
+    const newStatus = statuses.find(s => s.value === formData.statusID);
+
+    // Close modal immediately and show saving state on card
+    setIsModalOpen(false);
+    setSavingCardId(cancellationId);
+
+    // Optimistically update local state
+    setCancellations(prev => prev.map(c => {
+      if (c.ID === cancellationId) {
+        return {
+          ...c,
+          StatusID: formData.statusID,
+          StatusName: newStatus?.label || c.StatusName,
+          Status: newStatus?.status || c.Status,
+          Reason: isSettingToOpen ? null : formData.reason || null,
+          ExpectedResumeTime: isSettingToOpen ? null : formData.expectedResumeTime || null,
+          Services: isSettingToOpen ? [] : c.Services,
+          Updates: isSettingToOpen ? [] : c.Updates,
+        };
+      }
+      return c;
+    }));
+
     try {
       // If changing to Open status, delete all services and updates first
-      if (formData.statusID === 1) {
+      if (isSettingToOpen) {
         // Delete all services
         if (editingCancellation.Services && editingCancellation.Services.length > 0) {
           for (const service of editingCancellation.Services) {
-            await fetch(`/api/cancellations/${editingCancellation.ID}/services?serviceId=${service.ID}`, {
+            await fetch(`/api/cancellations/${cancellationId}/services?serviceId=${service.ID}`, {
               method: "DELETE",
             });
           }
@@ -277,21 +306,23 @@ export default function CancellationsPage() {
         // Delete all updates
         if (editingCancellation.Updates && editingCancellation.Updates.length > 0) {
           for (const update of editingCancellation.Updates) {
-            await fetch(`/api/cancellations/${editingCancellation.ID}/updates?updateId=${update.ID}`, {
+            await fetch(`/api/cancellations/${cancellationId}/updates?updateId=${update.ID}`, {
               method: "DELETE",
             });
           }
         }
-
-        // Clear reason and expected resume time when setting to Open
-        formData.reason = "";
-        formData.expectedResumeTime = "";
       }
 
-      const response = await fetch(`/api/cancellations/${editingCancellation.ID}`, {
+      const saveData = {
+        ...formData,
+        reason: isSettingToOpen ? "" : formData.reason,
+        expectedResumeTime: isSettingToOpen ? "" : formData.expectedResumeTime,
+      };
+
+      const response = await fetch(`/api/cancellations/${cancellationId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(saveData),
       });
 
       if (!response.ok) {
@@ -299,24 +330,58 @@ export default function CancellationsPage() {
         throw new Error(errorData.details || errorData.error || "Failed to save");
       }
 
-      toast.success(formData.statusID === 1 ? "Campus set to Open" : "Status updated");
-      setIsModalOpen(false);
-      fetchCancellations();
+      // Show success state on card
+      setSavingCardId(null);
+      setSuccessCardId(cancellationId);
+      setTimeout(() => setSuccessCardId(null), 1500);
+
+      // Silently refresh data in background to ensure consistency
+      const refreshResponse = await fetch(`/api/cancellations?activeOnly=true`);
+      if (refreshResponse.ok) {
+        const data = await refreshResponse.json();
+        setCancellations(data);
+      }
     } catch (err) {
       console.error("Error saving:", err);
       toast.error(err instanceof Error ? err.message : "Failed to save");
-    } finally {
-      setIsSaving(false);
+      setSavingCardId(null);
+      // Revert by refetching
+      fetchCancellations();
     }
   };
 
-  // Add service inline
+  // Add service inline with optimistic UI
   const handleAddService = async (cancellationId: number) => {
     const newService = getNewService(cancellationId);
     if (!newService.serviceName) {
       toast.error("Activity name is required");
       return;
     }
+
+    // Create optimistic service with temp ID
+    const tempId = Date.now();
+    const optimisticService: CancellationService = {
+      ID: tempId,
+      CancellationID: cancellationId,
+      ServiceName: newService.serviceName,
+      ServiceStatus: newService.serviceStatus as 'cancelled' | 'modified' | 'delayed',
+      Details: newService.details || null,
+      SortOrder: 0,
+    };
+
+    // Clear form immediately
+    setNewService(cancellationId, { serviceName: "", serviceStatus: "cancelled", details: "", sortOrder: 0 });
+
+    // Optimistically add to UI
+    setCancellations(prev => prev.map(c => {
+      if (c.ID === cancellationId) {
+        return {
+          ...c,
+          Services: [...(c.Services || []), optimisticService],
+        };
+      }
+      return c;
+    }));
 
     try {
       const response = await fetch(`/api/cancellations/${cancellationId}/services`, {
@@ -332,34 +397,71 @@ export default function CancellationsPage() {
 
       if (!response.ok) throw new Error("Failed to add activity");
 
-      setNewService(cancellationId, { serviceName: "", serviceStatus: "cancelled", details: "", sortOrder: 0 });
-      toast.success("Activity added");
-      fetchCancellations();
+      // Silently refresh to get real ID
+      const refreshResponse = await fetch(`/api/cancellations?activeOnly=true`);
+      if (refreshResponse.ok) {
+        const data = await refreshResponse.json();
+        setCancellations(data);
+      }
     } catch (err) {
       toast.error("Failed to add activity");
+      fetchCancellations(); // Revert
     }
   };
 
-  // Remove service/activity
+  // Remove service/activity with optimistic UI
   const handleRemoveService = async (cancellationId: number, serviceId: number) => {
+    // Optimistically remove from UI
+    setCancellations(prev => prev.map(c => {
+      if (c.ID === cancellationId) {
+        return {
+          ...c,
+          Services: (c.Services || []).filter(s => s.ID !== serviceId),
+        };
+      }
+      return c;
+    }));
+
     try {
       await fetch(`/api/cancellations/${cancellationId}/services?serviceId=${serviceId}`, {
         method: "DELETE",
       });
-      toast.success("Activity removed");
-      fetchCancellations();
     } catch {
       toast.error("Failed to remove activity");
+      fetchCancellations(); // Revert
     }
   };
 
-  // Add update inline
+  // Add update inline with optimistic UI
   const handleAddUpdate = async (cancellationId: number) => {
     const message = getNewUpdateMessage(cancellationId);
     if (!message.trim()) {
       toast.error("Update message is required");
       return;
     }
+
+    // Create optimistic update with temp ID
+    const tempId = Date.now();
+    const optimisticUpdate: CancellationUpdate = {
+      ID: tempId,
+      CancellationID: cancellationId,
+      Message: message,
+      Timestamp: new Date().toISOString(),
+    };
+
+    // Clear form immediately
+    setNewUpdateMessage(cancellationId, "");
+
+    // Optimistically add to UI (prepend since updates are shown newest first)
+    setCancellations(prev => prev.map(c => {
+      if (c.ID === cancellationId) {
+        return {
+          ...c,
+          Updates: [optimisticUpdate, ...(c.Updates || [])],
+        };
+      }
+      return c;
+    }));
 
     try {
       const response = await fetch(`/api/cancellations/${cancellationId}/updates`, {
@@ -370,24 +472,38 @@ export default function CancellationsPage() {
 
       if (!response.ok) throw new Error("Failed to add update");
 
-      setNewUpdateMessage(cancellationId, "");
-      toast.success("Update posted");
-      fetchCancellations();
+      // Silently refresh to get real ID and timestamp
+      const refreshResponse = await fetch(`/api/cancellations?activeOnly=true`);
+      if (refreshResponse.ok) {
+        const data = await refreshResponse.json();
+        setCancellations(data);
+      }
     } catch (err) {
       toast.error("Failed to add update");
+      fetchCancellations(); // Revert
     }
   };
 
-  // Delete update
+  // Delete update with optimistic UI
   const handleDeleteUpdate = async (cancellationId: number, updateId: number) => {
+    // Optimistically remove from UI
+    setCancellations(prev => prev.map(c => {
+      if (c.ID === cancellationId) {
+        return {
+          ...c,
+          Updates: (c.Updates || []).filter(u => u.ID !== updateId),
+        };
+      }
+      return c;
+    }));
+
     try {
       await fetch(`/api/cancellations/${cancellationId}/updates?updateId=${updateId}`, {
         method: "DELETE",
       });
-      toast.success("Update removed");
-      fetchCancellations();
     } catch {
       toast.error("Failed to remove update");
+      fetchCancellations(); // Revert
     }
   };
 
@@ -571,12 +687,35 @@ export default function CancellationsPage() {
             const config = statusConfig[cancellation.Status];
             const StatusIcon = config.icon;
             const hasContent = cancellation.Status !== 'open';
+            const isSaving = savingCardId === cancellation.ID;
+            const isSuccess = successCardId === cancellation.ID;
 
             return (
               <div
                 key={cancellation.ID}
-                className={`border-2 rounded-lg overflow-hidden ${config.borderColor} flex flex-col`}
+                className={`border-2 rounded-lg overflow-hidden ${config.borderColor} flex flex-col relative transition-all duration-300 ${
+                  isSaving ? "opacity-75" : ""
+                } ${isSuccess ? "ring-2 ring-green-500 ring-offset-2" : ""}`}
               >
+                {/* Saving overlay */}
+                {isSaving && (
+                  <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/50 flex items-center justify-center z-10">
+                    <div className="flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-lg shadow-lg">
+                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Saving...</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Success indicator */}
+                {isSuccess && (
+                  <div className="absolute top-2 right-2 z-10 animate-in fade-in zoom-in duration-300">
+                    <div className="bg-green-500 text-white p-1.5 rounded-full shadow-lg">
+                      <CheckCircle className="w-4 h-4" />
+                    </div>
+                  </div>
+                )}
+
                 {/* Card Header */}
                 <div className={`p-4 ${config.bgColor}`}>
                   <div className="flex items-center justify-between">
@@ -597,6 +736,7 @@ export default function CancellationsPage() {
                         onClick={(e) => handleEditStatus(cancellation, e)}
                         className="p-2 hover:bg-white/50 dark:hover:bg-black/20 rounded-lg transition-colors"
                         title="Edit Status"
+                        disabled={isSaving}
                       >
                         <Pencil className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                       </button>
@@ -927,14 +1067,9 @@ export default function CancellationsPage() {
               </button>
               <button
                 onClick={handleSave}
-                disabled={isSaving}
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
               >
-                {isSaving ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4" />
-                )}
+                <Save className="w-4 h-4" />
                 Save
               </button>
             </div>
