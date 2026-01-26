@@ -81,7 +81,7 @@ BEGIN
             ac.Expected_Resume_Time AS expectedResumeTime,
             ac.Congregation_Cancellation_ID
         FROM Congregations c
-        LEFT JOIN ActiveCancellations ac ON c.Congregation_ID = ac.Congregation_ID
+        INNER JOIN ActiveCancellations ac ON c.Congregation_ID = ac.Congregation_ID
         -- Join to dp_files to get Campus.svg file
         LEFT OUTER JOIN dp_files F ON F.Record_ID = c.Congregation_ID
             AND F.Table_Name = 'Congregations'
