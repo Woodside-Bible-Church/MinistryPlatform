@@ -15,6 +15,7 @@ export interface Campus {
   id: number;
   name: string;
   slug?: string;
+  svgUrl?: string | null;
   address?: string;
   status: CampusStatus;
   reason?: string | null;

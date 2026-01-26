@@ -1,6 +1,7 @@
 'use client';
 
-import { XCircle, AlertTriangle, CheckCircle, ChevronDown } from 'lucide-react';
+import { useState } from 'react';
+import { XCircle, AlertTriangle, CheckCircle, ChevronDown, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Campus, CampusStatus, CancellationsInformation } from '@/lib/types';
 
@@ -43,6 +44,7 @@ const statusConfig: Record<CampusStatus, {
 };
 
 export function CampusCard({ campus, campusNames, selectedCampus, onCampusChange, labels }: CampusCardProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
   const config = statusConfig[campus.status];
   const isAffected = campus.status !== 'open';
 
@@ -57,7 +59,34 @@ export function CampusCard({ campus, campusNames, selectedCampus, onCampusChange
       <div className={cn('p-4 sm:p-5', config.bgColor)}>
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <label className="relative inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+            <label className="group relative inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+              {/* Campus Icon */}
+              {campus.svgUrl ? (
+                <div className="relative w-8 h-8 mr-3 flex-shrink-0">
+                  {!imageLoaded && (
+                    <div className="absolute inset-0 bg-gray-300/50 animate-pulse rounded" />
+                  )}
+                  <img
+                    src={campus.svgUrl}
+                    alt={`${selectedCampus} Campus`}
+                    className={cn(
+                      'w-8 h-8 transition-all duration-200',
+                      !imageLoaded ? 'opacity-0' : 'opacity-100',
+                      'grayscale group-hover:grayscale-0'
+                    )}
+                    onLoad={() => setImageLoaded(true)}
+                  />
+                  {/* Color tint overlay */}
+                  <div
+                    className={cn(
+                      'absolute inset-0 mix-blend-multiply opacity-30 group-hover:opacity-0 transition-opacity duration-200 pointer-events-none',
+                      config.bgColor
+                    )}
+                  />
+                </div>
+              ) : (
+                <MapPin className={cn('w-6 h-6 mr-3 flex-shrink-0', config.textColor)} />
+              )}
               {/* Visible text that sizes the container */}
               <span className={cn('text-lg font-bold uppercase', config.textColor)}>
                 {selectedCampus}

@@ -65,6 +65,12 @@ BEGIN
             c.Congregation_ID AS id,
             c.Congregation_Name AS name,
             LOWER(REPLACE(REPLACE(c.Congregation_Name, ' ', '-'), '''', '')) AS slug,
+            -- Build Campus SVG URL from dp_files
+            CASE
+                WHEN F.File_ID IS NOT NULL AND CS.Value IS NOT NULL AND D.Domain_GUID IS NOT NULL
+                THEN CONCAT(CS.Value, '?dn=', CONVERT(varchar(40), D.Domain_GUID), '&fn=', F.Unique_Name, '.', F.Extension)
+                ELSE NULL
+            END AS svgUrl,
             CASE
                 WHEN ac.Status_Name IS NULL THEN 'open'
                 WHEN ac.Status_Name = 'Open' THEN 'open'
@@ -76,6 +82,18 @@ BEGIN
             ac.Congregation_Cancellation_ID
         FROM Congregations c
         LEFT JOIN ActiveCancellations ac ON c.Congregation_ID = ac.Congregation_ID
+        -- Join to dp_files to get Campus.svg file
+        LEFT OUTER JOIN dp_files F ON F.Record_ID = c.Congregation_ID
+            AND F.Table_Name = 'Congregations'
+            AND F.File_Name = 'Campus.svg'
+        -- Join to get ImageURL configuration setting
+        LEFT OUTER JOIN dp_Configuration_Settings CS
+            ON CS.Domain_ID = COALESCE(c.Domain_ID, 1)
+            AND CS.Key_Name = 'ImageURL'
+            AND CS.Application_Code = 'Common'
+        -- Join to get Domain GUID
+        LEFT OUTER JOIN dp_Domains D
+            ON D.Domain_ID = COALESCE(c.Domain_ID, 1)
         WHERE c.Domain_ID = @DomainID
             AND c.End_Date IS NULL  -- Only active congregations
             AND (
@@ -113,6 +131,7 @@ BEGIN
                     cd.id,
                     cd.name,
                     cd.slug,
+                    cd.svgUrl,
                     cd.status,
                     cd.reason,
                     cd.expectedResumeTime,
