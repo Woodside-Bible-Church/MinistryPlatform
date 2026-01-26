@@ -267,10 +267,9 @@ export default function CancellationsPage() {
             }
           }
 
-          // Default to first affected campus or first campus (alphabetically)
+          // Default to first campus alphabetically
           const sortedCampuses = [...data.Campuses].sort((a, b) => a.name.localeCompare(b.name));
-          const affectedCampus = sortedCampuses.find(c => c.status !== 'open');
-          setSelectedCampus(affectedCampus?.name || sortedCampuses[0].name);
+          setSelectedCampus(sortedCampuses[0].name);
         }
       }
 
