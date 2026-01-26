@@ -54,15 +54,15 @@ export function CampusCard({ campus, campusNames, selectedCampus, onCampusChange
       )}
     >
       {/* Card Header */}
-      <div className="p-4 sm:p-5">
+      <div className={cn('p-4 sm:p-5', config.bgColor)}>
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <label className="relative inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
               {/* Visible text that sizes the container */}
-              <span className="text-lg font-bold text-primary uppercase">
+              <span className={cn('text-lg font-bold uppercase', config.textColor)}>
                 {selectedCampus}
               </span>
-              <ChevronDown className="w-4 h-4 text-primary ml-1 flex-shrink-0" />
+              <ChevronDown className={cn('w-4 h-4 ml-1 flex-shrink-0', config.textColor)} />
               {/* Invisible select overlaid on top */}
               <select
                 value={selectedCampus}
@@ -78,14 +78,9 @@ export function CampusCard({ campus, campusNames, selectedCampus, onCampusChange
 
           <div className="flex items-center gap-2 flex-shrink-0">
             {/* Status Badge */}
-            <div
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5',
-                config.bgColor,
-              )}
-            >
-              <config.icon className={cn('w-4 h-4', config.textColor)} />
-              <span className={cn('text-xs font-semibold uppercase tracking-wide', config.textColor)}>
+            <div className="flex items-center gap-1.5">
+              <config.icon className={cn('w-5 h-5', config.textColor)} />
+              <span className={cn('text-sm font-semibold uppercase tracking-wide', config.textColor)}>
                 {config.label}
               </span>
             </div>
