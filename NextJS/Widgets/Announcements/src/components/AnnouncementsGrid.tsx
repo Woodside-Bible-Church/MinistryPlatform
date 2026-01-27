@@ -179,6 +179,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
           {/* Campus name if passed */}
           {hasCampus && data.Campus?.Name && (
             <div className="mt-4 md:mt-6">
+              <div className="w-16 md:w-20 h-px bg-gray-300 dark:bg-white/15 mx-auto my-3 md:my-4" />
               <div className="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-widest">
                 {data.Campus.Name} Campus
               </div>
