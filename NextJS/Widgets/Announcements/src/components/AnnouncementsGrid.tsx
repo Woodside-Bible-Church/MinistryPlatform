@@ -7,7 +7,7 @@ import { QuickLinks } from './QuickLinks';
 
 interface AnnouncementsGridProps {
   data: AnnouncementsData;
-  mode?: 'grid' | 'carousel';
+  mode?: 'grid' | 'carousel' | 'social';
   labels?: AnnouncementsLabels;
 }
 
@@ -27,6 +27,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
   const [showCampusHeader, setShowCampusHeader] = useState(false);
 
   const isCarousel = mode === 'carousel';
+  const isSocial = mode === 'social';
 
   // Handle click on progress bar to scroll to position
   const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -139,6 +140,114 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
     return (
       <div className="my-6 md:my-10 p-6 bg-gray-50 text-primary/65 text-center rounded">
         No announcements to show.
+      </div>
+    );
+  }
+
+  // Social mode - compact horizontal list layout for Linktree replacement
+  if (isSocial) {
+    // Combine all announcements for social mode
+    const allAnnouncements = [
+      ...data.ChurchWide,
+      ...(data.Campus?.Announcements || [])
+    ];
+
+    return (
+      <div className="max-w-lg mx-auto">
+        {/* Header */}
+        <div className="text-center mb-6">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-1">
+            {labels.carouselHeading1 || 'Stay in the know'}
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {labels.carouselHeading2 || 'Announcements'}
+          </h1>
+        </div>
+
+        {/* Quick Links */}
+        <QuickLinks />
+
+        {/* Section Header */}
+        {hasChurchWide && (
+          <h2 className="mt-6 mb-3 text-sm font-bold text-primary dark:text-white uppercase tracking-wide">
+            {labels.churchWideTitle || 'Happening At Woodside'}
+          </h2>
+        )}
+
+        {/* Compact announcement list */}
+        <div className="flex flex-col gap-2">
+          {allAnnouncements.map((announcement, index) => {
+            const heading = announcement.CallToAction?.Heading || announcement.Title;
+            const subHeading = announcement.CallToAction?.SubHeading || announcement.Body;
+            const hasLink = announcement.CallToAction?.Link;
+
+            // Show campus header before first campus announcement
+            const isFirstCampusAnnouncement =
+              hasCampus &&
+              hasChurchWide &&
+              index === data.ChurchWide.length;
+
+            return (
+              <React.Fragment key={announcement.ID}>
+                {isFirstCampusAnnouncement && (
+                  <h2 className="mt-4 mb-2 text-sm font-bold text-primary dark:text-white uppercase tracking-wide">
+                    {data.Campus!.Name || 'Campus'}
+                  </h2>
+                )}
+                <a
+                  href={hasLink || '#'}
+                  className="flex items-center gap-3 p-2 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors duration-200 group"
+                >
+                  {/* Small thumbnail - 16:9 aspect ratio */}
+                  <div className="flex-shrink-0 w-24 aspect-video overflow-hidden">
+                    {announcement.Image ? (
+                      <img
+                        src={announcement.Image}
+                        alt={announcement.Title}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div
+                        className="w-full h-full grid place-items-center p-1"
+                        style={{
+                          backgroundColor: '#1c2b39',
+                          backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23ffffff' fill-opacity='0.15'/%3E%3Ccircle cx='12' cy='12' r='1' fill='%23ffffff' fill-opacity='0.25'/%3E%3C/svg%3E\")",
+                          backgroundRepeat: 'repeat',
+                          backgroundSize: '10px 10px',
+                        }}
+                      >
+                        <span className="text-white font-bold uppercase leading-tight text-center text-[8px]">
+                          {announcement.Title.substring(0, 20)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  {/* Text content */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-xs leading-tight text-primary dark:text-white group-hover:text-secondary transition-colors duration-200">
+                      {heading}
+                    </h3>
+                    {subHeading && (
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 leading-snug">
+                        {subHeading.replace(/<[^>]*>/g, '').trim().substring(0, 80)}
+                      </p>
+                    )}
+                  </div>
+                  {/* Arrow */}
+                  <svg
+                    className="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-secondary group-hover:translate-x-0.5 transition-all duration-200"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </a>
+              </React.Fragment>
+            );
+          })}
+        </div>
       </div>
     );
   }

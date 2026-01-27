@@ -52,7 +52,7 @@ export default function AnnouncementsPage() {
   const [labels, setLabels] = useState<AnnouncementsLabels>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [mode, setMode] = useState<'grid' | 'carousel'>('grid');
+  const [mode, setMode] = useState<'grid' | 'carousel' | 'social'>('grid');
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Single logo element that persists through loading and after
@@ -114,15 +114,15 @@ export default function AnnouncementsPage() {
     // Get mode from:
     // 1. Global config (for widget embedding)
     // 2. URL params (for standalone pages)
-    let modeToUse: 'grid' | 'carousel' = 'grid';
+    let modeToUse: 'grid' | 'carousel' | 'social' = 'grid';
 
     if (typeof window !== 'undefined' && (window as Window & { __ANNOUNCEMENTS_WIDGET_CONFIG__?: { mode?: string } }).__ANNOUNCEMENTS_WIDGET_CONFIG__) {
-      modeToUse = ((window as Window & { __ANNOUNCEMENTS_WIDGET_CONFIG__?: { mode?: string } }).__ANNOUNCEMENTS_WIDGET_CONFIG__?.mode as 'grid' | 'carousel') || 'grid';
+      modeToUse = ((window as Window & { __ANNOUNCEMENTS_WIDGET_CONFIG__?: { mode?: string } }).__ANNOUNCEMENTS_WIDGET_CONFIG__?.mode as 'grid' | 'carousel' | 'social') || 'grid';
     } else if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const modeParam = params.get('mode');
-      if (modeParam === 'carousel') {
-        modeToUse = 'carousel';
+      if (modeParam === 'carousel' || modeParam === 'social') {
+        modeToUse = modeParam;
       }
     }
 
@@ -216,7 +216,7 @@ export default function AnnouncementsPage() {
         setData(result.Announcements);
         setLabels(result.Information || {});
 
-        // Trigger transition for grid mode
+        // Trigger transition for grid mode only (not carousel or social)
         if (modeToUse === 'grid') {
           // Wait a frame to ensure the DOM is ready, then start transition
           requestAnimationFrame(() => {
@@ -236,6 +236,41 @@ export default function AnnouncementsPage() {
   }, []);
 
   if (loading) {
+    // Social skeleton
+    if (mode === 'social') {
+      return (
+        <div className="px-4 py-6">
+          <div className="max-w-lg mx-auto animate-pulse">
+            {/* Header skeleton */}
+            <div className="text-center mb-6">
+              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24 mx-auto mb-2" />
+              <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-48 mx-auto" />
+            </div>
+            {/* Quick links skeleton */}
+            <div className="flex justify-center gap-4 mb-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-20" />
+              ))}
+            </div>
+            {/* Section header skeleton */}
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-40 mb-3" />
+            {/* Announcement items skeleton */}
+            <div className="flex flex-col gap-2">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex items-center gap-3 p-2 bg-gray-50 dark:bg-white/5">
+                  <div className="w-24 aspect-video bg-gray-200 dark:bg-gray-700" />
+                  <div className="flex-1">
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-1" />
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     // Carousel skeleton
     if (mode === 'carousel') {
       return (
@@ -298,6 +333,14 @@ export default function AnnouncementsPage() {
     return (
       <div className="relative">
         {logoElement}
+        <AnnouncementsGrid data={data} mode={mode} labels={labels} />
+      </div>
+    );
+  }
+
+  if (mode === 'social') {
+    return (
+      <div className="px-4 py-6">
         <AnnouncementsGrid data={data} mode={mode} labels={labels} />
       </div>
     );
