@@ -11,6 +11,7 @@ export interface BudgetPermissions {
   canManageCategories: boolean;
   canManageLineItems: boolean;
   canApprovePurchaseRequests: boolean;
+  canCreatePurchaseRequests: boolean;
   canManagePurchaseRequests: boolean;
   canManageTransactions: boolean;
   loading: boolean;
@@ -39,6 +40,7 @@ export function useBudgetPermissions(): BudgetPermissions {
         canManageCategories: false,
         canManageLineItems: false,
         canApprovePurchaseRequests: false,
+        canCreatePurchaseRequests: false,
         canManagePurchaseRequests: false,
         canManageTransactions: false,
         loading: false,
@@ -62,6 +64,7 @@ export function useBudgetPermissions(): BudgetPermissions {
         canManageCategories: true,
         canManageLineItems: true,
         canApprovePurchaseRequests: true,
+        canCreatePurchaseRequests: true,
         canManagePurchaseRequests: true,
         canManageTransactions: true,
         loading: false,
@@ -69,7 +72,8 @@ export function useBudgetPermissions(): BudgetPermissions {
     }
 
     // Check for edit access
-    const canEdit = userRoles.includes('Budgets - Edit');
+    // "All Staff" with app access is treated as edit-level for purchase requests
+    const canEdit = userRoles.includes('Budgets - Edit') || userRoles.includes('All Staff');
 
     if (canEdit) {
       return {
@@ -80,6 +84,7 @@ export function useBudgetPermissions(): BudgetPermissions {
         canManageCategories: false,
         canManageLineItems: false,
         canApprovePurchaseRequests: false,
+        canCreatePurchaseRequests: true,
         canManagePurchaseRequests: true,
         canManageTransactions: true,
         loading: false,
@@ -98,6 +103,7 @@ export function useBudgetPermissions(): BudgetPermissions {
         canManageCategories: false,
         canManageLineItems: false,
         canApprovePurchaseRequests: false,
+        canCreatePurchaseRequests: true,
         canManagePurchaseRequests: false,
         canManageTransactions: false,
         loading: false,
@@ -113,6 +119,7 @@ export function useBudgetPermissions(): BudgetPermissions {
       canManageCategories: false,
       canManageLineItems: false,
       canApprovePurchaseRequests: false,
+      canCreatePurchaseRequests: false,
       canManagePurchaseRequests: false,
       canManageTransactions: false,
       loading: false,

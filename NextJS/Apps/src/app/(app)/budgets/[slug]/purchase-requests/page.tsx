@@ -735,7 +735,7 @@ export default function PurchaseRequestsPage({
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#61bc47] transition-colors"
           />
 
-          {permissions.canManagePurchaseRequests && (
+          {permissions.canCreatePurchaseRequests && (
             <button
               onClick={() => {
                 setIsCreateRequestOpen(true);

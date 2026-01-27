@@ -66,9 +66,9 @@ export async function POST(
 
     // Check permissions
     const permissions = checkBudgetPermissions(session);
-    if (!permissions.canManagePurchaseRequests) {
+    if (!permissions.canCreatePurchaseRequests) {
       return NextResponse.json(
-        { error: "Forbidden: You do not have permission to manage purchase requests" },
+        { error: "Forbidden: You do not have permission to create purchase requests" },
         { status: 403 }
       );
     }

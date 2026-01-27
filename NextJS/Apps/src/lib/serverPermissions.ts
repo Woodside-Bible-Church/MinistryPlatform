@@ -10,6 +10,7 @@ export interface ServerBudgetPermissions {
   canManageCategories: boolean;
   canManageLineItems: boolean;
   canApprovePurchaseRequests: boolean;
+  canCreatePurchaseRequests: boolean;
   canManagePurchaseRequests: boolean;
   canManageTransactions: boolean;
 }
@@ -34,6 +35,7 @@ export function checkBudgetPermissions(session: Session | null): ServerBudgetPer
       canManageCategories: false,
       canManageLineItems: false,
       canApprovePurchaseRequests: false,
+      canCreatePurchaseRequests: false,
       canManagePurchaseRequests: false,
       canManageTransactions: false,
     };
@@ -56,13 +58,15 @@ export function checkBudgetPermissions(session: Session | null): ServerBudgetPer
       canManageCategories: true,
       canManageLineItems: true,
       canApprovePurchaseRequests: true,
+      canCreatePurchaseRequests: true,
       canManagePurchaseRequests: true,
       canManageTransactions: true,
     };
   }
 
   // Check for edit access
-  const canEdit = userRoles.includes('Budgets - Edit');
+  // "All Staff" with app access is treated as edit-level for purchase requests
+  const canEdit = userRoles.includes('Budgets - Edit') || userRoles.includes('All Staff');
 
   if (canEdit) {
     return {
@@ -73,6 +77,7 @@ export function checkBudgetPermissions(session: Session | null): ServerBudgetPer
       canManageCategories: false,
       canManageLineItems: false,
       canApprovePurchaseRequests: false,
+      canCreatePurchaseRequests: true,
       canManagePurchaseRequests: true,
       canManageTransactions: true,
     };
@@ -90,6 +95,7 @@ export function checkBudgetPermissions(session: Session | null): ServerBudgetPer
       canManageCategories: false,
       canManageLineItems: false,
       canApprovePurchaseRequests: false,
+      canCreatePurchaseRequests: true,
       canManagePurchaseRequests: false,
       canManageTransactions: false,
     };
@@ -104,6 +110,7 @@ export function checkBudgetPermissions(session: Session | null): ServerBudgetPer
     canManageCategories: false,
     canManageLineItems: false,
     canApprovePurchaseRequests: false,
+    canCreatePurchaseRequests: false,
     canManagePurchaseRequests: false,
     canManageTransactions: false,
   };
