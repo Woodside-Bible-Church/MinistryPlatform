@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { AnnouncementsData, AnnouncementsLabels } from '@/lib/types';
 import { AnnouncementCard } from './AnnouncementCard';
 import { QuickLinks } from './QuickLinks';
@@ -9,6 +9,142 @@ interface AnnouncementsGridProps {
   data: AnnouncementsData;
   mode?: 'grid' | 'carousel' | 'social';
   labels?: AnnouncementsLabels;
+}
+
+// Long press modal for opening links in different browsers
+function LinkOptionsModal({
+  url,
+  onClose
+}: {
+  url: string;
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => {
+        setCopied(false);
+        onClose();
+      }, 1500);
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => {
+        setCopied(false);
+        onClose();
+      }, 1500);
+    }
+  };
+
+  const handleOpenInChrome = () => {
+    // Convert https:// to googlechromes:// for Chrome on iOS
+    const chromeUrl = url.replace(/^https:\/\//, 'googlechromes://').replace(/^http:\/\//, 'googlechrome://');
+    window.location.href = chromeUrl;
+    onClose();
+  };
+
+  const handleOpenInFirefox = () => {
+    // Firefox iOS URL scheme
+    const firefoxUrl = `firefox://open-url?url=${encodeURIComponent(url)}`;
+    window.location.href = firefoxUrl;
+    onClose();
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg bg-white dark:bg-gray-900 rounded-t-2xl p-4 pb-8 animate-[slideUp_0.3s_ease-out]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* URL Preview */}
+        <div className="text-center mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate px-4">{url}</p>
+        </div>
+
+        {/* Options */}
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={handleOpenInChrome}
+            className="flex items-center gap-3 w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-700 flex items-center justify-center shadow-sm">
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="#4285F4" strokeWidth="2"/>
+                <circle cx="12" cy="12" r="4" fill="#4285F4"/>
+                <path d="M12 2C6.48 2 2 6.48 2 12h10l5-8.66A9.96 9.96 0 0012 2z" fill="#EA4335"/>
+                <path d="M2 12c0 5.52 4.48 10 10 10 1.82 0 3.53-.49 5-1.34L12 12H2z" fill="#34A853"/>
+                <path d="M12 22c3.87 0 7.21-2.2 8.87-5.42L17 12l-5 8.66c0 .01 0 .01 0 0 1.47.85 3.18 1.34 5 1.34z" fill="#FBBC05"/>
+              </svg>
+            </div>
+            <span className="font-medium text-gray-900 dark:text-white">Open in Chrome</span>
+          </button>
+
+          <button
+            onClick={handleOpenInFirefox}
+            className="flex items-center gap-3 w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-700 flex items-center justify-center shadow-sm">
+              <svg className="w-6 h-6" viewBox="0 0 24 24">
+                <path fill="#FF7139" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8 0-1.85.63-3.55 1.69-4.9l.72 1.53c.31.66.96 1.09 1.69 1.14.73.05 1.43-.29 1.82-.89l.5-.76c.26-.4.76-.56 1.2-.39.44.17.73.59.73 1.06v1.21c0 .83.67 1.5 1.5 1.5h2c.55 0 1-.45 1-1s-.45-1-1-1h-1v-.71c0-1.16-.71-2.21-1.79-2.64-1.08-.43-2.31-.14-3.1.73l-.5.76-.72-1.53A7.95 7.95 0 0112 4c4.41 0 8 3.59 8 8s-3.59 8-8 8z"/>
+              </svg>
+            </div>
+            <span className="font-medium text-gray-900 dark:text-white">Open in Firefox</span>
+          </button>
+
+          <button
+            onClick={handleCopyLink}
+            className="flex items-center gap-3 w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-700 flex items-center justify-center shadow-sm">
+              {copied ? (
+                <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              )}
+            </div>
+            <span className="font-medium text-gray-900 dark:text-white">
+              {copied ? 'Copied!' : 'Copy Link'}
+            </span>
+          </button>
+        </div>
+
+        {/* Cancel button */}
+        <button
+          onClick={onClose}
+          className="w-full mt-4 p-4 rounded-xl bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-gray-900 dark:text-white"
+        >
+          Cancel
+        </button>
+      </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+      `}</style>
+    </div>
+  );
 }
 
 export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: AnnouncementsGridProps) {
@@ -26,8 +162,37 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
   const [showChurchWideHeader, setShowChurchWideHeader] = useState(true);
   const [showCampusHeader, setShowCampusHeader] = useState(false);
 
+  // Long press state for social mode
+  const [longPressUrl, setLongPressUrl] = useState<string | null>(null);
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   const isCarousel = mode === 'carousel';
   const isSocial = mode === 'social';
+
+  // Long press handlers for social mode
+  const handleTouchStart = useCallback((url: string) => {
+    longPressTimerRef.current = setTimeout(() => {
+      setLongPressUrl(url);
+      // Vibrate if supported (subtle feedback)
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+    }, 500);
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
+  const handleTouchMove = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
 
   // Handle click on progress bar to scroll to position
   const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -188,10 +353,15 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
         </div>
 
         {/* Quick Links */}
-        <QuickLinks openInNewTab />
+        <QuickLinks openInNewTab onLongPress={(url) => setLongPressUrl(url)} />
+
+        {/* Hint about long press */}
+        <p className="text-center text-[10px] text-gray-400 mt-4 md:mt-6">
+          Tap to open &bull; Hold for more options
+        </p>
 
         {/* Compact announcement list */}
-        <div className="flex flex-col gap-2 md:gap-3 mt-6 md:mt-10">
+        <div className="flex flex-col gap-2 md:gap-3 mt-3 md:mt-4">
           {allAnnouncements.map((announcement) => {
             const heading = announcement.CallToAction?.Heading || announcement.Title;
             const subHeading = announcement.CallToAction?.SubHeading || announcement.Body;
@@ -204,17 +374,28 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                   target="_top"
                   rel="noopener noreferrer"
                   onClick={(e) => {
-                    if (hasLink) {
-                      e.preventDefault();
-                      // Try window.open first (may open external browser on some devices)
-                      const newWindow = window.open(hasLink, '_blank');
-                      // If blocked or same context, navigate top frame
-                      if (!newWindow || newWindow.closed) {
+                    // If long press modal is about to show, prevent navigation
+                    if (longPressTimerRef.current === null && !longPressUrl) {
+                      // Normal click - navigate
+                      if (hasLink) {
+                        e.preventDefault();
                         window.top?.location.assign(hasLink);
                       }
+                    } else {
+                      e.preventDefault();
                     }
                   }}
-                  className="flex items-center gap-3 md:gap-4 p-2 md:p-3 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors duration-200 group"
+                  onTouchStart={() => hasLink && handleTouchStart(hasLink)}
+                  onTouchEnd={handleTouchEnd}
+                  onTouchMove={handleTouchMove}
+                  onContextMenu={(e) => {
+                    // Also handle right-click/long-press context menu on desktop
+                    if (hasLink) {
+                      e.preventDefault();
+                      setLongPressUrl(hasLink);
+                    }
+                  }}
+                  className="flex items-center gap-3 md:gap-4 p-2 md:p-3 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors duration-200 group select-none"
                 >
                   {/* Small thumbnail - 16:9 aspect ratio */}
                   <div className="flex-shrink-0 w-24 md:w-36 aspect-video overflow-hidden">
@@ -266,6 +447,14 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
             );
           })}
         </div>
+
+        {/* Long press options modal */}
+        {longPressUrl && (
+          <LinkOptionsModal
+            url={longPressUrl}
+            onClose={() => setLongPressUrl(null)}
+          />
+        )}
       </div>
     );
   }
