@@ -153,10 +153,10 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
     ];
 
     return (
-      <div className="max-w-lg mx-auto relative">
+      <div className="max-w-lg md:max-w-2xl mx-auto relative">
         {/* Woodside watermark - visible on all screen sizes for social mode */}
         <div
-          className="absolute top-0 right-0 w-24 h-24 opacity-[0.04] pointer-events-none"
+          className="absolute top-0 right-0 w-24 h-24 md:w-36 md:h-36 opacity-[0.04] pointer-events-none"
         >
           <svg
             viewBox="0 0 822.73 822.41"
@@ -169,18 +169,18 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
         </div>
 
         {/* Header */}
-        <div className="text-center mb-6">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-1">
+        <div className="text-center mb-6 md:mb-10">
+          <div className="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-widest mb-1">
             {labels.carouselHeading1 || 'Stay in the know'}
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-3xl md:text-5xl font-bold tracking-tight">
             {labels.carouselHeading2 || 'Announcements'}
           </h1>
           {/* Campus name if passed */}
           {hasCampus && data.Campus?.Name && (
-            <div className="mt-4">
-              <div className="w-16 h-px bg-gray-300 dark:bg-white/15 mx-auto my-3" />
-              <div className="text-xs font-medium text-gray-400 uppercase tracking-widest">
+            <div className="mt-4 md:mt-6">
+              <div className="w-16 md:w-20 h-px bg-gray-300 dark:bg-white/15 mx-auto my-3 md:my-4" />
+              <div className="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-widest">
                 {data.Campus.Name} Campus
               </div>
             </div>
@@ -191,7 +191,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
         <QuickLinks />
 
         {/* Compact announcement list */}
-        <div className="flex flex-col gap-2 mt-6">
+        <div className="flex flex-col gap-2 md:gap-3 mt-6 md:mt-10">
           {allAnnouncements.map((announcement) => {
             const heading = announcement.CallToAction?.Heading || announcement.Title;
             const subHeading = announcement.CallToAction?.SubHeading || announcement.Body;
@@ -201,10 +201,10 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
               <React.Fragment key={announcement.ID}>
                 <a
                   href={hasLink || '#'}
-                  className="flex items-center gap-3 p-2 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors duration-200 group"
+                  className="flex items-center gap-3 md:gap-4 p-2 md:p-3 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors duration-200 group"
                 >
                   {/* Small thumbnail - 16:9 aspect ratio */}
-                  <div className="flex-shrink-0 w-24 aspect-video overflow-hidden">
+                  <div className="flex-shrink-0 w-24 md:w-36 aspect-video overflow-hidden">
                     {announcement.Image ? (
                       <img
                         src={announcement.Image}
@@ -214,7 +214,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                       />
                     ) : (
                       <div
-                        className="w-full h-full grid place-items-center p-1"
+                        className="w-full h-full grid place-items-center p-1 md:p-2"
                         style={{
                           backgroundColor: '#1c2b39',
                           backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23ffffff' fill-opacity='0.15'/%3E%3Ccircle cx='12' cy='12' r='1' fill='%23ffffff' fill-opacity='0.25'/%3E%3C/svg%3E\")",
@@ -222,7 +222,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                           backgroundSize: '10px 10px',
                         }}
                       >
-                        <span className="text-white font-bold uppercase leading-tight text-center text-[8px]">
+                        <span className="text-white font-bold uppercase leading-tight text-center text-[8px] md:text-xs">
                           {announcement.Title.substring(0, 20)}
                         </span>
                       </div>
@@ -230,18 +230,18 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                   </div>
                   {/* Text content */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-xs leading-tight text-primary dark:text-white group-hover:text-secondary transition-colors duration-200">
+                    <h3 className="font-bold text-xs md:text-base leading-tight text-primary dark:text-white group-hover:text-secondary transition-colors duration-200">
                       {heading}
                     </h3>
                     {subHeading && (
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 leading-snug">
+                      <p className="text-[11px] md:text-sm text-gray-500 dark:text-gray-400 mt-0.5 leading-snug">
                         {subHeading.replace(/<[^>]*>/g, '').trim().substring(0, 80)}
                       </p>
                     )}
                   </div>
                   {/* Arrow */}
                   <svg
-                    className="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-secondary group-hover:translate-x-0.5 transition-all duration-200"
+                    className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0 text-gray-400 group-hover:text-secondary group-hover:translate-x-0.5 transition-all duration-200"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
