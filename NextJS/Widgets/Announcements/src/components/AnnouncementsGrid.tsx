@@ -156,7 +156,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
       <div className="max-w-lg mx-auto relative">
         {/* Woodside watermark - visible on all screen sizes for social mode */}
         <div
-          className="absolute top-0 right-0 w-32 h-32 opacity-[0.06] pointer-events-none"
+          className="absolute top-0 right-0 w-24 h-24 opacity-[0.04] pointer-events-none"
         >
           <svg
             viewBox="0 0 822.73 822.41"
@@ -173,7 +173,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
           <div className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-1">
             {labels.carouselHeading1 || 'Stay in the know'}
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight">
             {labels.carouselHeading2 || 'Announcements'}
           </h1>
           {/* Campus name if passed */}
