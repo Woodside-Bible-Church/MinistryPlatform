@@ -153,7 +153,21 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
     ];
 
     return (
-      <div className="max-w-lg mx-auto">
+      <div className="max-w-lg mx-auto relative">
+        {/* Woodside watermark - visible on all screen sizes for social mode */}
+        <div
+          className="absolute top-0 right-0 w-32 h-32 opacity-[0.06] pointer-events-none"
+        >
+          <svg
+            viewBox="0 0 822.73 822.41"
+            className="w-full h-full text-primary dark:text-white"
+          >
+            <path d="M482.59,292.96c-28.5,75.56-63.52,148.62-91.88,224.24-22.85,60.93-44.5,165.54,5.99,218.03,53.19,55.31,103.27-36.03,126.36-76.12,29.77-51.67,60.19-102.91,92.51-153.1,37.77-58.65,82.78-117.18,128.05-170.34,17.33-20.35,35.58-39.9,55.18-58.05,1.32-.3,1.67.72,2.19,1.61,2.7,4.68,6.16,19.72,7.79,25.79,55.59,207.53-59.67,424.44-261.39,494.49-162.86,56.55-343.5,6.03-452.97-125.71l.02-2.82c22.1-29.38,43.34-59.51,66.31-88.22,46.87-58.59,104.84-117,159.18-168.95,39.21-37.49,94.79-86.04,141.88-112.38,2.97-1.66,18.74-10.3,20.79-8.46Z" fill="currentColor"/>
+            <path d="M454.78,615.29c-.4-37.26,12.31-73.93,23.96-108.91,21.35-64.11,58.46-144.93,65.26-211.05,10.09-98.15-75.84-54.82-121.59-23.71-87.22,59.32-157.97,140.42-238.72,207.44-1.08.9-1.56,2.33-3.36,1.91,29.91-61.5,79.75-118.22,92.63-187.03,26.62-142.2-143-109.97-223.13-77.75-1.54-1.51,19.5-33.71,21.85-37.14C170.36,35.21,348.48-31.19,518.31,14.05c111.97,29.83,206.98,107.78,259.7,210.54l-1.23,3.19c-101.38,85.68-182.57,188.93-258.5,297.03-21.17,30.14-40.81,61.47-63.5,90.48Z" fill="currentColor"/>
+            <path d="M38.3,581.71c-6.2-9.05-10.4-20.99-14.14-31.42C-1.72,478.2-6.79,400.44,8.86,325.38c1.73-8.3,5.99-29.98,9.5-36.56,1.25-2.35,11.96-9.93,14.86-12.01,41.76-29.96,121.9-63.33,173.22-50.74,49.51,12.15,15.29,70.69-.39,97.86-34.22,59.31-78.86,114.75-116.32,172.48-18.06,27.83-35.65,56.1-51.43,85.3Z" fill="currentColor"/>
+          </svg>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-6">
           <div className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-1">
@@ -162,38 +176,29 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
           <h1 className="text-2xl font-bold tracking-tight">
             {labels.carouselHeading2 || 'Announcements'}
           </h1>
+          {/* Campus name if passed */}
+          {hasCampus && data.Campus?.Name && (
+            <div className="mt-4">
+              <div className="w-16 h-px bg-gray-300 dark:bg-white/15 mx-auto my-3" />
+              <div className="text-xs font-medium text-gray-400 uppercase tracking-widest">
+                {data.Campus.Name} Campus
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Quick Links */}
         <QuickLinks />
 
-        {/* Section Header */}
-        {hasChurchWide && (
-          <h2 className="mt-6 mb-3 text-sm font-bold text-primary dark:text-white uppercase tracking-wide">
-            {labels.churchWideTitle || 'Happening At Woodside'}
-          </h2>
-        )}
-
         {/* Compact announcement list */}
-        <div className="flex flex-col gap-2">
-          {allAnnouncements.map((announcement, index) => {
+        <div className="flex flex-col gap-2 mt-6">
+          {allAnnouncements.map((announcement) => {
             const heading = announcement.CallToAction?.Heading || announcement.Title;
             const subHeading = announcement.CallToAction?.SubHeading || announcement.Body;
             const hasLink = announcement.CallToAction?.Link;
 
-            // Show campus header before first campus announcement
-            const isFirstCampusAnnouncement =
-              hasCampus &&
-              hasChurchWide &&
-              index === data.ChurchWide.length;
-
             return (
               <React.Fragment key={announcement.ID}>
-                {isFirstCampusAnnouncement && (
-                  <h2 className="mt-4 mb-2 text-sm font-bold text-primary dark:text-white uppercase tracking-wide">
-                    {data.Campus!.Name || 'Campus'}
-                  </h2>
-                )}
                 <a
                   href={hasLink || '#'}
                   className="flex items-center gap-3 p-2 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors duration-200 group"
