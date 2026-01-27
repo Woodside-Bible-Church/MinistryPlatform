@@ -11,7 +11,7 @@ interface AnnouncementsGridProps {
   labels?: AnnouncementsLabels;
 }
 
-// Long press modal for opening links in different browsers
+// Modal for opening links in different browsers (mobile only)
 function LinkOptionsModal({
   url,
   onClose
@@ -59,6 +59,12 @@ function LinkOptionsModal({
     onClose();
   };
 
+  const handleOpenInInstagram = () => {
+    // Just navigate in the current context (Instagram's browser)
+    window.top?.location.assign(url);
+    onClose();
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]"
@@ -68,6 +74,9 @@ function LinkOptionsModal({
         className="w-full max-w-lg bg-white dark:bg-gray-900 rounded-t-2xl p-4 pb-8 animate-[slideUp_0.3s_ease-out]"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Drag handle */}
+        <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-4" />
+
         {/* URL Preview */}
         <div className="text-center mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
           <p className="text-xs text-gray-500 dark:text-gray-400 truncate px-4">{url}</p>
@@ -80,12 +89,14 @@ function LinkOptionsModal({
             className="flex items-center gap-3 w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-700 flex items-center justify-center shadow-sm">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="#4285F4" strokeWidth="2"/>
-                <circle cx="12" cy="12" r="4" fill="#4285F4"/>
-                <path d="M12 2C6.48 2 2 6.48 2 12h10l5-8.66A9.96 9.96 0 0012 2z" fill="#EA4335"/>
-                <path d="M2 12c0 5.52 4.48 10 10 10 1.82 0 3.53-.49 5-1.34L12 12H2z" fill="#34A853"/>
-                <path d="M12 22c3.87 0 7.21-2.2 8.87-5.42L17 12l-5 8.66c0 .01 0 .01 0 0 1.47.85 3.18 1.34 5 1.34z" fill="#FBBC05"/>
+              {/* Official Chrome logo */}
+              <svg className="w-7 h-7" viewBox="0 0 48 48">
+                <path fill="#4caf50" d="M44,24c0,11.044-8.956,20-20,20S4,35.044,4,24S12.956,4,24,4S44,12.956,44,24z"/>
+                <path fill="#ffc107" d="M24,4v20l12,12c4.418-4.418,4.418-11.582,0-16L24,4z"/>
+                <path fill="#f44336" d="M24,4C12.956,4,4,12.956,4,24h20L24,4z"/>
+                <path fill="#dd2c00" d="M24,24l-7.071-7.071L24,4V24z"/>
+                <path fill="#fff" d="M24,32c-4.418,0-8-3.582-8-8s3.582-8,8-8s8,3.582,8,8S28.418,32,24,32z"/>
+                <path fill="#2196f3" d="M24,29c-2.761,0-5-2.239-5-5s2.239-5,5-5s5,2.239,5,5S26.761,29,24,29z"/>
               </svg>
             </div>
             <span className="font-medium text-gray-900 dark:text-white">Open in Chrome</span>
@@ -96,8 +107,26 @@ function LinkOptionsModal({
             className="flex items-center gap-3 w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-700 flex items-center justify-center shadow-sm">
-              <svg className="w-6 h-6" viewBox="0 0 24 24">
-                <path fill="#FF7139" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8 0-1.85.63-3.55 1.69-4.9l.72 1.53c.31.66.96 1.09 1.69 1.14.73.05 1.43-.29 1.82-.89l.5-.76c.26-.4.76-.56 1.2-.39.44.17.73.59.73 1.06v1.21c0 .83.67 1.5 1.5 1.5h2c.55 0 1-.45 1-1s-.45-1-1-1h-1v-.71c0-1.16-.71-2.21-1.79-2.64-1.08-.43-2.31-.14-3.1.73l-.5.76-.72-1.53A7.95 7.95 0 0112 4c4.41 0 8 3.59 8 8s-3.59 8-8 8z"/>
+              {/* Official Firefox logo */}
+              <svg className="w-7 h-7" viewBox="0 0 512 512">
+                <defs>
+                  <radialGradient id="ff-a" cx="82.14%" cy="85.03%" r="90.39%" fx="82.14%" fy="85.03%">
+                    <stop offset="0%" stopColor="#FFBD4F"/>
+                    <stop offset="12.9%" stopColor="#FFAC31"/>
+                    <stop offset="18.66%" stopColor="#FF9D17"/>
+                    <stop offset="20.93%" stopColor="#FF980E"/>
+                    <stop offset="76.53%" stopColor="#FF563B"/>
+                    <stop offset="100%" stopColor="#FF3750"/>
+                  </radialGradient>
+                  <radialGradient id="ff-b" cx="15.11%" cy="14.29%" r="98.07%" fx="15.11%" fy="14.29%">
+                    <stop offset="0%" stopColor="#FFF44F"/>
+                    <stop offset="32.99%" stopColor="#FF980E"/>
+                    <stop offset="62.2%" stopColor="#FF5634"/>
+                    <stop offset="100%" stopColor="#FF3647"/>
+                  </radialGradient>
+                </defs>
+                <path fill="url(#ff-a)" d="M478.5 159.2c-14.1-34.8-42.6-73.5-63.9-86.4 19.3 37.5 30.4 80.9 31.5 117.4v1.2c0 88.4-69 159.4-157.3 162.4-94.7 3.2-173.8-72.7-173.8-167.6 0-38.4 12.6-73.9 34-102.4-29.9 17.8-55.7 61.6-64.5 100.3-12.1 46.6-6.9 95.7 14.4 138.2 21.2 42.3 56.3 76.4 98.8 96 57.5 26.5 129.3 26.8 186.6-.2 62.6-29.5 107.6-88.3 119.3-156.3 4.6-27 3.5-72.5-24.9-102.6z"/>
+                <path fill="url(#ff-b)" d="M478.5 159.2c-14.1-34.8-42.6-73.5-63.9-86.4 19.3 37.5 30.4 80.9 31.5 117.4-26.8-62.4-70.7-87.2-106.8-140.3-7.8-11.4-15.2-23.5-21.6-36.5-.7-1.4-1.4-2.9-2-4.4-.3-.8-.6-1.7-.8-2.5-.4-1.3-.7-2.6-.8-3.9 0-.2-.1-.4-.1-.6-8.7 5-74.4 48.2-98.8 131-1.3 4.4-2.5 9-3.5 13.5 4.4-2.4 9-4.5 13.7-6.1l.3-.1c64.2-22.6 127.4 17 134.5 80.2 1.2 8.3 1.2 16.9.1 25.5-.2 1.2-.4 2.3-.6 3.5-1 5.5-2.6 10.7-4.5 15.8-2.6 7-5.9 13.4-9.8 19.3-3.6 5.4-7.7 10.4-12.2 15-4.9 5-10.1 9.5-15.7 13.6-4.9 3.5-10 6.6-15.4 9.3-5.2 2.7-10.5 5-15.9 6.9-6.4 2.4-13 4.3-19.7 5.7-7.1 1.5-14.3 2.5-21.5 3-7.7.5-15.3.5-22.8 0-6-.4-11.8-1.2-17.6-2.3-6.9-1.3-13.8-3.1-20.5-5.3-1.6-.5-3.1-1-4.7-1.6.8.5 1.6 1.1 2.5 1.6 5.3 3.3 10.9 6.1 16.7 8.6 8.5 3.6 17.5 6.4 26.7 8.2 58.6 11.6 125.3-10.2 163.3-61.7 39.4-53.3 46.9-124.9 16.7-189.3 20.2 23.3 35.1 55.4 37.2 88.2v1.2c0 88.4-69 159.4-157.3 162.4-94.7 3.2-173.8-72.7-173.8-167.6 0-38.4 12.6-73.9 34-102.4-29.9 17.8-55.7 61.6-64.5 100.3-12.1 46.6-6.9 95.7 14.4 138.2 21.2 42.3 56.3 76.4 98.8 96 57.5 26.5 129.3 26.8 186.6-.2 62.6-29.5 107.6-88.3 119.3-156.3 4.6-27 3.5-72.5-24.9-102.6z"/>
               </svg>
             </div>
             <span className="font-medium text-gray-900 dark:text-white">Open in Firefox</span>
@@ -124,12 +153,15 @@ function LinkOptionsModal({
           </button>
         </div>
 
-        {/* Cancel button */}
+        {/* Open in Instagram option - less prominent */}
         <button
-          onClick={onClose}
-          className="w-full mt-4 p-4 rounded-xl bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-gray-900 dark:text-white"
+          onClick={handleOpenInInstagram}
+          className="flex items-center justify-center gap-2 w-full mt-4 p-3 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
         >
-          Cancel
+          <span>Continue in app</span>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </button>
       </div>
 
@@ -162,37 +194,34 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
   const [showChurchWideHeader, setShowChurchWideHeader] = useState(true);
   const [showCampusHeader, setShowCampusHeader] = useState(false);
 
-  // Long press state for social mode
-  const [longPressUrl, setLongPressUrl] = useState<string | null>(null);
-  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // Modal state for social mode link options
+  const [linkOptionsUrl, setLinkOptionsUrl] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   const isCarousel = mode === 'carousel';
   const isSocial = mode === 'social';
 
-  // Long press handlers for social mode
-  const handleTouchStart = useCallback((url: string) => {
-    longPressTimerRef.current = setTimeout(() => {
-      setLongPressUrl(url);
-      // Vibrate if supported (subtle feedback)
-      if (navigator.vibrate) {
-        navigator.vibrate(50);
-      }
-    }, 500);
+  // Detect mobile on mount
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handleTouchEnd = useCallback(() => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
+  // Handle link click in social mode
+  const handleSocialLinkClick = useCallback((e: React.MouseEvent, url: string) => {
+    e.preventDefault();
+    if (isMobile) {
+      // On mobile, show the options modal
+      setLinkOptionsUrl(url);
+    } else {
+      // On desktop, navigate directly
+      window.open(url, '_blank');
     }
-  }, []);
-
-  const handleTouchMove = useCallback(() => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  }, []);
+  }, [isMobile]);
 
   // Handle click on progress bar to scroll to position
   const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -353,15 +382,10 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
         </div>
 
         {/* Quick Links */}
-        <QuickLinks openInNewTab onLongPress={(url) => setLongPressUrl(url)} />
-
-        {/* Hint about long press */}
-        <p className="text-center text-[10px] text-gray-400 mt-4 md:mt-6">
-          Tap to open &bull; Hold for more options
-        </p>
+        <QuickLinks openInNewTab onLinkClick={handleSocialLinkClick} />
 
         {/* Compact announcement list */}
-        <div className="flex flex-col gap-2 md:gap-3 mt-3 md:mt-4">
+        <div className="flex flex-col gap-2 md:gap-3 mt-6 md:mt-10">
           {allAnnouncements.map((announcement) => {
             const heading = announcement.CallToAction?.Heading || announcement.Title;
             const subHeading = announcement.CallToAction?.SubHeading || announcement.Body;
@@ -371,31 +395,10 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
               <React.Fragment key={announcement.ID}>
                 <a
                   href={hasLink || '#'}
-                  target="_top"
+                  target="_blank"
                   rel="noopener noreferrer"
-                  onClick={(e) => {
-                    // If long press modal is about to show, prevent navigation
-                    if (longPressTimerRef.current === null && !longPressUrl) {
-                      // Normal click - navigate
-                      if (hasLink) {
-                        e.preventDefault();
-                        window.top?.location.assign(hasLink);
-                      }
-                    } else {
-                      e.preventDefault();
-                    }
-                  }}
-                  onTouchStart={() => hasLink && handleTouchStart(hasLink)}
-                  onTouchEnd={handleTouchEnd}
-                  onTouchMove={handleTouchMove}
-                  onContextMenu={(e) => {
-                    // Also handle right-click/long-press context menu on desktop
-                    if (hasLink) {
-                      e.preventDefault();
-                      setLongPressUrl(hasLink);
-                    }
-                  }}
-                  className="flex items-center gap-3 md:gap-4 p-2 md:p-3 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors duration-200 group select-none"
+                  onClick={(e) => hasLink && handleSocialLinkClick(e, hasLink)}
+                  className="flex items-center gap-3 md:gap-4 p-2 md:p-3 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors duration-200 group"
                 >
                   {/* Small thumbnail - 16:9 aspect ratio */}
                   <div className="flex-shrink-0 w-24 md:w-36 aspect-video overflow-hidden">
@@ -448,11 +451,11 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
           })}
         </div>
 
-        {/* Long press options modal */}
-        {longPressUrl && (
+        {/* Link options modal (mobile only) */}
+        {linkOptionsUrl && (
           <LinkOptionsModal
-            url={longPressUrl}
-            onClose={() => setLongPressUrl(null)}
+            url={linkOptionsUrl}
+            onClose={() => setLinkOptionsUrl(null)}
           />
         )}
       </div>

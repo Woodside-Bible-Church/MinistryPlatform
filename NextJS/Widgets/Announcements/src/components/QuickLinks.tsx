@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useCallback } from 'react';
+import React from 'react';
 
 interface QuickLink {
   id: string;
@@ -60,29 +60,10 @@ const defaultQuickLinks: QuickLink[] = [
 interface QuickLinksProps {
   links?: QuickLink[];
   openInNewTab?: boolean;
-  onLongPress?: (url: string) => void;
+  onLinkClick?: (e: React.MouseEvent, url: string) => void;
 }
 
-export function QuickLinks({ links = defaultQuickLinks, openInNewTab = false, onLongPress }: QuickLinksProps) {
-  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const handleTouchStart = useCallback((url: string) => {
-    if (!onLongPress) return;
-    longPressTimerRef.current = setTimeout(() => {
-      onLongPress(url);
-      if (navigator.vibrate) {
-        navigator.vibrate(50);
-      }
-    }, 500);
-  }, [onLongPress]);
-
-  const handleTouchEnd = useCallback(() => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  }, []);
-
+export function QuickLinks({ links = defaultQuickLinks, openInNewTab = false, onLinkClick }: QuickLinksProps) {
   if (!links || links.length === 0) return null;
 
   return (
@@ -91,27 +72,10 @@ export function QuickLinks({ links = defaultQuickLinks, openInNewTab = false, on
         <a
           key={link.id}
           href={link.href}
-          target={openInNewTab ? '_top' : undefined}
+          target={openInNewTab ? '_blank' : undefined}
           rel={openInNewTab ? 'noopener noreferrer' : undefined}
-          onClick={openInNewTab ? (e) => {
-            if (longPressTimerRef.current === null && onLongPress) {
-              e.preventDefault();
-              window.top?.location.assign(link.href);
-            } else if (!onLongPress) {
-              e.preventDefault();
-              window.top?.location.assign(link.href);
-            } else {
-              e.preventDefault();
-            }
-          } : undefined}
-          onTouchStart={() => handleTouchStart(link.href)}
-          onTouchEnd={handleTouchEnd}
-          onTouchMove={handleTouchEnd}
-          onContextMenu={onLongPress ? (e) => {
-            e.preventDefault();
-            onLongPress(link.href);
-          } : undefined}
-          className="group flex items-center gap-1.5 sm:gap-2 text-secondary hover:text-secondary-dark transition-colors duration-200 select-none"
+          onClick={onLinkClick ? (e) => onLinkClick(e, link.href) : undefined}
+          className="group flex items-center gap-1.5 sm:gap-2 text-secondary hover:text-secondary-dark transition-colors duration-200"
           style={{
             animation: `fadeInUp 0.5s ease-out ${0.3 + index * 0.1}s both`
           }}
