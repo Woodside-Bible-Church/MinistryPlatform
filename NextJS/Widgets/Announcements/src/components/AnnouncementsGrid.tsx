@@ -188,7 +188,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
         </div>
 
         {/* Quick Links */}
-        <QuickLinks />
+        <QuickLinks openInNewTab />
 
         {/* Compact announcement list */}
         <div className="flex flex-col gap-2 md:gap-3 mt-6 md:mt-10">
@@ -201,6 +201,8 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
               <React.Fragment key={announcement.ID}>
                 <a
                   href={hasLink || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center gap-3 md:gap-4 p-2 md:p-3 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors duration-200 group"
                 >
                   {/* Small thumbnail - 16:9 aspect ratio */}

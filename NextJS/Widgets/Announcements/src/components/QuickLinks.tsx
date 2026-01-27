@@ -59,9 +59,10 @@ const defaultQuickLinks: QuickLink[] = [
 
 interface QuickLinksProps {
   links?: QuickLink[];
+  openInNewTab?: boolean;
 }
 
-export function QuickLinks({ links = defaultQuickLinks }: QuickLinksProps) {
+export function QuickLinks({ links = defaultQuickLinks, openInNewTab = false }: QuickLinksProps) {
   if (!links || links.length === 0) return null;
 
   return (
@@ -70,6 +71,7 @@ export function QuickLinks({ links = defaultQuickLinks }: QuickLinksProps) {
         <a
           key={link.id}
           href={link.href}
+          {...(openInNewTab && { target: '_blank', rel: 'noopener noreferrer' })}
           className="group flex items-center gap-1.5 sm:gap-2 text-secondary hover:text-secondary-dark transition-colors duration-200"
           style={{
             animation: `fadeInUp 0.5s ease-out ${0.3 + index * 0.1}s both`
