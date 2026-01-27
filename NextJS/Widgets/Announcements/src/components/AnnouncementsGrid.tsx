@@ -89,15 +89,7 @@ function LinkOptionsModal({
             className="flex items-center gap-3 w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-700 flex items-center justify-center shadow-sm">
-              {/* Official Chrome logo */}
-              <svg className="w-7 h-7" viewBox="0 0 48 48">
-                <path fill="#4caf50" d="M44,24c0,11.044-8.956,20-20,20S4,35.044,4,24S12.956,4,24,4S44,12.956,44,24z"/>
-                <path fill="#ffc107" d="M24,4v20l12,12c4.418-4.418,4.418-11.582,0-16L24,4z"/>
-                <path fill="#f44336" d="M24,4C12.956,4,4,12.956,4,24h20L24,4z"/>
-                <path fill="#dd2c00" d="M24,24l-7.071-7.071L24,4V24z"/>
-                <path fill="#fff" d="M24,32c-4.418,0-8-3.582-8-8s3.582-8,8-8s8,3.582,8,8S28.418,32,24,32z"/>
-                <path fill="#2196f3" d="M24,29c-2.761,0-5-2.239-5-5s2.239-5,5-5s5,2.239,5,5S26.761,29,24,29z"/>
-              </svg>
+              <img src="/assets/chrome.svg" alt="Chrome" className="w-7 h-7" />
             </div>
             <span className="font-medium text-gray-900 dark:text-white">Open in Chrome</span>
           </button>
@@ -107,27 +99,7 @@ function LinkOptionsModal({
             className="flex items-center gap-3 w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-700 flex items-center justify-center shadow-sm">
-              {/* Official Firefox logo */}
-              <svg className="w-7 h-7" viewBox="0 0 512 512">
-                <defs>
-                  <radialGradient id="ff-a" cx="82.14%" cy="85.03%" r="90.39%" fx="82.14%" fy="85.03%">
-                    <stop offset="0%" stopColor="#FFBD4F"/>
-                    <stop offset="12.9%" stopColor="#FFAC31"/>
-                    <stop offset="18.66%" stopColor="#FF9D17"/>
-                    <stop offset="20.93%" stopColor="#FF980E"/>
-                    <stop offset="76.53%" stopColor="#FF563B"/>
-                    <stop offset="100%" stopColor="#FF3750"/>
-                  </radialGradient>
-                  <radialGradient id="ff-b" cx="15.11%" cy="14.29%" r="98.07%" fx="15.11%" fy="14.29%">
-                    <stop offset="0%" stopColor="#FFF44F"/>
-                    <stop offset="32.99%" stopColor="#FF980E"/>
-                    <stop offset="62.2%" stopColor="#FF5634"/>
-                    <stop offset="100%" stopColor="#FF3647"/>
-                  </radialGradient>
-                </defs>
-                <path fill="url(#ff-a)" d="M478.5 159.2c-14.1-34.8-42.6-73.5-63.9-86.4 19.3 37.5 30.4 80.9 31.5 117.4v1.2c0 88.4-69 159.4-157.3 162.4-94.7 3.2-173.8-72.7-173.8-167.6 0-38.4 12.6-73.9 34-102.4-29.9 17.8-55.7 61.6-64.5 100.3-12.1 46.6-6.9 95.7 14.4 138.2 21.2 42.3 56.3 76.4 98.8 96 57.5 26.5 129.3 26.8 186.6-.2 62.6-29.5 107.6-88.3 119.3-156.3 4.6-27 3.5-72.5-24.9-102.6z"/>
-                <path fill="url(#ff-b)" d="M478.5 159.2c-14.1-34.8-42.6-73.5-63.9-86.4 19.3 37.5 30.4 80.9 31.5 117.4-26.8-62.4-70.7-87.2-106.8-140.3-7.8-11.4-15.2-23.5-21.6-36.5-.7-1.4-1.4-2.9-2-4.4-.3-.8-.6-1.7-.8-2.5-.4-1.3-.7-2.6-.8-3.9 0-.2-.1-.4-.1-.6-8.7 5-74.4 48.2-98.8 131-1.3 4.4-2.5 9-3.5 13.5 4.4-2.4 9-4.5 13.7-6.1l.3-.1c64.2-22.6 127.4 17 134.5 80.2 1.2 8.3 1.2 16.9.1 25.5-.2 1.2-.4 2.3-.6 3.5-1 5.5-2.6 10.7-4.5 15.8-2.6 7-5.9 13.4-9.8 19.3-3.6 5.4-7.7 10.4-12.2 15-4.9 5-10.1 9.5-15.7 13.6-4.9 3.5-10 6.6-15.4 9.3-5.2 2.7-10.5 5-15.9 6.9-6.4 2.4-13 4.3-19.7 5.7-7.1 1.5-14.3 2.5-21.5 3-7.7.5-15.3.5-22.8 0-6-.4-11.8-1.2-17.6-2.3-6.9-1.3-13.8-3.1-20.5-5.3-1.6-.5-3.1-1-4.7-1.6.8.5 1.6 1.1 2.5 1.6 5.3 3.3 10.9 6.1 16.7 8.6 8.5 3.6 17.5 6.4 26.7 8.2 58.6 11.6 125.3-10.2 163.3-61.7 39.4-53.3 46.9-124.9 16.7-189.3 20.2 23.3 35.1 55.4 37.2 88.2v1.2c0 88.4-69 159.4-157.3 162.4-94.7 3.2-173.8-72.7-173.8-167.6 0-38.4 12.6-73.9 34-102.4-29.9 17.8-55.7 61.6-64.5 100.3-12.1 46.6-6.9 95.7 14.4 138.2 21.2 42.3 56.3 76.4 98.8 96 57.5 26.5 129.3 26.8 186.6-.2 62.6-29.5 107.6-88.3 119.3-156.3 4.6-27 3.5-72.5-24.9-102.6z"/>
-              </svg>
+              <img src="/assets/firefox.svg" alt="Firefox" className="w-7 h-7" />
             </div>
             <span className="font-medium text-gray-900 dark:text-white">Open in Firefox</span>
           </button>
