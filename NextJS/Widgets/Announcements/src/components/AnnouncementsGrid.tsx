@@ -201,8 +201,19 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
               <React.Fragment key={announcement.ID}>
                 <a
                   href={hasLink || '#'}
-                  target="_blank"
+                  target="_top"
                   rel="noopener noreferrer"
+                  onClick={(e) => {
+                    if (hasLink) {
+                      e.preventDefault();
+                      // Try window.open first (may open external browser on some devices)
+                      const newWindow = window.open(hasLink, '_blank');
+                      // If blocked or same context, navigate top frame
+                      if (!newWindow || newWindow.closed) {
+                        window.top?.location.assign(hasLink);
+                      }
+                    }
+                  }}
                   className="flex items-center gap-3 md:gap-4 p-2 md:p-3 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors duration-200 group"
                 >
                   {/* Small thumbnail - 16:9 aspect ratio */}

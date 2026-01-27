@@ -71,7 +71,15 @@ export function QuickLinks({ links = defaultQuickLinks, openInNewTab = false }: 
         <a
           key={link.id}
           href={link.href}
-          {...(openInNewTab && { target: '_blank', rel: 'noopener noreferrer' })}
+          target={openInNewTab ? '_top' : undefined}
+          rel={openInNewTab ? 'noopener noreferrer' : undefined}
+          onClick={openInNewTab ? (e) => {
+            e.preventDefault();
+            const newWindow = window.open(link.href, '_blank');
+            if (!newWindow || newWindow.closed) {
+              window.top?.location.assign(link.href);
+            }
+          } : undefined}
           className="group flex items-center gap-1.5 sm:gap-2 text-secondary hover:text-secondary-dark transition-colors duration-200"
           style={{
             animation: `fadeInUp 0.5s ease-out ${0.3 + index * 0.1}s both`
