@@ -11,6 +11,35 @@ interface AnnouncementsGridProps {
   labels?: AnnouncementsLabels;
 }
 
+// Check if URL is a bible.com link
+function isBibleComLink(url: string): boolean {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.hostname === 'bible.com' || urlObj.hostname === 'www.bible.com';
+  } catch {
+    return false;
+  }
+}
+
+// Convert bible.com URLs to youversion:// deep links where applicable
+function getBibleAppDeepLink(url: string): string {
+  try {
+    const urlObj = new URL(url);
+
+    // Check for event URLs: bible.com/events/123456
+    const eventMatch = urlObj.pathname.match(/^\/events\/(\d+)/);
+    if (eventMatch) {
+      return `youversion://events?id=${eventMatch[1]}`;
+    }
+
+    // For other bible.com URLs (passages, etc.), return the original URL
+    // as it works as a universal link
+    return url;
+  } catch {
+    return url;
+  }
+}
+
 // Modal for opening links in different browsers (mobile only)
 function LinkOptionsModal({
   url,
@@ -20,6 +49,7 @@ function LinkOptionsModal({
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const isBibleLink = isBibleComLink(url);
 
   const handleCopyLink = async () => {
     try {
@@ -65,6 +95,13 @@ function LinkOptionsModal({
     onClose();
   };
 
+  const handleOpenInBibleApp = () => {
+    // Convert to youversion:// deep link for events, use universal link for passages
+    const deepLink = getBibleAppDeepLink(url);
+    window.location.href = deepLink;
+    onClose();
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]"
@@ -84,6 +121,22 @@ function LinkOptionsModal({
 
         {/* Options */}
         <div className="flex flex-col gap-2">
+          {/* Bible App option - shown first for bible.com links */}
+          {isBibleLink && (
+            <button
+              onClick={handleOpenInBibleApp}
+              className="flex items-center gap-3 w-full p-4 rounded-xl bg-[#0a0a0a] hover:bg-[#1a1a1a] transition-colors"
+            >
+              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
+                {/* Book/Bible icon */}
+                <svg className="w-6 h-6 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                </svg>
+              </div>
+              <span className="font-medium text-white">Open in Bible App</span>
+            </button>
+          )}
+
           <button
             onClick={handleOpenInChrome}
             className="flex items-center gap-3 w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
