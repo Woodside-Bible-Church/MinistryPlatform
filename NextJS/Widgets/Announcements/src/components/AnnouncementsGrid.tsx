@@ -125,13 +125,10 @@ function LinkOptionsModal({
           {isBibleLink && (
             <button
               onClick={handleOpenInBibleApp}
-              className="flex items-center gap-3 w-full p-4 rounded-xl bg-[#0a0a0a] hover:bg-[#1a1a1a] transition-colors"
+              className="flex items-center gap-3 w-full p-4 rounded-xl bg-[#A3524A] hover:bg-[#8B4740] transition-colors"
             >
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
-                {/* Book/Bible icon */}
-                <svg className="w-6 h-6 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-                </svg>
+              <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shadow-sm overflow-hidden">
+                <img src="/assets/bibleApp.svg" alt="Bible App" className="w-10 h-10" />
               </div>
               <span className="font-medium text-white">Open in Bible App</span>
             </button>
