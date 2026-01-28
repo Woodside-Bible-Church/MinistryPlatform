@@ -80,10 +80,10 @@ export function QuickLinks({ links = defaultQuickLinks, openInNewTab = false, on
             animation: `fadeInUp 0.5s ease-out ${0.3 + index * 0.1}s both`
           }}
         >
-          <span className="text-gray-400 group-hover:text-secondary transition-colors duration-200">
+          <span className="text-gray-400 dark:text-neutral-500 group-hover:text-secondary transition-colors duration-200">
             {link.icon}
           </span>
-          <span className="text-xs sm:text-sm font-normal text-gray-400 group-hover:text-secondary uppercase tracking-wider sm:tracking-widest whitespace-nowrap transition-colors duration-200">
+          <span className="text-xs sm:text-sm font-normal text-gray-400 dark:text-neutral-500 group-hover:text-secondary uppercase tracking-wider sm:tracking-widest whitespace-nowrap transition-colors duration-200">
             {link.title}
           </span>
           <svg

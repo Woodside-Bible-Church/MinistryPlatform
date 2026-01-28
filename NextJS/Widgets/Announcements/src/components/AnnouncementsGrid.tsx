@@ -431,7 +431,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
     ];
 
     return (
-      <div className={`max-w-lg md:max-w-2xl mx-auto relative ${isDarkMode ? 'dark' : ''}`}>
+      <div className={`max-w-lg md:max-w-2xl mx-auto relative bg-white dark:bg-neutral-900 min-h-screen p-4 ${isDarkMode ? 'dark' : ''}`}>
         {/* Woodside watermark - visible on all screen sizes for social mode */}
         <div
           className="absolute top-0 right-0 w-24 h-24 md:w-36 md:h-36 opacity-[0.04] pointer-events-none"
@@ -448,17 +448,17 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
 
         {/* Header */}
         <div className="text-center mb-6 md:mb-10">
-          <div className="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-widest mb-1">
+          <div className="text-xs md:text-sm font-medium text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-1">
             {labels.carouselHeading1 || 'Stay in the know'}
           </div>
-          <h1 className="text-3xl md:text-5xl font-bold tracking-tight">
+          <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-white">
             {labels.carouselHeading2 || 'Announcements'}
           </h1>
           {/* Campus name if passed */}
           {hasCampus && data.Campus?.Name && (
             <div className="mt-4 md:mt-6">
-              <div className="w-16 md:w-20 h-px bg-gray-300 dark:bg-white/15 mx-auto my-3 md:my-4" />
-              <div className="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-widest">
+              <div className="w-16 md:w-20 h-px bg-gray-300 dark:bg-neutral-700 mx-auto my-3 md:my-4" />
+              <div className="text-xs md:text-sm font-medium text-gray-400 dark:text-neutral-500 uppercase tracking-widest">
                 {data.Campus.Name} Campus
               </div>
             </div>
@@ -522,7 +522,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                   </div>
                   {/* Arrow */}
                   <svg
-                    className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0 text-gray-400 group-hover:text-secondary group-hover:translate-x-0.5 transition-all duration-200"
+                    className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0 text-gray-400 dark:text-neutral-500 group-hover:text-secondary group-hover:translate-x-0.5 transition-all duration-200"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
