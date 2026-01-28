@@ -431,7 +431,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
     ];
 
     return (
-      <div className={`max-w-lg md:max-w-2xl mx-auto relative bg-white dark:bg-neutral-900 p-4 ${isDarkMode ? 'dark' : ''}`}>
+      <div className={`max-w-lg md:max-w-2xl mx-auto relative bg-white dark:bg-neutral-900 ${isDarkMode ? 'dark' : ''}`}>
         {/* Woodside watermark - visible on all screen sizes for social mode */}
         <div
           className="absolute top-0 right-0 w-24 h-24 md:w-36 md:h-36 opacity-[0.04] pointer-events-none"
