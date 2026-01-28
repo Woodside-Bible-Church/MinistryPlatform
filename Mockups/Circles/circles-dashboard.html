@@ -34,8 +34,8 @@
         /* Concentric circles visualization */
         .circles-container {
             position: relative;
-            width: 400px;
-            height: 400px;
+            width: 280px;
+            height: 280px;
         }
 
         .circle {
@@ -54,8 +54,8 @@
         }
 
         .circle-community {
-            width: 400px;
-            height: 400px;
+            width: 280px;
+            height: 280px;
             background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
             border: 3px dashed #AAD43C;
             top: 0;
@@ -63,39 +63,39 @@
         }
 
         .circle-crowd {
-            width: 320px;
-            height: 320px;
+            width: 224px;
+            height: 224px;
             background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
             border: 3px solid #AAD43C;
-            top: 40px;
-            left: 40px;
+            top: 28px;
+            left: 28px;
         }
 
         .circle-congregation {
-            width: 240px;
-            height: 240px;
+            width: 168px;
+            height: 168px;
             background: linear-gradient(135deg, #a5d6a7 0%, #81c784 100%);
             border: 3px solid #90c23e;
-            top: 80px;
-            left: 80px;
+            top: 56px;
+            left: 56px;
         }
 
         .circle-committed {
-            width: 160px;
-            height: 160px;
+            width: 112px;
+            height: 112px;
             background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%);
             border: 3px solid #90c23e;
-            top: 120px;
-            left: 120px;
+            top: 84px;
+            left: 84px;
         }
 
         .circle-core {
-            width: 80px;
-            height: 80px;
+            width: 56px;
+            height: 56px;
             background: linear-gradient(135deg, #AAD43C 0%, #90c23e 100%);
             border: 3px solid #252525;
-            top: 160px;
-            left: 160px;
+            top: 112px;
+            left: 112px;
         }
 
         .circle-label {
@@ -210,29 +210,29 @@
                         </button>
                     </div>
 
-                    <div class="flex justify-center">
-                        <div class="circles-container">
+                    <div class="flex items-center gap-8">
+                        <!-- Circles -->
+                        <div class="circles-container flex-shrink-0">
                             <div class="circle circle-community" data-level="community" onclick="openCircleModal('community')">
-                                <span class="circle-label" style="top: 10px; left: 50%; transform: translateX(-50%);">Community</span>
+                                <span class="circle-label" style="top: 6px; left: 50%; transform: translateX(-50%);">Community</span>
                             </div>
                             <div class="circle circle-crowd" data-level="crowd" onclick="openCircleModal('crowd')">
-                                <span class="circle-label" style="top: 10px; left: 50%; transform: translateX(-50%);">Crowd</span>
+                                <span class="circle-label" style="top: 6px; left: 50%; transform: translateX(-50%);">Crowd</span>
                             </div>
                             <div class="circle circle-congregation" data-level="congregation" onclick="openCircleModal('congregation')">
-                                <span class="circle-label" style="top: 10px; left: 50%; transform: translateX(-50%);">Congregation</span>
+                                <span class="circle-label" style="top: 6px; left: 50%; transform: translateX(-50%);">Congregation</span>
                             </div>
                             <div class="circle circle-committed" data-level="committed" onclick="openCircleModal('committed')">
-                                <span class="circle-label" style="top: 10px; left: 50%; transform: translateX(-50%);">Committed</span>
+                                <span class="circle-label" style="top: 6px; left: 50%; transform: translateX(-50%);">Committed</span>
                             </div>
                             <div class="circle circle-core" data-level="core" onclick="openCircleModal('core')">
-                                <span class="circle-label" style="top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 9px;">Core</span>
+                                <span class="circle-label" style="top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8px;">Core</span>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Legend with counts -->
-                    <div class="mt-6 pt-6 border-t border-gray-100">
-                        <div class="space-y-1">
+                        <!-- Legend with counts -->
+                        <div class="flex-1">
+                            <div class="space-y-1">
                             <div class="flex items-center gap-3 p-2 -mx-2 rounded cursor-pointer hover:bg-gray-50 transition" onclick="openCircleModal('community')">
                                 <div class="w-8 h-8 rounded-full flex-shrink-0 bg-granger-green flex items-center justify-center">
                                     <i data-lucide="globe" class="w-4 h-4 text-granger-black"></i>
@@ -272,6 +272,7 @@
                                 <span class="font-semibold text-sm text-granger-black flex-1">Core</span>
                                 <span class="text-lg font-bold text-granger-black">826</span>
                                 <span class="text-xs font-semibold trend-up w-12 text-right">+3.4%</span>
+                            </div>
                             </div>
                         </div>
                     </div>
