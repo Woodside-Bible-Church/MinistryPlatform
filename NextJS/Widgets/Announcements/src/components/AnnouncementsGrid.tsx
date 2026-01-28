@@ -50,6 +50,11 @@ function LinkOptionsModal({
 }) {
   const [copied, setCopied] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [dragY, setDragY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const dragStartY = useRef(0);
+  const modalRef = useRef<HTMLDivElement>(null);
   const isBibleLink = isBibleComLink(url);
 
   // Detect system dark mode preference
@@ -61,6 +66,48 @@ function LinkOptionsModal({
     mediaQuery.addEventListener('change', handler);
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
+
+  // Handle touch start
+  const handleTouchStart = (e: React.TouchEvent) => {
+    dragStartY.current = e.touches[0].clientY;
+    setIsDragging(true);
+  };
+
+  // Handle touch move
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - dragStartY.current;
+    // Only allow dragging down (positive values)
+    if (diff > 0) {
+      setDragY(diff);
+    }
+  };
+
+  // Handle touch end
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    // If dragged more than 100px, dismiss
+    if (dragY > 100) {
+      handleDismiss();
+    } else {
+      // Snap back
+      setDragY(0);
+    }
+  };
+
+  // Dismiss with animation
+  const handleDismiss = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+    }, 300);
+  };
+
+  // Handle overlay click
+  const handleOverlayClick = () => {
+    handleDismiss();
+  };
 
   const handleCopyLink = async () => {
     try {
@@ -135,15 +182,23 @@ function LinkOptionsModal({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out] ${isDarkMode ? 'dark' : ''}`}
-      onClick={onClose}
+      className={`fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm ${isClosing ? 'animate-[fadeOut_0.3s_ease-out_forwards]' : 'animate-[fadeIn_0.2s_ease-out]'} ${isDarkMode ? 'dark' : ''}`}
+      onClick={handleOverlayClick}
     >
       <div
-        className="w-full max-w-lg bg-white dark:bg-neutral-900 rounded-t-2xl p-4 pb-8 animate-[slideUp_0.3s_ease-out]"
+        ref={modalRef}
+        className={`w-full max-w-lg bg-white dark:bg-neutral-900 rounded-t-2xl p-4 pb-8 ${isClosing ? 'animate-[slideDown_0.3s_ease-out_forwards]' : 'animate-[slideUp_0.3s_ease-out]'}`}
+        style={{
+          transform: isDragging ? `translateY(${dragY}px)` : undefined,
+          transition: isDragging ? 'none' : 'transform 0.2s ease-out'
+        }}
         onClick={(e) => e.stopPropagation()}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
-        {/* Drag handle */}
-        <div className="w-10 h-1 bg-gray-300 dark:bg-neutral-600 rounded-full mx-auto mb-4" />
+        {/* Drag handle - visual indicator for swipe */}
+        <div className="w-10 h-1 bg-gray-300 dark:bg-neutral-600 rounded-full mx-auto mb-4 cursor-grab active:cursor-grabbing" />
 
         {/* URL Preview */}
         <div className="text-center mb-4 pb-4 border-b border-gray-200 dark:border-neutral-700">
@@ -235,9 +290,17 @@ function LinkOptionsModal({
           from { opacity: 0; }
           to { opacity: 1; }
         }
+        @keyframes fadeOut {
+          from { opacity: 1; }
+          to { opacity: 0; }
+        }
         @keyframes slideUp {
           from { transform: translateY(100%); }
           to { transform: translateY(0); }
+        }
+        @keyframes slideDown {
+          from { transform: translateY(0); }
+          to { transform: translateY(100%); }
         }
       `}</style>
     </div>
