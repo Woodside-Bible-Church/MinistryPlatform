@@ -568,51 +568,71 @@
             const partialNum = parseInt(data.partial.replace(/,/g, ''));
             const lapsingNum = parseInt(data.lapsing.replace(/,/g, ''));
 
+            // Store values for closure
+            const chartData = {
+                engaged: data.engaged,
+                partial: data.partial,
+                lapsing: data.lapsing,
+                engagedNum: engagedNum,
+                partialNum: partialNum,
+                lapsingNum: lapsingNum
+            };
+
             // Use setTimeout to ensure DOM has painted
             setTimeout(function() {
-                if (window.engagementChart) {
-                    window.engagementChart.destroy();
-                    window.engagementChart = null;
-                }
+                try {
+                    if (window.engagementChart) {
+                        window.engagementChart.destroy();
+                        window.engagementChart = null;
+                    }
 
-                const canvas = document.getElementById('engagementChart');
-                if (!canvas) return;
+                    const canvas = document.getElementById('engagementChart');
+                    if (!canvas) {
+                        console.error('Canvas not found');
+                        return;
+                    }
 
-                window.engagementChart = new Chart(canvas, {
-                    type: 'doughnut',
-                    data: {
-                        labels: [
-                            'Fully Engaged (' + data.engaged + ')',
-                            'Partially Engaged (' + data.partial + ')',
-                            'Lapsing (' + data.lapsing + ')'
-                        ],
-                        datasets: [{
-                            data: [engagedNum, partialNum, lapsingNum],
-                            backgroundColor: ['#AAD43C', '#eab308', '#ef4444'],
-                            borderColor: ['#ffffff', '#ffffff', '#ffffff'],
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        cutout: '50%',
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    usePointStyle: true,
-                                    padding: 20,
-                                    font: {
-                                        family: 'Poppins',
-                                        size: 13,
-                                        weight: '600'
+                    console.log('Creating chart with data:', chartData);
+
+                    window.engagementChart = new Chart(canvas, {
+                        type: 'doughnut',
+                        data: {
+                            labels: [
+                                'Fully Engaged (' + chartData.engaged + ')',
+                                'Partially Engaged (' + chartData.partial + ')',
+                                'Lapsing (' + chartData.lapsing + ')'
+                            ],
+                            datasets: [{
+                                data: [chartData.engagedNum, chartData.partialNum, chartData.lapsingNum],
+                                backgroundColor: ['#AAD43C', '#eab308', '#ef4444'],
+                                borderColor: ['#ffffff', '#ffffff', '#ffffff'],
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            cutout: '50%',
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        usePointStyle: true,
+                                        padding: 20,
+                                        font: {
+                                            family: 'Poppins',
+                                            size: 13,
+                                            weight: '600'
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                });
+                    });
+                    console.log('Chart created successfully');
+                } catch (e) {
+                    console.error('Chart error:', e);
+                }
             }, 150);
 
             lucide.createIcons();
