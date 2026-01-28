@@ -156,6 +156,84 @@ const handleOpenInFirefox = () => {
 };
 ```
 
+## App Store Fallback Pattern
+
+Deep links fail silently when the target app isn't installed. To provide a better UX, we use a **visibility-based fallback** that redirects users to the App Store if the app doesn't open.
+
+### How It Works
+
+```
+User taps "Open in Firefox"
+         │
+         ▼
+┌─────────────────────────────┐
+│ Attempt deep link           │
+│ firefox://open-url?url=...  │
+└─────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────┐
+│ Start 1.5 second timer      │
+└─────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────┐
+│ After 1.5s: Is page still visible?      │
+│ (document.visibilityState === 'visible')│
+└─────────────────────────────────────────┘
+         │                    │
+        YES                   NO
+   (app not installed)    (app opened)
+         │                    │
+         ▼                    ▼
+┌─────────────────┐   ┌────────────────────┐
+│ Redirect to     │   │ Do nothing         │
+│ App Store       │   │ (user is in app)   │
+└─────────────────┘   └────────────────────┘
+```
+
+### Implementation
+
+```typescript
+const handleOpenInFirefox = () => {
+  const firefoxUrl = `firefox://open-url?url=${encodeURIComponent(url)}`;
+  const appStoreUrl = 'https://apps.apple.com/app/firefox-private-safe-browser/id989804926';
+
+  // Attempt to open the app
+  window.location.href = firefoxUrl;
+
+  // If still on page after 1.5s, app isn't installed - redirect to App Store
+  setTimeout(() => {
+    if (document.visibilityState === 'visible') {
+      window.location.href = appStoreUrl;
+    }
+  }, 1500);
+
+  onClose();
+};
+```
+
+### App Store URLs
+
+| App | iOS App Store URL |
+|-----|-------------------|
+| Chrome | `https://apps.apple.com/app/google-chrome/id535886823` |
+| Firefox | `https://apps.apple.com/app/firefox-private-safe-browser/id989804926` |
+| YouTube | `https://apps.apple.com/app/youtube-watch-listen-stream/id544007664` |
+| Spotify | `https://apps.apple.com/app/spotify-music-and-podcasts/id324684580` |
+
+### Why 1.5 Seconds?
+
+- **Too short (<1s)**: May trigger before the app has time to open, especially on slower devices
+- **Too long (>2s)**: User waits awkwardly staring at the screen
+- **1.5s**: Good balance - enough time for app to open, short enough to feel responsive
+
+### Caveats
+
+1. **Only works on iOS**: Android handles this differently with intent filters
+2. **Visibility API required**: Won't work in very old browsers (not a concern for modern mobile)
+3. **User may return**: If user switches back from App Store without installing, they'll be on the original page
+
 ## Adding New Deep Links
 
 ### Step 1: Create Detection Function
@@ -269,15 +347,21 @@ Reference for future implementations:
 
 ## Styling Guidelines
 
-### Button Colors
+### Button Hierarchy
 
-Match the app's brand identity:
+Use visual weight to indicate recommended options:
+
+| Type | Background | Hover | Extra | Use For |
+|------|------------|-------|-------|---------|
+| **Primary CTA** | `bg-gray-200` | `bg-gray-300` | `shadow-md` | Recommended option (e.g., Bible App for bible.com links) |
+| **Secondary** | `bg-gray-100` | `bg-gray-200` | - | Other options (Chrome, Firefox, Copy Link) |
+
+### Brand-Colored Buttons (Future)
+
+For app-specific deep links, match the app's brand:
 
 | App | Background | Hover | Notes |
 |-----|------------|-------|-------|
-| Bible App | `#2B2B2B` | `#3D3D3D` | YouVersion dark theme |
-| Chrome | White w/ shadow | - | Matches Chrome logo |
-| Firefox | White w/ shadow | - | Matches Firefox logo |
 | YouTube | `#FF0000` | `#CC0000` | YouTube red |
 | Spotify | `#1DB954` | `#1AA34A` | Spotify green |
 
@@ -291,9 +375,10 @@ Match the app's brand identity:
 
 ### Deep link not opening app
 
-1. **App not installed**: Deep links fail silently if the app isn't installed. Consider implementing fallback logic.
+1. **App not installed**: Deep links fail silently if the app isn't installed. Use the [App Store Fallback Pattern](#app-store-fallback-pattern) to redirect users to install the app.
 2. **Incorrect URL scheme**: Verify the URL scheme for the specific platform (iOS vs Android may differ).
 3. **App restrictions**: Some apps don't register URL schemes for all features.
+4. **Fallback not triggering**: Ensure the timeout (1.5s) is appropriate and `document.visibilityState` is being checked correctly.
 
 ### Icons not displaying in embedded context
 
