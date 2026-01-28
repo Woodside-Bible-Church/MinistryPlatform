@@ -125,7 +125,7 @@ function LinkOptionsModal({
           {isBibleLink && (
             <button
               onClick={handleOpenInBibleApp}
-              className="flex items-center gap-3 w-full p-4 rounded-xl bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="flex items-center gap-3 w-full p-4 rounded-xl bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 shadow-md transition-colors"
             >
               <div className="w-10 h-10 rounded-lg overflow-hidden shadow-sm">
                 <img
