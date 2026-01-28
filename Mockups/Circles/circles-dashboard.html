@@ -441,29 +441,9 @@
                     <p id="modalDescription" class="text-gray-500 mt-1">People maturing in their faith through prayer, giving, and training</p>
                 </div>
 
-                <!-- Stats Row -->
-                <div class="grid grid-cols-4 gap-4 mb-8">
-                    <div class="bg-gray-50 p-4">
-                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total</div>
-                        <div id="modalTotal" class="text-2xl font-bold text-granger-black">11,231</div>
-                    </div>
-                    <div class="bg-gray-50 p-4">
-                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Fully Engaged</div>
-                        <div id="modalEngaged" class="text-2xl font-bold text-granger-green">2,847</div>
-                    </div>
-                    <div class="bg-gray-50 p-4">
-                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Partially Engaged</div>
-                        <div id="modalPartial" class="text-2xl font-bold text-yellow-500">5,123</div>
-                    </div>
-                    <div class="bg-gray-50 p-4">
-                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Lapsing</div>
-                        <div id="modalLapsing" class="text-2xl font-bold text-red-500">3,261</div>
-                    </div>
-                </div>
-
                 <!-- Engagement Donut Chart -->
-                <div class="flex justify-center pt-4">
-                    <canvas id="engagementChart" width="280" height="280" style="width: 280px; height: 280px;"></canvas>
+                <div class="flex justify-center" style="height: 350px;">
+                    <canvas id="engagementChart"></canvas>
                 </div>
             </div>
         </div>
@@ -580,14 +560,10 @@
 
             document.getElementById('modalTitle').textContent = data.title;
             document.getElementById('modalDescription').textContent = data.description;
-            document.getElementById('modalTotal').textContent = data.total;
-            document.getElementById('modalEngaged').textContent = data.engaged;
-            document.getElementById('modalPartial').textContent = data.partial;
-            document.getElementById('modalLapsing').textContent = data.lapsing;
 
             document.getElementById('circleModal').classList.remove('hidden');
 
-            // Create/update engagement donut chart after modal is visible
+            // Parse engagement numbers
             const engagedNum = parseInt(data.engaged.replace(/,/g, ''));
             const partialNum = parseInt(data.partial.replace(/,/g, ''));
             const lapsingNum = parseInt(data.lapsing.replace(/,/g, ''));
@@ -602,16 +578,14 @@
                 const canvas = document.getElementById('engagementChart');
                 if (!canvas) return;
 
-                // Force canvas size
-                canvas.width = 280;
-                canvas.height = 280;
-                canvas.style.width = '280px';
-                canvas.style.height = '280px';
-
                 window.engagementChart = new Chart(canvas, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Fully Engaged', 'Partially Engaged', 'Lapsing'],
+                        labels: [
+                            'Fully Engaged (' + data.engaged + ')',
+                            'Partially Engaged (' + data.partial + ')',
+                            'Lapsing (' + data.lapsing + ')'
+                        ],
                         datasets: [{
                             data: [engagedNum, partialNum, lapsingNum],
                             backgroundColor: ['#AAD43C', '#eab308', '#ef4444'],
@@ -620,18 +594,18 @@
                         }]
                     },
                     options: {
-                        responsive: false,
-                        maintainAspectRatio: false,
-                        cutout: '55%',
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        cutout: '50%',
                         plugins: {
                             legend: {
                                 position: 'bottom',
                                 labels: {
                                     usePointStyle: true,
-                                    padding: 15,
+                                    padding: 20,
                                     font: {
                                         family: 'Poppins',
-                                        size: 11,
+                                        size: 13,
                                         weight: '600'
                                     }
                                 }
@@ -639,7 +613,7 @@
                         }
                     }
                 });
-            }, 100);
+            }, 150);
 
             lucide.createIcons();
         }
