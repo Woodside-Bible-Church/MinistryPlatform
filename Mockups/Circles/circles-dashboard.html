@@ -393,73 +393,13 @@
                     </div>
                     </div>
 
-                <!-- Movement Flow -->
-                <div class="bg-white p-6 shadow-sm">
-                    <div class="mb-6">
-                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">Flow</h2>
+                <!-- In January 2026 Chart -->
+                <div class="bg-white p-6 shadow-sm flex flex-col">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">In January 2026</h2>
                     </div>
-
-                    <!-- Conversion Funnel -->
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-4">
-                            <div class="w-24 text-xs font-semibold text-gray-500 uppercase tracking-wide">Community</div>
-                            <div class="flex-1 h-8 bg-gray-100 relative">
-                                <div class="h-full bg-gradient-to-r from-green-100 to-green-200" style="width: 55.8%;"></div>
-                                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-granger-black">6,274</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-center">
-                            <div class="flex items-center gap-2 text-xs text-gray-400">
-                                <i data-lucide="arrow-down" class="w-4 h-4"></i>
-                                <span class="font-semibold">21.4% conversion</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <div class="w-24 text-xs font-semibold text-gray-500 uppercase tracking-wide">Crowd</div>
-                            <div class="flex-1 h-8 bg-gray-100 relative">
-                                <div class="h-full bg-gradient-to-r from-green-200 to-green-300" style="width: 12%;"></div>
-                                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-granger-black">1,344</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-center">
-                            <div class="flex items-center gap-2 text-xs text-gray-400">
-                                <i data-lucide="arrow-down" class="w-4 h-4"></i>
-                                <span class="font-semibold">38.7% conversion</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <div class="w-24 text-xs font-semibold text-gray-500 uppercase tracking-wide">Congregation</div>
-                            <div class="flex-1 h-8 bg-gray-100 relative">
-                                <div class="h-full bg-gradient-to-r from-green-300 to-green-400" style="width: 4.6%;"></div>
-                                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-granger-black">520</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-center">
-                            <div class="flex items-center gap-2 text-xs text-gray-400">
-                                <i data-lucide="arrow-down" class="w-4 h-4"></i>
-                                <span class="font-semibold">2159.8%</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <div class="w-24 text-xs font-semibold text-gray-500 uppercase tracking-wide">Committed</div>
-                            <div class="flex-1 h-8 bg-gray-100 relative">
-                                <div class="h-full bg-gradient-to-r from-green-400 to-green-500" style="width: 100%;"></div>
-                                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-white">11,231</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-center">
-                            <div class="flex items-center gap-2 text-xs text-gray-400">
-                                <i data-lucide="arrow-down" class="w-4 h-4"></i>
-                                <span class="font-semibold">7.4% conversion</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <div class="w-24 text-xs font-semibold text-gray-500 uppercase tracking-wide">Core</div>
-                            <div class="flex-1 h-8 bg-gray-100 relative">
-                                <div class="h-full bg-granger-green" style="width: 7.4%;"></div>
-                                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-granger-black">826</span>
-                            </div>
-                        </div>
+                    <div class="flex-1 min-h-0">
+                        <canvas id="inChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -858,6 +798,68 @@
                 interaction: {
                     intersect: false,
                     mode: 'index'
+                }
+            }
+        });
+
+        // In January 2026 Chart
+        const inCtx = document.getElementById('inChart').getContext('2d');
+        new Chart(inCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Community', 'Crowd', 'Congregation', 'Committed', 'Core'],
+                datasets: [{
+                    label: 'People in Circle',
+                    data: [6274, 1344, 520, 11231, 826],
+                    backgroundColor: [
+                        '#c8e6c9',
+                        '#a5d6a7',
+                        '#81c784',
+                        '#66bb6a',
+                        '#AAD43C'
+                    ],
+                    borderColor: [
+                        '#c8e6c9',
+                        '#a5d6a7',
+                        '#81c784',
+                        '#66bb6a',
+                        '#AAD43C'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Poppins',
+                                size: 11
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Poppins',
+                                size: 11
+                            }
+                        }
+                    }
                 }
             }
         });
