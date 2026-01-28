@@ -572,47 +572,49 @@
 
             document.getElementById('circleModal').classList.remove('hidden');
 
-            // Create/update engagement donut chart
+            // Create/update engagement donut chart after modal is visible
             const engagedNum = parseInt(data.engaged.replace(/,/g, ''));
             const partialNum = parseInt(data.partial.replace(/,/g, ''));
             const lapsingNum = parseInt(data.lapsing.replace(/,/g, ''));
 
-            if (window.engagementChart) {
-                window.engagementChart.destroy();
-            }
+            setTimeout(() => {
+                if (window.engagementChart) {
+                    window.engagementChart.destroy();
+                }
 
-            const engagementCtx = document.getElementById('engagementChart').getContext('2d');
-            window.engagementChart = new Chart(engagementCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Fully Engaged', 'Partially Engaged', 'Lapsing'],
-                    datasets: [{
-                        data: [engagedNum, partialNum, lapsingNum],
-                        backgroundColor: ['#AAD43C', '#eab308', '#ef4444'],
-                        borderColor: ['#AAD43C', '#eab308', '#ef4444'],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    cutout: '60%',
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 20,
-                                font: {
-                                    family: 'Poppins',
-                                    size: 12,
-                                    weight: '600'
+                const engagementCtx = document.getElementById('engagementChart').getContext('2d');
+                window.engagementChart = new Chart(engagementCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Fully Engaged', 'Partially Engaged', 'Lapsing'],
+                        datasets: [{
+                            data: [engagedNum, partialNum, lapsingNum],
+                            backgroundColor: ['#AAD43C', '#eab308', '#ef4444'],
+                            borderColor: ['#AAD43C', '#eab308', '#ef4444'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        cutout: '60%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 20,
+                                    font: {
+                                        family: 'Poppins',
+                                        size: 12,
+                                        weight: '600'
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            });
+                });
+            }, 50);
 
             lucide.createIcons();
         }
