@@ -428,7 +428,7 @@
 
     <!-- Circle Detail Modal -->
     <div id="circleModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target === this) closeCircleModal()">
-        <div class="bg-white max-w-4xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+        <div class="bg-white max-w-lg w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeCircleModal()" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition z-10">
                 <i data-lucide="x" class="w-6 h-6"></i>
             </button>
@@ -442,8 +442,10 @@
                 </div>
 
                 <!-- Engagement Donut Chart -->
-                <div class="flex justify-center" style="height: 350px;">
-                    <canvas id="engagementChart"></canvas>
+                <div class="flex justify-center">
+                    <div style="width: 300px; height: 300px;">
+                        <canvas id="engagementChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
