@@ -78,14 +78,34 @@ function LinkOptionsModal({
   const handleOpenInChrome = () => {
     // Convert https:// to googlechromes:// for Chrome on iOS
     const chromeUrl = url.replace(/^https:\/\//, 'googlechromes://').replace(/^http:\/\//, 'googlechrome://');
+    const appStoreUrl = 'https://apps.apple.com/app/google-chrome/id535886823';
+
     window.location.href = chromeUrl;
+
+    // If still on page after 1.5s, app isn't installed - redirect to App Store
+    setTimeout(() => {
+      if (document.visibilityState === 'visible') {
+        window.location.href = appStoreUrl;
+      }
+    }, 1500);
+
     onClose();
   };
 
   const handleOpenInFirefox = () => {
     // Firefox iOS URL scheme
     const firefoxUrl = `firefox://open-url?url=${encodeURIComponent(url)}`;
+    const appStoreUrl = 'https://apps.apple.com/app/firefox-private-safe-browser/id989804926';
+
     window.location.href = firefoxUrl;
+
+    // If still on page after 1.5s, app isn't installed - redirect to App Store
+    setTimeout(() => {
+      if (document.visibilityState === 'visible') {
+        window.location.href = appStoreUrl;
+      }
+    }, 1500);
+
     onClose();
   };
 
