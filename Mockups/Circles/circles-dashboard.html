@@ -581,10 +581,10 @@
             // Use setTimeout to ensure DOM has painted
             setTimeout(function() {
                 try {
-                    if (window.engagementChart) {
+                    if (window.engagementChart && typeof window.engagementChart.destroy === 'function') {
                         window.engagementChart.destroy();
-                        window.engagementChart = null;
                     }
+                    window.engagementChart = null;
 
                     const canvas = document.getElementById('engagementChart');
                     if (!canvas) {
