@@ -74,7 +74,7 @@ export async function POST(
         Description: description || null,
         Payee_Name: vendorName || purchaseRequest.vendorName || null,
         Payment_Method_ID: paymentMethodId ? parseInt(paymentMethodId) : null,
-        Project_Budget_Expense_Line_Item_ID: purchaseRequest.lineItemId,
+        Project_Budget_Line_Item_ID: purchaseRequest.lineItemId,
         Purchase_Request_ID: parseInt(requestId),
         Domain_ID: 1,
       }]
