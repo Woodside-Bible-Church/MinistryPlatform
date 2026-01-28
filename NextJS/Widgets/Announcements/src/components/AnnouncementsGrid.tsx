@@ -258,32 +258,35 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
 
   // Modal state for social mode link options
   const [linkOptionsUrl, setLinkOptionsUrl] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isEmbeddedMobile, setIsEmbeddedMobile] = useState(false);
 
   const isCarousel = mode === 'carousel';
   const isSocial = mode === 'social';
 
-  // Detect mobile on mount
+  // Detect if we're in an embedded mobile context (e.g., Instagram in-app browser)
+  // Must be BOTH in an iframe AND on a small screen to show the link options modal
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+    const checkEmbeddedMobile = () => {
+      const isInIframe = window.self !== window.top;
+      const isSmallScreen = window.innerWidth < 768;
+      setIsEmbeddedMobile(isInIframe && isSmallScreen);
     };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    checkEmbeddedMobile();
+    window.addEventListener('resize', checkEmbeddedMobile);
+    return () => window.removeEventListener('resize', checkEmbeddedMobile);
   }, []);
 
   // Handle link click in social mode
   const handleSocialLinkClick = useCallback((e: React.MouseEvent, url: string) => {
     e.preventDefault();
-    if (isMobile) {
-      // On mobile, show the options modal
+    if (isEmbeddedMobile) {
+      // In embedded mobile context (e.g., Instagram), show the options modal
       setLinkOptionsUrl(url);
     } else {
-      // On desktop, navigate directly
+      // Otherwise, navigate directly
       window.open(url, '_blank');
     }
-  }, [isMobile]);
+  }, [isEmbeddedMobile]);
 
   // Handle click on progress bar to scroll to position
   const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
