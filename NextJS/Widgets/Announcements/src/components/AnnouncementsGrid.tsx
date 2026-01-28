@@ -264,12 +264,16 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
   const isSocial = mode === 'social';
 
   // Detect if we're in an embedded mobile context (e.g., Instagram in-app browser)
-  // Must be BOTH in an iframe AND on a small screen to show the link options modal
+  // Check for in-app browsers via user agent OR iframe, AND small screen
   useEffect(() => {
     const checkEmbeddedMobile = () => {
+      const userAgent = navigator.userAgent || '';
+      // Detect common in-app browsers
+      const isInAppBrowser = /Instagram|FBAN|FBAV|Twitter|TikTok|LinkedInApp/i.test(userAgent);
       const isInIframe = window.self !== window.top;
       const isSmallScreen = window.innerWidth < 768;
-      setIsEmbeddedMobile(isInIframe && isSmallScreen);
+      // Show modal if (in-app browser OR iframe) AND small screen
+      setIsEmbeddedMobile((isInAppBrowser || isInIframe) && isSmallScreen);
     };
     checkEmbeddedMobile();
     window.addEventListener('resize', checkEmbeddedMobile);
