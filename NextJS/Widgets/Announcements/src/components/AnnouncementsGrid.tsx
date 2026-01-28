@@ -49,7 +49,18 @@ function LinkOptionsModal({
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const isBibleLink = isBibleComLink(url);
+
+  // Detect system dark mode preference
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setIsDarkMode(mediaQuery.matches);
+
+    const handler = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
 
   const handleCopyLink = async () => {
     try {
@@ -124,7 +135,7 @@ function LinkOptionsModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]"
+      className={`fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out] ${isDarkMode ? 'dark' : ''}`}
       onClick={onClose}
     >
       <div
