@@ -462,10 +462,8 @@
                 </div>
 
                 <!-- Engagement Donut Chart -->
-                <div class="flex justify-center">
-                    <div style="width: 320px; height: 320px;">
-                        <canvas id="engagementChart" width="320" height="320"></canvas>
-                    </div>
+                <div class="flex justify-center pt-4">
+                    <canvas id="engagementChart" width="280" height="280" style="width: 280px; height: 280px;"></canvas>
                 </div>
             </div>
         </div>
@@ -594,38 +592,46 @@
             const partialNum = parseInt(data.partial.replace(/,/g, ''));
             const lapsingNum = parseInt(data.lapsing.replace(/,/g, ''));
 
-            // Create/update engagement donut chart after a delay for modal to render
-            requestAnimationFrame(() => {
+            // Use setTimeout to ensure DOM has painted
+            setTimeout(function() {
                 if (window.engagementChart) {
                     window.engagementChart.destroy();
+                    window.engagementChart = null;
                 }
 
                 const canvas = document.getElementById('engagementChart');
-                const engagementCtx = canvas.getContext('2d');
-                window.engagementChart = new Chart(engagementCtx, {
+                if (!canvas) return;
+
+                // Force canvas size
+                canvas.width = 280;
+                canvas.height = 280;
+                canvas.style.width = '280px';
+                canvas.style.height = '280px';
+
+                window.engagementChart = new Chart(canvas, {
                     type: 'doughnut',
                     data: {
                         labels: ['Fully Engaged', 'Partially Engaged', 'Lapsing'],
                         datasets: [{
                             data: [engagedNum, partialNum, lapsingNum],
                             backgroundColor: ['#AAD43C', '#eab308', '#ef4444'],
-                            borderColor: ['#fff', '#fff', '#fff'],
+                            borderColor: ['#ffffff', '#ffffff', '#ffffff'],
                             borderWidth: 2
                         }]
                     },
                     options: {
                         responsive: false,
                         maintainAspectRatio: false,
-                        cutout: '60%',
+                        cutout: '55%',
                         plugins: {
                             legend: {
                                 position: 'bottom',
                                 labels: {
                                     usePointStyle: true,
-                                    padding: 20,
+                                    padding: 15,
                                     font: {
                                         family: 'Poppins',
-                                        size: 12,
+                                        size: 11,
                                         weight: '600'
                                     }
                                 }
@@ -633,7 +639,7 @@
                         }
                     }
                 });
-            });
+            }, 100);
 
             lucide.createIcons();
         }
