@@ -204,7 +204,10 @@
                 <!-- Circles Visualization -->
                 <div class="bg-white p-6 shadow-sm h-full">
                     <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">Overview</h2>
+                        <div>
+                            <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">Overview</h2>
+                            <p class="text-xs text-gray-400 mt-1">Click a circle to view engagement</p>
+                        </div>
                         <button class="text-gray-400 hover:text-granger-black transition">
                             <i data-lucide="maximize-2" class="w-4 h-4"></i>
                         </button>
@@ -441,110 +444,10 @@
                     </div>
                 </div>
 
-                <!-- Two Column Layout -->
-                <div class="grid grid-cols-2 gap-8">
-                    <!-- Milestones that add to this circle -->
-                    <div>
-                        <div class="text-sm font-bold text-granger-black uppercase tracking-wide mb-4">Entry Milestones</div>
-                        <div id="modalMilestones" class="space-y-3">
-                            <div class="flex items-center justify-between p-3 bg-gray-50">
-                                <div class="flex items-center gap-3">
-                                    <i data-lucide="flag" class="w-4 h-4 text-granger-green"></i>
-                                    <span class="font-medium text-granger-black">Joined Committed</span>
-                                </div>
-                                <span class="text-sm font-bold text-gray-500">50,044</span>
-                            </div>
-                            <div class="flex items-center justify-between p-3 bg-gray-50">
-                                <div class="flex items-center gap-3">
-                                    <i data-lucide="hand-helping" class="w-4 h-4 text-granger-green"></i>
-                                    <span class="font-medium text-granger-black">Began Serving</span>
-                                </div>
-                                <span class="text-sm font-bold text-gray-500">50,036</span>
-                            </div>
-                            <div class="flex items-center justify-between p-3 bg-gray-50">
-                                <div class="flex items-center gap-3">
-                                    <i data-lucide="id-card" class="w-4 h-4 text-granger-green"></i>
-                                    <span class="font-medium text-granger-black">Membership</span>
-                                </div>
-                                <span class="text-sm font-bold text-gray-500">1,115</span>
-                            </div>
-                            <div class="flex items-center justify-between p-3 bg-gray-50">
-                                <div class="flex items-center gap-3">
-                                    <i data-lucide="shapes" class="w-4 h-4 text-granger-green"></i>
-                                    <span class="font-medium text-granger-black">S.H.A.P.E. Covenant</span>
-                                </div>
-                                <span class="text-sm font-bold text-gray-500">344</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Campus Breakdown -->
-                    <div>
-                        <div class="text-sm font-bold text-granger-black uppercase tracking-wide mb-4">By Campus</div>
-                        <div id="modalCampuses" class="space-y-3">
-                            <div class="flex items-center justify-between p-3 bg-gray-50">
-                                <span class="font-medium text-granger-black">Granger Campus</span>
-                                <span class="text-sm font-bold text-gray-500">8,456</span>
-                            </div>
-                            <div class="flex items-center justify-between p-3 bg-gray-50">
-                                <span class="font-medium text-granger-black">Elkhart Campus</span>
-                                <span class="text-sm font-bold text-gray-500">1,892</span>
-                            </div>
-                            <div class="flex items-center justify-between p-3 bg-gray-50">
-                                <span class="font-medium text-granger-black">South Bend</span>
-                                <span class="text-sm font-bold text-gray-500">645</span>
-                            </div>
-                            <div class="flex items-center justify-between p-3 bg-gray-50">
-                                <span class="font-medium text-granger-black">Mishawaka</span>
-                                <span class="text-sm font-bold text-gray-500">238</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent People Sample -->
-                <div class="mt-8">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="text-sm font-bold text-granger-black uppercase tracking-wide">Recent People</div>
-                        <a href="#" class="text-sm font-semibold text-granger-green hover:text-granger-green-alt transition uppercase tracking-wide">View All</a>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="border-b border-gray-200">
-                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Name</th>
-                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Engagement</th>
-                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Campus</th>
-                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">City</th>
-                                </tr>
-                            </thead>
-                            <tbody id="modalPeopleTable">
-                                <tr class="border-b border-gray-100">
-                                    <td class="py-3 font-medium text-granger-black">Contact #606952</td>
-                                    <td class="py-3"><span class="px-2 py-1 text-xs font-semibold bg-yellow-100 text-yellow-700">Lapsing</span></td>
-                                    <td class="py-3 text-gray-600">Granger Campus</td>
-                                    <td class="py-3 text-gray-600">Niles, MI</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="py-3 font-medium text-granger-black">Contact #499646</td>
-                                    <td class="py-3"><span class="px-2 py-1 text-xs font-semibold bg-yellow-100 text-yellow-700">Lapsing</span></td>
-                                    <td class="py-3 text-gray-600">Granger Campus</td>
-                                    <td class="py-3 text-gray-600">Granger, IN</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="py-3 font-medium text-granger-black">Contact #535592</td>
-                                    <td class="py-3"><span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-700">Fully Engaged</span></td>
-                                    <td class="py-3 text-gray-600">Elkhart Campus</td>
-                                    <td class="py-3 text-gray-600">Elkhart, IN</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="py-3 font-medium text-granger-black">Contact #589765</td>
-                                    <td class="py-3"><span class="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-700">Partially Engaged</span></td>
-                                    <td class="py-3 text-gray-600">Granger Campus</td>
-                                    <td class="py-3 text-gray-600">Granger, IN</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <!-- Engagement Donut Chart -->
+                <div class="flex justify-center">
+                    <div class="w-80 h-80">
+                        <canvas id="engagementChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -667,28 +570,50 @@
             document.getElementById('modalPartial').textContent = data.partial;
             document.getElementById('modalLapsing').textContent = data.lapsing;
 
-            // Update milestones
-            const milestonesHtml = data.milestones.map(m => `
-                <div class="flex items-center justify-between p-3 bg-gray-50">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="${m.icon}" class="w-4 h-4 text-granger-green"></i>
-                        <span class="font-medium text-granger-black">${m.name}</span>
-                    </div>
-                    <span class="text-sm font-bold text-gray-500">${m.count}</span>
-                </div>
-            `).join('');
-            document.getElementById('modalMilestones').innerHTML = milestonesHtml;
-
-            // Update campuses
-            const campusesHtml = data.campuses.map(c => `
-                <div class="flex items-center justify-between p-3 bg-gray-50">
-                    <span class="font-medium text-granger-black">${c.name}</span>
-                    <span class="text-sm font-bold text-gray-500">${c.count}</span>
-                </div>
-            `).join('');
-            document.getElementById('modalCampuses').innerHTML = campusesHtml;
-
             document.getElementById('circleModal').classList.remove('hidden');
+
+            // Create/update engagement donut chart
+            const engagedNum = parseInt(data.engaged.replace(/,/g, ''));
+            const partialNum = parseInt(data.partial.replace(/,/g, ''));
+            const lapsingNum = parseInt(data.lapsing.replace(/,/g, ''));
+
+            if (window.engagementChart) {
+                window.engagementChart.destroy();
+            }
+
+            const engagementCtx = document.getElementById('engagementChart').getContext('2d');
+            window.engagementChart = new Chart(engagementCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Fully Engaged', 'Partially Engaged', 'Lapsing'],
+                    datasets: [{
+                        data: [engagedNum, partialNum, lapsingNum],
+                        backgroundColor: ['#AAD43C', '#eab308', '#ef4444'],
+                        borderColor: ['#AAD43C', '#eab308', '#ef4444'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: {
+                                    family: 'Poppins',
+                                    size: 12,
+                                    weight: '600'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
             lucide.createIcons();
         }
 
