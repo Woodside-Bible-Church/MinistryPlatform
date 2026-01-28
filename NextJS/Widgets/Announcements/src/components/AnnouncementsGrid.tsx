@@ -469,7 +469,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
         <QuickLinks openInNewTab onLinkClick={handleSocialLinkClick} />
 
         {/* Compact announcement list */}
-        <div className="flex flex-col gap-2 md:gap-3 mt-6 md:mt-10">
+        <div className="flex flex-col gap-4 mt-6 md:mt-10">
           {allAnnouncements.map((announcement) => {
             const heading = announcement.CallToAction?.Heading || announcement.Title;
             const subHeading = announcement.CallToAction?.SubHeading || announcement.Body;
