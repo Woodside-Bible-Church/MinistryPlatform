@@ -463,8 +463,8 @@
 
                 <!-- Engagement Donut Chart -->
                 <div class="flex justify-center">
-                    <div class="w-80 h-80">
-                        <canvas id="engagementChart"></canvas>
+                    <div style="width: 320px; height: 320px;">
+                        <canvas id="engagementChart" width="320" height="320"></canvas>
                     </div>
                 </div>
             </div>
@@ -594,12 +594,14 @@
             const partialNum = parseInt(data.partial.replace(/,/g, ''));
             const lapsingNum = parseInt(data.lapsing.replace(/,/g, ''));
 
-            setTimeout(() => {
+            // Create/update engagement donut chart after a delay for modal to render
+            requestAnimationFrame(() => {
                 if (window.engagementChart) {
                     window.engagementChart.destroy();
                 }
 
-                const engagementCtx = document.getElementById('engagementChart').getContext('2d');
+                const canvas = document.getElementById('engagementChart');
+                const engagementCtx = canvas.getContext('2d');
                 window.engagementChart = new Chart(engagementCtx, {
                     type: 'doughnut',
                     data: {
@@ -607,13 +609,13 @@
                         datasets: [{
                             data: [engagedNum, partialNum, lapsingNum],
                             backgroundColor: ['#AAD43C', '#eab308', '#ef4444'],
-                            borderColor: ['#AAD43C', '#eab308', '#ef4444'],
-                            borderWidth: 1
+                            borderColor: ['#fff', '#fff', '#fff'],
+                            borderWidth: 2
                         }]
                     },
                     options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
+                        responsive: false,
+                        maintainAspectRatio: false,
                         cutout: '60%',
                         plugins: {
                             legend: {
@@ -631,7 +633,7 @@
                         }
                     }
                 });
-            }, 50);
+            });
 
             lucide.createIcons();
         }
