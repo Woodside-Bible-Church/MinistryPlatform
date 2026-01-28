@@ -67,6 +67,15 @@ function LinkOptionsModal({
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    const originalStyle = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
+
   // Handle touch start
   const handleTouchStart = (e: React.TouchEvent) => {
     dragStartY.current = e.touches[0].clientY;
