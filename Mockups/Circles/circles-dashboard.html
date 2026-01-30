@@ -138,6 +138,41 @@
             border-left: 3px solid #AAD43C;
         }
 
+        /* Tab Navigation */
+        .tab-btn {
+            padding: 12px 24px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.05em;
+            color: #6b7280;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            background: none;
+            cursor: pointer;
+        }
+        .tab-btn:hover { color: #252525; }
+        .tab-btn.active {
+            color: #252525;
+            border-bottom-color: #AAD43C;
+        }
+
+        .tab-content {
+            display: block;
+        }
+        .tab-content.hidden {
+            display: none;
+        }
+
+        /* Collapsible sections for Circle Configuration */
+        .config-group-header {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .config-group-header:hover {
+            background-color: #f9fafb;
+        }
+
         </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -215,6 +250,16 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Tab Navigation -->
+            <div class="flex gap-1 mb-6 border-b border-gray-200">
+                <button class="tab-btn active" data-tab="circles-over-time" onclick="switchTab('circles-over-time')">Over Time</button>
+                <button class="tab-btn" data-tab="circle-participants" onclick="switchTab('circle-participants')">Participants</button>
+                <button class="tab-btn" data-tab="circle-configuration" onclick="switchTab('circle-configuration')">Configuration</button>
+            </div>
+
+            <!-- Tab 1: Circles Over Time -->
+            <div id="tab-circles-over-time" class="tab-content">
 
             <!-- Main Content Grid -->
             <div class="grid grid-cols-2 gap-6 items-stretch">
@@ -420,6 +465,330 @@
                     </div>
                 </div>
             </div>
+            </div><!-- End Tab 1 -->
+
+            <!-- Tab 2: Circle Participants -->
+            <div id="tab-circle-participants" class="tab-content hidden">
+                <div class="bg-white p-6 shadow-sm">
+                    <!-- Filter Section -->
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">Circle Participants</h2>
+                        <div class="flex items-center gap-3">
+                            <select id="filter-circle" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green" onchange="filterParticipants()">
+                                <option value="">All Circles</option>
+                                <option value="Community">Community</option>
+                                <option value="Crowd">Crowd</option>
+                                <option value="Congregation">Congregation</option>
+                                <option value="Committed">Committed</option>
+                                <option value="Core">Core</option>
+                            </select>
+                            <select id="filter-engagement" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green" onchange="filterParticipants()">
+                                <option value="">All Engagement Levels</option>
+                                <option value="Fully Engaged">Fully Engaged</option>
+                                <option value="Partially Engaged">Partially Engaged</option>
+                                <option value="Lapsing">Lapsing</option>
+                                <option value="Observing">Observing</option>
+                                <option value="Lapsed">Lapsed</option>
+                            </select>
+                            <select id="filter-campus" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green" onchange="filterParticipants()">
+                                <option value="">All Campuses</option>
+                                <option value="Granger Campus">Granger Campus</option>
+                                <option value="Elkhart Campus">Elkhart Campus</option>
+                                <option value="South Bend">South Bend</option>
+                                <option value="Mishawaka">Mishawaka</option>
+                            </select>
+                            <button onclick="clearFilters()" class="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-granger-black hover:bg-gray-100 transition">
+                                Clear Filters
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Summary Row -->
+                    <div class="mb-4 text-sm text-gray-500">
+                        <span id="participants-summary">Showing 120 of 120 participants</span>
+                    </div>
+
+                    <!-- Data Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Contact ID</th>
+                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Name</th>
+                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Circle</th>
+                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Engagement Level</th>
+                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Campus</th>
+                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">City</th>
+                                </tr>
+                            </thead>
+                            <tbody id="participants-table-body">
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div><!-- End Tab 2 -->
+
+            <!-- Tab 3: Circle Configuration -->
+            <div id="tab-circle-configuration" class="tab-content hidden">
+                <div class="bg-white p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">Circle Configuration</h2>
+                        <p class="text-sm text-gray-500">Milestones grouped by which circle they impact</p>
+                    </div>
+
+                    <!-- Joined Community -->
+                    <div class="mb-4 border border-gray-200">
+                        <div class="config-group-header flex items-center justify-between p-4 bg-gray-50" onclick="toggleConfigGroup('community')">
+                            <div class="flex items-center gap-3">
+                                <div class="w-4 h-4 rounded-full" style="background-color: #e8f5e9; border: 2px dashed #AAD43C;"></div>
+                                <h3 class="font-bold text-granger-black uppercase text-sm tracking-wide">Joined Community</h3>
+                                <span class="text-xs text-gray-400">(2 milestones)</span>
+                            </div>
+                            <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 config-chevron-community transition-transform"></i>
+                        </div>
+                        <div id="config-group-community" class="border-t border-gray-200">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-100 bg-gray-50">
+                                        <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-24">ID</th>
+                                        <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Milestone Title</th>
+                                        <th class="text-right py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-32">Instances</th>
+                                        <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-gray-50">
+                                        <td class="py-3 px-4 text-sm text-gray-500">1</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">Joined Crowd</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">59,758</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">Contact has entered the Crowd circle</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 text-sm text-gray-500">2</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">Participant Start Date</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">134,678</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">Initial participation date recorded</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Joined Crowd -->
+                    <div class="mb-4 border border-gray-200">
+                        <div class="config-group-header flex items-center justify-between p-4 bg-gray-50" onclick="toggleConfigGroup('crowd')">
+                            <div class="flex items-center gap-3">
+                                <div class="w-4 h-4 rounded-full" style="background-color: #c8e6c9;"></div>
+                                <h3 class="font-bold text-granger-black uppercase text-sm tracking-wide">Joined Crowd</h3>
+                                <span class="text-xs text-gray-400">(5 milestones)</span>
+                            </div>
+                            <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 config-chevron-crowd transition-transform"></i>
+                        </div>
+                        <div id="config-group-crowd" class="border-t border-gray-200">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-100 bg-gray-50">
+                                        <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-24">ID</th>
+                                        <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Milestone Title</th>
+                                        <th class="text-right py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-32">Instances</th>
+                                        <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-gray-50">
+                                        <td class="py-3 px-4 text-sm text-gray-500">3</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">First Life Group</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">5,767</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">First time joining a life group</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-50">
+                                        <td class="py-3 px-4 text-sm text-gray-500">4</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">First Time Guest</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">2,002</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">First visit recorded</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-50">
+                                        <td class="py-3 px-4 text-sm text-gray-500">5</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">Joined Congregation</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">53,392</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">Contact has entered the Congregation circle</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-50">
+                                        <td class="py-3 px-4 text-sm text-gray-500">6</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">New Family Visit</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">363</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">New family has visited</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 text-sm text-gray-500">7</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">New-Kids Checkin</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">12,778</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">First kids check-in recorded</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Joined Congregation -->
+                    <div class="mb-4 border border-gray-200">
+                        <div class="config-group-header flex items-center justify-between p-4 bg-gray-50" onclick="toggleConfigGroup('congregation')">
+                            <div class="flex items-center gap-3">
+                                <div class="w-4 h-4 rounded-full" style="background-color: #a5d6a7;"></div>
+                                <h3 class="font-bold text-granger-black uppercase text-sm tracking-wide">Joined Congregation</h3>
+                                <span class="text-xs text-gray-400">(6 milestones)</span>
+                            </div>
+                            <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 config-chevron-congregation transition-transform"></i>
+                        </div>
+                        <div id="config-group-congregation" class="border-t border-gray-200">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-100 bg-gray-50">
+                                        <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-24">ID</th>
+                                        <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Milestone Title</th>
+                                        <th class="text-right py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-32">Instances</th>
+                                        <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-gray-50">
+                                        <td class="py-3 px-4 text-sm text-gray-500">8</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">Baptism</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">8,940</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">Baptism recorded</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-50">
+                                        <td class="py-3 px-4 text-sm text-gray-500">9</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">I Am Committed</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">2,707</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">Commitment declaration made</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-50">
+                                        <td class="py-3 px-4 text-sm text-gray-500">10</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">I previously decided to follow Christ</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">2,940</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">Prior faith decision recorded</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-50">
+                                        <td class="py-3 px-4 text-sm text-gray-500">11</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">I recently decided to follow Christ</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">2,882</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">Recent faith decision recorded</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-50">
+                                        <td class="py-3 px-4 text-sm text-gray-500">12</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">New-Giving</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">254</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">First giving recorded</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 text-sm text-gray-500">13</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">Rededication</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">1,691</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">Rededication of faith</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Joined Committed -->
+                    <div class="mb-4 border border-gray-200">
+                        <div class="config-group-header flex items-center justify-between p-4 bg-gray-50" onclick="toggleConfigGroup('committed')">
+                            <div class="flex items-center gap-3">
+                                <div class="w-4 h-4 rounded-full" style="background-color: #81c784;"></div>
+                                <h3 class="font-bold text-granger-black uppercase text-sm tracking-wide">Joined Committed</h3>
+                                <span class="text-xs text-gray-400">(4 milestones)</span>
+                            </div>
+                            <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 config-chevron-committed transition-transform"></i>
+                        </div>
+                        <div id="config-group-committed" class="border-t border-gray-200">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-100 bg-gray-50">
+                                        <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-24">ID</th>
+                                        <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Milestone Title</th>
+                                        <th class="text-right py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-32">Instances</th>
+                                        <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-gray-50">
+                                        <td class="py-3 px-4 text-sm text-gray-500">14</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">Joined Committed</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">50,044</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">Contact has entered the Committed circle</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-50">
+                                        <td class="py-3 px-4 text-sm text-gray-500">15</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">Began Serving</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">50,036</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">Started serving in a ministry</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-50">
+                                        <td class="py-3 px-4 text-sm text-gray-500">16</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">Membership</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">1,115</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">Became a church member</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 text-sm text-gray-500">17</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">S.H.A.P.E. Covenant</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">344</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">Completed S.H.A.P.E. covenant</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Joined Core -->
+                    <div class="mb-4 border border-gray-200">
+                        <div class="config-group-header flex items-center justify-between p-4 bg-gray-50" onclick="toggleConfigGroup('core')">
+                            <div class="flex items-center gap-3">
+                                <div class="w-4 h-4 rounded-full bg-granger-green"></div>
+                                <h3 class="font-bold text-granger-black uppercase text-sm tracking-wide">Joined Core</h3>
+                                <span class="text-xs text-gray-400">(3 milestones)</span>
+                            </div>
+                            <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 config-chevron-core transition-transform"></i>
+                        </div>
+                        <div id="config-group-core" class="border-t border-gray-200">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-100 bg-gray-50">
+                                        <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-24">ID</th>
+                                        <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Milestone Title</th>
+                                        <th class="text-right py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-32">Instances</th>
+                                        <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-gray-50">
+                                        <td class="py-3 px-4 text-sm text-gray-500">18</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">Joined Core</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">1,136</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">Contact has entered the Core circle</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-50">
+                                        <td class="py-3 px-4 text-sm text-gray-500">19</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">Began Leading</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">866</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">Started in a leadership role</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 text-sm text-gray-500">20</td>
+                                        <td class="py-3 px-4 font-semibold text-granger-black">Core 401 Graduate</td>
+                                        <td class="py-3 px-4 text-right font-bold text-granger-black">483</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">Completed Core 401 class</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- End Tab 3 -->
+
         </main>
     </div>
 
@@ -816,6 +1185,224 @@
                 // Could show a tooltip or highlight related data
             });
         });
+
+        // Tab Switching
+        function switchTab(tabId) {
+            // Hide all tab content
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            // Remove active from all buttons
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            // Show selected tab
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            // Mark button as active
+            document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+
+            // Initialize participants table when that tab is selected
+            if (tabId === 'circle-participants') {
+                renderParticipantsTable();
+            }
+            // Refresh icons for configuration tab
+            if (tabId === 'circle-configuration') {
+                lucide.createIcons();
+            }
+        }
+
+        // Sample Participants Data
+        const participantsData = [
+            { id: 1001, name: 'Sarah Johnson', circle: 'Core', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1002, name: 'Michael Chen', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'South Bend' },
+            { id: 1003, name: 'Emily Williams', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
+            { id: 1004, name: 'David Martinez', circle: 'Congregation', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Mishawaka' },
+            { id: 1005, name: 'Jessica Brown', circle: 'Crowd', engagement: 'Partially Engaged', campus: 'South Bend', city: 'South Bend' },
+            { id: 1006, name: 'Robert Taylor', circle: 'Community', engagement: 'Observing', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1007, name: 'Amanda Davis', circle: 'Core', engagement: 'Fully Engaged', campus: 'Elkhart Campus', city: 'Goshen' },
+            { id: 1008, name: 'Christopher Wilson', circle: 'Committed', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1009, name: 'Michelle Anderson', circle: 'Congregation', engagement: 'Partially Engaged', campus: 'Mishawaka', city: 'Mishawaka' },
+            { id: 1010, name: 'James Thompson', circle: 'Crowd', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Elkhart' },
+            { id: 1011, name: 'Jennifer Garcia', circle: 'Community', engagement: 'Lapsed', campus: 'South Bend', city: 'South Bend' },
+            { id: 1012, name: 'Daniel Rodriguez', circle: 'Core', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1013, name: 'Ashley Martinez', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
+            { id: 1014, name: 'Matthew Hernandez', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Niles' },
+            { id: 1015, name: 'Stephanie Lopez', circle: 'Congregation', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1016, name: 'Andrew Gonzalez', circle: 'Crowd', engagement: 'Observing', campus: 'Mishawaka', city: 'Mishawaka' },
+            { id: 1017, name: 'Nicole Wilson', circle: 'Community', engagement: 'Observing', campus: 'Granger Campus', city: 'Osceola' },
+            { id: 1018, name: 'Joshua Clark', circle: 'Core', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1019, name: 'Samantha Lewis', circle: 'Committed', engagement: 'Fully Engaged', campus: 'South Bend', city: 'South Bend' },
+            { id: 1020, name: 'Kevin Robinson', circle: 'Committed', engagement: 'Lapsing', campus: 'Elkhart Campus', city: 'Elkhart' },
+            { id: 1021, name: 'Rachel Walker', circle: 'Congregation', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1022, name: 'Brian Hall', circle: 'Crowd', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Mishawaka' },
+            { id: 1023, name: 'Laura Allen', circle: 'Community', engagement: 'Lapsed', campus: 'Elkhart Campus', city: 'Goshen' },
+            { id: 1024, name: 'Ryan Young', circle: 'Core', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1025, name: 'Megan King', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'South Bend' },
+            { id: 1026, name: 'Tyler Wright', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Mishawaka', city: 'Mishawaka' },
+            { id: 1027, name: 'Brittany Scott', circle: 'Congregation', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Niles' },
+            { id: 1028, name: 'Brandon Green', circle: 'Crowd', engagement: 'Partially Engaged', campus: 'South Bend', city: 'South Bend' },
+            { id: 1029, name: 'Kayla Adams', circle: 'Community', engagement: 'Observing', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1030, name: 'Justin Baker', circle: 'Core', engagement: 'Fully Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
+            { id: 1031, name: 'Heather Nelson', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1032, name: 'Eric Carter', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Osceola' },
+            { id: 1033, name: 'Christina Mitchell', circle: 'Congregation', engagement: 'Fully Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
+            { id: 1034, name: 'Nathan Perez', circle: 'Crowd', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Mishawaka' },
+            { id: 1035, name: 'Victoria Roberts', circle: 'Community', engagement: 'Lapsed', campus: 'Mishawaka', city: 'Mishawaka' },
+            { id: 1036, name: 'Adam Turner', circle: 'Core', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1037, name: 'Amber Phillips', circle: 'Committed', engagement: 'Lapsing', campus: 'South Bend', city: 'South Bend' },
+            { id: 1038, name: 'Jacob Campbell', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1039, name: 'Elizabeth Parker', circle: 'Congregation', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Niles' },
+            { id: 1040, name: 'Zachary Evans', circle: 'Crowd', engagement: 'Observing', campus: 'Elkhart Campus', city: 'Goshen' },
+            { id: 1041, name: 'Hannah Edwards', circle: 'Community', engagement: 'Observing', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1042, name: 'Jonathan Collins', circle: 'Core', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'South Bend' },
+            { id: 1043, name: 'Danielle Stewart', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
+            { id: 1044, name: 'Aaron Sanchez', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Mishawaka' },
+            { id: 1045, name: 'Katherine Morris', circle: 'Congregation', engagement: 'Fully Engaged', campus: 'Mishawaka', city: 'Mishawaka' },
+            { id: 1046, name: 'Sean Rogers', circle: 'Crowd', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1047, name: 'Melissa Reed', circle: 'Community', engagement: 'Lapsed', campus: 'South Bend', city: 'South Bend' },
+            { id: 1048, name: 'Patrick Cook', circle: 'Core', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1049, name: 'Tiffany Morgan', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Osceola' },
+            { id: 1050, name: 'Derek Bell', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
+            { id: 1051, name: 'Courtney Murphy', circle: 'Congregation', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Niles' },
+            { id: 1052, name: 'Marcus Bailey', circle: 'Crowd', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1053, name: 'Rebecca Rivera', circle: 'Community', engagement: 'Observing', campus: 'Elkhart Campus', city: 'Goshen' },
+            { id: 1054, name: 'Steven Cooper', circle: 'Core', engagement: 'Partially Engaged', campus: 'Mishawaka', city: 'Mishawaka' },
+            { id: 1055, name: 'Angela Richardson', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'South Bend' },
+            { id: 1056, name: 'Gregory Cox', circle: 'Committed', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1057, name: 'Christina Howard', circle: 'Congregation', engagement: 'Partially Engaged', campus: 'South Bend', city: 'South Bend' },
+            { id: 1058, name: 'Timothy Ward', circle: 'Crowd', engagement: 'Lapsing', campus: 'Elkhart Campus', city: 'Elkhart' },
+            { id: 1059, name: 'Kimberly Torres', circle: 'Community', engagement: 'Lapsed', campus: 'Granger Campus', city: 'Mishawaka' },
+            { id: 1060, name: 'Scott Peterson', circle: 'Core', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1061, name: 'Amy Gray', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Osceola' },
+            { id: 1062, name: 'Jeffrey Ramirez', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
+            { id: 1063, name: 'Lisa James', circle: 'Congregation', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1064, name: 'Benjamin Watson', circle: 'Crowd', engagement: 'Observing', campus: 'Granger Campus', city: 'Niles' },
+            { id: 1065, name: 'Mary Brooks', circle: 'Community', engagement: 'Observing', campus: 'Mishawaka', city: 'Mishawaka' },
+            { id: 1066, name: 'Kenneth Kelly', circle: 'Core', engagement: 'Fully Engaged', campus: 'South Bend', city: 'South Bend' },
+            { id: 1067, name: 'Sandra Sanders', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1068, name: 'Richard Price', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Elkhart' },
+            { id: 1069, name: 'Patricia Bennett', circle: 'Congregation', engagement: 'Partially Engaged', campus: 'Elkhart Campus', city: 'Goshen' },
+            { id: 1070, name: 'Charles Wood', circle: 'Crowd', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1071, name: 'Linda Barnes', circle: 'Community', engagement: 'Lapsed', campus: 'Granger Campus', city: 'South Bend' },
+            { id: 1072, name: 'Paul Ross', circle: 'Core', engagement: 'Fully Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
+            { id: 1073, name: 'Barbara Henderson', circle: 'Committed', engagement: 'Lapsing', campus: 'Mishawaka', city: 'Mishawaka' },
+            { id: 1074, name: 'Mark Coleman', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1075, name: 'Susan Jenkins', circle: 'Congregation', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Osceola' },
+            { id: 1076, name: 'Donald Perry', circle: 'Crowd', engagement: 'Fully Engaged', campus: 'South Bend', city: 'South Bend' },
+            { id: 1077, name: 'Margaret Powell', circle: 'Community', engagement: 'Observing', campus: 'Elkhart Campus', city: 'Elkhart' },
+            { id: 1078, name: 'George Long', circle: 'Core', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Niles' },
+            { id: 1079, name: 'Dorothy Patterson', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1080, name: 'Edward Hughes', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Mishawaka' },
+            { id: 1081, name: 'Carol Flores', circle: 'Congregation', engagement: 'Lapsing', campus: 'Elkhart Campus', city: 'Goshen' },
+            { id: 1082, name: 'Ronald Washington', circle: 'Crowd', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1083, name: 'Ruth Butler', circle: 'Community', engagement: 'Lapsed', campus: 'Mishawaka', city: 'Mishawaka' },
+            { id: 1084, name: 'Frank Simmons', circle: 'Core', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'South Bend' },
+            { id: 1085, name: 'Sharon Foster', circle: 'Committed', engagement: 'Fully Engaged', campus: 'South Bend', city: 'South Bend' },
+            { id: 1086, name: 'Henry Gonzales', circle: 'Committed', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1087, name: 'Helen Bryant', circle: 'Congregation', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Elkhart' },
+            { id: 1088, name: 'Arthur Alexander', circle: 'Crowd', engagement: 'Observing', campus: 'Elkhart Campus', city: 'Elkhart' },
+            { id: 1089, name: 'Debra Russell', circle: 'Community', engagement: 'Observing', campus: 'Granger Campus', city: 'Osceola' },
+            { id: 1090, name: 'Larry Griffin', circle: 'Core', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1091, name: 'Diane Diaz', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Elkhart Campus', city: 'Goshen' },
+            { id: 1092, name: 'Carl Hayes', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Niles' },
+            { id: 1093, name: 'Janet Myers', circle: 'Congregation', engagement: 'Fully Engaged', campus: 'Mishawaka', city: 'Mishawaka' },
+            { id: 1094, name: 'Ralph Ford', circle: 'Crowd', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1095, name: 'Gloria Hamilton', circle: 'Community', engagement: 'Lapsed', campus: 'South Bend', city: 'South Bend' },
+            { id: 1096, name: 'Albert Graham', circle: 'Core', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Elkhart' },
+            { id: 1097, name: 'Marie Sullivan', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1098, name: 'Eugene Wallace', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
+            { id: 1099, name: 'Alice West', circle: 'Congregation', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Mishawaka' },
+            { id: 1100, name: 'Raymond Cole', circle: 'Crowd', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Osceola' },
+            { id: 1101, name: 'Judy Gibson', circle: 'Community', engagement: 'Observing', campus: 'Elkhart Campus', city: 'Goshen' },
+            { id: 1102, name: 'Roy McDonald', circle: 'Core', engagement: 'Fully Engaged', campus: 'Mishawaka', city: 'Mishawaka' },
+            { id: 1103, name: 'Evelyn Cruz', circle: 'Committed', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1104, name: 'Wayne Marshall', circle: 'Committed', engagement: 'Fully Engaged', campus: 'South Bend', city: 'South Bend' },
+            { id: 1105, name: 'Teresa Owens', circle: 'Congregation', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Niles' },
+            { id: 1106, name: 'Billy George', circle: 'Crowd', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1107, name: 'Janice Burns', circle: 'Community', engagement: 'Lapsed', campus: 'Granger Campus', city: 'Elkhart' },
+            { id: 1108, name: 'Philip Stone', circle: 'Core', engagement: 'Fully Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
+            { id: 1109, name: 'Cheryl Warren', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Goshen' },
+            { id: 1110, name: 'Alan Hunter', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Mishawaka' },
+            { id: 1111, name: 'Rose Garrett', circle: 'Congregation', engagement: 'Lapsing', campus: 'Mishawaka', city: 'Mishawaka' },
+            { id: 1112, name: 'Russell Reynolds', circle: 'Crowd', engagement: 'Observing', campus: 'South Bend', city: 'South Bend' },
+            { id: 1113, name: 'Doris Hart', circle: 'Community', engagement: 'Observing', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1114, name: 'Howard Holmes', circle: 'Core', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Osceola' },
+            { id: 1115, name: 'Jean Day', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
+            { id: 1116, name: 'Gerald Dean', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Niles' },
+            { id: 1117, name: 'Frances Webb', circle: 'Congregation', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Granger' },
+            { id: 1118, name: 'Louis Fields', circle: 'Crowd', engagement: 'Partially Engaged', campus: 'Elkhart Campus', city: 'Goshen' },
+            { id: 1119, name: 'Ann Black', circle: 'Community', engagement: 'Lapsed', campus: 'Granger Campus', city: 'South Bend' },
+            { id: 1120, name: 'Walter Dunn', circle: 'Core', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' }
+        ];
+
+        function renderParticipantsTable(filteredData = null) {
+            const data = filteredData || participantsData;
+            const tbody = document.getElementById('participants-table-body');
+
+            const engagementColors = {
+                'Fully Engaged': 'bg-green-100 text-green-800',
+                'Partially Engaged': 'bg-yellow-100 text-yellow-800',
+                'Lapsing': 'bg-orange-100 text-orange-800',
+                'Observing': 'bg-blue-100 text-blue-800',
+                'Lapsed': 'bg-red-100 text-red-800'
+            };
+
+            tbody.innerHTML = data.map(p => `
+                <tr class="border-b border-gray-50 hover:bg-gray-50">
+                    <td class="py-3 text-sm text-gray-500">${p.id}</td>
+                    <td class="py-3 font-semibold text-granger-black">${p.name}</td>
+                    <td class="py-3">
+                        <span class="font-semibold text-granger-black">${p.circle}</span>
+                    </td>
+                    <td class="py-3">
+                        <span class="px-2 py-1 text-xs font-semibold rounded ${engagementColors[p.engagement]}">${p.engagement}</span>
+                    </td>
+                    <td class="py-3 text-sm text-gray-600">${p.campus}</td>
+                    <td class="py-3 text-sm text-gray-600">${p.city}</td>
+                </tr>
+            `).join('');
+
+            // Update summary
+            document.getElementById('participants-summary').textContent =
+                `Showing ${data.length} of ${participantsData.length} participants`;
+        }
+
+        function filterParticipants() {
+            const circleFilter = document.getElementById('filter-circle').value;
+            const engagementFilter = document.getElementById('filter-engagement').value;
+            const campusFilter = document.getElementById('filter-campus').value;
+
+            let filtered = participantsData;
+
+            if (circleFilter) {
+                filtered = filtered.filter(p => p.circle === circleFilter);
+            }
+            if (engagementFilter) {
+                filtered = filtered.filter(p => p.engagement === engagementFilter);
+            }
+            if (campusFilter) {
+                filtered = filtered.filter(p => p.campus === campusFilter);
+            }
+
+            renderParticipantsTable(filtered);
+        }
+
+        function clearFilters() {
+            document.getElementById('filter-circle').value = '';
+            document.getElementById('filter-engagement').value = '';
+            document.getElementById('filter-campus').value = '';
+            renderParticipantsTable();
+        }
+
+        // Circle Configuration - Toggle Groups
+        function toggleConfigGroup(group) {
+            const content = document.getElementById('config-group-' + group);
+            const chevron = document.querySelector('.config-chevron-' + group);
+
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                chevron.style.transform = 'rotate(0deg)';
+            } else {
+                content.classList.add('hidden');
+                chevron.style.transform = 'rotate(-90deg)';
+            }
+        }
     </script>
 </body>
 </html>
