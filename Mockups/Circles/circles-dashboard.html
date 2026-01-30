@@ -469,62 +469,178 @@
 
             <!-- Tab 2: Circle Participants -->
             <div id="tab-circle-participants" class="tab-content hidden">
-                <div class="bg-white p-6 shadow-sm">
-                    <!-- Filter Section -->
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">Circle Participants</h2>
-                        <div class="flex items-center gap-3">
-                            <select id="filter-circle" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green" onchange="filterParticipants()">
-                                <option value="">All Circles</option>
-                                <option value="Community">Community</option>
-                                <option value="Crowd">Crowd</option>
-                                <option value="Congregation">Congregation</option>
-                                <option value="Committed">Committed</option>
-                                <option value="Core">Core</option>
+                <!-- Filter Bar -->
+                <div class="bg-white p-4 shadow-sm mb-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <select id="filter-fiscal-year" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green">
+                                <option value="7">FY 2025-2026</option>
+                                <option value="6">FY 2024-2025</option>
+                                <option value="5">FY 2023-2024</option>
+                                <option value="4">FY 2022-2023</option>
                             </select>
-                            <select id="filter-engagement" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green" onchange="filterParticipants()">
-                                <option value="">All Engagement Levels</option>
-                                <option value="Fully Engaged">Fully Engaged</option>
-                                <option value="Partially Engaged">Partially Engaged</option>
-                                <option value="Lapsing">Lapsing</option>
-                                <option value="Observing">Observing</option>
-                                <option value="Lapsed">Lapsed</option>
+                            <select id="filter-fiscal-period" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green">
+                                <option value="">All Periods</option>
+                                <option value="January" selected>January</option>
+                                <option value="February">February</option>
+                                <option value="March">March</option>
+                                <option value="April">April</option>
+                                <option value="May">May</option>
+                                <option value="June">June</option>
+                                <option value="July">July</option>
+                                <option value="August">August</option>
+                                <option value="September">September</option>
+                                <option value="October">October</option>
+                                <option value="November">November</option>
+                                <option value="December">December</option>
                             </select>
-                            <select id="filter-campus" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green" onchange="filterParticipants()">
+                            <select id="filter-congregation" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green">
                                 <option value="">All Campuses</option>
-                                <option value="Granger Campus">Granger Campus</option>
-                                <option value="Elkhart Campus">Elkhart Campus</option>
-                                <option value="South Bend">South Bend</option>
-                                <option value="Mishawaka">Mishawaka</option>
+                                <option value="1">Granger Campus</option>
+                                <option value="4">Elkhart Campus</option>
+                                <option value="6">All Church</option>
+                                <option value="9">Online</option>
                             </select>
-                            <button onclick="clearFilters()" class="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-granger-black hover:bg-gray-100 transition">
-                                Clear Filters
-                            </button>
+                            <select id="filter-participant-type" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green">
+                                <option value="">All Participant Types</option>
+                                <option value="29">Attendee</option>
+                                <option value="35">Church Family</option>
+                                <option value="24">MC3 Neighbor</option>
+                                <option value="33">Dropped</option>
+                                <option value="34">Non-Attending/Other</option>
+                                <option value="28">New</option>
+                            </select>
+                            <select id="filter-engagement" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green">
+                                <option value="">All Engagement</option>
+                                <option value="2">Fully Engaged</option>
+                                <option value="1">Partially Engaged</option>
+                                <option value="3">Lapsing</option>
+                                <option value="5">Observing</option>
+                                <option value="4">Lapsed</option>
+                            </select>
+                        </div>
+                        <button class="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-granger-black hover:bg-gray-100 transition">
+                            Reset Filters
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-3 mt-3 flex-wrap">
+                        <select id="filter-household-position" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green">
+                            <option value="">All Household Positions</option>
+                            <option value="1">Head of Household</option>
+                            <option value="2">Minor Child</option>
+                            <option value="3">Other Adult</option>
+                            <option value="4">Adult Child</option>
+                            <option value="5">Guest Child</option>
+                            <option value="6">Company</option>
+                        </select>
+                        <select id="filter-marital-status" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green">
+                            <option value="">All Marital Status</option>
+                            <option value="1">Single</option>
+                            <option value="2">Married</option>
+                            <option value="3">Divorced</option>
+                            <option value="4">Widowed</option>
+                            <option value="5">Partnered</option>
+                            <option value="6">Separated</option>
+                        </select>
+                        <select id="filter-gender" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green">
+                            <option value="">All Genders</option>
+                            <option value="1">Male</option>
+                            <option value="2">Female</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Summary Stats Cards -->
+                <div class="grid grid-cols-5 gap-4 mb-6">
+                    <div class="bg-white p-4 shadow-sm">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Participants</div>
+                        <div class="text-2xl font-bold text-granger-black">20,195</div>
+                        <div class="text-xs text-gray-500 mt-1">As of January 2026</div>
+                    </div>
+                    <div class="bg-white p-4 shadow-sm">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Fully Engaged</div>
+                        <div class="text-2xl font-bold text-granger-black">5,324</div>
+                        <div class="text-xs text-green-600 mt-1">26.4% of total</div>
+                    </div>
+                    <div class="bg-white p-4 shadow-sm">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Partially Engaged</div>
+                        <div class="text-2xl font-bold text-granger-black">9,007</div>
+                        <div class="text-xs text-yellow-600 mt-1">44.6% of total</div>
+                    </div>
+                    <div class="bg-white p-4 shadow-sm">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Lapsing</div>
+                        <div class="text-2xl font-bold text-granger-black">3,864</div>
+                        <div class="text-xs text-orange-600 mt-1">19.1% of total</div>
+                    </div>
+                    <div class="bg-white p-4 shadow-sm">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Lapsed</div>
+                        <div class="text-2xl font-bold text-granger-black">2,000</div>
+                        <div class="text-xs text-red-600 mt-1">9.9% of total</div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 1 -->
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <!-- Circle Distribution -->
+                    <div class="bg-white p-6 shadow-sm">
+                        <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight mb-4">Circle Distribution</h3>
+                        <div class="h-64">
+                            <canvas id="participantsCircleChart"></canvas>
                         </div>
                     </div>
 
-                    <!-- Summary Row -->
-                    <div class="mb-4 text-sm text-gray-500">
-                        <span id="participants-summary">Showing 120 of 120 participants</span>
+                    <!-- Engagement by Circle -->
+                    <div class="bg-white p-6 shadow-sm">
+                        <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight mb-4">Engagement by Circle</h3>
+                        <div class="h-64">
+                            <canvas id="engagementByCircleChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 2 -->
+                <div class="grid grid-cols-3 gap-6 mb-6">
+                    <!-- Campus Breakdown -->
+                    <div class="bg-white p-6 shadow-sm">
+                        <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight mb-4">By Campus</h3>
+                        <div class="h-56">
+                            <canvas id="campusChart"></canvas>
+                        </div>
                     </div>
 
-                    <!-- Data Table -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="border-b border-gray-200">
-                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Contact ID</th>
-                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Name</th>
-                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Circle</th>
-                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Engagement Level</th>
-                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Campus</th>
-                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">City</th>
-                                </tr>
-                            </thead>
-                            <tbody id="participants-table-body">
-                                <!-- Populated by JavaScript -->
-                            </tbody>
-                        </table>
+                    <!-- Gender Breakdown -->
+                    <div class="bg-white p-6 shadow-sm">
+                        <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight mb-4">By Gender</h3>
+                        <div class="h-56">
+                            <canvas id="genderChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Marital Status -->
+                    <div class="bg-white p-6 shadow-sm">
+                        <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight mb-4">By Marital Status</h3>
+                        <div class="h-56">
+                            <canvas id="maritalChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 3 -->
+                <div class="grid grid-cols-2 gap-6">
+                    <!-- Participant Type -->
+                    <div class="bg-white p-6 shadow-sm">
+                        <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight mb-4">By Participant Type</h3>
+                        <div class="h-56">
+                            <canvas id="participantTypeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Household Position -->
+                    <div class="bg-white p-6 shadow-sm">
+                        <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight mb-4">By Household Position</h3>
+                        <div class="h-56">
+                            <canvas id="householdPositionChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div><!-- End Tab 2 -->
@@ -1222,9 +1338,9 @@
             // Mark button as active
             document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
 
-            // Initialize participants table when that tab is selected
+            // Initialize participants charts when that tab is selected
             if (tabId === 'circle-participants') {
-                renderParticipantsTable();
+                initParticipantsCharts();
             }
             // Refresh icons for configuration tab
             if (tabId === 'circle-configuration') {
@@ -1232,187 +1348,228 @@
             }
         }
 
-        // Sample Participants Data
-        const participantsData = [
-            { id: 1001, name: 'Sarah Johnson', circle: 'Core', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1002, name: 'Michael Chen', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'South Bend' },
-            { id: 1003, name: 'Emily Williams', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
-            { id: 1004, name: 'David Martinez', circle: 'Congregation', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Mishawaka' },
-            { id: 1005, name: 'Jessica Brown', circle: 'Crowd', engagement: 'Partially Engaged', campus: 'South Bend', city: 'South Bend' },
-            { id: 1006, name: 'Robert Taylor', circle: 'Community', engagement: 'Observing', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1007, name: 'Amanda Davis', circle: 'Core', engagement: 'Fully Engaged', campus: 'Elkhart Campus', city: 'Goshen' },
-            { id: 1008, name: 'Christopher Wilson', circle: 'Committed', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1009, name: 'Michelle Anderson', circle: 'Congregation', engagement: 'Partially Engaged', campus: 'Mishawaka', city: 'Mishawaka' },
-            { id: 1010, name: 'James Thompson', circle: 'Crowd', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Elkhart' },
-            { id: 1011, name: 'Jennifer Garcia', circle: 'Community', engagement: 'Lapsed', campus: 'South Bend', city: 'South Bend' },
-            { id: 1012, name: 'Daniel Rodriguez', circle: 'Core', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1013, name: 'Ashley Martinez', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
-            { id: 1014, name: 'Matthew Hernandez', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Niles' },
-            { id: 1015, name: 'Stephanie Lopez', circle: 'Congregation', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1016, name: 'Andrew Gonzalez', circle: 'Crowd', engagement: 'Observing', campus: 'Mishawaka', city: 'Mishawaka' },
-            { id: 1017, name: 'Nicole Wilson', circle: 'Community', engagement: 'Observing', campus: 'Granger Campus', city: 'Osceola' },
-            { id: 1018, name: 'Joshua Clark', circle: 'Core', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1019, name: 'Samantha Lewis', circle: 'Committed', engagement: 'Fully Engaged', campus: 'South Bend', city: 'South Bend' },
-            { id: 1020, name: 'Kevin Robinson', circle: 'Committed', engagement: 'Lapsing', campus: 'Elkhart Campus', city: 'Elkhart' },
-            { id: 1021, name: 'Rachel Walker', circle: 'Congregation', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1022, name: 'Brian Hall', circle: 'Crowd', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Mishawaka' },
-            { id: 1023, name: 'Laura Allen', circle: 'Community', engagement: 'Lapsed', campus: 'Elkhart Campus', city: 'Goshen' },
-            { id: 1024, name: 'Ryan Young', circle: 'Core', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1025, name: 'Megan King', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'South Bend' },
-            { id: 1026, name: 'Tyler Wright', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Mishawaka', city: 'Mishawaka' },
-            { id: 1027, name: 'Brittany Scott', circle: 'Congregation', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Niles' },
-            { id: 1028, name: 'Brandon Green', circle: 'Crowd', engagement: 'Partially Engaged', campus: 'South Bend', city: 'South Bend' },
-            { id: 1029, name: 'Kayla Adams', circle: 'Community', engagement: 'Observing', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1030, name: 'Justin Baker', circle: 'Core', engagement: 'Fully Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
-            { id: 1031, name: 'Heather Nelson', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1032, name: 'Eric Carter', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Osceola' },
-            { id: 1033, name: 'Christina Mitchell', circle: 'Congregation', engagement: 'Fully Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
-            { id: 1034, name: 'Nathan Perez', circle: 'Crowd', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Mishawaka' },
-            { id: 1035, name: 'Victoria Roberts', circle: 'Community', engagement: 'Lapsed', campus: 'Mishawaka', city: 'Mishawaka' },
-            { id: 1036, name: 'Adam Turner', circle: 'Core', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1037, name: 'Amber Phillips', circle: 'Committed', engagement: 'Lapsing', campus: 'South Bend', city: 'South Bend' },
-            { id: 1038, name: 'Jacob Campbell', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1039, name: 'Elizabeth Parker', circle: 'Congregation', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Niles' },
-            { id: 1040, name: 'Zachary Evans', circle: 'Crowd', engagement: 'Observing', campus: 'Elkhart Campus', city: 'Goshen' },
-            { id: 1041, name: 'Hannah Edwards', circle: 'Community', engagement: 'Observing', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1042, name: 'Jonathan Collins', circle: 'Core', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'South Bend' },
-            { id: 1043, name: 'Danielle Stewart', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
-            { id: 1044, name: 'Aaron Sanchez', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Mishawaka' },
-            { id: 1045, name: 'Katherine Morris', circle: 'Congregation', engagement: 'Fully Engaged', campus: 'Mishawaka', city: 'Mishawaka' },
-            { id: 1046, name: 'Sean Rogers', circle: 'Crowd', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1047, name: 'Melissa Reed', circle: 'Community', engagement: 'Lapsed', campus: 'South Bend', city: 'South Bend' },
-            { id: 1048, name: 'Patrick Cook', circle: 'Core', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1049, name: 'Tiffany Morgan', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Osceola' },
-            { id: 1050, name: 'Derek Bell', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
-            { id: 1051, name: 'Courtney Murphy', circle: 'Congregation', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Niles' },
-            { id: 1052, name: 'Marcus Bailey', circle: 'Crowd', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1053, name: 'Rebecca Rivera', circle: 'Community', engagement: 'Observing', campus: 'Elkhart Campus', city: 'Goshen' },
-            { id: 1054, name: 'Steven Cooper', circle: 'Core', engagement: 'Partially Engaged', campus: 'Mishawaka', city: 'Mishawaka' },
-            { id: 1055, name: 'Angela Richardson', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'South Bend' },
-            { id: 1056, name: 'Gregory Cox', circle: 'Committed', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1057, name: 'Christina Howard', circle: 'Congregation', engagement: 'Partially Engaged', campus: 'South Bend', city: 'South Bend' },
-            { id: 1058, name: 'Timothy Ward', circle: 'Crowd', engagement: 'Lapsing', campus: 'Elkhart Campus', city: 'Elkhart' },
-            { id: 1059, name: 'Kimberly Torres', circle: 'Community', engagement: 'Lapsed', campus: 'Granger Campus', city: 'Mishawaka' },
-            { id: 1060, name: 'Scott Peterson', circle: 'Core', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1061, name: 'Amy Gray', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Osceola' },
-            { id: 1062, name: 'Jeffrey Ramirez', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
-            { id: 1063, name: 'Lisa James', circle: 'Congregation', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1064, name: 'Benjamin Watson', circle: 'Crowd', engagement: 'Observing', campus: 'Granger Campus', city: 'Niles' },
-            { id: 1065, name: 'Mary Brooks', circle: 'Community', engagement: 'Observing', campus: 'Mishawaka', city: 'Mishawaka' },
-            { id: 1066, name: 'Kenneth Kelly', circle: 'Core', engagement: 'Fully Engaged', campus: 'South Bend', city: 'South Bend' },
-            { id: 1067, name: 'Sandra Sanders', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1068, name: 'Richard Price', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Elkhart' },
-            { id: 1069, name: 'Patricia Bennett', circle: 'Congregation', engagement: 'Partially Engaged', campus: 'Elkhart Campus', city: 'Goshen' },
-            { id: 1070, name: 'Charles Wood', circle: 'Crowd', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1071, name: 'Linda Barnes', circle: 'Community', engagement: 'Lapsed', campus: 'Granger Campus', city: 'South Bend' },
-            { id: 1072, name: 'Paul Ross', circle: 'Core', engagement: 'Fully Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
-            { id: 1073, name: 'Barbara Henderson', circle: 'Committed', engagement: 'Lapsing', campus: 'Mishawaka', city: 'Mishawaka' },
-            { id: 1074, name: 'Mark Coleman', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1075, name: 'Susan Jenkins', circle: 'Congregation', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Osceola' },
-            { id: 1076, name: 'Donald Perry', circle: 'Crowd', engagement: 'Fully Engaged', campus: 'South Bend', city: 'South Bend' },
-            { id: 1077, name: 'Margaret Powell', circle: 'Community', engagement: 'Observing', campus: 'Elkhart Campus', city: 'Elkhart' },
-            { id: 1078, name: 'George Long', circle: 'Core', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Niles' },
-            { id: 1079, name: 'Dorothy Patterson', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1080, name: 'Edward Hughes', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Mishawaka' },
-            { id: 1081, name: 'Carol Flores', circle: 'Congregation', engagement: 'Lapsing', campus: 'Elkhart Campus', city: 'Goshen' },
-            { id: 1082, name: 'Ronald Washington', circle: 'Crowd', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1083, name: 'Ruth Butler', circle: 'Community', engagement: 'Lapsed', campus: 'Mishawaka', city: 'Mishawaka' },
-            { id: 1084, name: 'Frank Simmons', circle: 'Core', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'South Bend' },
-            { id: 1085, name: 'Sharon Foster', circle: 'Committed', engagement: 'Fully Engaged', campus: 'South Bend', city: 'South Bend' },
-            { id: 1086, name: 'Henry Gonzales', circle: 'Committed', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1087, name: 'Helen Bryant', circle: 'Congregation', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Elkhart' },
-            { id: 1088, name: 'Arthur Alexander', circle: 'Crowd', engagement: 'Observing', campus: 'Elkhart Campus', city: 'Elkhart' },
-            { id: 1089, name: 'Debra Russell', circle: 'Community', engagement: 'Observing', campus: 'Granger Campus', city: 'Osceola' },
-            { id: 1090, name: 'Larry Griffin', circle: 'Core', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1091, name: 'Diane Diaz', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Elkhart Campus', city: 'Goshen' },
-            { id: 1092, name: 'Carl Hayes', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Niles' },
-            { id: 1093, name: 'Janet Myers', circle: 'Congregation', engagement: 'Fully Engaged', campus: 'Mishawaka', city: 'Mishawaka' },
-            { id: 1094, name: 'Ralph Ford', circle: 'Crowd', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1095, name: 'Gloria Hamilton', circle: 'Community', engagement: 'Lapsed', campus: 'South Bend', city: 'South Bend' },
-            { id: 1096, name: 'Albert Graham', circle: 'Core', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Elkhart' },
-            { id: 1097, name: 'Marie Sullivan', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1098, name: 'Eugene Wallace', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
-            { id: 1099, name: 'Alice West', circle: 'Congregation', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Mishawaka' },
-            { id: 1100, name: 'Raymond Cole', circle: 'Crowd', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Osceola' },
-            { id: 1101, name: 'Judy Gibson', circle: 'Community', engagement: 'Observing', campus: 'Elkhart Campus', city: 'Goshen' },
-            { id: 1102, name: 'Roy McDonald', circle: 'Core', engagement: 'Fully Engaged', campus: 'Mishawaka', city: 'Mishawaka' },
-            { id: 1103, name: 'Evelyn Cruz', circle: 'Committed', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1104, name: 'Wayne Marshall', circle: 'Committed', engagement: 'Fully Engaged', campus: 'South Bend', city: 'South Bend' },
-            { id: 1105, name: 'Teresa Owens', circle: 'Congregation', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Niles' },
-            { id: 1106, name: 'Billy George', circle: 'Crowd', engagement: 'Lapsing', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1107, name: 'Janice Burns', circle: 'Community', engagement: 'Lapsed', campus: 'Granger Campus', city: 'Elkhart' },
-            { id: 1108, name: 'Philip Stone', circle: 'Core', engagement: 'Fully Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
-            { id: 1109, name: 'Cheryl Warren', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Goshen' },
-            { id: 1110, name: 'Alan Hunter', circle: 'Committed', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Mishawaka' },
-            { id: 1111, name: 'Rose Garrett', circle: 'Congregation', engagement: 'Lapsing', campus: 'Mishawaka', city: 'Mishawaka' },
-            { id: 1112, name: 'Russell Reynolds', circle: 'Crowd', engagement: 'Observing', campus: 'South Bend', city: 'South Bend' },
-            { id: 1113, name: 'Doris Hart', circle: 'Community', engagement: 'Observing', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1114, name: 'Howard Holmes', circle: 'Core', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Osceola' },
-            { id: 1115, name: 'Jean Day', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Elkhart Campus', city: 'Elkhart' },
-            { id: 1116, name: 'Gerald Dean', circle: 'Committed', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Niles' },
-            { id: 1117, name: 'Frances Webb', circle: 'Congregation', engagement: 'Partially Engaged', campus: 'Granger Campus', city: 'Granger' },
-            { id: 1118, name: 'Louis Fields', circle: 'Crowd', engagement: 'Partially Engaged', campus: 'Elkhart Campus', city: 'Goshen' },
-            { id: 1119, name: 'Ann Black', circle: 'Community', engagement: 'Lapsed', campus: 'Granger Campus', city: 'South Bend' },
-            { id: 1120, name: 'Walter Dunn', circle: 'Core', engagement: 'Fully Engaged', campus: 'Granger Campus', city: 'Granger' }
-        ];
+        // Participants Charts - track instances to destroy on re-init
+        let participantsCharts = {};
 
-        function renderParticipantsTable(filteredData = null) {
-            const data = filteredData || participantsData;
-            const tbody = document.getElementById('participants-table-body');
+        function initParticipantsCharts() {
+            // Destroy existing charts
+            Object.values(participantsCharts).forEach(chart => {
+                if (chart && typeof chart.destroy === 'function') {
+                    chart.destroy();
+                }
+            });
+            participantsCharts = {};
 
-            const engagementColors = {
-                'Fully Engaged': 'bg-green-100 text-green-800',
-                'Partially Engaged': 'bg-yellow-100 text-yellow-800',
-                'Lapsing': 'bg-orange-100 text-orange-800',
-                'Observing': 'bg-blue-100 text-blue-800',
-                'Lapsed': 'bg-red-100 text-red-800'
-            };
+            const circleColors = ['#c8e6c9', '#a5d6a7', '#81c784', '#66bb6a', '#AAD43C'];
+            const engagementColors = ['#AAD43C', '#eab308', '#f97316', '#3b82f6', '#ef4444'];
 
-            tbody.innerHTML = data.map(p => `
-                <tr class="border-b border-gray-50 hover:bg-gray-50">
-                    <td class="py-3 text-sm text-gray-500">${p.id}</td>
-                    <td class="py-3 font-semibold text-granger-black">${p.name}</td>
-                    <td class="py-3">
-                        <span class="font-semibold text-granger-black">${p.circle}</span>
-                    </td>
-                    <td class="py-3">
-                        <span class="px-2 py-1 text-xs font-semibold rounded ${engagementColors[p.engagement]}">${p.engagement}</span>
-                    </td>
-                    <td class="py-3 text-sm text-gray-600">${p.campus}</td>
-                    <td class="py-3 text-sm text-gray-600">${p.city}</td>
-                </tr>
-            `).join('');
+            // Circle Distribution Chart (Doughnut)
+            participantsCharts.circle = new Chart(document.getElementById('participantsCircleChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Community', 'Crowd', 'Congregation', 'Committed', 'Core'],
+                    datasets: [{
+                        data: [6274, 1344, 520, 11231, 826],
+                        backgroundColor: circleColors,
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: { family: 'Poppins', size: 11, weight: '600' }
+                            }
+                        }
+                    }
+                }
+            });
 
-            // Update summary
-            document.getElementById('participants-summary').textContent =
-                `Showing ${data.length} of ${participantsData.length} participants`;
-        }
+            // Engagement by Circle (Stacked Bar)
+            participantsCharts.engagementByCircle = new Chart(document.getElementById('engagementByCircleChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Community', 'Crowd', 'Congregation', 'Committed', 'Core'],
+                    datasets: [
+                        {
+                            label: 'Fully Engaged',
+                            data: [1254, 412, 187, 2847, 624],
+                            backgroundColor: '#AAD43C'
+                        },
+                        {
+                            label: 'Partially Engaged',
+                            data: [2891, 623, 214, 5123, 156],
+                            backgroundColor: '#eab308'
+                        },
+                        {
+                            label: 'Lapsing',
+                            data: [1200, 200, 80, 2100, 35],
+                            backgroundColor: '#f97316'
+                        },
+                        {
+                            label: 'Observing',
+                            data: [500, 80, 25, 800, 8],
+                            backgroundColor: '#3b82f6'
+                        },
+                        {
+                            label: 'Lapsed',
+                            data: [429, 29, 14, 361, 3],
+                            backgroundColor: '#ef4444'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true, grid: { display: false } },
+                        y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' } }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: { family: 'Poppins', size: 10, weight: '600' }
+                            }
+                        }
+                    }
+                }
+            });
 
-        function filterParticipants() {
-            const circleFilter = document.getElementById('filter-circle').value;
-            const engagementFilter = document.getElementById('filter-engagement').value;
-            const campusFilter = document.getElementById('filter-campus').value;
+            // Campus Chart (Horizontal Bar)
+            participantsCharts.campus = new Chart(document.getElementById('campusChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Granger Campus', 'Elkhart Campus', 'Online', 'All Church'],
+                    datasets: [{
+                        data: [14868, 3365, 1512, 450],
+                        backgroundColor: ['#AAD43C', '#81c784', '#a5d6a7', '#c8e6c9'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(0,0,0,0.05)' } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
 
-            let filtered = participantsData;
+            // Gender Chart (Doughnut)
+            participantsCharts.gender = new Chart(document.getElementById('genderChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Female', 'Male'],
+                    datasets: [{
+                        data: [10704, 9491],
+                        backgroundColor: ['#AAD43C', '#66bb6a'],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: { family: 'Poppins', size: 11, weight: '600' }
+                            }
+                        }
+                    }
+                }
+            });
 
-            if (circleFilter) {
-                filtered = filtered.filter(p => p.circle === circleFilter);
-            }
-            if (engagementFilter) {
-                filtered = filtered.filter(p => p.engagement === engagementFilter);
-            }
-            if (campusFilter) {
-                filtered = filtered.filter(p => p.campus === campusFilter);
-            }
+            // Marital Status Chart (Doughnut)
+            participantsCharts.marital = new Chart(document.getElementById('maritalChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Married', 'Single', 'Divorced', 'Widowed', 'Separated', 'Partnered'],
+                    datasets: [{
+                        data: [9291, 7267, 1817, 1009, 605, 206],
+                        backgroundColor: ['#AAD43C', '#66bb6a', '#81c784', '#a5d6a7', '#c8e6c9', '#e8f5e9'],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '50%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 10,
+                                font: { family: 'Poppins', size: 10, weight: '600' }
+                            }
+                        }
+                    }
+                }
+            });
 
-            renderParticipantsTable(filtered);
-        }
+            // Participant Type Chart (Horizontal Bar)
+            participantsCharts.participantType = new Chart(document.getElementById('participantTypeChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Church Family', 'Attendee', 'New', 'MC3 Neighbor', 'Non-Attending/Other', 'Dropped'],
+                    datasets: [{
+                        data: [12542, 4231, 1823, 876, 512, 211],
+                        backgroundColor: ['#AAD43C', '#66bb6a', '#81c784', '#a5d6a7', '#c8e6c9', '#e8f5e9'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(0,0,0,0.05)' } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
 
-        function clearFilters() {
-            document.getElementById('filter-circle').value = '';
-            document.getElementById('filter-engagement').value = '';
-            document.getElementById('filter-campus').value = '';
-            renderParticipantsTable();
+            // Household Position Chart (Horizontal Bar)
+            participantsCharts.householdPosition = new Chart(document.getElementById('householdPositionChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Head of Household', 'Minor Child', 'Other Adult', 'Adult Child', 'Guest Child', 'Company'],
+                    datasets: [{
+                        data: [8934, 5621, 3212, 1876, 423, 129],
+                        backgroundColor: ['#AAD43C', '#66bb6a', '#81c784', '#a5d6a7', '#c8e6c9', '#e8f5e9'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(0,0,0,0.05)' } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
         }
 
         // Circle Configuration - Toggle Groups
