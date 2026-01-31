@@ -2411,7 +2411,7 @@
 
                 const matrix = document.createElement('div');
                 matrix.className = 'matrix-heatmap';
-                matrix.style.cssText = 'display: grid; grid-template-columns: 120px repeat(' + data.labels.length + ', 1fr); gap: 2px; height: 100%; font-size: 9px;';
+                matrix.style.cssText = 'display: grid; grid-template-columns: 120px repeat(' + data.labels.length + ', 1fr); grid-template-rows: auto repeat(' + data.categories.length + ', 1fr); gap: 2px; height: 100%; font-size: 9px;';
 
                 // Header row with icons and labels
                 matrix.innerHTML = '<div></div>' + data.labels.map((l, i) => {
