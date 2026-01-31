@@ -331,6 +331,34 @@
             color: #9ca3af;
         }
 
+        /* Chart Type Switcher */
+        .chart-type-btn {
+            padding: 6px 8px;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .chart-type-btn:first-child {
+            border-radius: 4px 0 0 4px;
+        }
+        .chart-type-btn:last-child {
+            border-radius: 0 4px 4px 0;
+        }
+        .chart-type-btn:not(:last-child) {
+            border-right: none;
+        }
+        .chart-type-btn:hover {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        .chart-type-btn.active {
+            background: #252525;
+            border-color: #252525;
+            color: white;
+        }
+
         </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -394,7 +422,7 @@
             <div class="flex gap-1 mb-6 border-b border-gray-200">
                 <div id="as-of-tab" class="tab-btn active flex items-center gap-2" data-tab="circles-over-time" onclick="switchTab('circles-over-time')">
                     <span>As Of</span>
-                    <select id="as-of-select" class="bg-transparent border-none text-xs font-bold uppercase tracking-wide cursor-pointer focus:outline-none" onclick="event.stopPropagation()">
+                    <select id="as-of-select" class="bg-transparent border-none text-xs font-bold uppercase tracking-wide cursor-pointer focus:outline-none" onclick="event.stopPropagation()" onmousedown="if(!document.getElementById('as-of-tab').classList.contains('active')){event.preventDefault();switchTab('circles-over-time');return false;}">
                         <option>January 2026</option>
                         <option>December 2025</option>
                         <option>November 2025</option>
@@ -883,18 +911,34 @@
 
                 <!-- Charts Row 1 -->
                 <div class="grid grid-cols-2 gap-6 mb-6">
-                    <!-- Circle Distribution -->
+                    <!-- Distribution -->
                     <div class="bg-white p-6 shadow-sm">
-                        <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight mb-4">Circle Distribution</h3>
+                        <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight mb-4">Distribution</h3>
                         <div class="h-64">
                             <canvas id="participantsCircleChart"></canvas>
                         </div>
                     </div>
 
-                    <!-- Engagement by Circle -->
+                    <!-- Engagement -->
                     <div class="bg-white p-6 shadow-sm">
-                        <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight mb-4">Engagement by Circle</h3>
-                        <div class="h-64">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight">Engagement</h3>
+                            <div class="flex gap-1">
+                                <button class="chart-type-btn active" data-chart-group="engagement" data-chart="stacked" onclick="switchEngagementChart('stacked')" title="Stacked Bar">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="6" height="18"/><rect x="9" y="8" width="6" height="13"/><rect x="15" y="12" width="6" height="9"/></svg>
+                                </button>
+                                <button class="chart-type-btn" data-chart-group="engagement" data-chart="percent" onclick="switchEngagementChart('percent')" title="100% Stacked">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="6" height="18"/><rect x="9" y="3" width="6" height="18"/><rect x="15" y="3" width="6" height="18"/></svg>
+                                </button>
+                                <button class="chart-type-btn" data-chart-group="engagement" data-chart="grouped" onclick="switchEngagementChart('grouped')" title="Grouped Bar">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="3" height="15"/><rect x="6" y="10" width="3" height="11"/><rect x="10" y="8" width="3" height="13"/><rect x="14" y="4" width="3" height="17"/><rect x="18" y="12" width="3" height="9"/></svg>
+                                </button>
+                                <button class="chart-type-btn" data-chart-group="engagement" data-chart="matrix" onclick="switchEngagementChart('matrix')" title="Matrix Heatmap">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="5"/><rect x="9" y="3" width="5" height="5"/><rect x="15" y="3" width="5" height="5"/><rect x="3" y="9" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/><rect x="15" y="9" width="5" height="5"/><rect x="3" y="15" width="5" height="5"/><rect x="9" y="15" width="5" height="5"/><rect x="15" y="15" width="5" height="5"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="h-72">
                             <canvas id="engagementByCircleChart"></canvas>
                         </div>
                     </div>
@@ -904,16 +948,48 @@
                 <div class="grid grid-cols-2 gap-6">
                     <!-- Participant Type -->
                     <div class="bg-white p-6 shadow-sm">
-                        <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight mb-4">By Participant Type</h3>
-                        <div class="h-56">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight">Participants</h3>
+                            <div class="flex gap-1">
+                                <button class="chart-type-btn active" data-chart-group="participant" data-chart="stacked" onclick="switchParticipantChart('stacked')" title="Stacked Bar">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="6" height="18"/><rect x="9" y="8" width="6" height="13"/><rect x="15" y="12" width="6" height="9"/></svg>
+                                </button>
+                                <button class="chart-type-btn" data-chart-group="participant" data-chart="percent" onclick="switchParticipantChart('percent')" title="100% Stacked">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="6" height="18"/><rect x="9" y="3" width="6" height="18"/><rect x="15" y="3" width="6" height="18"/></svg>
+                                </button>
+                                <button class="chart-type-btn" data-chart-group="participant" data-chart="grouped" onclick="switchParticipantChart('grouped')" title="Grouped Bar">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="3" height="15"/><rect x="6" y="10" width="3" height="11"/><rect x="10" y="8" width="3" height="13"/><rect x="14" y="4" width="3" height="17"/><rect x="18" y="12" width="3" height="9"/></svg>
+                                </button>
+                                <button class="chart-type-btn" data-chart-group="participant" data-chart="matrix" onclick="switchParticipantChart('matrix')" title="Matrix Heatmap">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="5"/><rect x="9" y="3" width="5" height="5"/><rect x="15" y="3" width="5" height="5"/><rect x="3" y="9" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/><rect x="15" y="9" width="5" height="5"/><rect x="3" y="15" width="5" height="5"/><rect x="9" y="15" width="5" height="5"/><rect x="15" y="15" width="5" height="5"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="h-72">
                             <canvas id="participantTypeChart"></canvas>
                         </div>
                     </div>
 
                     <!-- Household Position -->
                     <div class="bg-white p-6 shadow-sm">
-                        <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight mb-4">By Household Position</h3>
-                        <div class="h-56">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight">Demographics</h3>
+                            <div class="flex gap-1">
+                                <button class="chart-type-btn active" data-chart-group="demographics" data-chart="stacked" onclick="switchDemographicsChart('stacked')" title="Stacked Bar">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="6" height="18"/><rect x="9" y="8" width="6" height="13"/><rect x="15" y="12" width="6" height="9"/></svg>
+                                </button>
+                                <button class="chart-type-btn" data-chart-group="demographics" data-chart="percent" onclick="switchDemographicsChart('percent')" title="100% Stacked">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="6" height="18"/><rect x="9" y="3" width="6" height="18"/><rect x="15" y="3" width="6" height="18"/></svg>
+                                </button>
+                                <button class="chart-type-btn" data-chart-group="demographics" data-chart="grouped" onclick="switchDemographicsChart('grouped')" title="Grouped Bar">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="3" height="15"/><rect x="6" y="10" width="3" height="11"/><rect x="10" y="8" width="3" height="13"/><rect x="14" y="4" width="3" height="17"/><rect x="18" y="12" width="3" height="9"/></svg>
+                                </button>
+                                <button class="chart-type-btn" data-chart-group="demographics" data-chart="matrix" onclick="switchDemographicsChart('matrix')" title="Matrix Heatmap">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="5"/><rect x="9" y="3" width="5" height="5"/><rect x="15" y="3" width="5" height="5"/><rect x="3" y="9" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/><rect x="15" y="9" width="5" height="5"/><rect x="3" y="15" width="5" height="5"/><rect x="9" y="15" width="5" height="5"/><rect x="15" y="15" width="5" height="5"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="h-72">
                             <canvas id="householdPositionChart"></canvas>
                         </div>
                     </div>
@@ -1607,7 +1683,7 @@
             const circleColors = ['#c8e6c9', '#a5d6a7', '#81c784', '#66bb6a', '#AAD43C'];
             const engagementColors = ['#AAD43C', '#eab308', '#f97316', '#3b82f6', '#ef4444'];
 
-            // Circle Distribution Chart (Doughnut)
+            // Distribution Chart (Doughnut)
             participantsCharts.circle = new Chart(document.getElementById('participantsCircleChart'), {
                 type: 'doughnut',
                 data: {
@@ -1635,7 +1711,7 @@
                 }
             });
 
-            // Engagement by Circle (Stacked Bar)
+            // Engagement (Stacked Bar)
             participantsCharts.engagementByCircle = new Chart(document.getElementById('engagementByCircleChart'), {
                 type: 'bar',
                 data: {
@@ -1688,7 +1764,7 @@
                 }
             });
 
-            // Participant Type Chart (Stacked Horizontal Bar by Circle)
+            // Participant Type Chart (Stacked Vertical Bar by Circle)
             participantsCharts.participantType = new Chart(document.getElementById('participantTypeChart'), {
                 type: 'bar',
                 data: {
@@ -1702,7 +1778,6 @@
                     ]
                 },
                 options: {
-                    indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
@@ -1712,13 +1787,13 @@
                         }
                     },
                     scales: {
-                        x: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-                        y: { stacked: true, grid: { display: false } }
+                        x: { stacked: true, grid: { display: false }, ticks: { maxRotation: 0 } },
+                        y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' } }
                     }
                 }
             });
 
-            // Household Position Chart (Stacked Horizontal Bar by Circle)
+            // Household Position Chart (Stacked Vertical Bar by Circle)
             participantsCharts.householdPosition = new Chart(document.getElementById('householdPositionChart'), {
                 type: 'bar',
                 data: {
@@ -1732,7 +1807,6 @@
                     ]
                 },
                 options: {
-                    indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
@@ -1742,11 +1816,444 @@
                         }
                     },
                     scales: {
-                        x: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-                        y: { stacked: true, grid: { display: false } }
+                        x: { stacked: true, grid: { display: false } },
+                        y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' } }
                     }
                 }
             });
+        }
+
+        // Participant Chart Data (shared across chart types)
+        const participantChartData = {
+            labels: ['Church Family', 'Attendee', 'New', 'MC3 Neighbor', 'Non-Attending/Other', 'Dropped'],
+            circles: ['Community', 'Crowd', 'Congregation', 'Committed', 'Core'],
+            colors: ['#c8e6c9', '#a5d6a7', '#81c784', '#66bb6a', '#AAD43C'],
+            values: [
+                [1200, 800, 450, 320, 180, 85],   // Community
+                [1800, 620, 380, 210, 95, 42],    // Crowd
+                [950, 410, 290, 125, 68, 28],     // Congregation
+                [7200, 2100, 580, 180, 145, 48],  // Committed
+                [1392, 301, 123, 41, 24, 8]       // Core
+            ]
+        };
+
+        // Switch Participant Chart Type
+        function switchParticipantChart(type) {
+            // Update button states
+            document.querySelectorAll('.chart-type-btn[data-chart-group="participant"]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.chart === type);
+            });
+
+            // Destroy existing chart
+            if (participantsCharts.participantType) {
+                participantsCharts.participantType.destroy();
+            }
+
+            const ctx = document.getElementById('participantTypeChart');
+            // Ensure canvas is visible (may be hidden by matrix view)
+            ctx.style.display = 'block';
+            // Remove matrix heatmap if present
+            const existingMatrix = ctx.parentElement.querySelector('.matrix-heatmap');
+            if (existingMatrix) existingMatrix.remove();
+
+            const data = participantChartData;
+
+            if (type === 'stacked') {
+                // Stacked Bar Chart
+                participantsCharts.participantType = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: data.circles.map((circle, i) => ({
+                            label: circle,
+                            data: data.values[i],
+                            backgroundColor: data.colors[i]
+                        }))
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15, font: { family: 'Poppins', size: 10, weight: '600' } } }
+                        },
+                        scales: {
+                            x: { stacked: true, grid: { display: false }, ticks: { maxRotation: 0 } },
+                            y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' } }
+                        }
+                    }
+                });
+            } else if (type === 'percent') {
+                // 100% Stacked Bar Chart
+                const totals = data.labels.map((_, colIdx) =>
+                    data.values.reduce((sum, row) => sum + row[colIdx], 0)
+                );
+                participantsCharts.participantType = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: data.circles.map((circle, i) => ({
+                            label: circle,
+                            data: data.values[i].map((val, colIdx) => (val / totals[colIdx]) * 100),
+                            backgroundColor: data.colors[i]
+                        }))
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15, font: { family: 'Poppins', size: 10, weight: '600' } } },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(1)}%`
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { stacked: true, grid: { display: false }, ticks: { maxRotation: 0 } },
+                            y: { stacked: true, max: 100, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v + '%' } }
+                        }
+                    }
+                });
+            } else if (type === 'grouped') {
+                // Grouped Bar Chart
+                participantsCharts.participantType = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: data.circles.map((circle, i) => ({
+                            label: circle,
+                            data: data.values[i],
+                            backgroundColor: data.colors[i]
+                        }))
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15, font: { family: 'Poppins', size: 10, weight: '600' } } }
+                        },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { maxRotation: 0 } },
+                            y: { grid: { color: 'rgba(0,0,0,0.05)' } }
+                        }
+                    }
+                });
+            } else if (type === 'matrix') {
+                // Matrix Heatmap - true grid view with circles as rows, categories as columns
+                // We'll create this using HTML/CSS since Chart.js doesn't have native matrix support
+                const maxVal = Math.max(...data.values.flat());
+                const container = ctx.parentElement;
+                ctx.style.display = 'none';
+
+                // Remove existing matrix if present
+                const existingMatrix = container.querySelector('.matrix-heatmap');
+                if (existingMatrix) existingMatrix.remove();
+
+                const matrix = document.createElement('div');
+                matrix.className = 'matrix-heatmap';
+                matrix.style.cssText = 'display: grid; grid-template-columns: 100px repeat(' + data.labels.length + ', 1fr); gap: 2px; height: 100%; font-size: 9px;';
+
+                // Header row
+                matrix.innerHTML = '<div></div>' + data.labels.map(l => `<div style="text-align: center; font-weight: 600; padding: 4px; overflow: hidden; text-overflow: ellipsis;">${l}</div>`).join('');
+
+                // Data rows
+                data.circles.forEach((circle, rowIdx) => {
+                    matrix.innerHTML += `<div style="display: flex; align-items: center; font-weight: 600;">${circle}</div>`;
+                    data.values[rowIdx].forEach(val => {
+                        const intensity = Math.pow(val / maxVal, 0.5);
+                        const r = Math.round(200 - (intensity * 110));
+                        const g = Math.round(245 - (intensity * 57));
+                        const b = Math.round(200 - (intensity * 140));
+                        matrix.innerHTML += `<div style="background: rgb(${r},${g},${b}); display: flex; align-items: center; justify-content: center; font-weight: 500; color: ${intensity > 0.5 ? '#fff' : '#333'};" title="${val.toLocaleString()}">${val >= 1000 ? (val/1000).toFixed(1) + 'k' : val}</div>`;
+                    });
+                });
+
+                container.appendChild(matrix);
+                // Store reference for cleanup
+                participantsCharts.participantType = { destroy: () => { matrix.remove(); ctx.style.display = 'block'; } };
+            }
+        }
+
+        // Engagement Chart Data (labels are circles, datasets are engagement levels)
+        const engagementChartData = {
+            labels: ['Community', 'Crowd', 'Congregation', 'Committed', 'Core'],
+            categories: ['Fully Engaged', 'Partially Engaged', 'Lapsing', 'Observing', 'Lapsed'],
+            colors: ['#AAD43C', '#eab308', '#f97316', '#3b82f6', '#ef4444'],
+            values: [
+                [1254, 412, 187, 2847, 624],    // Fully Engaged
+                [2891, 623, 214, 5123, 156],    // Partially Engaged
+                [1200, 200, 80, 2100, 35],      // Lapsing
+                [500, 80, 25, 800, 8],          // Observing
+                [429, 29, 14, 361, 3]           // Lapsed
+            ]
+        };
+
+        // Switch Engagement Chart Type
+        function switchEngagementChart(type) {
+            // Update button states
+            document.querySelectorAll('.chart-type-btn[data-chart-group="engagement"]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.chart === type);
+            });
+
+            // Destroy existing chart
+            if (participantsCharts.engagementByCircle) {
+                participantsCharts.engagementByCircle.destroy();
+            }
+
+            const ctx = document.getElementById('engagementByCircleChart');
+            // Ensure canvas is visible (may be hidden by matrix view)
+            ctx.style.display = 'block';
+            // Remove matrix heatmap if present
+            const existingMatrix = ctx.parentElement.querySelector('.matrix-heatmap');
+            if (existingMatrix) existingMatrix.remove();
+
+            const data = engagementChartData;
+
+            if (type === 'stacked') {
+                participantsCharts.engagementByCircle = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: data.categories.map((cat, i) => ({
+                            label: cat,
+                            data: data.values[i],
+                            backgroundColor: data.colors[i]
+                        }))
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15, font: { family: 'Poppins', size: 10, weight: '600' } } }
+                        },
+                        scales: {
+                            x: { stacked: true, grid: { display: false } },
+                            y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' } }
+                        }
+                    }
+                });
+            } else if (type === 'percent') {
+                const totals = data.labels.map((_, colIdx) =>
+                    data.values.reduce((sum, row) => sum + row[colIdx], 0)
+                );
+                participantsCharts.engagementByCircle = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: data.categories.map((cat, i) => ({
+                            label: cat,
+                            data: data.values[i].map((val, colIdx) => (val / totals[colIdx]) * 100),
+                            backgroundColor: data.colors[i]
+                        }))
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15, font: { family: 'Poppins', size: 10, weight: '600' } } },
+                            tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(1)}%` } }
+                        },
+                        scales: {
+                            x: { stacked: true, grid: { display: false } },
+                            y: { stacked: true, max: 100, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v + '%' } }
+                        }
+                    }
+                });
+            } else if (type === 'grouped') {
+                participantsCharts.engagementByCircle = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: data.categories.map((cat, i) => ({
+                            label: cat,
+                            data: data.values[i],
+                            backgroundColor: data.colors[i]
+                        }))
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15, font: { family: 'Poppins', size: 10, weight: '600' } } }
+                        },
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: { grid: { color: 'rgba(0,0,0,0.05)' } }
+                        }
+                    }
+                });
+            } else if (type === 'matrix') {
+                // Matrix Heatmap - categories as rows, circles as columns
+                const maxVal = Math.max(...data.values.flat());
+                const container = ctx.parentElement;
+                ctx.style.display = 'none';
+
+                const existingMatrix = container.querySelector('.matrix-heatmap');
+                if (existingMatrix) existingMatrix.remove();
+
+                const matrix = document.createElement('div');
+                matrix.className = 'matrix-heatmap';
+                matrix.style.cssText = 'display: grid; grid-template-columns: 120px repeat(' + data.labels.length + ', 1fr); gap: 2px; height: 100%; font-size: 9px;';
+
+                // Header row (circles)
+                matrix.innerHTML = '<div></div>' + data.labels.map(l => `<div style="text-align: center; font-weight: 600; padding: 4px;">${l}</div>`).join('');
+
+                // Data rows (engagement categories)
+                data.categories.forEach((cat, rowIdx) => {
+                    matrix.innerHTML += `<div style="display: flex; align-items: center; font-weight: 600; color: ${data.colors[rowIdx]};">${cat}</div>`;
+                    data.values[rowIdx].forEach(val => {
+                        const intensity = Math.pow(val / maxVal, 0.5);
+                        const r = Math.round(200 - (intensity * 110));
+                        const g = Math.round(245 - (intensity * 57));
+                        const b = Math.round(200 - (intensity * 140));
+                        matrix.innerHTML += `<div style="background: rgb(${r},${g},${b}); display: flex; align-items: center; justify-content: center; font-weight: 500; color: ${intensity > 0.5 ? '#fff' : '#333'};" title="${val.toLocaleString()}">${val >= 1000 ? (val/1000).toFixed(1) + 'k' : val}</div>`;
+                    });
+                });
+
+                container.appendChild(matrix);
+                participantsCharts.engagementByCircle = { destroy: () => { matrix.remove(); ctx.style.display = 'block'; } };
+            }
+        }
+
+        // Demographics Chart Data (same structure as participant chart)
+        const demographicsChartData = {
+            labels: ['Head of Household', 'Minor Child', 'Other Adult', 'Adult Child', 'Guest Child', 'Company'],
+            circles: ['Community', 'Crowd', 'Congregation', 'Committed', 'Core'],
+            colors: ['#c8e6c9', '#a5d6a7', '#81c784', '#66bb6a', '#AAD43C'],
+            values: [
+                [1400, 1100, 620, 380, 150, 45],   // Community
+                [1200, 950, 480, 320, 95, 32],     // Crowd
+                [820, 680, 390, 245, 62, 18],      // Congregation
+                [4800, 2500, 1520, 820, 98, 28],   // Committed
+                [714, 391, 202, 111, 18, 6]        // Core
+            ]
+        };
+
+        // Switch Demographics Chart Type
+        function switchDemographicsChart(type) {
+            // Update button states
+            document.querySelectorAll('.chart-type-btn[data-chart-group="demographics"]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.chart === type);
+            });
+
+            // Destroy existing chart
+            if (participantsCharts.householdPosition) {
+                participantsCharts.householdPosition.destroy();
+            }
+
+            const ctx = document.getElementById('householdPositionChart');
+            // Ensure canvas is visible (may be hidden by matrix view)
+            ctx.style.display = 'block';
+            // Remove matrix heatmap if present
+            const existingMatrix = ctx.parentElement.querySelector('.matrix-heatmap');
+            if (existingMatrix) existingMatrix.remove();
+
+            const data = demographicsChartData;
+
+            if (type === 'stacked') {
+                participantsCharts.householdPosition = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: data.circles.map((circle, i) => ({
+                            label: circle,
+                            data: data.values[i],
+                            backgroundColor: data.colors[i]
+                        }))
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15, font: { family: 'Poppins', size: 10, weight: '600' } } }
+                        },
+                        scales: {
+                            x: { stacked: true, grid: { display: false } },
+                            y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' } }
+                        }
+                    }
+                });
+            } else if (type === 'percent') {
+                const totals = data.labels.map((_, colIdx) =>
+                    data.values.reduce((sum, row) => sum + row[colIdx], 0)
+                );
+                participantsCharts.householdPosition = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: data.circles.map((circle, i) => ({
+                            label: circle,
+                            data: data.values[i].map((val, colIdx) => (val / totals[colIdx]) * 100),
+                            backgroundColor: data.colors[i]
+                        }))
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15, font: { family: 'Poppins', size: 10, weight: '600' } } },
+                            tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(1)}%` } }
+                        },
+                        scales: {
+                            x: { stacked: true, grid: { display: false } },
+                            y: { stacked: true, max: 100, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v + '%' } }
+                        }
+                    }
+                });
+            } else if (type === 'grouped') {
+                participantsCharts.householdPosition = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: data.circles.map((circle, i) => ({
+                            label: circle,
+                            data: data.values[i],
+                            backgroundColor: data.colors[i]
+                        }))
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15, font: { family: 'Poppins', size: 10, weight: '600' } } }
+                        },
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: { grid: { color: 'rgba(0,0,0,0.05)' } }
+                        }
+                    }
+                });
+            } else if (type === 'matrix') {
+                // Matrix Heatmap - circles as rows, categories as columns
+                const maxVal = Math.max(...data.values.flat());
+                const container = ctx.parentElement;
+                ctx.style.display = 'none';
+
+                const existingMatrix = container.querySelector('.matrix-heatmap');
+                if (existingMatrix) existingMatrix.remove();
+
+                const matrix = document.createElement('div');
+                matrix.className = 'matrix-heatmap';
+                matrix.style.cssText = 'display: grid; grid-template-columns: 100px repeat(' + data.labels.length + ', 1fr); gap: 2px; height: 100%; font-size: 9px;';
+
+                // Header row
+                matrix.innerHTML = '<div></div>' + data.labels.map(l => `<div style="text-align: center; font-weight: 600; padding: 4px; overflow: hidden; text-overflow: ellipsis;">${l}</div>`).join('');
+
+                // Data rows
+                data.circles.forEach((circle, rowIdx) => {
+                    matrix.innerHTML += `<div style="display: flex; align-items: center; font-weight: 600;">${circle}</div>`;
+                    data.values[rowIdx].forEach(val => {
+                        const intensity = Math.pow(val / maxVal, 0.5);
+                        const r = Math.round(200 - (intensity * 110));
+                        const g = Math.round(245 - (intensity * 57));
+                        const b = Math.round(200 - (intensity * 140));
+                        matrix.innerHTML += `<div style="background: rgb(${r},${g},${b}); display: flex; align-items: center; justify-content: center; font-weight: 500; color: ${intensity > 0.5 ? '#fff' : '#333'};" title="${val.toLocaleString()}">${val >= 1000 ? (val/1000).toFixed(1) + 'k' : val}</div>`;
+                    });
+                });
+
+                container.appendChild(matrix);
+                participantsCharts.householdPosition = { destroy: () => { matrix.remove(); ctx.style.display = 'block'; } };
+            }
         }
 
         // Circle Configuration - Toggle Groups
