@@ -1108,7 +1108,7 @@
                 <!-- Charts Row 3 -->
                 <div class="grid grid-cols-2 gap-6">
                     <!-- Participant Type -->
-                    <div class="bg-white p-6 shadow-sm">
+                    <div class="bg-white p-6 shadow-sm flex flex-col">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight">Participants</h3>
                             <div class="flex gap-1">
@@ -1126,11 +1126,11 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="h-52">
+                        <div class="h-56 flex-1">
                             <canvas id="participantTypeChart"></canvas>
                         </div>
                         <!-- Custom Legend with Stats -->
-                        <div id="participant-legend" class="grid grid-cols-6 gap-2 mt-4">
+                        <div id="participant-legend" class="grid grid-cols-6 gap-2 mt-auto pt-4">
                             <div class="p-3 rounded flex flex-col h-24" style="background-color: #3b82f6;">
                                 <div class="text-xs font-bold uppercase tracking-wide text-white opacity-90">Church Family</div>
                                 <div class="mt-auto">
@@ -1177,7 +1177,7 @@
                     </div>
 
                     <!-- Household Position -->
-                    <div class="bg-white p-6 shadow-sm">
+                    <div class="bg-white p-6 shadow-sm flex flex-col">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight">Demographics</h3>
                             <div class="flex gap-1">
@@ -1195,11 +1195,11 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="h-52">
+                        <div class="h-56 flex-1">
                             <canvas id="householdPositionChart"></canvas>
                         </div>
                         <!-- Custom Legend with Stats -->
-                        <div id="demographics-legend" class="grid grid-cols-6 gap-2 mt-4">
+                        <div id="demographics-legend" class="grid grid-cols-6 gap-2 mt-auto pt-4">
                             <div class="p-3 rounded flex flex-col h-24" style="background-color: #f97316;">
                                 <div class="text-xs font-bold uppercase tracking-wide text-white opacity-90">Head of Household</div>
                                 <div class="mt-auto">
