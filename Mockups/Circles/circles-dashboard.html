@@ -2144,6 +2144,14 @@
             }
 
             const ctx = document.getElementById('participantTypeChart');
+
+            // Animate out and remove existing circle icons
+            const existingIcons = ctx.parentElement.querySelectorAll('.chart-circle-icon');
+            existingIcons.forEach(el => {
+                el.classList.add('fade-out');
+                setTimeout(() => el.remove(), 200);
+            });
+
             // Ensure canvas is visible (may be hidden by matrix view)
             ctx.style.display = 'block';
             // Remove matrix heatmap if present
@@ -2227,14 +2235,16 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        layout: { padding: { top: 25 } },
-                        plugins: { legend: { display: false }, circleTop: { enabled: true } },
+                        layout: { padding: { top: 35 } },
+                        plugins: { legend: { display: false }, circleTop: { enabled: false } },
                         scales: {
                             x: { grid: { display: false }, ticks: { font: { size: 10 } } },
                             y: { grid: { color: 'rgba(0,0,0,0.05)' } }
                         }
                     }
                 });
+                // Add circle icons above each group after chart renders
+                setTimeout(() => addGroupedBarIcons(participantsCharts.participantType, ctx.parentElement), 50);
             } else if (type === 'matrix') {
                 // Matrix Heatmap - categories as rows, circles as columns
                 const maxVal = Math.max(...data.values.flat());
@@ -2245,12 +2255,28 @@
                 const existingMatrix = container.querySelector('.matrix-heatmap');
                 if (existingMatrix) existingMatrix.remove();
 
+                const circleIcons = [
+                    { bg: 'rgba(200, 230, 201, 0.3)', border: '#a5d6a7', dashed: true, iconColor: '#66bb6a', icon: 'globe' },
+                    { bg: '#c8e6c9', border: '#a5d6a7', dashed: false, iconColor: '#4a7c4e', icon: 'users' },
+                    { bg: '#a5d6a7', border: '#81c784', dashed: false, iconColor: '#3d6b40', icon: 'church' },
+                    { bg: '#81c784', border: '#66bb6a', dashed: false, iconColor: '#ffffff', icon: 'heart-handshake' },
+                    { bg: '#AAD43C', border: '#7da32d', dashed: false, iconColor: '#ffffff', icon: 'star' }
+                ];
+
                 const matrix = document.createElement('div');
                 matrix.className = 'matrix-heatmap';
-                matrix.style.cssText = 'display: grid; grid-template-columns: 110px repeat(' + data.labels.length + ', 1fr); gap: 2px; height: 100%; font-size: 9px;';
+                matrix.style.cssText = 'display: grid; grid-template-columns: 110px repeat(' + data.labels.length + ', 1fr); grid-template-rows: auto repeat(' + data.categories.length + ', 1fr); gap: 2px; height: 100%; font-size: 9px;';
 
-                // Header row (circles)
-                matrix.innerHTML = '<div></div>' + data.labels.map(l => `<div style="text-align: center; font-weight: 600; padding: 4px; overflow: hidden; text-overflow: ellipsis;">${l}</div>`).join('');
+                // Header row with icons and labels
+                matrix.innerHTML = '<div></div>' + data.labels.map((l, i) => {
+                    const style = circleIcons[i];
+                    return `<div style="text-align: center; font-weight: 600; padding: 4px; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                        <div class="chart-circle-icon" style="position: relative; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: ${style.bg}; border: 2px ${style.dashed ? 'dashed' : 'solid'} ${style.border};">
+                            <i data-lucide="${style.icon}" style="width: 12px; height: 12px; color: ${style.iconColor};"></i>
+                        </div>
+                        <span>${l}</span>
+                    </div>`;
+                }).join('');
 
                 // Data rows (categories)
                 data.categories.forEach((cat, rowIdx) => {
@@ -2266,6 +2292,7 @@
                 });
 
                 container.appendChild(matrix);
+                lucide.createIcons();
                 // Store reference for cleanup
                 participantsCharts.participantType = { destroy: () => { matrix.remove(); ctx.style.display = 'block'; } };
             }
@@ -2525,6 +2552,14 @@
             }
 
             const ctx = document.getElementById('householdPositionChart');
+
+            // Animate out and remove existing circle icons
+            const existingIcons = ctx.parentElement.querySelectorAll('.chart-circle-icon');
+            existingIcons.forEach(el => {
+                el.classList.add('fade-out');
+                setTimeout(() => el.remove(), 200);
+            });
+
             // Ensure canvas is visible (may be hidden by matrix view)
             ctx.style.display = 'block';
             // Remove matrix heatmap if present
@@ -2601,14 +2636,16 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        layout: { padding: { top: 25 } },
-                        plugins: { legend: { display: false }, circleTop: { enabled: true } },
+                        layout: { padding: { top: 35 } },
+                        plugins: { legend: { display: false }, circleTop: { enabled: false } },
                         scales: {
                             x: { grid: { display: false }, ticks: { font: { size: 10 } } },
                             y: { grid: { color: 'rgba(0,0,0,0.05)' } }
                         }
                     }
                 });
+                // Add circle icons above each group after chart renders
+                setTimeout(() => addGroupedBarIcons(participantsCharts.householdPosition, ctx.parentElement), 50);
             } else if (type === 'matrix') {
                 // Matrix Heatmap - categories as rows, circles as columns
                 const maxVal = Math.max(...data.values.flat());
@@ -2618,12 +2655,28 @@
                 const existingMatrix = container.querySelector('.matrix-heatmap');
                 if (existingMatrix) existingMatrix.remove();
 
+                const circleIcons = [
+                    { bg: 'rgba(200, 230, 201, 0.3)', border: '#a5d6a7', dashed: true, iconColor: '#66bb6a', icon: 'globe' },
+                    { bg: '#c8e6c9', border: '#a5d6a7', dashed: false, iconColor: '#4a7c4e', icon: 'users' },
+                    { bg: '#a5d6a7', border: '#81c784', dashed: false, iconColor: '#3d6b40', icon: 'church' },
+                    { bg: '#81c784', border: '#66bb6a', dashed: false, iconColor: '#ffffff', icon: 'heart-handshake' },
+                    { bg: '#AAD43C', border: '#7da32d', dashed: false, iconColor: '#ffffff', icon: 'star' }
+                ];
+
                 const matrix = document.createElement('div');
                 matrix.className = 'matrix-heatmap';
-                matrix.style.cssText = 'display: grid; grid-template-columns: 110px repeat(' + data.labels.length + ', 1fr); gap: 2px; height: 100%; font-size: 9px;';
+                matrix.style.cssText = 'display: grid; grid-template-columns: 110px repeat(' + data.labels.length + ', 1fr); grid-template-rows: auto repeat(' + data.categories.length + ', 1fr); gap: 2px; height: 100%; font-size: 9px;';
 
-                // Header row (circles)
-                matrix.innerHTML = '<div></div>' + data.labels.map(l => `<div style="text-align: center; font-weight: 600; padding: 4px; overflow: hidden; text-overflow: ellipsis;">${l}</div>`).join('');
+                // Header row with icons and labels
+                matrix.innerHTML = '<div></div>' + data.labels.map((l, i) => {
+                    const style = circleIcons[i];
+                    return `<div style="text-align: center; font-weight: 600; padding: 4px; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                        <div class="chart-circle-icon" style="position: relative; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: ${style.bg}; border: 2px ${style.dashed ? 'dashed' : 'solid'} ${style.border};">
+                            <i data-lucide="${style.icon}" style="width: 12px; height: 12px; color: ${style.iconColor};"></i>
+                        </div>
+                        <span>${l}</span>
+                    </div>`;
+                }).join('');
 
                 // Data rows (categories)
                 data.categories.forEach((cat, rowIdx) => {
@@ -2639,6 +2692,7 @@
                 });
 
                 container.appendChild(matrix);
+                lucide.createIcons();
                 participantsCharts.householdPosition = { destroy: () => { matrix.remove(); ctx.style.display = 'block'; } };
             }
         }
