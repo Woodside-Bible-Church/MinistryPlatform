@@ -2276,6 +2276,10 @@
             }
 
             const ctx = document.getElementById('engagementByCircleChart');
+
+            // Remove circle icons immediately before creating new chart
+            ctx.parentElement.querySelectorAll('.chart-circle-icon').forEach(el => el.remove());
+
             // Ensure canvas is visible (may be hidden by matrix view)
             ctx.style.display = 'block';
             // Remove matrix heatmap if present
@@ -2352,8 +2356,7 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        layout: { padding: { top: 25 } },
-                        plugins: { legend: { display: false }, circleTop: { enabled: true } },
+                        plugins: { legend: { display: false }, circleTop: { enabled: false } },
                         scales: {
                             x: { grid: { display: false }, ticks: { font: { size: 10 } } },
                             y: { grid: { color: 'rgba(0,0,0,0.05)' } }
