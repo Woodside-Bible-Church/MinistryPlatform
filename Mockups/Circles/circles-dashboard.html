@@ -173,6 +173,156 @@
             background-color: #f9fafb;
         }
 
+        /* Multiselect Dropdown */
+        .multiselect {
+            position: relative;
+            min-width: 160px;
+        }
+
+        .multiselect-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: 100%;
+            background: white;
+            border: 1px solid #d1d5db;
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #252525;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .multiselect-btn:hover {
+            border-color: #AAD43C;
+        }
+
+        .multiselect-btn:focus {
+            outline: none;
+            border-color: #AAD43C;
+            box-shadow: 0 0 0 2px rgba(170, 212, 60, 0.2);
+        }
+
+        .multiselect-btn .chevron {
+            transition: transform 0.2s ease;
+        }
+
+        .multiselect.open .multiselect-btn .chevron {
+            transform: rotate(180deg);
+        }
+
+        .multiselect-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            min-width: 200px;
+            background: white;
+            border: 1px solid #d1d5db;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 50;
+            display: none;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .multiselect.open .multiselect-dropdown {
+            display: block;
+        }
+
+        .multiselect-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .multiselect-option:hover {
+            background-color: #f3f4f6;
+        }
+
+        .multiselect-option input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #AAD43C;
+            cursor: pointer;
+        }
+
+        .multiselect-option label {
+            flex: 1;
+            cursor: pointer;
+            font-size: 13px;
+            color: #374151;
+        }
+
+        .multiselect-option.selected {
+            background-color: rgba(170, 212, 60, 0.1);
+        }
+
+        .multiselect-select-all {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            border-bottom: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+        }
+
+        .multiselect-select-all:hover {
+            background-color: #f3f4f6;
+        }
+
+        .multiselect-select-all input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #AAD43C;
+            cursor: pointer;
+        }
+
+        .multiselect-select-all label {
+            flex: 1;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .multiselect-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #AAD43C;
+            color: #252525;
+            font-size: 11px;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 10px;
+            padding: 0 6px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .filter-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #9ca3af;
+        }
+
         </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -473,61 +623,229 @@
             <div id="tab-circle-participants" class="tab-content hidden">
                 <!-- Filter Bar -->
                 <div class="bg-white p-4 shadow-sm mb-6">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3 flex-wrap">
-                            <select id="filter-congregation" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green">
-                                <option value="">All Campuses</option>
-                                <option value="1">Granger Campus</option>
-                                <option value="4">Elkhart Campus</option>
-                                <option value="6">All Church</option>
-                                <option value="9">Online</option>
-                            </select>
-                            <select id="filter-participant-type" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green">
-                                <option value="">All Participant Types</option>
-                                <option value="29">Attendee</option>
-                                <option value="35">Church Family</option>
-                                <option value="24">MC3 Neighbor</option>
-                                <option value="33">Dropped</option>
-                                <option value="34">Non-Attending/Other</option>
-                                <option value="28">New</option>
-                            </select>
-                            <select id="filter-engagement" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green">
-                                <option value="">All Engagement</option>
-                                <option value="2">Fully Engaged</option>
-                                <option value="1">Partially Engaged</option>
-                                <option value="3">Lapsing</option>
-                                <option value="5">Observing</option>
-                                <option value="4">Lapsed</option>
-                            </select>
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-2 flex-wrap flex-1">
+                            <!-- Campus Filter -->
+                            <div class="filter-group">
+                                <span class="filter-label">Campus</span>
+                                <div class="multiselect" data-filter="campus">
+                                    <button type="button" class="multiselect-btn" onclick="toggleMultiselect(this)">
+                                        <span class="multiselect-label">All Campuses</span>
+                                        <i data-lucide="chevron-down" class="w-4 h-4 chevron"></i>
+                                    </button>
+                                    <div class="multiselect-dropdown">
+                                        <div class="multiselect-select-all">
+                                            <input type="checkbox" id="campus-all">
+                                            <label for="campus-all">Select All</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="1">
+                                            <input type="checkbox" id="campus-1">
+                                            <label for="campus-1">Granger Campus</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="4">
+                                            <input type="checkbox" id="campus-4">
+                                            <label for="campus-4">Elkhart Campus</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="6">
+                                            <input type="checkbox" id="campus-6">
+                                            <label for="campus-6">All Church</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="9">
+                                            <input type="checkbox" id="campus-9">
+                                            <label for="campus-9">Online</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Participant Type Filter -->
+                            <div class="filter-group">
+                                <span class="filter-label">Participant Type</span>
+                                <div class="multiselect" data-filter="participant-type">
+                                    <button type="button" class="multiselect-btn" onclick="toggleMultiselect(this)">
+                                        <span class="multiselect-label">All Types</span>
+                                        <i data-lucide="chevron-down" class="w-4 h-4 chevron"></i>
+                                    </button>
+                                    <div class="multiselect-dropdown">
+                                        <div class="multiselect-select-all">
+                                            <input type="checkbox" id="ptype-all">
+                                            <label for="ptype-all">Select All</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="35">
+                                            <input type="checkbox" id="ptype-35">
+                                            <label for="ptype-35">Church Family</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="29">
+                                            <input type="checkbox" id="ptype-29">
+                                            <label for="ptype-29">Attendee</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="28">
+                                            <input type="checkbox" id="ptype-28">
+                                            <label for="ptype-28">New</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="24">
+                                            <input type="checkbox" id="ptype-24">
+                                            <label for="ptype-24">MC3 Neighbor</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="34">
+                                            <input type="checkbox" id="ptype-34">
+                                            <label for="ptype-34">Non-Attending/Other</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="33">
+                                            <input type="checkbox" id="ptype-33">
+                                            <label for="ptype-33">Dropped</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Engagement Filter -->
+                            <div class="filter-group">
+                                <span class="filter-label">Engagement</span>
+                                <div class="multiselect" data-filter="engagement">
+                                    <button type="button" class="multiselect-btn" onclick="toggleMultiselect(this)">
+                                        <span class="multiselect-label">All Engagement</span>
+                                        <i data-lucide="chevron-down" class="w-4 h-4 chevron"></i>
+                                    </button>
+                                    <div class="multiselect-dropdown">
+                                        <div class="multiselect-select-all">
+                                            <input type="checkbox" id="eng-all">
+                                            <label for="eng-all">Select All</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="2">
+                                            <input type="checkbox" id="eng-2">
+                                            <label for="eng-2">Fully Engaged</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="1">
+                                            <input type="checkbox" id="eng-1">
+                                            <label for="eng-1">Partially Engaged</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="3">
+                                            <input type="checkbox" id="eng-3">
+                                            <label for="eng-3">Lapsing</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="5">
+                                            <input type="checkbox" id="eng-5">
+                                            <label for="eng-5">Observing</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="4">
+                                            <input type="checkbox" id="eng-4">
+                                            <label for="eng-4">Lapsed</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Household Position Filter -->
+                            <div class="filter-group">
+                                <span class="filter-label">Household Position</span>
+                                <div class="multiselect" data-filter="household-position">
+                                    <button type="button" class="multiselect-btn" onclick="toggleMultiselect(this)">
+                                        <span class="multiselect-label">All Positions</span>
+                                        <i data-lucide="chevron-down" class="w-4 h-4 chevron"></i>
+                                    </button>
+                                    <div class="multiselect-dropdown">
+                                        <div class="multiselect-select-all">
+                                            <input type="checkbox" id="hpos-all">
+                                            <label for="hpos-all">Select All</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="1">
+                                            <input type="checkbox" id="hpos-1">
+                                            <label for="hpos-1">Head of Household</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="2">
+                                            <input type="checkbox" id="hpos-2">
+                                            <label for="hpos-2">Minor Child</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="3">
+                                            <input type="checkbox" id="hpos-3">
+                                            <label for="hpos-3">Other Adult</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="4">
+                                            <input type="checkbox" id="hpos-4">
+                                            <label for="hpos-4">Adult Child</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="5">
+                                            <input type="checkbox" id="hpos-5">
+                                            <label for="hpos-5">Guest Child</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="6">
+                                            <input type="checkbox" id="hpos-6">
+                                            <label for="hpos-6">Company</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Marital Status Filter -->
+                            <div class="filter-group">
+                                <span class="filter-label">Marital Status</span>
+                                <div class="multiselect" data-filter="marital-status">
+                                    <button type="button" class="multiselect-btn" onclick="toggleMultiselect(this)">
+                                        <span class="multiselect-label">All Statuses</span>
+                                        <i data-lucide="chevron-down" class="w-4 h-4 chevron"></i>
+                                    </button>
+                                    <div class="multiselect-dropdown">
+                                        <div class="multiselect-select-all">
+                                            <input type="checkbox" id="marital-all">
+                                            <label for="marital-all">Select All</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="2">
+                                            <input type="checkbox" id="marital-2">
+                                            <label for="marital-2">Married</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="1">
+                                            <input type="checkbox" id="marital-1">
+                                            <label for="marital-1">Single</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="3">
+                                            <input type="checkbox" id="marital-3">
+                                            <label for="marital-3">Divorced</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="4">
+                                            <input type="checkbox" id="marital-4">
+                                            <label for="marital-4">Widowed</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="6">
+                                            <input type="checkbox" id="marital-6">
+                                            <label for="marital-6">Separated</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="5">
+                                            <input type="checkbox" id="marital-5">
+                                            <label for="marital-5">Partnered</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Gender Filter -->
+                            <div class="filter-group">
+                                <span class="filter-label">Gender</span>
+                                <div class="multiselect" data-filter="gender">
+                                    <button type="button" class="multiselect-btn" onclick="toggleMultiselect(this)">
+                                        <span class="multiselect-label">All Genders</span>
+                                        <i data-lucide="chevron-down" class="w-4 h-4 chevron"></i>
+                                    </button>
+                                    <div class="multiselect-dropdown">
+                                        <div class="multiselect-select-all">
+                                            <input type="checkbox" id="gender-all">
+                                            <label for="gender-all">Select All</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="1">
+                                            <input type="checkbox" id="gender-1">
+                                            <label for="gender-1">Male</label>
+                                        </div>
+                                        <div class="multiselect-option" data-value="2">
+                                            <input type="checkbox" id="gender-2">
+                                            <label for="gender-2">Female</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <button class="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-granger-black hover:bg-gray-100 transition">
+                        <button onclick="resetAllFilters()" class="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-granger-black hover:bg-gray-100 transition whitespace-nowrap">
                             Reset Filters
                         </button>
-                    </div>
-                    <div class="flex items-center gap-3 mt-3 flex-wrap">
-                        <select id="filter-household-position" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green">
-                            <option value="">All Household Positions</option>
-                            <option value="1">Head of Household</option>
-                            <option value="2">Minor Child</option>
-                            <option value="3">Other Adult</option>
-                            <option value="4">Adult Child</option>
-                            <option value="5">Guest Child</option>
-                            <option value="6">Company</option>
-                        </select>
-                        <select id="filter-marital-status" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green">
-                            <option value="">All Marital Status</option>
-                            <option value="1">Single</option>
-                            <option value="2">Married</option>
-                            <option value="3">Divorced</option>
-                            <option value="4">Widowed</option>
-                            <option value="5">Partnered</option>
-                            <option value="6">Separated</option>
-                        </select>
-                        <select id="filter-gender" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green">
-                            <option value="">All Genders</option>
-                            <option value="1">Male</option>
-                            <option value="2">Female</option>
-                        </select>
                     </div>
                 </div>
 
@@ -1559,6 +1877,134 @@
                 content.classList.add('hidden');
                 chevron.style.transform = 'rotate(-90deg)';
             }
+        }
+
+        // Multiselect Dropdown Functions
+        function toggleMultiselect(btn) {
+            const multiselect = btn.closest('.multiselect');
+            const wasOpen = multiselect.classList.contains('open');
+
+            // Close all other multiselects
+            document.querySelectorAll('.multiselect.open').forEach(ms => {
+                ms.classList.remove('open');
+            });
+
+            // Toggle this one
+            if (!wasOpen) {
+                multiselect.classList.add('open');
+            }
+        }
+
+        // Close multiselect when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.multiselect')) {
+                document.querySelectorAll('.multiselect.open').forEach(ms => {
+                    ms.classList.remove('open');
+                });
+            }
+        });
+
+        // Handle checkbox changes in multiselects
+        document.querySelectorAll('.multiselect-option').forEach(option => {
+            option.addEventListener('click', function(e) {
+                if (e.target.tagName !== 'INPUT') {
+                    const checkbox = this.querySelector('input[type="checkbox"]');
+                    checkbox.checked = !checkbox.checked;
+                }
+
+                const multiselect = this.closest('.multiselect');
+                updateMultiselectLabel(multiselect);
+                updateSelectAllState(multiselect);
+                this.classList.toggle('selected', this.querySelector('input').checked);
+            });
+        });
+
+        // Handle Select All checkbox
+        document.querySelectorAll('.multiselect-select-all').forEach(selectAll => {
+            selectAll.addEventListener('click', function(e) {
+                if (e.target.tagName !== 'INPUT') {
+                    const checkbox = this.querySelector('input[type="checkbox"]');
+                    checkbox.checked = !checkbox.checked;
+                }
+
+                const multiselect = this.closest('.multiselect');
+                const isChecked = this.querySelector('input').checked;
+
+                // Toggle all option checkboxes
+                multiselect.querySelectorAll('.multiselect-option input[type="checkbox"]').forEach(cb => {
+                    cb.checked = isChecked;
+                    cb.closest('.multiselect-option').classList.toggle('selected', isChecked);
+                });
+
+                updateMultiselectLabel(multiselect);
+            });
+        });
+
+        function updateSelectAllState(multiselect) {
+            const options = multiselect.querySelectorAll('.multiselect-option input[type="checkbox"]');
+            const checkedOptions = multiselect.querySelectorAll('.multiselect-option input[type="checkbox"]:checked');
+            const selectAllCheckbox = multiselect.querySelector('.multiselect-select-all input[type="checkbox"]');
+
+            // If nothing is selected, auto-select all
+            if (checkedOptions.length === 0) {
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.checked = true;
+                }
+                options.forEach(cb => {
+                    cb.checked = true;
+                    cb.closest('.multiselect-option').classList.add('selected');
+                });
+                updateMultiselectLabel(multiselect);
+            } else if (selectAllCheckbox) {
+                selectAllCheckbox.checked = options.length === checkedOptions.length;
+            }
+        }
+
+        function updateMultiselectLabel(multiselect) {
+            const filterType = multiselect.dataset.filter;
+            const optionCheckboxes = multiselect.querySelectorAll('.multiselect-option input[type="checkbox"]');
+            const checkedOptionCheckboxes = multiselect.querySelectorAll('.multiselect-option input[type="checkbox"]:checked');
+            const labelEl = multiselect.querySelector('.multiselect-label');
+
+            const defaultLabels = {
+                'campus': 'All Campuses',
+                'participant-type': 'All Types',
+                'engagement': 'All Engagement',
+                'household-position': 'All Positions',
+                'marital-status': 'All Statuses',
+                'gender': 'All Genders'
+            };
+
+            // If none selected OR all selected, show "All X"
+            if (checkedOptionCheckboxes.length === 0 || checkedOptionCheckboxes.length === optionCheckboxes.length) {
+                labelEl.innerHTML = defaultLabels[filterType] || 'All';
+            } else if (checkedOptionCheckboxes.length === 1) {
+                const selectedLabel = checkedOptionCheckboxes[0].closest('.multiselect-option').querySelector('label').textContent;
+                labelEl.innerHTML = selectedLabel;
+            } else {
+                const singularLabels = {
+                    'campus': 'Campuses',
+                    'participant-type': 'Types',
+                    'engagement': 'Levels',
+                    'household-position': 'Positions',
+                    'marital-status': 'Statuses',
+                    'gender': 'Genders'
+                };
+                labelEl.innerHTML = `<span class="multiselect-badge">${checkedOptionCheckboxes.length}</span> ${singularLabels[filterType] || 'Selected'}`;
+            }
+        }
+
+        function resetAllFilters() {
+            document.querySelectorAll('.multiselect').forEach(multiselect => {
+                // Select all checkboxes (default state)
+                multiselect.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                    cb.checked = true;
+                });
+                multiselect.querySelectorAll('.multiselect-option').forEach(opt => {
+                    opt.classList.add('selected');
+                });
+                updateMultiselectLabel(multiselect);
+            });
         }
     </script>
 </body>
