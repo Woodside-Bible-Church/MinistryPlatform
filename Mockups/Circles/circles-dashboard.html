@@ -905,33 +905,6 @@
                     </div>
                 </div>
 
-                <!-- Charts Row 2 -->
-                <div class="grid grid-cols-3 gap-6 mb-6">
-                    <!-- Campus Breakdown -->
-                    <div class="bg-white p-6 shadow-sm">
-                        <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight mb-4">By Campus</h3>
-                        <div class="h-56">
-                            <canvas id="campusChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Gender Breakdown -->
-                    <div class="bg-white p-6 shadow-sm">
-                        <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight mb-4">By Gender</h3>
-                        <div class="h-56">
-                            <canvas id="genderChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Marital Status -->
-                    <div class="bg-white p-6 shadow-sm">
-                        <h3 class="text-lg font-bold text-granger-black uppercase tracking-tight mb-4">By Marital Status</h3>
-                        <div class="h-56">
-                            <canvas id="maritalChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Charts Row 3 -->
                 <div class="grid grid-cols-2 gap-6">
                     <!-- Participant Type -->
@@ -1713,87 +1686,6 @@
                             labels: {
                                 usePointStyle: true,
                                 padding: 15,
-                                font: { family: 'Poppins', size: 10, weight: '600' }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Campus Chart (Horizontal Bar)
-            participantsCharts.campus = new Chart(document.getElementById('campusChart'), {
-                type: 'bar',
-                data: {
-                    labels: ['Granger Campus', 'Elkhart Campus', 'Online', 'All Church'],
-                    datasets: [{
-                        data: [14868, 3365, 1512, 450],
-                        backgroundColor: ['#AAD43C', '#81c784', '#a5d6a7', '#c8e6c9'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { grid: { color: 'rgba(0,0,0,0.05)' } },
-                        y: { grid: { display: false } }
-                    }
-                }
-            });
-
-            // Gender Chart (Doughnut)
-            participantsCharts.gender = new Chart(document.getElementById('genderChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Female', 'Male'],
-                    datasets: [{
-                        data: [10704, 9491],
-                        backgroundColor: ['#AAD43C', '#66bb6a'],
-                        borderColor: '#ffffff',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '60%',
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 15,
-                                font: { family: 'Poppins', size: 11, weight: '600' }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Marital Status Chart (Doughnut)
-            participantsCharts.marital = new Chart(document.getElementById('maritalChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Married', 'Single', 'Divorced', 'Widowed', 'Separated', 'Partnered'],
-                    datasets: [{
-                        data: [9291, 7267, 1817, 1009, 605, 206],
-                        backgroundColor: ['#AAD43C', '#66bb6a', '#81c784', '#a5d6a7', '#c8e6c9', '#e8f5e9'],
-                        borderColor: '#ffffff',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '50%',
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 10,
                                 font: { family: 'Poppins', size: 10, weight: '600' }
                             }
                         }
