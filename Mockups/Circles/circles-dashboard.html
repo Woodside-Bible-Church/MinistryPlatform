@@ -2280,7 +2280,7 @@
 
                 // Data rows (categories)
                 data.categories.forEach((cat, rowIdx) => {
-                    matrix.innerHTML += `<div style="display: flex; align-items: center; font-weight: 600; font-size: 8px;">${cat}</div>`;
+                    matrix.innerHTML += `<div style="display: flex; align-items: center; font-weight: 600; font-size: 8px; color: ${data.colors[rowIdx]};">${cat}</div>`;
                     data.values[rowIdx].forEach(val => {
                         const intensity = Math.pow(val / maxVal, 0.5);
                         // Blue/purple gradient for participant types
@@ -2680,7 +2680,7 @@
 
                 // Data rows (categories)
                 data.categories.forEach((cat, rowIdx) => {
-                    matrix.innerHTML += `<div style="display: flex; align-items: center; font-weight: 600; font-size: 8px;">${cat}</div>`;
+                    matrix.innerHTML += `<div style="display: flex; align-items: center; font-weight: 600; font-size: 8px; color: ${data.colors[rowIdx]};">${cat}</div>`;
                     data.values[rowIdx].forEach(val => {
                         const intensity = Math.pow(val / maxVal, 0.5);
                         // Orange/amber gradient for household positions
