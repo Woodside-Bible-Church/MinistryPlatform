@@ -1693,48 +1693,62 @@
                 }
             });
 
-            // Participant Type Chart (Horizontal Bar)
+            // Participant Type Chart (Stacked Horizontal Bar by Circle)
             participantsCharts.participantType = new Chart(document.getElementById('participantTypeChart'), {
                 type: 'bar',
                 data: {
                     labels: ['Church Family', 'Attendee', 'New', 'MC3 Neighbor', 'Non-Attending/Other', 'Dropped'],
-                    datasets: [{
-                        data: [12542, 4231, 1823, 876, 512, 211],
-                        backgroundColor: ['#AAD43C', '#66bb6a', '#81c784', '#a5d6a7', '#c8e6c9', '#e8f5e9'],
-                        borderWidth: 0
-                    }]
+                    datasets: [
+                        { label: 'Community', data: [1200, 800, 450, 320, 180, 85], backgroundColor: '#c8e6c9' },
+                        { label: 'Crowd', data: [1800, 620, 380, 210, 95, 42], backgroundColor: '#a5d6a7' },
+                        { label: 'Congregation', data: [950, 410, 290, 125, 68, 28], backgroundColor: '#81c784' },
+                        { label: 'Committed', data: [7200, 2100, 580, 180, 145, 48], backgroundColor: '#66bb6a' },
+                        { label: 'Core', data: [1392, 301, 123, 41, 24, 8], backgroundColor: '#AAD43C' }
+                    ]
                 },
                 options: {
                     indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { usePointStyle: true, padding: 15, font: { family: 'Poppins', size: 10, weight: '600' } }
+                        }
+                    },
                     scales: {
-                        x: { grid: { color: 'rgba(0,0,0,0.05)' } },
-                        y: { grid: { display: false } }
+                        x: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                        y: { stacked: true, grid: { display: false } }
                     }
                 }
             });
 
-            // Household Position Chart (Horizontal Bar)
+            // Household Position Chart (Stacked Horizontal Bar by Circle)
             participantsCharts.householdPosition = new Chart(document.getElementById('householdPositionChart'), {
                 type: 'bar',
                 data: {
                     labels: ['Head of Household', 'Minor Child', 'Other Adult', 'Adult Child', 'Guest Child', 'Company'],
-                    datasets: [{
-                        data: [8934, 5621, 3212, 1876, 423, 129],
-                        backgroundColor: ['#AAD43C', '#66bb6a', '#81c784', '#a5d6a7', '#c8e6c9', '#e8f5e9'],
-                        borderWidth: 0
-                    }]
+                    datasets: [
+                        { label: 'Community', data: [1400, 1100, 620, 380, 150, 45], backgroundColor: '#c8e6c9' },
+                        { label: 'Crowd', data: [1200, 950, 480, 320, 95, 32], backgroundColor: '#a5d6a7' },
+                        { label: 'Congregation', data: [820, 680, 390, 245, 62, 18], backgroundColor: '#81c784' },
+                        { label: 'Committed', data: [4800, 2500, 1520, 820, 98, 28], backgroundColor: '#66bb6a' },
+                        { label: 'Core', data: [714, 391, 202, 111, 18, 6], backgroundColor: '#AAD43C' }
+                    ]
                 },
                 options: {
                     indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { usePointStyle: true, padding: 15, font: { family: 'Poppins', size: 10, weight: '600' } }
+                        }
+                    },
                     scales: {
-                        x: { grid: { color: 'rgba(0,0,0,0.05)' } },
-                        y: { grid: { display: false } }
+                        x: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                        y: { stacked: true, grid: { display: false } }
                     }
                 }
             });
