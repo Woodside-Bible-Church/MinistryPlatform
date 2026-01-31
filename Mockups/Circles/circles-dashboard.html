@@ -164,6 +164,14 @@
             display: none;
         }
 
+        /* Clickable table rows */
+        .clickable-row {
+            cursor: pointer;
+        }
+        .clickable-row:hover {
+            background-color: #f3f4f6;
+        }
+
         /* Collapsible sections for Circle Configuration */
         .config-group-header {
             cursor: pointer;
@@ -961,7 +969,6 @@
                         <table class="w-full">
                             <thead>
                                 <tr class="border-t border-b border-gray-100">
-                                    <th class="text-center py-2 px-3 text-xs font-bold text-gray-400 uppercase tracking-wider w-12 align-top"><div>ID</div><div class="font-normal normal-case tracking-normal text-gray-300">&nbsp;</div></th>
                                     <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider align-top" style="width: 400px;"><div>Milestone</div><div class="font-normal normal-case tracking-normal text-gray-300">&nbsp;</div></th>
                                     <th class="text-right py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-28 align-top"><div>Total</div><div class="font-normal normal-case tracking-normal text-gray-300">In Circle</div></th>
                                     <th class="text-right py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-28 align-top"><div>Changed</div><div class="font-normal normal-case tracking-normal text-gray-300">This Month</div></th>
@@ -969,15 +976,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">1</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/1/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">Joined Crowd</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">59,758</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 12,453</td>
                                     <td class="py-3 px-4 text-sm text-gray-500">Contact has entered the Crowd circle</td>
                                 </tr>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">2</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/2/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">Participant Start Date</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">134,678</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 28,741</td>
@@ -1002,7 +1007,6 @@
                         <table class="w-full">
                             <thead>
                                 <tr class="border-t border-b border-gray-100">
-                                    <th class="text-center py-2 px-3 text-xs font-bold text-gray-400 uppercase tracking-wider w-12 align-top"><div>ID</div><div class="font-normal normal-case tracking-normal text-gray-300">&nbsp;</div></th>
                                     <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider align-top" style="width: 400px;"><div>Milestone</div><div class="font-normal normal-case tracking-normal text-gray-300">&nbsp;</div></th>
                                     <th class="text-right py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-28 align-top"><div>Total</div><div class="font-normal normal-case tracking-normal text-gray-300">In Circle</div></th>
                                     <th class="text-right py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-28 align-top"><div>Changed</div><div class="font-normal normal-case tracking-normal text-gray-300">This Month</div></th>
@@ -1010,36 +1014,31 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">3</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/3/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">First Life Group</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">5,767</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 1,842</td>
                                     <td class="py-3 px-4 text-sm text-gray-500">First time joining a life group</td>
                                 </tr>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">4</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/4/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">First Time Guest</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">2,002</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 687</td>
                                     <td class="py-3 px-4 text-sm text-gray-500">First visit recorded</td>
                                 </tr>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">5</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/5/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">Joined Congregation</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">53,392</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 8,214</td>
                                     <td class="py-3 px-4 text-sm text-gray-500">Contact has entered the Congregation circle</td>
                                 </tr>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">6</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/6/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">New Family Visit</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">363</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 112</td>
                                     <td class="py-3 px-4 text-sm text-gray-500">New family has visited</td>
                                 </tr>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">7</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/7/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">New-Kids Checkin</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">12,778</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 3,456</td>
@@ -1064,7 +1063,6 @@
                         <table class="w-full">
                             <thead>
                                 <tr class="border-t border-b border-gray-100">
-                                    <th class="text-center py-2 px-3 text-xs font-bold text-gray-400 uppercase tracking-wider w-12 align-top"><div>ID</div><div class="font-normal normal-case tracking-normal text-gray-300">&nbsp;</div></th>
                                     <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider align-top" style="width: 400px;"><div>Milestone</div><div class="font-normal normal-case tracking-normal text-gray-300">&nbsp;</div></th>
                                     <th class="text-right py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-28 align-top"><div>Total</div><div class="font-normal normal-case tracking-normal text-gray-300">In Circle</div></th>
                                     <th class="text-right py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-28 align-top"><div>Changed</div><div class="font-normal normal-case tracking-normal text-gray-300">This Month</div></th>
@@ -1072,43 +1070,37 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">8</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/8/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">Baptism</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">8,940</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 2,156</td>
                                     <td class="py-3 px-4 text-sm text-gray-500">Baptism recorded</td>
                                 </tr>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">9</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/9/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">I Am Committed</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">2,707</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 834</td>
                                     <td class="py-3 px-4 text-sm text-gray-500">Commitment declaration made</td>
                                 </tr>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">10</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/10/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">I previously decided to follow Christ</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">2,940</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 612</td>
                                     <td class="py-3 px-4 text-sm text-gray-500">Prior faith decision recorded</td>
                                 </tr>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">11</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/11/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">I recently decided to follow Christ</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">2,882</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 743</td>
                                     <td class="py-3 px-4 text-sm text-gray-500">Recent faith decision recorded</td>
                                 </tr>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">12</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/12/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">New-Giving</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">254</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 89</td>
                                     <td class="py-3 px-4 text-sm text-gray-500">First giving recorded</td>
                                 </tr>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">13</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/13/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">Rededication</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">1,691</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 423</td>
@@ -1133,7 +1125,6 @@
                         <table class="w-full">
                             <thead>
                                 <tr class="border-t border-b border-gray-100">
-                                    <th class="text-center py-2 px-3 text-xs font-bold text-gray-400 uppercase tracking-wider w-12 align-top"><div>ID</div><div class="font-normal normal-case tracking-normal text-gray-300">&nbsp;</div></th>
                                     <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider align-top" style="width: 400px;"><div>Milestone</div><div class="font-normal normal-case tracking-normal text-gray-300">&nbsp;</div></th>
                                     <th class="text-right py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-28 align-top"><div>Total</div><div class="font-normal normal-case tracking-normal text-gray-300">In Circle</div></th>
                                     <th class="text-right py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-28 align-top"><div>Changed</div><div class="font-normal normal-case tracking-normal text-gray-300">This Month</div></th>
@@ -1141,29 +1132,25 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">14</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/14/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">Joined Committed</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">50,044</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 11,231</td>
                                     <td class="py-3 px-4 text-sm text-gray-500">Contact has entered the Committed circle</td>
                                 </tr>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">15</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/15/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">Began Serving</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">50,036</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 9,847</td>
                                     <td class="py-3 px-4 text-sm text-gray-500">Started serving in a ministry</td>
                                 </tr>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">16</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/16/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">Membership</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">1,115</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 287</td>
                                     <td class="py-3 px-4 text-sm text-gray-500">Became a church member</td>
                                 </tr>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">17</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/17/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">S.H.A.P.E. Covenant</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">344</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 124</td>
@@ -1188,7 +1175,6 @@
                         <table class="w-full">
                             <thead>
                                 <tr class="border-t border-b border-gray-100">
-                                    <th class="text-center py-2 px-3 text-xs font-bold text-gray-400 uppercase tracking-wider w-12 align-top"><div>ID</div><div class="font-normal normal-case tracking-normal text-gray-300">&nbsp;</div></th>
                                     <th class="text-left py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider align-top" style="width: 400px;"><div>Milestone</div><div class="font-normal normal-case tracking-normal text-gray-300">&nbsp;</div></th>
                                     <th class="text-right py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-28 align-top"><div>Total</div><div class="font-normal normal-case tracking-normal text-gray-300">In Circle</div></th>
                                     <th class="text-right py-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-28 align-top"><div>Changed</div><div class="font-normal normal-case tracking-normal text-gray-300">This Month</div></th>
@@ -1196,22 +1182,19 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">18</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/18/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">Joined Core</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">1,136</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 826</td>
                                     <td class="py-3 px-4 text-sm text-gray-500">Contact has entered the Core circle</td>
                                 </tr>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">19</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/19/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">Began Leading</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">866</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 312</td>
                                     <td class="py-3 px-4 text-sm text-gray-500">Started in a leadership role</td>
                                 </tr>
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-3 text-sm text-gray-400 text-center">20</td>
+                                <tr class="clickable-row" onclick="window.open('https://my.grangerchurch.com/mp/343/20/317', '_blank')">
                                     <td class="py-3 px-4 font-semibold text-granger-black">Core 401 Graduate</td>
                                     <td class="py-3 px-4 text-right font-bold text-granger-black">483</td>
                                     <td class="py-3 px-4 text-right text-granger-green font-medium">+ 156</td>
