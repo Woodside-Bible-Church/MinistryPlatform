@@ -386,7 +386,7 @@
             <div class="flex gap-1 mb-6 border-b border-gray-200">
                 <button class="tab-btn active" data-tab="circles-over-time" onclick="switchTab('circles-over-time')">Over Time</button>
                 <button class="tab-btn" data-tab="circle-participants" onclick="switchTab('circle-participants')">Current</button>
-                <button class="tab-btn" data-tab="circle-configuration" onclick="switchTab('circle-configuration')">Configuration</button>
+                <button class="tab-btn" data-tab="circle-milestones" onclick="switchTab('circle-milestones')">Milestones</button>
             </div>
 
             <!-- Tab 1: Circles Over Time -->
@@ -944,8 +944,8 @@
                 </div>
             </div><!-- End Tab 2 -->
 
-            <!-- Tab 3: Circle Configuration -->
-            <div id="tab-circle-configuration" class="tab-content hidden">
+            <!-- Tab 3: Circle Milestones -->
+            <div id="tab-circle-milestones" class="tab-content hidden">
                 <!-- Joined Community -->
                 <div class="bg-white shadow-sm mb-6">
                     <div class="config-group-header flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-gray-50 transition" onclick="toggleConfigGroup('community')">
@@ -962,9 +962,9 @@
                             <thead>
                                 <tr class="border-t border-b border-gray-100">
                                     <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-16">ID</th>
-                                    <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Milestone Title</th>
-                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Instances</th>
-                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Changed Circle</th>
+                                    <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Milestone</th>
+                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Total</th>
+                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Changed</th>
                                     <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Description</th>
                                 </tr>
                             </thead>
@@ -1003,9 +1003,9 @@
                             <thead>
                                 <tr class="border-t border-b border-gray-100">
                                     <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-16">ID</th>
-                                    <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Milestone Title</th>
-                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Instances</th>
-                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Changed Circle</th>
+                                    <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Milestone</th>
+                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Total</th>
+                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Changed</th>
                                     <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Description</th>
                                 </tr>
                             </thead>
@@ -1065,9 +1065,9 @@
                             <thead>
                                 <tr class="border-t border-b border-gray-100">
                                     <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-16">ID</th>
-                                    <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Milestone Title</th>
-                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Instances</th>
-                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Changed Circle</th>
+                                    <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Milestone</th>
+                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Total</th>
+                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Changed</th>
                                     <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Description</th>
                                 </tr>
                             </thead>
@@ -1134,9 +1134,9 @@
                             <thead>
                                 <tr class="border-t border-b border-gray-100">
                                     <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-16">ID</th>
-                                    <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Milestone Title</th>
-                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Instances</th>
-                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Changed Circle</th>
+                                    <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Milestone</th>
+                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Total</th>
+                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Changed</th>
                                     <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Description</th>
                                 </tr>
                             </thead>
@@ -1189,9 +1189,9 @@
                             <thead>
                                 <tr class="border-t border-b border-gray-100">
                                     <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-16">ID</th>
-                                    <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Milestone Title</th>
-                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Instances</th>
-                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Changed Circle</th>
+                                    <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Milestone</th>
+                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Total</th>
+                                    <th class="text-right py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider w-36">Changed</th>
                                     <th class="text-left py-3 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Description</th>
                                 </tr>
                             </thead>
@@ -1635,8 +1635,8 @@
             if (tabId === 'circle-participants') {
                 initParticipantsCharts();
             }
-            // Refresh icons for configuration tab
-            if (tabId === 'circle-configuration') {
+            // Refresh icons for milestones tab
+            if (tabId === 'circle-milestones') {
                 lucide.createIcons();
             }
         }
