@@ -392,19 +392,9 @@
 
             <!-- Tab Navigation -->
             <div class="flex gap-1 mb-6 border-b border-gray-200">
-                <button id="as-of-tab" class="tab-btn active" data-tab="circles-over-time" onclick="switchTab('circles-over-time')">As Of January 2026</button>
-                <button class="tab-btn" data-tab="circle-participants" onclick="switchTab('circle-participants')">Current</button>
-                <button class="tab-btn" data-tab="circle-milestones" onclick="switchTab('circle-milestones')">Milestones</button>
-            </div>
-
-            <!-- Tab 1: Circles Over Time -->
-            <div id="tab-circles-over-time" class="tab-content">
-
-            <!-- As Of Filter -->
-            <div class="flex items-center justify-end mb-6">
-                <div class="flex items-center gap-3">
-                    <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">As of</span>
-                    <select id="as-of-select" class="bg-white border border-gray-300 text-granger-black px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-granger-green" onchange="updateAsOfTab()">
+                <div id="as-of-tab" class="tab-btn active flex items-center gap-2" data-tab="circles-over-time" onclick="switchTab('circles-over-time')">
+                    <span>As Of</span>
+                    <select id="as-of-select" class="bg-transparent border-none text-xs font-bold uppercase tracking-wide cursor-pointer focus:outline-none" onclick="event.stopPropagation()">
                         <option>January 2026</option>
                         <option>December 2025</option>
                         <option>November 2025</option>
@@ -419,7 +409,12 @@
                         <option>February 2025</option>
                     </select>
                 </div>
+                <button class="tab-btn" data-tab="circle-participants" onclick="switchTab('circle-participants')">Current</button>
+                <button class="tab-btn" data-tab="circle-milestones" onclick="switchTab('circle-milestones')">Milestones</button>
             </div>
+
+            <!-- Tab 1: Circles Over Time -->
+            <div id="tab-circles-over-time" class="tab-content">
 
             <!-- Main Content Grid -->
             <div class="grid grid-cols-2 gap-6 items-stretch">
@@ -1575,13 +1570,6 @@
                 // Could show a tooltip or highlight related data
             });
         });
-
-        // Update As Of tab title when dropdown changes
-        function updateAsOfTab() {
-            const select = document.getElementById('as-of-select');
-            const tab = document.getElementById('as-of-tab');
-            tab.textContent = 'As Of ' + select.value;
-        }
 
         // Tab Switching
         function switchTab(tabId) {
