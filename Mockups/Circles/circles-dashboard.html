@@ -458,7 +458,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h1 class="text-3xl font-bold text-granger-black uppercase tracking-tight">Circles of Commitment</h1>
-                        <p class="text-gray-500 mt-1">Track engagement levels across your congregation</p>
+                        <p class="text-gray-500 mt-1">Insight into where people are and where they're heading</p>
                     </div>
                     <button class="bg-granger-black text-white px-4 py-2 font-bold uppercase text-sm tracking-wide hover:bg-neutral-700 transition flex items-center gap-2">
                         <i data-lucide="refresh-cw" class="w-4 h-4"></i>
@@ -469,7 +469,9 @@
 
             <!-- Tab Navigation -->
             <div class="flex gap-1 mb-6 border-b border-gray-200">
-                <div id="as-of-tab" class="tab-btn active flex items-center gap-2" data-tab="circles-over-time" onclick="switchTab('circles-over-time')">
+                <button class="tab-btn active" data-tab="circle-participants" onclick="switchTab('circle-participants')">Current</button>
+                <button class="tab-btn" data-tab="circle-milestones" onclick="switchTab('circle-milestones')">Milestones</button>
+                <div id="as-of-tab" class="tab-btn flex items-center gap-2" data-tab="circles-over-time" onclick="switchTab('circles-over-time')">
                     <span>As Of</span>
                     <select id="as-of-select" class="bg-transparent border-none text-xs font-bold uppercase tracking-wide cursor-pointer focus:outline-none" onclick="event.stopPropagation()" onmousedown="if(!document.getElementById('as-of-tab').classList.contains('active')){event.preventDefault();switchTab('circles-over-time');return false;}">
                         <option>January 2026</option>
@@ -486,12 +488,10 @@
                         <option>February 2025</option>
                     </select>
                 </div>
-                <button class="tab-btn" data-tab="circle-participants" onclick="switchTab('circle-participants')">Current</button>
-                <button class="tab-btn" data-tab="circle-milestones" onclick="switchTab('circle-milestones')">Milestones</button>
             </div>
 
             <!-- Tab 1: Circles Over Time -->
-            <div id="tab-circles-over-time" class="tab-content">
+            <div id="tab-circles-over-time" class="tab-content hidden">
 
             <!-- Main Content Grid -->
             <div class="grid grid-cols-2 gap-6 items-stretch">
@@ -738,7 +738,7 @@
             </div><!-- End Tab 1 -->
 
             <!-- Tab 2: Circle Participants -->
-            <div id="tab-circle-participants" class="tab-content hidden">
+            <div id="tab-circle-participants" class="tab-content">
                 <!-- Filter Bar -->
                 <div class="bg-white p-4 shadow-sm mb-6">
                     <div class="flex items-center justify-between gap-4">
