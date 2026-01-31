@@ -213,6 +213,28 @@
             display: none;
         }
 
+        /* Circle icon animations */
+        .chart-circle-icon {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: circleIconIn 0.3s ease forwards;
+        }
+        .chart-circle-icon.fade-out {
+            animation: circleIconOut 0.2s ease forwards;
+        }
+        @keyframes circleIconIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes circleIconOut {
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
         /* Clickable table rows */
         .clickable-row {
             cursor: pointer;
@@ -2277,8 +2299,12 @@
 
             const ctx = document.getElementById('engagementByCircleChart');
 
-            // Remove circle icons immediately before creating new chart
-            ctx.parentElement.querySelectorAll('.chart-circle-icon').forEach(el => el.remove());
+            // Animate out and remove existing circle icons
+            const existingIcons = ctx.parentElement.querySelectorAll('.chart-circle-icon');
+            existingIcons.forEach(el => {
+                el.classList.add('fade-out');
+                setTimeout(() => el.remove(), 200);
+            });
 
             // Ensure canvas is visible (may be hidden by matrix view)
             ctx.style.display = 'block';
@@ -2356,6 +2382,7 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        layout: { padding: { top: 35 } },
                         plugins: { legend: { display: false }, circleTop: { enabled: false } },
                         scales: {
                             x: { grid: { display: false }, ticks: { font: { size: 10 } } },
@@ -2363,6 +2390,8 @@
                         }
                     }
                 });
+                // Add circle icons above each group after chart renders
+                setTimeout(() => addGroupedBarIcons(participantsCharts.engagementByCircle, ctx.parentElement), 50);
             } else if (type === 'matrix') {
                 // Matrix Heatmap - categories as rows, circles as columns
                 const maxVal = Math.max(...data.values.flat());
@@ -2372,12 +2401,28 @@
                 const existingMatrix = container.querySelector('.matrix-heatmap');
                 if (existingMatrix) existingMatrix.remove();
 
+                const circleIcons = [
+                    { bg: 'rgba(200, 230, 201, 0.3)', border: '#a5d6a7', dashed: true, iconColor: '#66bb6a', icon: 'globe' },
+                    { bg: '#c8e6c9', border: '#a5d6a7', dashed: false, iconColor: '#4a7c4e', icon: 'users' },
+                    { bg: '#a5d6a7', border: '#81c784', dashed: false, iconColor: '#3d6b40', icon: 'church' },
+                    { bg: '#81c784', border: '#66bb6a', dashed: false, iconColor: '#ffffff', icon: 'heart-handshake' },
+                    { bg: '#AAD43C', border: '#7da32d', dashed: false, iconColor: '#ffffff', icon: 'star' }
+                ];
+
                 const matrix = document.createElement('div');
                 matrix.className = 'matrix-heatmap';
                 matrix.style.cssText = 'display: grid; grid-template-columns: 120px repeat(' + data.labels.length + ', 1fr); gap: 2px; height: 100%; font-size: 9px;';
 
-                // Header row (circles)
-                matrix.innerHTML = '<div></div>' + data.labels.map(l => `<div style="text-align: center; font-weight: 600; padding: 4px;">${l}</div>`).join('');
+                // Header row with icons and labels
+                matrix.innerHTML = '<div></div>' + data.labels.map((l, i) => {
+                    const style = circleIcons[i];
+                    return `<div style="text-align: center; font-weight: 600; padding: 4px; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                        <div class="chart-circle-icon" style="position: relative; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: ${style.bg}; border: 2px ${style.dashed ? 'dashed' : 'solid'} ${style.border};">
+                            <i data-lucide="${style.icon}" style="width: 12px; height: 12px; color: ${style.iconColor};"></i>
+                        </div>
+                        <span>${l}</span>
+                    </div>`;
+                }).join('');
 
                 // Data rows (engagement categories)
                 data.categories.forEach((cat, rowIdx) => {
@@ -2392,8 +2437,62 @@
                 });
 
                 container.appendChild(matrix);
+                lucide.createIcons();
                 participantsCharts.engagementByCircle = { destroy: () => { matrix.remove(); ctx.style.display = 'block'; } };
             }
+        }
+
+        // Helper function to add circle icons above grouped bar charts
+        function addGroupedBarIcons(chart, container) {
+            const circleStyles = [
+                { bg: 'rgba(200, 230, 201, 0.3)', border: '#a5d6a7', dashed: true, iconColor: '#66bb6a', icon: 'globe' },
+                { bg: '#c8e6c9', border: '#a5d6a7', dashed: false, iconColor: '#4a7c4e', icon: 'users' },
+                { bg: '#a5d6a7', border: '#81c784', dashed: false, iconColor: '#3d6b40', icon: 'church' },
+                { bg: '#81c784', border: '#66bb6a', dashed: false, iconColor: '#ffffff', icon: 'heart-handshake' },
+                { bg: '#AAD43C', border: '#7da32d', dashed: false, iconColor: '#ffffff', icon: 'star' }
+            ];
+
+            if (getComputedStyle(container).position === 'static') {
+                container.style.position = 'relative';
+            }
+
+            const xScale = chart.scales.x;
+            const chartArea = chart.chartArea;
+
+            chart.data.labels.forEach((label, index) => {
+                const style = circleStyles[index];
+                if (!style) return;
+
+                const x = xScale.getPixelForValue(index);
+                const y = chartArea.top - 8;
+                const size = 24;
+
+                const circleEl = document.createElement('div');
+                circleEl.className = 'chart-circle-icon';
+                circleEl.style.cssText = `
+                    position: absolute;
+                    left: ${x - size/2}px;
+                    top: ${y - size}px;
+                    width: ${size}px;
+                    height: ${size}px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: ${style.bg};
+                    border: 2px ${style.dashed ? 'dashed' : 'solid'} ${style.border};
+                    pointer-events: none;
+                `;
+
+                const iconEl = document.createElement('i');
+                iconEl.setAttribute('data-lucide', style.icon);
+                iconEl.style.cssText = `width: 12px; height: 12px; color: ${style.iconColor};`;
+                circleEl.appendChild(iconEl);
+
+                container.appendChild(circleEl);
+            });
+
+            lucide.createIcons();
         }
 
         // Demographics Chart Data (same structure as participant chart)
