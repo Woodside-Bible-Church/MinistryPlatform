@@ -247,7 +247,74 @@
         thead tr,
         thead tr:hover {
             background-color: transparent !important;
-            pointer-events: none;
+        }
+
+        /* Custom tooltips for table headers */
+        th[data-tooltip],
+        h3[data-tooltip] {
+            position: relative;
+            cursor: help;
+        }
+        th[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2937;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: normal;
+            text-transform: none;
+            letter-spacing: normal;
+            white-space: nowrap;
+            z-index: 100;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        th[data-tooltip]:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #1f2937;
+            z-index: 100;
+            margin-bottom: -2px;
+        }
+        /* h3 tooltips appear to the right to avoid container clipping */
+        h3[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            transform: translateY(-50%);
+            background: #1f2937;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: normal;
+            text-transform: none;
+            letter-spacing: normal;
+            white-space: nowrap;
+            z-index: 100;
+            margin-left: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        h3[data-tooltip]:hover::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            transform: translateY(-50%);
+            border: 5px solid transparent;
+            border-right-color: #1f2937;
+            z-index: 100;
+            margin-left: 2px;
         }
 
 
@@ -1294,15 +1361,15 @@
                 <div class="shadow-sm mb-6 relative overflow-hidden" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px dashed #a5d6a7;">
                     <i data-lucide="globe" class="absolute -bottom-8 -right-8 w-48 h-48 opacity-10" style="color: #2e7d32;"></i>
                     <div class="config-group-header flex items-center justify-between pl-4 pr-6 py-3 relative z-10">
-                        <h3 class="font-bold text-granger-black uppercase tracking-wide">Community</h3>
+                        <h3 class="font-bold text-granger-black uppercase tracking-wide text-lg" data-tooltip="The outermost circle - people with some connection to the church">Community</h3>
                     </div>
                     <div id="config-group-community" class="relative z-10">
                         <table class="w-full">
                             <thead>
                                 <tr class="border-b border-green-200/50">
-                                    <th class="text-left py-1 px-4 text-xs font-bold text-green-800 uppercase tracking-wider" style="width: 400px;">Milestone</th>
-                                    <th class="text-right py-1 px-4 text-xs font-bold text-green-800 uppercase tracking-wider w-32 whitespace-nowrap">Total Assigned</th>
-                                    <th class="text-right py-1 px-4 text-xs font-bold text-green-800 uppercase tracking-wider w-32 whitespace-nowrap">First In Circle</th>
+                                    <th class="text-left py-1 px-4 text-xs font-bold text-green-800 uppercase tracking-wider" style="width: 400px;" data-tooltip="A significant event or action that can move someone into a circle">Milestone</th>
+                                    <th class="text-right py-1 px-4 text-xs font-bold text-green-800 uppercase tracking-wider w-32 whitespace-nowrap" data-tooltip="Total number of people assigned this milestone">Total Assigned</th>
+                                    <th class="text-right py-1 px-4 text-xs font-bold text-green-800 uppercase tracking-wider w-32 whitespace-nowrap" data-tooltip="Number of people who first entered this circle due to this milestone">First In Circle</th>
                                     <th class="text-left py-1 px-4 text-xs font-bold text-green-800 uppercase tracking-wider">Description</th>
                                 </tr>
                             </thead>
@@ -1328,15 +1395,15 @@
                 <div class="shadow-sm mb-6 relative overflow-hidden" style="background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%); border: 2px solid #a5d6a7;">
                     <i data-lucide="users" class="absolute -bottom-8 -right-8 w-48 h-48 opacity-10" style="color: #2e7d32;"></i>
                     <div class="config-group-header flex items-center justify-between pl-4 pr-6 py-3 relative z-10">
-                        <h3 class="font-bold text-granger-black uppercase tracking-wide">Crowd</h3>
+                        <h3 class="font-bold text-granger-black uppercase tracking-wide text-lg" data-tooltip="People who attend services and events">Crowd</h3>
                     </div>
                     <div id="config-group-crowd" class="relative z-10">
                         <table class="w-full">
                             <thead>
                                 <tr class="border-b border-green-300/50">
-                                    <th class="text-left py-1 px-4 text-xs font-bold text-green-800 uppercase tracking-wider" style="width: 400px;">Milestone</th>
-                                    <th class="text-right py-1 px-4 text-xs font-bold text-green-800 uppercase tracking-wider w-32 whitespace-nowrap">Total Assigned</th>
-                                    <th class="text-right py-1 px-4 text-xs font-bold text-green-800 uppercase tracking-wider w-32 whitespace-nowrap">First In Circle</th>
+                                    <th class="text-left py-1 px-4 text-xs font-bold text-green-800 uppercase tracking-wider" style="width: 400px;" data-tooltip="A significant event or action that can move someone into a circle">Milestone</th>
+                                    <th class="text-right py-1 px-4 text-xs font-bold text-green-800 uppercase tracking-wider w-32 whitespace-nowrap" data-tooltip="Total number of people assigned this milestone">Total Assigned</th>
+                                    <th class="text-right py-1 px-4 text-xs font-bold text-green-800 uppercase tracking-wider w-32 whitespace-nowrap" data-tooltip="Number of people who first entered this circle due to this milestone">First In Circle</th>
                                     <th class="text-left py-1 px-4 text-xs font-bold text-green-800 uppercase tracking-wider">Description</th>
                                 </tr>
                             </thead>
@@ -1380,15 +1447,15 @@
                 <div class="shadow-sm mb-6 relative overflow-hidden" style="background: linear-gradient(135deg, #a5d6a7 0%, #81c784 100%); border: 2px solid #81c784;">
                     <i data-lucide="church" class="absolute -bottom-8 -right-8 w-48 h-48 opacity-10" style="color: #1b5e20;"></i>
                     <div class="config-group-header flex items-center justify-between pl-4 pr-6 py-3 relative z-10">
-                        <h3 class="font-bold text-granger-black uppercase tracking-wide">Congregation</h3>
+                        <h3 class="font-bold text-granger-black uppercase tracking-wide text-lg" data-tooltip="Regular attenders who are connected and growing">Congregation</h3>
                     </div>
                     <div id="config-group-congregation" class="relative z-10">
                         <table class="w-full">
                             <thead>
                                 <tr class="border-b border-green-400/50">
-                                    <th class="text-left py-1 px-4 text-xs font-bold text-green-900 uppercase tracking-wider" style="width: 400px;">Milestone</th>
-                                    <th class="text-right py-1 px-4 text-xs font-bold text-green-900 uppercase tracking-wider w-32 whitespace-nowrap">Total Assigned</th>
-                                    <th class="text-right py-1 px-4 text-xs font-bold text-green-900 uppercase tracking-wider w-32 whitespace-nowrap">First In Circle</th>
+                                    <th class="text-left py-1 px-4 text-xs font-bold text-green-900 uppercase tracking-wider" style="width: 400px;" data-tooltip="A significant event or action that can move someone into a circle">Milestone</th>
+                                    <th class="text-right py-1 px-4 text-xs font-bold text-green-900 uppercase tracking-wider w-32 whitespace-nowrap" data-tooltip="Total number of people assigned this milestone">Total Assigned</th>
+                                    <th class="text-right py-1 px-4 text-xs font-bold text-green-900 uppercase tracking-wider w-32 whitespace-nowrap" data-tooltip="Number of people who first entered this circle due to this milestone">First In Circle</th>
                                     <th class="text-left py-1 px-4 text-xs font-bold text-green-900 uppercase tracking-wider">Description</th>
                                 </tr>
                             </thead>
@@ -1438,15 +1505,15 @@
                 <div class="shadow-sm mb-6 relative overflow-hidden" style="background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%); border: 2px solid #66bb6a;">
                     <i data-lucide="heart-handshake" class="absolute -bottom-8 -right-8 w-48 h-48 opacity-10" style="color: #1b5e20;"></i>
                     <div class="config-group-header flex items-center justify-between pl-4 pr-6 py-3 relative z-10">
-                        <h3 class="font-bold text-white uppercase tracking-wide">Committed</h3>
+                        <h3 class="font-bold text-white uppercase tracking-wide text-lg" data-tooltip="Active members who serve, give, and participate in groups">Committed</h3>
                     </div>
                     <div id="config-group-committed" class="relative z-10">
                         <table class="w-full">
                             <thead>
                                 <tr class="border-b border-green-500/50">
-                                    <th class="text-left py-1 px-4 text-xs font-bold text-white uppercase tracking-wider" style="width: 400px;">Milestone</th>
-                                    <th class="text-right py-1 px-4 text-xs font-bold text-white uppercase tracking-wider w-32 whitespace-nowrap">Total Assigned</th>
-                                    <th class="text-right py-1 px-4 text-xs font-bold text-white uppercase tracking-wider w-32 whitespace-nowrap">First In Circle</th>
+                                    <th class="text-left py-1 px-4 text-xs font-bold text-white uppercase tracking-wider" style="width: 400px;" data-tooltip="A significant event or action that can move someone into a circle">Milestone</th>
+                                    <th class="text-right py-1 px-4 text-xs font-bold text-white uppercase tracking-wider w-32 whitespace-nowrap" data-tooltip="Total number of people assigned this milestone">Total Assigned</th>
+                                    <th class="text-right py-1 px-4 text-xs font-bold text-white uppercase tracking-wider w-32 whitespace-nowrap" data-tooltip="Number of people who first entered this circle due to this milestone">First In Circle</th>
                                     <th class="text-left py-1 px-4 text-xs font-bold text-white uppercase tracking-wider">Description</th>
                                 </tr>
                             </thead>
@@ -1484,15 +1551,15 @@
                 <div class="shadow-sm mb-6 relative overflow-hidden" style="background: linear-gradient(135deg, #AAD43C 0%, #8bc34a 100%); border: 2px solid #7da32d;">
                     <i data-lucide="star" class="absolute -bottom-8 -right-8 w-48 h-48 opacity-15" style="color: #5a7a1f;"></i>
                     <div class="config-group-header flex items-center justify-between pl-4 pr-6 py-3 relative z-10">
-                        <h3 class="font-bold text-white uppercase tracking-wide">Core</h3>
+                        <h3 class="font-bold text-white uppercase tracking-wide text-lg" data-tooltip="Leaders and deeply committed members who multiply ministry">Core</h3>
                     </div>
                     <div id="config-group-core" class="relative z-10">
                         <table class="w-full">
                             <thead>
                                 <tr class="border-b" style="border-color: rgba(125, 163, 45, 0.5);">
-                                    <th class="text-left py-1 px-4 text-xs font-bold text-white uppercase tracking-wider" style="width: 400px;">Milestone</th>
-                                    <th class="text-right py-1 px-4 text-xs font-bold text-white uppercase tracking-wider w-32 whitespace-nowrap">Total Assigned</th>
-                                    <th class="text-right py-1 px-4 text-xs font-bold text-white uppercase tracking-wider w-32 whitespace-nowrap">First In Circle</th>
+                                    <th class="text-left py-1 px-4 text-xs font-bold text-white uppercase tracking-wider" style="width: 400px;" data-tooltip="A significant event or action that can move someone into a circle">Milestone</th>
+                                    <th class="text-right py-1 px-4 text-xs font-bold text-white uppercase tracking-wider w-32 whitespace-nowrap" data-tooltip="Total number of people assigned this milestone">Total Assigned</th>
+                                    <th class="text-right py-1 px-4 text-xs font-bold text-white uppercase tracking-wider w-32 whitespace-nowrap" data-tooltip="Number of people who first entered this circle due to this milestone">First In Circle</th>
                                     <th class="text-left py-1 px-4 text-xs font-bold text-white uppercase tracking-wider">Description</th>
                                 </tr>
                             </thead>
