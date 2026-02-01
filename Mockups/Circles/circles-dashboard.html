@@ -243,14 +243,13 @@
             background-color: #f3f4f6;
         }
 
-        /* Collapsible sections for Circle Configuration */
-        .config-group-header {
-            cursor: pointer;
-            transition: background-color 0.2s ease;
+        /* Remove hover state from table headers */
+        thead tr,
+        thead tr:hover {
+            background-color: transparent !important;
+            pointer-events: none;
         }
-        .config-group-header:hover {
-            background-color: #f9fafb;
-        }
+
 
         /* Multiselect Dropdown */
         .multiselect {
