@@ -490,10 +490,8 @@
 
             <!-- Tab Navigation -->
             <div class="flex gap-1 mb-6 border-b border-gray-200">
-                <button class="tab-btn active" data-tab="circle-participants" onclick="switchTab('circle-participants')">Current</button>
-                <button class="tab-btn" data-tab="circle-milestones" onclick="switchTab('circle-milestones')">Milestones</button>
-                <div id="as-of-tab" class="tab-btn flex items-center gap-2" data-tab="circles-over-time" onclick="switchTab('circles-over-time')">
-                    <span>As Of</span>
+                <div id="as-of-tab" class="tab-btn active flex items-center gap-2" data-tab="circles-over-time" onclick="switchTab('circles-over-time')">
+                    <span>Over Time Since</span>
                     <select id="as-of-select" class="bg-transparent border-none text-xs font-bold uppercase tracking-wide cursor-pointer focus:outline-none" onclick="event.stopPropagation()" onmousedown="if(!document.getElementById('as-of-tab').classList.contains('active')){event.preventDefault();switchTab('circles-over-time');return false;}">
                         <option>January 2026</option>
                         <option>December 2025</option>
@@ -509,17 +507,22 @@
                         <option>February 2025</option>
                     </select>
                 </div>
+                <button class="tab-btn" data-tab="circle-participants" onclick="switchTab('circle-participants')">Current</button>
+                <button class="tab-btn" data-tab="circle-milestones" onclick="switchTab('circle-milestones')">Milestones</button>
             </div>
 
             <!-- Tab 1: Circles Over Time -->
-            <div id="tab-circles-over-time" class="tab-content hidden">
+            <div id="tab-circles-over-time" class="tab-content">
 
             <!-- Main Content Grid -->
             <div class="grid grid-cols-2 gap-6 items-stretch">
                 <!-- Circles Visualization -->
                 <div class="bg-white p-6 shadow-sm h-full">
                     <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">Overview</h2>
+                        <div>
+                            <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">Overview</h2>
+                            <p class="text-xs text-gray-500 mt-0.5">As of <span class="font-semibold">January 2026</span></p>
+                        </div>
                         <button class="text-gray-400 hover:text-granger-black transition">
                             <i data-lucide="maximize-2" class="w-4 h-4"></i>
                         </button>
@@ -593,54 +596,8 @@
                     </div>
                 </div>
 
-                <!-- Monthly Trends Chart -->
-                <div class="bg-white p-6 shadow-sm flex flex-col h-full">
-                    <div class="mb-6">
-                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">Movement</h2>
-                    </div>
-                    <div class="flex-1 min-h-0">
-                        <canvas id="trendsChart"></canvas>
-                    </div>
-                    <!-- Custom Legend with Icons -->
-                    <div class="flex justify-center gap-4 mt-4">
-                        <div class="flex items-center gap-1.5">
-                            <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: rgba(200, 230, 201, 0.3); border: 1.5px dashed #a5d6a7;">
-                                <i data-lucide="globe" class="w-2.5 h-2.5" style="color: #66bb6a;"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-600">Community</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: #c8e6c9; border: 1.5px solid #a5d6a7;">
-                                <i data-lucide="users" class="w-2.5 h-2.5" style="color: #4a7c4e;"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-600">Crowd</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: #a5d6a7; border: 1.5px solid #81c784;">
-                                <i data-lucide="church" class="w-2.5 h-2.5" style="color: #3d6b40;"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-600">Congregation</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: #81c784; border: 1.5px solid #66bb6a;">
-                                <i data-lucide="heart-handshake" class="w-2.5 h-2.5 text-white"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-600">Committed</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: #AAD43C; border: 1.5px solid #7da32d;">
-                                <i data-lucide="star" class="w-2.5 h-2.5 text-white"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-600">Core</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bottom Section -->
-            <div class="grid grid-cols-2 gap-6 mt-6">
                 <!-- New Joins This Month -->
-                <div class="bg-white p-6 shadow-sm">
+                <div class="bg-white p-6 shadow-sm h-full">
                     <div class="mb-6">
                         <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">New Joins</h2>
                     </div>
@@ -744,22 +701,101 @@
                             </tbody>
                         </table>
                     </div>
-                    </div>
+                </div>
+            </div>
 
+            <!-- Bottom Section -->
+            <div class="grid grid-cols-2 gap-6 mt-6">
                 <!-- In Chart -->
-                <div class="bg-white p-6 shadow-sm flex flex-col">
+                <div class="bg-white p-6 shadow-sm flex flex-col" style="min-height: 520px;">
                     <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">In</h2>
+                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">In a Circle</h2>
                     </div>
                     <div class="flex-1 min-h-0">
                         <canvas id="inChart"></canvas>
+                    </div>
+                    <!-- Custom Legend with Icons -->
+                    <div class="flex justify-center gap-4 mt-4">
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: rgba(200, 230, 201, 0.3); border: 1.5px dashed #a5d6a7;">
+                                <i data-lucide="globe" class="w-2.5 h-2.5" style="color: #66bb6a;"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-600">Community</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: #c8e6c9; border: 1.5px solid #a5d6a7;">
+                                <i data-lucide="users" class="w-2.5 h-2.5" style="color: #4a7c4e;"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-600">Crowd</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: #a5d6a7; border: 1.5px solid #81c784;">
+                                <i data-lucide="church" class="w-2.5 h-2.5" style="color: #3d6b40;"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-600">Congregation</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: #81c784; border: 1.5px solid #66bb6a;">
+                                <i data-lucide="heart-handshake" class="w-2.5 h-2.5 text-white"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-600">Committed</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: #AAD43C; border: 1.5px solid #7da32d;">
+                                <i data-lucide="star" class="w-2.5 h-2.5 text-white"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-600">Core</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Trends Chart -->
+                <div class="bg-white p-6 shadow-sm flex flex-col" style="min-height: 520px;">
+                    <div class="mb-6">
+                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">Movement</h2>
+                    </div>
+                    <div class="flex-1 min-h-0">
+                        <canvas id="trendsChart"></canvas>
+                    </div>
+                    <!-- Custom Legend with Icons -->
+                    <div class="flex justify-center gap-4 mt-4">
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: rgba(200, 230, 201, 0.3); border: 1.5px dashed #a5d6a7;">
+                                <i data-lucide="globe" class="w-2.5 h-2.5" style="color: #66bb6a;"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-600">Community</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: #c8e6c9; border: 1.5px solid #a5d6a7;">
+                                <i data-lucide="users" class="w-2.5 h-2.5" style="color: #4a7c4e;"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-600">Crowd</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: #a5d6a7; border: 1.5px solid #81c784;">
+                                <i data-lucide="church" class="w-2.5 h-2.5" style="color: #3d6b40;"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-600">Congregation</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: #81c784; border: 1.5px solid #66bb6a;">
+                                <i data-lucide="heart-handshake" class="w-2.5 h-2.5 text-white"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-600">Committed</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: #AAD43C; border: 1.5px solid #7da32d;">
+                                <i data-lucide="star" class="w-2.5 h-2.5 text-white"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-600">Core</span>
+                        </div>
                     </div>
                 </div>
             </div>
             </div><!-- End Tab 1 -->
 
             <!-- Tab 2: Circle Participants -->
-            <div id="tab-circle-participants" class="tab-content">
+            <div id="tab-circle-participants" class="tab-content hidden">
                 <!-- Filter Bar -->
                 <div class="bg-white p-4 shadow-sm mb-6">
                     <div class="flex items-center justify-between gap-4">
@@ -1248,23 +1284,25 @@
 
             <!-- Tab 3: Circle Milestones -->
             <div id="tab-circle-milestones" class="tab-content hidden">
+                <!-- Explanatory Note -->
+                <p class="text-sm text-gray-500 mb-6 flex items-start gap-2">
+                    <i data-lucide="info" class="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5"></i>
+                    <span><strong class="text-gray-600">How milestones work:</strong> When a milestone is assigned to a person, it can move them into a circle. The "First In Circle" column shows how many people entered that circle for the first time due to this milestone.</span>
+                </p>
+
                 <!-- Community -->
                 <div class="shadow-sm mb-6 relative overflow-hidden" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px dashed #a5d6a7;">
                     <i data-lucide="globe" class="absolute -bottom-8 -right-8 w-48 h-48 opacity-10" style="color: #2e7d32;"></i>
                     <div class="config-group-header flex items-center justify-between px-6 py-4 relative z-10">
                         <h3 class="font-bold text-granger-black uppercase tracking-wide">Community</h3>
-                        <div class="flex items-center gap-3">
-                            <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-white/70 text-green-700">194,436 total</span>
-                            <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-green-700 text-white">+ 41,194 this month</span>
-                        </div>
                     </div>
                     <div id="config-group-community" class="relative z-10">
                         <table class="w-full">
                             <thead>
                                 <tr class="border-t border-b border-green-200/50">
                                     <th class="text-left py-2 px-4 text-xs font-bold text-green-800 uppercase tracking-wider align-top" style="width: 400px;"><div>Milestone</div><div class="font-normal normal-case tracking-normal text-green-600/70">&nbsp;</div></th>
-                                    <th class="text-right py-2 px-4 text-xs font-bold text-green-800 uppercase tracking-wider w-28 align-top"><div>Total</div><div class="font-normal normal-case tracking-normal text-green-600/70">In Circle</div></th>
-                                    <th class="text-right py-2 px-4 text-xs font-bold text-green-800 uppercase tracking-wider w-28 align-top"><div>Changed</div><div class="font-normal normal-case tracking-normal text-green-600/70">This Month</div></th>
+                                    <th class="text-right py-2 px-4 text-xs font-bold text-green-800 uppercase tracking-wider w-28 align-top"><div>Total</div><div class="font-normal normal-case tracking-normal text-green-600/70">Assigned</div></th>
+                                    <th class="text-right py-2 px-4 text-xs font-bold text-green-800 uppercase tracking-wider w-28 align-top"><div>First</div><div class="font-normal normal-case tracking-normal text-green-600/70">In Circle</div></th>
                                     <th class="text-left py-2 px-4 text-xs font-bold text-green-800 uppercase tracking-wider align-top"><div>Description</div><div class="font-normal normal-case tracking-normal text-green-600/70">&nbsp;</div></th>
                                 </tr>
                             </thead>
@@ -1291,18 +1329,14 @@
                     <i data-lucide="users" class="absolute -bottom-8 -right-8 w-48 h-48 opacity-10" style="color: #2e7d32;"></i>
                     <div class="config-group-header flex items-center justify-between px-6 py-4 relative z-10">
                         <h3 class="font-bold text-granger-black uppercase tracking-wide">Crowd</h3>
-                        <div class="flex items-center gap-3">
-                            <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-white/70 text-green-700">74,302 total</span>
-                            <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-green-700 text-white">+ 14,311 this month</span>
-                        </div>
                     </div>
                     <div id="config-group-crowd" class="relative z-10">
                         <table class="w-full">
                             <thead>
                                 <tr class="border-t border-b border-green-300/50">
                                     <th class="text-left py-2 px-4 text-xs font-bold text-green-800 uppercase tracking-wider align-top" style="width: 400px;"><div>Milestone</div><div class="font-normal normal-case tracking-normal text-green-700/70">&nbsp;</div></th>
-                                    <th class="text-right py-2 px-4 text-xs font-bold text-green-800 uppercase tracking-wider w-28 align-top"><div>Total</div><div class="font-normal normal-case tracking-normal text-green-700/70">In Circle</div></th>
-                                    <th class="text-right py-2 px-4 text-xs font-bold text-green-800 uppercase tracking-wider w-28 align-top"><div>Changed</div><div class="font-normal normal-case tracking-normal text-green-700/70">This Month</div></th>
+                                    <th class="text-right py-2 px-4 text-xs font-bold text-green-800 uppercase tracking-wider w-28 align-top"><div>Total</div><div class="font-normal normal-case tracking-normal text-green-700/70">Assigned</div></th>
+                                    <th class="text-right py-2 px-4 text-xs font-bold text-green-800 uppercase tracking-wider w-28 align-top"><div>First</div><div class="font-normal normal-case tracking-normal text-green-700/70">In Circle</div></th>
                                     <th class="text-left py-2 px-4 text-xs font-bold text-green-800 uppercase tracking-wider align-top"><div>Description</div><div class="font-normal normal-case tracking-normal text-green-700/70">&nbsp;</div></th>
                                 </tr>
                             </thead>
@@ -1347,18 +1381,14 @@
                     <i data-lucide="church" class="absolute -bottom-8 -right-8 w-48 h-48 opacity-10" style="color: #1b5e20;"></i>
                     <div class="config-group-header flex items-center justify-between px-6 py-4 relative z-10">
                         <h3 class="font-bold text-granger-black uppercase tracking-wide">Congregation</h3>
-                        <div class="flex items-center gap-3">
-                            <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-white/70 text-green-800">19,414 total</span>
-                            <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-green-800 text-white">+ 4,857 this month</span>
-                        </div>
                     </div>
                     <div id="config-group-congregation" class="relative z-10">
                         <table class="w-full">
                             <thead>
                                 <tr class="border-t border-b border-green-400/50">
                                     <th class="text-left py-2 px-4 text-xs font-bold text-green-900 uppercase tracking-wider align-top" style="width: 400px;"><div>Milestone</div><div class="font-normal normal-case tracking-normal text-green-800/70">&nbsp;</div></th>
-                                    <th class="text-right py-2 px-4 text-xs font-bold text-green-900 uppercase tracking-wider w-28 align-top"><div>Total</div><div class="font-normal normal-case tracking-normal text-green-800/70">In Circle</div></th>
-                                    <th class="text-right py-2 px-4 text-xs font-bold text-green-900 uppercase tracking-wider w-28 align-top"><div>Changed</div><div class="font-normal normal-case tracking-normal text-green-800/70">This Month</div></th>
+                                    <th class="text-right py-2 px-4 text-xs font-bold text-green-900 uppercase tracking-wider w-28 align-top"><div>Total</div><div class="font-normal normal-case tracking-normal text-green-800/70">Assigned</div></th>
+                                    <th class="text-right py-2 px-4 text-xs font-bold text-green-900 uppercase tracking-wider w-28 align-top"><div>First</div><div class="font-normal normal-case tracking-normal text-green-800/70">In Circle</div></th>
                                     <th class="text-left py-2 px-4 text-xs font-bold text-green-900 uppercase tracking-wider align-top"><div>Description</div><div class="font-normal normal-case tracking-normal text-green-800/70">&nbsp;</div></th>
                                 </tr>
                             </thead>
@@ -1409,18 +1439,14 @@
                     <i data-lucide="heart-handshake" class="absolute -bottom-8 -right-8 w-48 h-48 opacity-10" style="color: #1b5e20;"></i>
                     <div class="config-group-header flex items-center justify-between px-6 py-4 relative z-10">
                         <h3 class="font-bold text-white uppercase tracking-wide">Committed</h3>
-                        <div class="flex items-center gap-3">
-                            <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-white/70 text-green-800">51,539 total</span>
-                            <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-green-900 text-white">+ 8,412 this month</span>
-                        </div>
                     </div>
                     <div id="config-group-committed" class="relative z-10">
                         <table class="w-full">
                             <thead>
                                 <tr class="border-t border-b border-green-500/50">
                                     <th class="text-left py-2 px-4 text-xs font-bold text-white uppercase tracking-wider align-top" style="width: 400px;"><div>Milestone</div><div class="font-normal normal-case tracking-normal text-white/70">&nbsp;</div></th>
-                                    <th class="text-right py-2 px-4 text-xs font-bold text-white uppercase tracking-wider w-28 align-top"><div>Total</div><div class="font-normal normal-case tracking-normal text-white/70">In Circle</div></th>
-                                    <th class="text-right py-2 px-4 text-xs font-bold text-white uppercase tracking-wider w-28 align-top"><div>Changed</div><div class="font-normal normal-case tracking-normal text-white/70">This Month</div></th>
+                                    <th class="text-right py-2 px-4 text-xs font-bold text-white uppercase tracking-wider w-28 align-top"><div>Total</div><div class="font-normal normal-case tracking-normal text-white/70">Assigned</div></th>
+                                    <th class="text-right py-2 px-4 text-xs font-bold text-white uppercase tracking-wider w-28 align-top"><div>First</div><div class="font-normal normal-case tracking-normal text-white/70">In Circle</div></th>
                                     <th class="text-left py-2 px-4 text-xs font-bold text-white uppercase tracking-wider align-top"><div>Description</div><div class="font-normal normal-case tracking-normal text-white/70">&nbsp;</div></th>
                                 </tr>
                             </thead>
@@ -1459,18 +1485,14 @@
                     <i data-lucide="star" class="absolute -bottom-8 -right-8 w-48 h-48 opacity-15" style="color: #5a7a1f;"></i>
                     <div class="config-group-header flex items-center justify-between px-6 py-4 relative z-10">
                         <h3 class="font-bold text-white uppercase tracking-wide">Core</h3>
-                        <div class="flex items-center gap-3">
-                            <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-white/70 text-green-800">2,485 total</span>
-                            <span class="px-2 py-0.5 text-xs font-medium rounded-full" style="background-color: #5a7a1f; color: white;">+ 1,283 this month</span>
-                        </div>
                     </div>
                     <div id="config-group-core" class="relative z-10">
                         <table class="w-full">
                             <thead>
                                 <tr class="border-t border-b" style="border-color: rgba(125, 163, 45, 0.5);">
                                     <th class="text-left py-2 px-4 text-xs font-bold text-white uppercase tracking-wider align-top" style="width: 400px;"><div>Milestone</div><div class="font-normal normal-case tracking-normal text-white/70">&nbsp;</div></th>
-                                    <th class="text-right py-2 px-4 text-xs font-bold text-white uppercase tracking-wider w-28 align-top"><div>Total</div><div class="font-normal normal-case tracking-normal text-white/70">In Circle</div></th>
-                                    <th class="text-right py-2 px-4 text-xs font-bold text-white uppercase tracking-wider w-28 align-top"><div>Changed</div><div class="font-normal normal-case tracking-normal text-white/70">This Month</div></th>
+                                    <th class="text-right py-2 px-4 text-xs font-bold text-white uppercase tracking-wider w-28 align-top"><div>Total</div><div class="font-normal normal-case tracking-normal text-white/70">Assigned</div></th>
+                                    <th class="text-right py-2 px-4 text-xs font-bold text-white uppercase tracking-wider w-28 align-top"><div>First</div><div class="font-normal normal-case tracking-normal text-white/70">In Circle</div></th>
                                     <th class="text-left py-2 px-4 text-xs font-bold text-white uppercase tracking-wider align-top"><div>Description</div><div class="font-normal normal-case tracking-normal text-white/70">&nbsp;</div></th>
                                 </tr>
                             </thead>
@@ -1884,49 +1906,81 @@
             }
         });
 
-        // In Chart
+        // In Chart (Line chart with plotted points like Movement)
         const inCtx = document.getElementById('inChart').getContext('2d');
         new Chart(inCtx, {
-            type: 'bar',
+            type: 'line',
             data: {
-                labels: ['Community', 'Crowd', 'Congregation', 'Committed', 'Core'],
-                datasets: [{
-                    label: 'People in Circle',
-                    data: [6274, 1344, 520, 11231, 826],
-                    backgroundColor: [
-                        '#c8e6c9',
-                        '#a5d6a7',
-                        '#81c784',
-                        '#66bb6a',
-                        '#AAD43C'
-                    ],
-                    borderColor: [
-                        '#c8e6c9',
-                        '#a5d6a7',
-                        '#81c784',
-                        '#66bb6a',
-                        '#AAD43C'
-                    ],
-                    borderWidth: 1
-                }]
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'],
+                datasets: [
+                    {
+                        label: 'Community',
+                        data: [5800, 5950, 6020, 6100, 6180, 6210, 6250, 6280, 6320, 6350, 6274],
+                        borderColor: '#c8e6c9',
+                        backgroundColor: '#c8e6c9',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: false,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Crowd',
+                        data: [1150, 1180, 1210, 1250, 1280, 1300, 1320, 1340, 1350, 1348, 1344],
+                        borderColor: '#a5d6a7',
+                        backgroundColor: '#a5d6a7',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: false,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Congregation',
+                        data: [480, 490, 495, 500, 508, 512, 515, 518, 520, 522, 520],
+                        borderColor: '#81c784',
+                        backgroundColor: '#81c784',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: false,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Committed',
+                        data: [10500, 10650, 10780, 10890, 10980, 11050, 11100, 11150, 11190, 11220, 11231],
+                        borderColor: '#66bb6a',
+                        backgroundColor: '#66bb6a',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: false,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Core',
+                        data: [750, 765, 778, 790, 800, 808, 815, 820, 824, 826, 826],
+                        borderColor: '#AAD43C',
+                        backgroundColor: '#AAD43C',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: false,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: {
-                    padding: { top: 25 }
-                },
                 plugins: {
                     legend: {
                         display: false
-                    },
-                    circleTop: {
-                        enabled: true
                     }
                 },
                 scales: {
                     y: {
-                        beginAtZero: true,
+                        beginAtZero: false,
                         grid: {
                             color: 'rgba(0, 0, 0, 0.05)'
                         },
@@ -1944,10 +1998,14 @@
                         ticks: {
                             font: {
                                 family: 'Poppins',
-                                size: 10
+                                size: 11
                             }
                         }
                     }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
                 }
             }
         });
@@ -1996,13 +2054,41 @@
             const circleColors = ['#c8e6c9', '#a5d6a7', '#81c784', '#66bb6a', '#AAD43C'];
             const engagementColors = ['#AAD43C', '#eab308', '#f97316', '#3b82f6', '#ef4444'];
 
-            // Distribution Chart (Doughnut)
+            // Distribution Chart (Doughnut) with center total
+            const distributionData = [6274, 1344, 520, 11231, 826];
+            const distributionTotal = distributionData.reduce((a, b) => a + b, 0);
+
+            const centerTextPlugin = {
+                id: 'centerText',
+                afterDraw: function(chart) {
+                    const ctx = chart.ctx;
+                    const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
+                    const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
+
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    // Total number
+                    ctx.font = 'bold 32px system-ui, sans-serif';
+                    ctx.fillStyle = '#252525';
+                    ctx.fillText(distributionTotal.toLocaleString(), centerX, centerY - 10);
+
+                    // Label
+                    ctx.font = '12px system-ui, sans-serif';
+                    ctx.fillStyle = '#6b7280';
+                    ctx.fillText('TOTAL', centerX, centerY + 18);
+
+                    ctx.restore();
+                }
+            };
+
             participantsCharts.circle = new Chart(document.getElementById('participantsCircleChart'), {
                 type: 'doughnut',
                 data: {
                     labels: ['Community', 'Crowd', 'Congregation', 'Committed', 'Core'],
                     datasets: [{
-                        data: [6274, 1344, 520, 11231, 826],
+                        data: distributionData,
                         backgroundColor: circleColors,
                         borderColor: '#ffffff',
                         borderWidth: 2
@@ -2012,7 +2098,8 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } }
-                }
+                },
+                plugins: [centerTextPlugin]
             });
 
             // Engagement (Stacked Bar)
