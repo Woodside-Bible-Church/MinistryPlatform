@@ -584,7 +584,7 @@
 
             <!-- Circle Overview - Full Width -->
             <div class="bg-white shadow-sm">
-                <div class="flex items-center justify-between px-6 py-4 bg-granger-black">
+                <div class="flex items-center justify-between px-6 py-4 bg-granger-black cursor-pointer hover:bg-neutral-800 transition" onclick="openCircleModal('overview')">
                     <div>
                         <h2 class="text-2xl font-bold text-white uppercase tracking-wider">Circle Overview</h2>
                         <p class="text-sm text-gray-500 mt-1 uppercase tracking-wide font-semibold">As of January 2026</p>
@@ -1695,6 +1695,38 @@
 
         // Circle data for modal
         const circleData = {
+            overview: {
+                title: 'All Circles',
+                description: 'Combined view across all circles of commitment',
+                total: '20,195',
+                newThisMonth: '1,224',
+                change: '+6.4%',
+                engaged: '5,324',
+                partial: '9,007',
+                lapsing: '5,864',
+                color: '#AAD43C',
+                gradient: 'linear-gradient(135deg, #AAD43C 0%, #90c23e 100%)',
+                headerTextColor: '#2d3a1a',
+                headerSubColor: 'rgba(45,58,26,0.5)',
+                icon: 'target',
+                history: [18494, 18721, 18925, 19122, 19467, 19723, 19841, 19970, 20068, 20134, 20170, 20195],
+                milestones: [
+                    { icon: 'users', name: 'Joined Crowd', count: '59,758' },
+                    { icon: 'log-in', name: 'Joined Congregation', count: '53,392' },
+                    { icon: 'flag', name: 'Joined Committed', count: '50,044' },
+                    { icon: 'flag', name: 'Joined Core', count: '1,136' },
+                    { icon: 'droplet', name: 'Baptism', count: '8,940' },
+                    { icon: 'hand-helping', name: 'Began Serving', count: '50,036' },
+                    { icon: 'heart', name: 'I Am Committed', count: '2,707' },
+                    { icon: 'gift', name: 'New-Giving', count: '254' }
+                ],
+                campuses: [
+                    { name: 'Granger Campus', count: '14,868' },
+                    { name: 'Elkhart Campus', count: '3,347' },
+                    { name: 'South Bend', count: '1,385' },
+                    { name: 'Mishawaka', count: '595' }
+                ]
+            },
             community: {
                 title: 'Community',
                 description: 'The unchurched in the immediate area - your starting point and hottest prospects',
