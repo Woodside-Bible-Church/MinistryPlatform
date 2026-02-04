@@ -35,8 +35,8 @@
         /* Concentric circles visualization */
         .circles-container {
             position: relative;
-            width: 360px;
-            height: 360px;
+            width: 440px;
+            height: 440px;
         }
 
         .circle {
@@ -56,8 +56,8 @@
 
         /* Center each circle within the container */
         .circle-community {
-            width: 360px;
-            height: 360px;
+            width: 440px;
+            height: 440px;
             background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
             border: 3px dashed #AAD43C;
             top: 0;
@@ -65,39 +65,39 @@
         }
 
         .circle-crowd {
-            width: 288px;
-            height: 288px;
+            width: 352px;
+            height: 352px;
             background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
             border: 3px solid #AAD43C;
-            top: 36px;
-            left: 36px;
+            top: 44px;
+            left: 44px;
         }
 
         .circle-congregation {
-            width: 216px;
-            height: 216px;
+            width: 264px;
+            height: 264px;
             background: linear-gradient(135deg, #a5d6a7 0%, #81c784 100%);
             border: 3px solid #90c23e;
-            top: 72px;
-            left: 72px;
+            top: 88px;
+            left: 88px;
         }
 
         .circle-committed {
-            width: 144px;
-            height: 144px;
+            width: 176px;
+            height: 176px;
             background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%);
             border: 3px solid #90c23e;
-            top: 108px;
-            left: 108px;
+            top: 132px;
+            left: 132px;
         }
 
         .circle-core {
-            width: 72px;
-            height: 72px;
+            width: 88px;
+            height: 88px;
             background: linear-gradient(135deg, #AAD43C 0%, #90c23e 100%);
             border: 3px solid #7da32d;
-            top: 144px;
-            left: 144px;
+            top: 176px;
+            left: 176px;
         }
 
         .circle-label {
@@ -583,15 +583,28 @@
             <div id="tab-circles-over-time" class="tab-content">
 
             <!-- Circle Overview - Full Width -->
-            <div class="bg-white p-6 shadow-sm">
+            <div class="bg-white shadow-sm">
+                <div class="flex items-center justify-between px-6 pt-6 pb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-granger-black uppercase tracking-wider">Circle Overview</h2>
+                        <p class="text-sm text-gray-400 mt-1 uppercase tracking-wide font-semibold">As of January 2026</p>
+                    </div>
+                    <div class="flex items-center gap-6 text-right">
+                        <div>
+                            <div class="text-2xl font-bold text-granger-black">20,195</div>
+                            <div class="text-xs text-gray-400 uppercase tracking-wide">Total</div>
+                        </div>
+                        <div class="w-px h-10 bg-gray-200"></div>
+                        <div>
+                            <div class="text-2xl font-bold text-green-600">1,224</div>
+                            <div class="text-xs text-gray-400 uppercase tracking-wide">New</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 pb-6">
                 <div class="flex gap-12 items-stretch">
                     <!-- Circles Visualization -->
-                    <div class="flex-shrink-0 flex flex-col" style="width: 360px;">
-                        <div class="mb-6">
-                            <h2 class="text-2xl font-bold text-granger-black uppercase tracking-wider">Circle Overview</h2>
-                            <p class="text-sm text-gray-400 mt-1 uppercase tracking-wide font-semibold">As of January 2026</p>
-                        </div>
-                        <div class="flex-1 flex items-center justify-center">
+                    <div class="flex-shrink-0 flex items-center justify-center" style="width: 440px;">
                             <div class="circles-container">
                         <div class="circle circle-community" data-level="community" onclick="openCircleModal('community')">
                             <span class="circle-label" style="top: 2px; left: 50%; transform: translateX(-50%);"><i data-lucide="globe" class="w-5 h-5" style="color: #4a7c4e;"></i></span>
@@ -609,7 +622,6 @@
                             <span class="circle-label" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"><i data-lucide="star" class="w-4 h-4" style="color: #fff;"></i></span>
                         </div>
                         </div>
-                        </div>
                     </div>
 
                     <!-- Combined Data Table -->
@@ -619,20 +631,20 @@
                             <!-- Community -->
                             <div class="relative overflow-hidden cursor-pointer transition hover:shadow-md flex-1" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px dashed #a5d6a7;" onclick="openCircleModal('community')">
                                 <i data-lucide="globe" class="absolute -left-6 top-1/2 -translate-y-1/2 w-28 h-28 opacity-10" style="color: #2e7d32;"></i>
-                                <div class="flex items-center h-full py-5 px-5 relative z-10">
+                                <div class="flex items-center h-full py-4 px-4 relative z-10">
                                     <div class="flex-1 pl-14">
-                                        <div class="text-2xl font-bold text-granger-black uppercase tracking-wide">Community</div>
+                                        <div class="text-lg font-bold text-granger-black uppercase tracking-wide">Community</div>
                                     </div>
-                                    <div class="w-24 text-right">
-                                        <div class="text-lg font-bold text-granger-black">6,274</div>
+                                    <div class="w-20 text-right">
+                                        <div class="text-base font-bold text-granger-black">6,274</div>
                                         <div class="text-xs text-green-700 uppercase tracking-wide">Total</div>
                                     </div>
-                                    <div class="w-24 text-right">
-                                        <div class="text-lg font-bold text-granger-black">1,020</div>
+                                    <div class="w-20 text-right">
+                                        <div class="text-base font-bold text-granger-black">1,020</div>
                                         <div class="text-xs text-green-700 uppercase tracking-wide">New</div>
                                     </div>
-                                    <div class="w-24 text-right">
-                                        <div class="text-lg font-bold text-granger-black">+19.4%</div>
+                                    <div class="w-20 text-right">
+                                        <div class="text-base font-bold text-granger-black">+19.4%</div>
                                         <div class="text-xs text-green-700 uppercase tracking-wide">Change</div>
                                     </div>
                                 </div>
@@ -641,20 +653,20 @@
                             <!-- Crowd -->
                             <div class="relative overflow-hidden cursor-pointer transition hover:shadow-md flex-1" style="background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%); border: 2px solid #a5d6a7;" onclick="openCircleModal('crowd')">
                                 <i data-lucide="users" class="absolute -left-6 top-1/2 -translate-y-1/2 w-28 h-28 opacity-10" style="color: #2e7d32;"></i>
-                                <div class="flex items-center h-full py-5 px-5 relative z-10">
+                                <div class="flex items-center h-full py-4 px-4 relative z-10">
                                     <div class="flex-1 pl-14">
-                                        <div class="text-2xl font-bold text-granger-black uppercase tracking-wide">Crowd</div>
+                                        <div class="text-lg font-bold text-granger-black uppercase tracking-wide">Crowd</div>
                                     </div>
-                                    <div class="w-24 text-right">
-                                        <div class="text-lg font-bold text-granger-black">1,344</div>
+                                    <div class="w-20 text-right">
+                                        <div class="text-base font-bold text-granger-black">1,344</div>
                                         <div class="text-xs text-green-800 uppercase tracking-wide">Total</div>
                                     </div>
-                                    <div class="w-24 text-right">
-                                        <div class="text-lg font-bold text-granger-black">87</div>
+                                    <div class="w-20 text-right">
+                                        <div class="text-base font-bold text-granger-black">87</div>
                                         <div class="text-xs text-green-800 uppercase tracking-wide">New</div>
                                     </div>
-                                    <div class="w-24 text-right">
-                                        <div class="text-lg font-bold text-granger-black">+6.9%</div>
+                                    <div class="w-20 text-right">
+                                        <div class="text-base font-bold text-granger-black">+6.9%</div>
                                         <div class="text-xs text-green-800 uppercase tracking-wide">Change</div>
                                     </div>
                                 </div>
@@ -663,20 +675,20 @@
                             <!-- Congregation -->
                             <div class="relative overflow-hidden cursor-pointer transition hover:shadow-md flex-1" style="background: linear-gradient(135deg, #a5d6a7 0%, #81c784 100%); border: 2px solid #81c784;" onclick="openCircleModal('congregation')">
                                 <i data-lucide="church" class="absolute -left-6 top-1/2 -translate-y-1/2 w-28 h-28 opacity-10" style="color: #1b5e20;"></i>
-                                <div class="flex items-center h-full py-5 px-5 relative z-10">
+                                <div class="flex items-center h-full py-4 px-4 relative z-10">
                                     <div class="flex-1 pl-14">
-                                        <div class="text-2xl font-bold text-granger-black uppercase tracking-wide">Congregation</div>
+                                        <div class="text-lg font-bold text-granger-black uppercase tracking-wide">Congregation</div>
                                     </div>
-                                    <div class="w-24 text-right">
-                                        <div class="text-lg font-bold text-granger-black">520</div>
+                                    <div class="w-20 text-right">
+                                        <div class="text-base font-bold text-granger-black">520</div>
                                         <div class="text-xs text-green-900 uppercase tracking-wide">Total</div>
                                     </div>
-                                    <div class="w-24 text-right">
-                                        <div class="text-lg font-bold text-granger-black">72</div>
+                                    <div class="w-20 text-right">
+                                        <div class="text-base font-bold text-granger-black">72</div>
                                         <div class="text-xs text-green-900 uppercase tracking-wide">New</div>
                                     </div>
-                                    <div class="w-24 text-right">
-                                        <div class="text-lg font-bold text-granger-black">-0.6%</div>
+                                    <div class="w-20 text-right">
+                                        <div class="text-base font-bold text-granger-black">-0.6%</div>
                                         <div class="text-xs text-green-900 uppercase tracking-wide">Change</div>
                                     </div>
                                 </div>
@@ -685,20 +697,20 @@
                             <!-- Committed -->
                             <div class="relative overflow-hidden cursor-pointer transition hover:shadow-md flex-1" style="background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%); border: 2px solid #66bb6a;" onclick="openCircleModal('committed')">
                                 <i data-lucide="heart-handshake" class="absolute -left-6 top-1/2 -translate-y-1/2 w-28 h-28 opacity-10" style="color: #1b5e20;"></i>
-                                <div class="flex items-center h-full py-5 px-5 relative z-10">
+                                <div class="flex items-center h-full py-4 px-4 relative z-10">
                                     <div class="flex-1 pl-14">
-                                        <div class="text-2xl font-bold text-white uppercase tracking-wide">Committed</div>
+                                        <div class="text-lg font-bold text-white uppercase tracking-wide">Committed</div>
                                     </div>
-                                    <div class="w-24 text-right">
-                                        <div class="text-lg font-bold text-white">11,231</div>
+                                    <div class="w-20 text-right">
+                                        <div class="text-base font-bold text-white">11,231</div>
                                         <div class="text-xs text-green-100 uppercase tracking-wide">Total</div>
                                     </div>
-                                    <div class="w-24 text-right">
-                                        <div class="text-lg font-bold text-white">18</div>
+                                    <div class="w-20 text-right">
+                                        <div class="text-base font-bold text-white">18</div>
                                         <div class="text-xs text-green-100 uppercase tracking-wide">New</div>
                                     </div>
-                                    <div class="w-24 text-right">
-                                        <div class="text-lg font-bold text-white">+0.2%</div>
+                                    <div class="w-20 text-right">
+                                        <div class="text-base font-bold text-white">+0.2%</div>
                                         <div class="text-xs text-green-100 uppercase tracking-wide">Change</div>
                                     </div>
                                 </div>
@@ -707,26 +719,27 @@
                             <!-- Core -->
                             <div class="relative overflow-hidden cursor-pointer transition hover:shadow-md flex-1" style="background: linear-gradient(135deg, #AAD43C 0%, #8bc34a 100%); border: 2px solid #7da32d;" onclick="openCircleModal('core')">
                                 <i data-lucide="star" class="absolute -left-6 top-1/2 -translate-y-1/2 w-28 h-28 opacity-15" style="color: #5a7a1f;"></i>
-                                <div class="flex items-center h-full py-5 px-5 relative z-10">
+                                <div class="flex items-center h-full py-4 px-4 relative z-10">
                                     <div class="flex-1 pl-14">
-                                        <div class="text-2xl font-bold text-white uppercase tracking-wide">Core</div>
+                                        <div class="text-lg font-bold text-white uppercase tracking-wide">Core</div>
                                     </div>
-                                    <div class="w-24 text-right">
-                                        <div class="text-lg font-bold text-white">826</div>
+                                    <div class="w-20 text-right">
+                                        <div class="text-base font-bold text-white">826</div>
                                         <div class="text-xs text-green-100 uppercase tracking-wide">Total</div>
                                     </div>
-                                    <div class="w-24 text-right">
-                                        <div class="text-lg font-bold text-white">27</div>
+                                    <div class="w-20 text-right">
+                                        <div class="text-base font-bold text-white">27</div>
                                         <div class="text-xs text-green-100 uppercase tracking-wide">New</div>
                                     </div>
-                                    <div class="w-24 text-right">
-                                        <div class="text-lg font-bold text-white">+3.4%</div>
+                                    <div class="w-20 text-right">
+                                        <div class="text-base font-bold text-white">+3.4%</div>
                                         <div class="text-xs text-green-100 uppercase tracking-wide">Change</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
                 </div>
             </div>
 
@@ -1553,17 +1566,20 @@
     <!-- Circle Detail Modal -->
     <div id="circleModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target === this) closeCircleModal()">
         <div class="bg-white max-w-4xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <button onclick="closeCircleModal()" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition z-10">
-                <i data-lucide="x" class="w-6 h-6"></i>
-            </button>
+            <!-- Themed Modal Header -->
+            <div id="modalHeader" class="relative overflow-hidden px-8 py-8" style="background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%);">
+                <button onclick="closeCircleModal()" class="absolute top-4 right-4 text-white/60 hover:text-white transition z-10 p-2 rounded-full hover:bg-white/10">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+                <i id="modalWatermark" data-lucide="heart-handshake" class="absolute -right-4 top-1/2 -translate-y-1/2 w-40 h-40 opacity-10 text-white pointer-events-none"></i>
+                <div class="relative z-10">
+                    <div id="modalSubtitle" class="text-xs font-bold uppercase tracking-wider mb-2" style="color: rgba(255,255,255,0.6);">Circle Overview</div>
+                    <h2 id="modalTitle" class="text-3xl font-bold text-white uppercase tracking-tight">Committed</h2>
+                    <p id="modalDescription" class="mt-1" style="color: rgba(255,255,255,0.7);">People maturing in their faith through prayer, giving, and training</p>
+                </div>
+            </div>
 
             <div class="p-8">
-                <!-- Modal Header -->
-                <div class="mb-8">
-                    <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Circle Overview</div>
-                    <h2 id="modalTitle" class="text-3xl font-bold text-granger-black uppercase tracking-tight">Committed</h2>
-                    <p id="modalDescription" class="text-gray-500 mt-1">People maturing in their faith through prayer, giving, and training</p>
-                </div>
 
                 <!-- Chart -->
                 <div class="mt-4">
@@ -1680,6 +1696,10 @@
                 partial: '2,891',
                 lapsing: '2,129',
                 color: '#a5d6a7',
+                gradient: 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)',
+                headerTextColor: '#2e7d32',
+                headerSubColor: 'rgba(46,125,50,0.5)',
+                icon: 'globe',
                 history: [5254, 5359, 5460, 5564, 5804, 5991, 6050, 6120, 6180, 6220, 6250, 6274],
                 milestones: [
                     { icon: 'users', name: 'Joined Crowd', count: '59,758' },
@@ -1702,6 +1722,10 @@
                 partial: '623',
                 lapsing: '309',
                 color: '#81c784',
+                gradient: 'linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%)',
+                headerTextColor: '#1b5e20',
+                headerSubColor: 'rgba(27,94,32,0.5)',
+                icon: 'users',
                 history: [1150, 1180, 1210, 1250, 1280, 1300, 1320, 1340, 1350, 1355, 1348, 1344],
                 milestones: [
                     { icon: 'users', name: 'First Life Group', count: '5,767' },
@@ -1727,6 +1751,10 @@
                 partial: '214',
                 lapsing: '119',
                 color: '#66bb6a',
+                gradient: 'linear-gradient(135deg, #a5d6a7 0%, #81c784 100%)',
+                headerTextColor: '#1b5e20',
+                headerSubColor: 'rgba(27,94,32,0.5)',
+                icon: 'church',
                 history: [480, 490, 495, 500, 508, 512, 515, 518, 520, 522, 523, 520],
                 milestones: [
                     { icon: 'droplet', name: 'Baptism', count: '8,940' },
@@ -1753,6 +1781,10 @@
                 partial: '5,123',
                 lapsing: '3,261',
                 color: '#4caf50',
+                gradient: 'linear-gradient(135deg, #81c784 0%, #66bb6a 100%)',
+                headerTextColor: '#ffffff',
+                headerSubColor: 'rgba(255,255,255,0.6)',
+                icon: 'heart-handshake',
                 history: [10850, 10920, 10980, 11020, 11080, 11120, 11150, 11180, 11200, 11215, 11225, 11231],
                 milestones: [
                     { icon: 'flag', name: 'Joined Committed', count: '50,044' },
@@ -1777,6 +1809,10 @@
                 partial: '156',
                 lapsing: '46',
                 color: '#AAD43C',
+                gradient: 'linear-gradient(135deg, #AAD43C 0%, #8bc34a 100%)',
+                headerTextColor: '#ffffff',
+                headerSubColor: 'rgba(255,255,255,0.6)',
+                icon: 'star',
                 history: [760, 772, 780, 788, 795, 800, 806, 812, 818, 822, 824, 826],
                 milestones: [
                     { icon: 'flag', name: 'Joined Core', count: '1,136' },
@@ -1798,6 +1834,18 @@
 
             document.getElementById('modalTitle').textContent = data.title;
             document.getElementById('modalDescription').textContent = data.description;
+
+            // Update modal header theme
+            const header = document.getElementById('modalHeader');
+            header.style.background = data.gradient;
+            document.getElementById('modalTitle').style.color = data.headerTextColor;
+            document.getElementById('modalDescription').style.color = data.headerSubColor;
+            document.getElementById('modalSubtitle').style.color = data.headerSubColor;
+
+            // Update watermark icon
+            const watermark = document.getElementById('modalWatermark');
+            watermark.setAttribute('data-lucide', data.icon);
+            watermark.style.color = data.headerTextColor;
 
             // Update stats
             document.getElementById('modalTotal').textContent = data.total;
