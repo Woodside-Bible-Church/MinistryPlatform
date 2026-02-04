@@ -1596,27 +1596,29 @@
                 </div>
 
                 <!-- Stats Row -->
-                <div class="flex justify-center gap-20 mt-6">
-                    <div class="p-4 text-center">
-                        <div id="modalTotal" class="text-2xl font-bold text-granger-black">11,231</div>
-                        <div class="flex items-center justify-center gap-1.5 mt-1">
-                            <i data-lucide="users" class="w-3.5 h-3.5 text-gray-400 shrink-0" style="margin-top: -1px;"></i>
-                            <span class="text-xs text-gray-500 uppercase tracking-wide leading-none">Total</span>
+                <div class="flex mt-6" id="modalStatsRow">
+                    <div class="modalStatCard relative px-5 py-4 flex-1">
+                        <div class="modalStatIcon absolute top-3 right-3 w-8 h-8 flex items-center justify-center">
+                            <i data-lucide="users" class="w-4 h-4" style="color: #4caf50;"></i>
                         </div>
+                        <div id="modalTotal" class="modalStatValue text-3xl font-extrabold">11,231</div>
+                        <span class="modalStatLabel text-[10px] font-bold uppercase tracking-widest mt-1 block">Total</span>
                     </div>
-                    <div class="p-4 text-center">
-                        <div id="modalNew" class="text-2xl font-bold text-green-600">+18</div>
-                        <div class="flex items-center justify-center gap-1.5 mt-1">
-                            <i data-lucide="user-plus" class="w-3.5 h-3.5 text-gray-400 shrink-0" style="margin-top: -1px;"></i>
-                            <span class="text-xs text-gray-500 uppercase tracking-wide leading-none">New</span>
+                    <div class="w-5 shrink-0 bg-white"></div>
+                    <div class="modalStatCard relative px-5 py-4 flex-1">
+                        <div class="modalStatIcon absolute top-3 right-3 w-8 h-8 flex items-center justify-center">
+                            <i data-lucide="plus" class="w-4 h-4" style="color: #4caf50;"></i>
                         </div>
+                        <div id="modalNew" class="modalStatValue text-3xl font-extrabold">+18</div>
+                        <span class="modalStatLabel text-[10px] font-bold uppercase tracking-widest mt-1 block">New</span>
                     </div>
-                    <div class="p-4 text-center">
-                        <div id="modalChange" class="text-2xl font-bold text-green-600">+0.2%</div>
-                        <div class="flex items-center justify-center gap-1.5 mt-1">
-                            <i data-lucide="trending-up" class="w-3.5 h-3.5 text-gray-400 shrink-0" style="margin-top: -1px;"></i>
-                            <span class="text-xs text-gray-500 uppercase tracking-wide leading-none">Change</span>
+                    <div class="w-5 shrink-0 bg-white"></div>
+                    <div class="modalStatCard relative px-5 py-4 flex-1">
+                        <div class="modalStatIcon absolute top-3 right-3 w-8 h-8 flex items-center justify-center">
+                            <i data-lucide="trending-up" class="w-4 h-4" style="color: #4caf50;"></i>
                         </div>
+                        <div id="modalChange" class="modalStatValue text-3xl font-extrabold">+0.2%</div>
+                        <span class="modalStatLabel text-[10px] font-bold uppercase tracking-widest mt-1 block">Change</span>
                     </div>
                 </div>
             </div>
@@ -1867,6 +1869,18 @@
                 changeEl.classList.remove('text-red-600');
                 changeEl.classList.add('text-green-600');
             }
+
+            // Theme stat card icons with circle color
+            document.querySelectorAll('.modalStatIcon').forEach(function(iconWrap) {
+                iconWrap.style.color = data.headerTextColor;
+            });
+            document.getElementById('modalStatsRow').style.background = data.gradient;
+            document.querySelectorAll('.modalStatValue').forEach(function(el) {
+                el.style.color = data.headerTextColor;
+            });
+            document.querySelectorAll('.modalStatLabel').forEach(function(el) {
+                el.style.color = data.headerSubColor;
+            });
 
             document.getElementById('circleModal').classList.remove('hidden');
 
