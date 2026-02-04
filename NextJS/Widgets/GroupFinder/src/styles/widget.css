@@ -1,0 +1,1898 @@
+:root {
+  --primaryColor: #1c2b39;
+  --secondaryColor: #62bb46;
+  --skel-base: #c1c2c7;
+  --skel-sheen: rgba(168, 168, 168, 0.55);
+}
+
+#groupFinder {
+  position: relative;
+  font-family: Montserrat, Helvetica, Arial, sans-serif;
+}
+
+#groupFinder h1,
+#groupFinder h2,
+#groupFinder h3,
+#groupFinder h4,
+#groupFinder h5,
+#groupFinder h6 {
+  text-transform: uppercase;
+}
+
+#groupFinder section > h3 {
+  margin: 1em 0;
+}
+
+#groupFinder .requiresAuth {
+  opacity: 0.8;
+  font-style: italic;
+}
+
+.filterActions {
+  display: flex;
+  gap: 1em;
+  flex-wrap: wrap;
+}
+
+.filterActions .btn {
+  flex: 1 1 12rem;
+  min-inline-size: max-content;
+  white-space: nowrap;
+  border-radius: 0;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 11px 2em;
+  min-width: 100px;
+  border-width: 2px;
+}
+
+#groupFinder .btn {
+  color: #ffffff;
+  background-color: var(--secondaryColor);
+}
+
+#groupFinder .btn:hover {
+  color: #ffffff;
+  background-color: var(--primaryColor);
+}
+
+#groupFinder .secondaryBtn {
+  color: #ffffff;
+  background-color: transparent;
+  border-color: #ffffff;
+}
+
+#groupFinder .secondaryBtn:hover {
+  color: #ffffff;
+  background-color: var(--primaryColor);
+  border-color: var(--primaryColor);
+}
+
+.hidden {
+  display: none;
+}
+
+#groupFinder .titleHeadingContainer {
+  text-align: center;
+  display: flex;
+  gap: 0.5em;
+  justify-content: center;
+  align-items: center;
+  color: #ffffff;
+  text-decoration: none;
+  height: 100%;
+  -webkit-transition: color 0.25s ease-out;
+  -moz-transition: color 0.25s ease-out;
+  -o-transition: color 0.25s ease-out;
+  transition: color 0.25s ease-out;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  h1 {
+    font-weight: 600;
+    margin: 0;
+    position: relative;
+    margin: 0;
+    font-size: 2rem;
+
+    i {
+      position: absolute;
+      bottom: 7px;
+      right: -1.5em;
+      color: #ffffffd0;
+      font-size: 14px;
+      -webkit-transition: color 0.25s ease-out;
+      -moz-transition: color 0.25s ease-out;
+      -o-transition: color 0.25s ease-out;
+      transition: color 0.25s ease-out;
+    }
+  }
+}
+
+.titleHeadingContainer:hover,
+.titleHeadingContainer:hover i {
+  color: var(--secondaryColor);
+}
+
+.centered {
+  text-align: center;
+}
+
+.fullWidthBackground::before,
+.fullWidthBackground::after {
+  content: "";
+  height: 100px;
+  width: 100px;
+  display: block;
+  position: absolute;
+  top: 0;
+  height: 110px;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 0;
+  z-index: -1;
+}
+
+.fullWidthBackground::before {
+  background: linear-gradient(
+    155deg,
+    rgba(28, 43, 57, 1) 0%,
+    rgba(28, 43, 57, 1) 25%,
+    rgba(57, 115, 170, 1) 100%
+  );
+  width: 100%;
+}
+
+.fullWidthBackground::after {
+  background-image: url("https://woodsidebible.org/wp-content/themes/woodside/public/svg/lines-pattern-full.svg");
+  background-size: cover;
+  background-position-y: center;
+  background-position-x: left;
+  width: 50%;
+  transform: rotate(180deg) translateX(130%);
+  opacity: 0.9;
+}
+
+.fullWidthBackground {
+  height: 110px;
+  z-index: 100;
+}
+
+.secondaryNav {
+  text-align: right;
+  margin-top: 1em;
+  font-weight: 500;
+}
+
+.secondaryNavBtn {
+  text-decoration: none;
+  color: var(--primaryColor);
+  margin-right: 0.25em;
+}
+
+section {
+  margin-top: 5em;
+
+  .sectionHeading {
+    margin: 1em 0;
+  }
+}
+
+.upcomingMeetingsContainer {
+  margin-bottom: -1em;
+}
+
+.upcomingMeeting {
+  position: relative;
+  flex: 0 0 20em;
+  padding-top: 1em;
+
+  > span {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #e4e7ea;
+    color: var(--primaryColor);
+    white-space: nowrap;
+    padding: 0.5em 2em;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+
+  .meetingDetailsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #cccccc;
+    padding: 2em 1em 1em 1em;
+
+    .meetingDetails {
+      display: grid;
+      grid-template-columns: auto auto;
+      align-items: center;
+      gap: 0.5em 0.75em;
+    }
+
+    .btn {
+      background-color: var(--primaryColor);
+      width: 100%;
+    }
+
+    .btn:hover {
+      background: #78828a;
+      border-color: #78828a;
+      color: #ffffff;
+    }
+
+    h3 {
+      font-size: 1.1em;
+      font-weight: 600;
+    }
+  }
+}
+
+.needHelpContainer {
+  width: 100%;
+  background-color: #62bb46;
+  background: linear-gradient(
+    318deg,
+    rgba(98, 187, 70, 1) 0%,
+    rgba(70, 187, 130, 1) 50%,
+    rgba(28, 43, 57, 1) 100%
+  );
+  border-radius: 0;
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1em;
+  padding: 2em;
+  outline: 1px solid #ffffff;
+  outline-offset: -10px;
+  text-decoration: none;
+  -webkit-transition: outline-offset 0.25s ease-out,
+    outline-width 0.25s ease-out, outline-color 0.25s ease-out,
+    filter 0.25s ease-out;
+  -moz-transition: outline-offset 0.25s ease-out, outline-width 0.25s ease-out,
+    outline-color 0.25s ease-out, filter 0.25s ease-out;
+  -o-transition: outline-offset 0.25s ease-out, outline-width 0.25s ease-out,
+    outline-color 0.25s ease-out, filter 0.25s ease-out;
+  transition: outline-offset 0.25s ease-out, outline-width 0.25s ease-out,
+    outline-color 0.25s ease-out, filter 0.25s ease-out;
+
+  .btnContainer {
+    display: flex;
+    gap: 1em;
+
+    .btn {
+      background-color: var(--primaryColor);
+      background: linear-gradient(
+        225deg,
+        rgb(28, 43, 57) 0%,
+        rgb(57, 115, 170) 100%
+      );
+      color: #ffffff;
+      position: relative;
+      border: none;
+    }
+  }
+}
+
+.groupGrid .groupTitle {
+  font-weight: 600;
+  font-size: calc(1.5rem + 0.65vw);
+  margin: 0 !important;
+  line-height: 1.5;
+  letter-spacing: -1px;
+}
+
+@media (min-width: 1200px) {
+  .groupGrid .groupTitle {
+    font-size: 2rem;
+  }
+}
+
+.needHelpContainer:hover,
+.needHelpContainer:focus,
+.needHelpContainer:focus-within,
+section:focus :has(.needHelpContainer) {
+  outline-offset: -1px;
+  outline-color: var(--primaryColor);
+  outline-width: 1px;
+  filter: brightness(1.07);
+}
+
+.needHelpContainer:hover .btn {
+  visibility: hidden;
+}
+
+.needHelpContainer:hover .btn::after,
+.needHelpContainer:focus .btn::after,
+.needHelpContainer:focus-within .btn::after,
+section:focus :has(.needHelpContainer) .btn::after {
+  content: "Click here!";
+  visibility: visible;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--primaryColor);
+  background: linear-gradient(
+    225deg,
+    rgb(28, 43, 57) 0%,
+    rgb(57, 115, 170) 100%
+  );
+  color: #ffffff;
+}
+
+#groupFinderContainer {
+  position: relative;
+}
+
+.filterContainer {
+  background-color: var(--primaryColor);
+  color: #ffffff;
+  display: flex;
+  gap: 0.5em;
+  justify-content: space-between;
+
+  .left {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0.5em;
+    flex-grow: 1;
+    padding: 0.5em;
+
+    .searchContainer {
+      height: 56px;
+      padding: 0.5em 0;
+    }
+
+    .filterContainer,
+    .searchContainer > input {
+      appearance: auto;
+      display: block;
+      min-width: 200px;
+      min-height: 27px;
+      height: 100%;
+      border: 0;
+      border-radius: 0;
+      background: #fff;
+      padding: 0 40px 0 10px;
+      padding: 0.5em 1em;
+      font-family: Montserrat, Helvetica, Arial, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--primaryColor);
+      text-transform: uppercase;
+    }
+  }
+
+  .right {
+    background-color: #62bb46;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    min-width: 70px;
+    aspect-ratio: 1/1;
+    border: none;
+  }
+
+  .filterIconContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.25em;
+    flex-direction: column;
+    cursor: pointer;
+
+    span {
+      font-family: Montserrat, Helvetica, Arial, sans-serif;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+  }
+}
+
+.searchContainer > input {
+  display: block;
+  min-width: 200px;
+  min-height: 27px;
+  height: 56px;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  padding: 0 40px 0 10px;
+  padding: 0.5em 1em;
+  font-family: Montserrat, Helvetica, Arial, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--primaryColor);
+  text-transform: uppercase;
+}
+
+.searchContainer > select {
+  appearance: auto !important;
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+  container-type: inline-size;
+  margin-top: 1em;
+}
+
+.groupGrid {
+  display: grid;
+  border: 1px solid #cccccc;
+  padding: 1em;
+  position: relative;
+  gap: 1em 2em;
+  grid-template-areas:
+    "header header header header"
+    "details leaders about about"
+    "tags tags tags button";
+  line-height: 2;
+
+  h6 {
+    color: #62bb46;
+  }
+
+  .shareBtn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 25px;
+    height: 25px;
+    background-color: #c1c1c1;
+    border: none;
+    color: #ffffff;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: "Font Awesome 6 Free";
+    text-decoration: none;
+  }
+
+  /* corner share icons */
+  .gf-share-icons {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    display: none;
+    gap: 6px;
+    z-index: 10; /* above card content */
+  }
+
+  .gf-share-btn {
+    inline-size: 34px;
+    block-size: 34px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    text-decoration: none;
+    color: #fff;
+    text-decoration: none;
+    background-color: var(--primaryColor);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    transition: transform 0.15s ease, opacity 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  .gf-share-btn i {
+    font-size: 0.9rem;
+    line-height: 1;
+  }
+
+  .gf-share-btn:hover {
+    transform: translateY(-1px);
+    opacity: 0.95;
+  }
+
+  /* tiny accessibility helper for the screen-reader text */
+  .sr-only {
+    position: absolute !important;
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+    clip: rect(1px, 1px, 1px, 1px);
+    white-space: nowrap;
+    border: 0;
+    padding: 0;
+    margin: -1px;
+  }
+
+  /* responsive nudge */
+  @container (width < 475px) {
+    .groupGrid .gf-share-icons {
+      top: 6px;
+      right: 6px;
+      gap: 4px;
+    }
+    .groupGrid .gf-share-btn {
+      inline-size: 28px;
+      block-size: 28px;
+    }
+    .groupGrid .gf-share-btn i {
+      font-size: 0.8rem;
+    }
+  }
+
+  .groupTitle {
+    grid-area: header;
+    font-weight: 800;
+    background-image: linear-gradient(135deg, #1c2b39, #2f8184);
+    color: transparent;
+    background-clip: text;
+    width: 100%;
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+
+  .groupDetailsContainer {
+    grid-area: details;
+    justify-self: flex-start;
+  }
+
+  .groupDetails {
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: center;
+    gap: 0em 0.75em;
+  }
+
+  .groupLeadersContainer {
+    grid-area: leaders;
+  }
+
+  .groupAboutContainer {
+    grid-area: about;
+  }
+
+  .groupAboutContainer > div {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    overflow: hidden;
+  }
+
+  .groupTagsContainer {
+    grid-area: tags;
+    display: flex;
+    align-items: center;
+  }
+
+  .groupTags {
+    display: flex;
+    gap: 1em;
+    align-items: flex-end;
+    list-style-type: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    line-height: unset !important;
+
+    ::-webkit-scrollbar {
+      display: none;
+    }
+
+    li {
+      flex: 0 0 auto;
+      font-size: inherit !important;
+      line-height: unset !important;
+      margin-bottom: 0 !important;
+
+      .filterBtn {
+        text-decoration: none;
+        color: var(--primaryColor);
+        background-color: #e4e7ea;
+        border-radius: 80px;
+        white-space: nowrap;
+        height: 100%;
+        display: inline-block;
+        cursor: pointer;
+      }
+    }
+  }
+
+  .groupSignUpBtn {
+    grid-area: button;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+
+    .btn {
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .btn:hover {
+      background-color: var(--primaryColor) !important;
+      border-color: var(--primaryColor) !important;
+      color: #ffffff;
+    }
+  }
+}
+
+.specialTag {
+  background-color: var(--primaryColor) !important;
+  color: #ffffff !important;
+}
+
+.groupGrid:not(:has(.groupSignUpBtn > .btn)) {
+  opacity: 0.6;
+
+  > .groupTitle {
+    display: flex;
+    justify-content: space-between;
+    gap: 2em;
+  }
+}
+
+@keyframes borderPulse {
+  0% {
+    border-color: #61bc47;
+  }
+  50% {
+    border-color: #a8e6a1;
+  }
+  100% {
+    border-color: #61bc47;
+  }
+}
+
+.filterBtn.loading-pill {
+  border: 1px solid #61bc47;
+  animation: borderPulse 0.4s ease;
+}
+
+li:has(.blur) {
+  a {
+    position: relative;
+
+    .blur {
+      display: none;
+      position: absolute;
+      top: 4px;
+      bottom: 4px;
+      left: 4px;
+      right: 4px;
+      border-radius: 20px;
+      background-color: #e4e7eae5;
+      justify-content: center;
+      align-items: center;
+
+      i {
+        color: var(--primaryColor);
+      }
+    }
+  }
+
+  a:hover {
+    > span:first-child {
+      filter: blur(1px);
+    }
+
+    .blur {
+      display: flex;
+    }
+  }
+}
+
+.selectedFilters {
+  list-style-type: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.selectedFilters li {
+  margin: 0 !important;
+}
+
+.selectedFilters > li > .filterBtn {
+  padding: calc(0.5em + 6px) 1em;
+}
+
+.tag,
+.filterBtn {
+  font-size: 0.75rem;
+  text-decoration: none;
+  color: var(--primaryColor);
+  background-color: #e4e7ea;
+  padding: 0.5em 1em;
+  border-radius: 100px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tag i,
+.filterBtn i {
+  margin-right: 0.4em;
+  line-height: 1;
+}
+
+.iconContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modalContentContainer {
+  display: none;
+  background-color: #1c2b3960;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000000;
+  opacity: 0;
+  transition: opacity 0.35s ease-out;
+}
+
+.modalContent {
+  display: grid;
+  background-color: var(--primaryColor);
+  background: linear-gradient(
+    135deg,
+    rgba(28, 43, 57, 1) 0%,
+    rgba(57, 115, 170, 1) 100%
+  );
+  color: #fefefe;
+  width: 100%;
+  max-width: 600px;
+  border: none;
+  gap: 2em;
+  grid-template-columns: auto auto auto auto auto;
+  grid-template-rows: auto auto auto auto auto auto;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  align-items: space-between;
+  justify-content: space-between;
+  position: relative;
+
+  .close {
+    grid-area: close;
+    font-size: 2em;
+    transition: color 0.15s ease-out;
+    z-index: 1000000;
+    position: absolute;
+    top: 0.5em;
+    right: 0.5em;
+  }
+
+  .close:hover,
+  .close:focus {
+    color: #62bb46;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .headline {
+    font-weight: 600;
+    text-align: center;
+    margin: 0;
+    z-index: 1000;
+    align-self: center;
+    justify-self: center;
+    grid-column-start: 2;
+    grid-column-end: 5;
+    grid-row-start: 2;
+    grid-row-end: 3;
+  }
+
+  .img {
+    background-image: url("https://woodsidebible.org/wp-content/uploads/2021/09/groups2-885x645.jpg");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: top left;
+    filter: brightness(0.3);
+    grid-column-start: 1;
+    grid-column-end: 6;
+    grid-row-start: 1;
+    grid-row-end: 4;
+    aspect-ratio: 16/9;
+  }
+
+  .blurb {
+    grid-column-start: 2;
+    grid-column-end: 5;
+    grid-row-start: 4;
+    grid-row-end: 5;
+    z-index: 1000;
+    line-height: 2;
+    text-align: center;
+  }
+
+  .btnContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    grid-column-start: 2;
+    grid-column-end: 5;
+    grid-row-start: 5;
+    grid-row-end: 6;
+    z-index: 10000;
+  }
+
+  .btn {
+    border: 2px solid transparent;
+    width: 100%;
+  }
+
+  .btn:hover,
+  .btn:focus {
+    border: 2px solid #ffffff;
+    color: #ffffff;
+  }
+}
+
+.leadGroupContainer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: 0;
+  border: none;
+  overflow: visible;
+  background: none;
+  container-type: inline-size;
+  padding: 0;
+  margin: 0;
+  margin: auto;
+
+  a {
+    position: fixed;
+    bottom: 1em;
+    /*right: 50%;
+        transform: translateX(50%);*/
+    right: calc(var(--bs-gutter-x) * 0.5);
+    text-decoration: none;
+    color: #ffffff;
+    z-index: 100000;
+    border: none;
+    background: rgb(28, 43, 57);
+    background: linear-gradient(
+      135deg,
+      rgba(28, 43, 57, 1) 0%,
+      rgba(57, 115, 170, 1) 100%
+    );
+    padding: 0.5em 2em;
+    margin: 0;
+    white-space: nowrap;
+    overflow: visible;
+    cursor: pointer;
+    transition: opacity 0.15s ease-out, filter 0.15s ease-out;
+    text-transform: uppercase;
+    font-size: 15px;
+    font-weight: 600;
+    opacity: 1;
+    border-width: 3px;
+    border-style: solid;
+    border-image: linear-gradient(to right, #699ddf, #62bb46) 1;
+    filter: brightness(100%);
+  }
+
+  a:hover {
+    opacity: 1;
+    filter: brightness(100%);
+  }
+}
+
+.carousel {
+  display: flex;
+  gap: 1em;
+  container-type: inline-size;
+  flex-grow: 1;
+  align-items: center;
+  scrollbar-width: none;
+}
+
+.carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.horizontalScroll::after {
+  content: "\25b6";
+  z-index: 10000;
+  color: var(--primaryColor);
+  align-self: center;
+  position: sticky;
+  right: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 1) 100%
+  );
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 0 0 3em;
+}
+
+.fadeToBlue::after {
+  background: linear-gradient(
+    90deg,
+    rgba(28, 43, 57, 0) 0%,
+    rgba(28, 43, 57, 1) 100%
+  );
+  background: none;
+}
+
+.groupFinderContainer .carousel {
+  overflow-y: scroll;
+  height: 100%;
+  line-height: 2.5;
+}
+
+#filterMenu:popover-open {
+  display: flex;
+}
+
+@starting-style {
+  #filterMenu:popover-open {
+    opacity: 0;
+  }
+}
+
+/* Always keep the popover on-screen (viewport pinned) */
+#filterMenu {
+  position: fixed; /* pin to viewport (works in native & fallback) */
+  inset: 0; /* allow centering via margin auto */
+  margin: auto; /* center within the viewport */
+  max-width: min(95%, 900px);
+  max-height: 90dvh; /* keep it within viewport */
+  width: 100%;
+  overflow: auto; /* scroll inside the modal if needed */
+  border: none;
+
+  /* your existing visuals kept as-is */
+  display: flex; /* you already set display:flex on :popover-open */
+  flex-direction: column;
+  align-items: center;
+  gap: 1em;
+  background: linear-gradient(
+    135deg,
+    rgb(28, 43, 57) 0%,
+    rgb(57, 115, 170) 100%
+  );
+  color: #fff;
+  padding: 2em;
+  border-width: 3px;
+  border-style: solid;
+  border-image: linear-gradient(to right, #699ddf, #62bb46) 1;
+  opacity: 0.925;
+  z-index: 100000; /* high in fallback; ignored by native top-layer */
+}
+
+#filterMenu::backdrop {
+  background-color: rgb(0 0 0 / 60%);
+}
+
+#filterMenu .closeBtn {
+  border: none;
+  color: #ffffff;
+  background-color: transparent;
+  border-radius: 0;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0;
+  line-height: 0.5;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 2em;
+}
+
+#filterMenu .closeBtn:after {
+  display: inline-block;
+  content: "\00d7";
+}
+
+#filterMenu .filterMenuTop {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1em;
+  border-bottom: 1px solid #c1c1c19e;
+  padding-bottom: 2em;
+}
+
+#filterMenu .searchContainer {
+  width: 100%;
+}
+
+#filterMenu .selectedFilters {
+  display: flex;
+  gap: 1em;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+#filterMenu > #filtersForm {
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+  width: 100%;
+}
+
+#filterMenu > #filterForm > select:not(#dayOfWeek) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 56px;
+  padding: 0 20px;
+  letter-spacing: 0.02em;
+  background-color: #ffffff;
+  border: none;
+  appearance: auto;
+}
+
+.filterGroup .filterSearch::placeholder {
+  color: #888aa9;
+}
+
+#filterMenu > #filterForm > fieldset {
+  display: flex;
+  gap: 0.5em;
+  flex-wrap: wrap;
+}
+
+#filterMenu > #filterForm > fieldset > label {
+  display: grid;
+  grid-template-columns: 1em auto;
+  gap: 0.5em;
+}
+
+.dropdownButton {
+  anchor-name: --campusDropdown;
+}
+
+.filteredDropdown {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  position-anchor: --campusDropdown;
+  top: anchor(bottom);
+  right: anchor(right);
+
+  > li > input:hover,
+  > li > input:focus {
+    background-color: #efefef;
+  }
+}
+
+.filteredDropdown > li > input,
+.form-control {
+  width: 100%;
+  min-height: 27px;
+  height: 56px;
+  border: 0;
+  border-radius: 0 !important;
+  background: #ffffff;
+  border-top: 1px solid #cccccc;
+  padding: 0 40px 0 10px;
+  padding: 0.5em 1em;
+  font-family: Montserrat, Helvetica, Arial, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--primaryColor);
+  text-transform: uppercase;
+  text-align: start;
+}
+
+/* Layout the label + checkbox on one row */
+.filterGroup:has(.filterCheckbox) {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.filterCheckboxLabel {
+  margin: 0;
+}
+.filterGroup h6 {
+  margin: 0;
+}
+
+/* Make the native checkbox a touch bigger & brand-colored */
+.filterCheckbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--secondaryColor);
+}
+
+.filterPopover {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  max-height: 95dvh;
+  overflow-y: auto;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 600px;
+  margin: auto;
+}
+
+/*
+#groupFinder .filterPopover {
+  overflow: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+#groupFinder .filterPopover::-webkit-scrollbar {
+  display: none;
+}
+*/
+
+.popoverSection {
+  margin-bottom: 2rem;
+}
+
+/* ========== Filter popover close button ========== */
+#groupFinder .filterPopover {
+  position: fixed; /* anchor the absolute close button */
+  padding-top: 3.25rem; /* room so the button doesn't overlap heading */
+}
+
+/* the button itself */
+#groupFinder .popoverClose {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+
+  /* touch-friendly size */
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+
+  display: grid;
+  place-items: center;
+
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+
+  /* blends with your frosted/blue popover */
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(4px);
+
+  /* accessibility */
+  outline: none;
+  outline-offset: 2px;
+  z-index: 2; /* above headings/content */
+}
+
+/* icon sizing (FA5) */
+#groupFinder .popoverClose .fa-times {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* hover & focus */
+#groupFinder .popoverClose:hover,
+#groupFinder .popoverClose:focus-visible {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+/* active press */
+#groupFinder .popoverClose:active {
+  transform: translateY(0);
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* high-contrast fallback for very light popover themes (optional) */
+@media (prefers-contrast: more) {
+  #groupFinder .popoverClose {
+    background: rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* motion sensitivity */
+@media (prefers-reduced-motion: reduce) {
+  #groupFinder .popoverClose {
+    transition: none;
+    transform: none !important;
+  }
+}
+
+/* small screens: nudge in a hair more so it doesn't hug the edge */
+@media (max-width: 480px) {
+  #groupFinder .popoverClose {
+    top: 0.5rem;
+    right: 0.5rem;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+  }
+}
+
+/* hide only when it's NOT open natively AND NOT open via fallback */
+#groupFinder .filterPopover:not(:popover-open):not(.is-open) {
+  display: none;
+}
+
+/* when we emulate (fallback) */
+#groupFinder .filterPopover.is-open {
+  display: block;
+}
+
+.popoverHeader {
+  font-weight: bold;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.filterFields {
+  list-style: none;
+  padding: 0;
+  width: min(100%, 500px);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.filterField {
+  margin-bottom: 1rem;
+}
+
+.filterOptionsList {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filterOptionsList li {
+  display: inline-block;
+}
+
+.filterGroup h6 {
+  margin-bottom: 0.5em;
+  font-size: 0.75rem;
+}
+
+.filterGroup .filterSelect,
+.filterGroup .filterSearch,
+.filterGroup .search-input {
+  width: 100%;
+  border-radius: 0;
+  border: none;
+  background-color: #fff;
+  color: #303038; /* normal text */
+  padding: 1.5rem;
+  font-size: 1.125rem;
+}
+
+/* 1) Inputs: don’t color the placeholder */
+.filterGroup .filterSearch::placeholder,
+.filterGroup .search-input::placeholder {
+  color: revert; /* use UA/site default */
+  opacity: 1; /* ensure visibility in Firefox */
+}
+
+/* 2) Selects: when the “null”/placeholder option is selected, use a muted color */
+.filterGroup .filterSelect:has(option:checked[value=""]),
+.filterGroup .filterSelect option[value=""] {
+  color: var(
+    --placeholder-color,
+    #9aa0a6
+  ); /* pick your grey; or change the var */
+}
+
+/* Optional: if your placeholder option is disabled, include this too */
+.filterGroup .filterSelect:has(option:checked:disabled) {
+  color: var(--placeholder-color, #9aa0a6);
+}
+
+/* Fallback if you can mark selects required (no :has needed) */
+.filterGroup .filterSelect[required]:invalid {
+  color: var(--placeholder-color, #9aa0a6);
+}
+
+/* iOS/mobile-safe select sizing */
+.filterGroup .filterSearch,
+.filterGroup .search-input,
+.filterGroup .filterSelect {
+  --control-h: 3.5rem; /* tweak to taste */
+  -webkit-appearance: none;
+  appearance: none;
+  padding-inline: 1.5rem; /* keep left/right padding */
+  padding-block: 0; /* iOS ignores this anyway */
+  height: var(--control-h); /* enforce visual height */
+  line-height: var(
+    --control-h
+  ); /* vertically center text in the closed state */
+  /* if you have a chevron inside, give a bit more right padding: */
+  padding-right: 2.75rem;
+}
+
+/* Extra nudge specifically for iOS Safari */
+@supports (-webkit-touch-callout: none) {
+  .filterGroup .filterSelect {
+    height: calc(var(--control-h) + 2px);
+    line-height: calc(var(--control-h) + 2px);
+  }
+}
+
+.groupGrid:has(.leaderBadge) {
+  border-color: #61bb46 !important;
+}
+
+.leaderBadge::before {
+  display: inline-block;
+  vertical-align: middle;
+  line-height: normal;
+  background-color: var(--primaryColor);
+  padding: 0.35em;
+  border-radius: 100%;
+  aspect-ratio: 1/1;
+  color: #ffffff;
+  font-size: 0.65rem;
+  border: 1px solid #62bb46;
+}
+
+.cammelCase {
+  text-transform: capitalize;
+}
+
+.noResultsFound {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 2em;
+  width: 100%;
+  font-size: 1.5rem;
+  padding: 2em;
+
+  .btn {
+    border-radius: 0;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 11px 2em;
+    min-width: 100px;
+    border-width: 2px;
+  }
+
+  .btn:hover,
+  .btn:focus {
+    background-color: var(--primaryColor);
+    color: #ffffff;
+  }
+}
+
+.search-select {
+  position: relative;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5em 1em;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+}
+
+.search-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0; /* 🔧 NEW: helps prevent clipping on the right */
+  width: auto; /* 🔧 override fixed width if needed */
+  max-width: 100%; /* 🔧 ensures it never overflows parent */
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  border-top: none;
+  background: white;
+  z-index: 1000;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  color: var(--primaryColor);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* 💄 optional */
+  box-sizing: border-box; /* 🔧 ensures padding stays inside max-width */
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* For Chrome, Safari, and other WebKit browsers */
+.search-options::-webkit-scrollbar {
+  display: none;
+}
+
+/* Upward flip */
+.search-options.flipped {
+  bottom: 100%;
+  top: auto;
+  border-top: 1px solid #ccc;
+  border-bottom: none;
+}
+
+.search-option {
+  padding: 0.75em 1em;
+  cursor: pointer;
+}
+
+.search-option:hover {
+  background-color: #f0f0f0;
+}
+
+.search-option.is-selected {
+  background-color: var(--secondaryColor);
+  color: white;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* New: add this class to anything you want to fade */
+.fade-hide {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 180ms ease, visibility 0s linear 0ms; /* show: no delay */
+}
+
+/* Add .is-hidden to fade out */
+.fade-hide.is-hidden {
+  opacity: 0;
+  visibility: hidden; /* becomes hidden AFTER the fade */
+  transition: opacity 180ms ease, visibility 0s linear 180ms;
+  pointer-events: none; /* don't trap clicks while fading */
+}
+
+/* nice-to-have for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .fade-hide,
+  .fade-hide.is-hidden {
+    transition: none;
+  }
+}
+
+/* Anchor the overlay at the top INSIDE the finder */
+#groupFinder {
+  position: relative;
+  scroll-margin-top: var(--gf-scroll-offset, 90px);
+}
+
+#groupFinder .loader-container {
+  position: absolute;
+  top: 6%;
+  left: calc(50% - 100px);
+  height: 200px;
+  width: 200px;
+  z-index: 10000;
+  pointer-events: none;
+  background-image: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.85) 20%,
+    rgba(255, 255, 255, 0.3) 45%,
+    rgba(255, 255, 255, 0) 70%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+/* Image circle */
+#groupFinder .loader-container .loader-bg {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%); /* center it */
+  background-image: url("https://woodsidebible.org/wp-content/uploads/2025/03/WoodsideW_BrightGreen.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+/* Spinning border */
+#groupFinder .loader-container .loader {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%); /* center it */
+  border: 1px solid transparent;
+  border-top: 1px solid #61ba467c;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  z-index: 2;
+}
+
+@keyframes spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@container (width < 900px) {
+  .needHelpContainer {
+    flex-direction: column;
+    text-align: center;
+
+    .btnContainer {
+      flex-direction: column;
+      width: 100%;
+    }
+  }
+
+  .groupGrid {
+    grid-template-areas: "header  header " "details leaders" "about about" "tags tags" "button button";
+    gap: 1em;
+
+    > .groupSignUpBtn > .btn {
+      width: 100%;
+    }
+
+    .groupTitle {
+      flex-direction: column;
+      gap: 0.5em !important;
+      margin: auto;
+    }
+
+    .groupTags {
+      align-items: center;
+    }
+  }
+
+  .groupGrid:not(:has(.groupSignUpBtn)) > .groupTitle {
+    flex-direction: column;
+    gap: 0.5em;
+  }
+  .groupGrid .groupAboutContainer > div {
+    -webkit-line-clamp: 6;
+    line-clamp: 6;
+  }
+}
+
+.copy-message {
+  display: none;
+  position: sticky;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  background-color: var(--primaryColor);
+  color: #ffffff;
+  padding: 1em;
+  opacity: 0.9;
+  border-radius: 20px;
+  max-width: 400px;
+  margin: auto;
+}
+
+@container (width < 475px) {
+  .groupGrid {
+    grid-template-areas: "header" "details" "leaders" "about" "tags" "button";
+  }
+}
+
+@media (min-width: 576px) {
+  .leadGroupContainer {
+    max-width: 540px;
+  }
+}
+
+@media (min-width: 768px) {
+  .leadGroupContainer {
+    max-width: 720px;
+  }
+  .titleHeadingContainer h1 {
+    font-size: 2.5rem;
+  }
+  .fullWidthBackground::before,
+  .fullWidthBackground,
+  .fullWidthBackground::after {
+    height: 140px;
+  }
+
+  .leadGroupContainer a {
+    transform: translateX(0%);
+    opacity: 0.9;
+    filter: brightness(90%);
+  }
+
+  .modalContent {
+    grid-template-columns: auto auto;
+    grid-template-rows: auto auto auto auto auto;
+    align-items: space-between;
+    justify-content: space-between;
+    min-height: 50%;
+    width: 80%;
+
+    .headline {
+      grid-column-start: 2;
+      grid-column-end: 4;
+      grid-row-start: 2;
+      grid-row-end: 3;
+    }
+
+    .img {
+      grid-column-start: 1;
+      grid-column-end: 5;
+      grid-row-start: 1;
+      grid-row-end: 6;
+      aspect-ratio: unset;
+    }
+
+    .blurb {
+      grid-column-start: 2;
+      grid-column-end: 4;
+      grid-row-start: 3;
+      grid-row-end: 4;
+      line-height: 3;
+    }
+
+    .btnContainer {
+      grid-column-start: 2;
+      grid-column-end: 4;
+      grid-row-start: 4;
+      grid-row-end: 5;
+    }
+  }
+}
+
+@media (min-width: 992px) {
+  .leadGroupContainer {
+    max-width: 960px;
+  }
+  .fullWidthBackground::before,
+  .fullWidthBackground,
+  .fullWidthBackground::after {
+    height: 200px;
+  }
+  .modalContent {
+    max-width: 800px;
+  }
+
+  .tag,
+  .filterBtn {
+    font-size: 1rem;
+  }
+
+  .left .filterContainer,
+  .left #txtKeyword {
+    font-size: 1rem;
+  }
+
+  .left {
+    flex-direction: row !important;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5em 1em !important;
+
+    .carousel {
+      align-items: center;
+    }
+  }
+}
+
+@media (min-width: 1200px) {
+  .leadGroupContainer {
+    max-width: 1140px;
+  }
+
+  .titleHeadingContainer h1 {
+    font-size: 2.75rem;
+  }
+}
+
+@media (min-width: 1400px) {
+  .leadGroupContainer {
+    max-width: 1320px;
+  }
+}
+
+/* Edit this later to be in the right media query, hope I can do this in the container and not have to use HTML, but the container */
+@media (max-width: 992px) {
+  html:has(.groups) html:not(.preview) {
+    scroll-snap-type: y proximity;
+  }
+
+  .groupGrid:not(.preview) {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+}
+
+/* === Adjusted Preview Mode Styling === */
+body.preview #groupFinderContainer,
+body.preview .container,
+body.preview .groups,
+body.preview #groupFinder {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+body.preview {
+  font-size: 0.5rem !important;
+  line-height: 1.3 !important;
+  padding: 5px !important;
+}
+
+body.preview .sectionHeading,
+body.preview .filterContainer {
+  display: none !important;
+}
+
+/* Group Card Layout */
+body.preview .groupGrid {
+  padding: 1em !important;
+  gap: 0.75em !important;
+  line-height: 1.3 !important;
+}
+
+body.preview .groupGrid h3,
+body.preview .groupGrid h6,
+body.preview .groupTitle {
+  font-size: 0.7rem !important;
+  margin: 0.25em 0 !important;
+}
+
+body.preview .groupAboutContainer > div {
+  font-size: 0.7rem !important;
+  line-height: 1.3 !important;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  max-height: 4.5em;
+  overflow: hidden;
+}
+
+/* Details & Tags */
+body.preview .groupDetailsContainer,
+body.preview .groupLeadersContainer {
+  font-size: 0.8rem !important;
+}
+
+body.preview .groupTags {
+  gap: 0.5em !important;
+  margin-top: 0.5em !important;
+}
+
+body.preview .tag,
+body.preview .filterBtn {
+  font-size: 0.65rem !important;
+  padding: 0.25em 0.5em !important;
+  margin: 0.1em !important;
+  border-radius: 15px !important;
+}
+
+/* Button */
+body.preview .btn {
+  font-size: 0.75rem !important;
+  padding: 0.4em 1em !important;
+}
+
+/* utility sizes (keep tiny & generic) */
+.h-8 {
+  height: 8px;
+}
+.h-14 {
+  height: 14px;
+}
+.h-16 {
+  height: 16px;
+}
+.h-20 {
+  height: 20px;
+}
+.h-24 {
+  height: 24px;
+}
+.h-28 {
+  height: 28px;
+}
+.h-44 {
+  height: 44px;
+}
+.w-25 {
+  width: 25%;
+}
+.w-35 {
+  width: 35%;
+}
+.w-50 {
+  width: 50%;
+}
+.w-60 {
+  width: 60%;
+}
+.w-70 {
+  width: 70%;
+}
+.w-80 {
+  width: 80%;
+}
+.w-120 {
+  width: 120px;
+}
+
+/* skeleton card uses your grid so layout stays stable */
+div.groupGrid > div:nth-child(2) > div:nth-child(2) {
+  gap: 0.5em;
+}
+
+.skel-card.groupGrid {
+  min-height: 180px;
+}
+.skel-pill {
+  height: 32px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+/* ===== Skeleton Loading ===== */
+.skel {
+  position: relative;
+  overflow: hidden;
+  background: var(--skel-base);
+  border-radius: 6px;
+}
+.skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--skel-sheen),
+    transparent
+  );
+  animation: skel-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes skel-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
