@@ -2390,7 +2390,35 @@
                     },
                     plugins: {
                         legend: { display: false },
-                        tooltip: { enabled: false }
+                        tooltip: {
+                            enabled: false,
+                            external: function(context) {
+                                let el = document.getElementById('distributionTooltip');
+                                if (!el) {
+                                    el = document.createElement('div');
+                                    el.id = 'distributionTooltip';
+                                    el.style.cssText = 'position:absolute;pointer-events:none;padding:8px 12px;border-radius:6px;font-family:Poppins,sans-serif;transition:opacity 0.15s;z-index:50;';
+                                    document.body.appendChild(el);
+                                }
+                                const tooltip = context.tooltip;
+                                if (tooltip.opacity === 0) {
+                                    el.style.opacity = '0';
+                                    return;
+                                }
+                                const idx = tooltip.dataPoints[0].dataIndex;
+                                const bg = circleColors[idx];
+                                const textColor = idx >= 2 ? '#ffffff' : '#1b5e20';
+                                const val = tooltip.dataPoints[0].parsed.toLocaleString();
+                                const pct = ((tooltip.dataPoints[0].parsed / distributionTotal) * 100).toFixed(1);
+                                el.style.background = bg;
+                                el.style.color = textColor;
+                                el.innerHTML = '<div style="font-size:12px;font-weight:600;margin-bottom:2px;">' + tooltip.title[0] + '</div><div style="font-size:13px;">' + val + ' (' + pct + '%)</div>';
+                                const pos = context.chart.canvas.getBoundingClientRect();
+                                el.style.opacity = '1';
+                                el.style.left = pos.left + window.scrollX + tooltip.caretX + 'px';
+                                el.style.top = pos.top + window.scrollY + tooltip.caretY - 50 + 'px';
+                            }
+                        }
                     }
                 },
                 plugins: [centerTextPlugin, segmentLabelsPlugin]
