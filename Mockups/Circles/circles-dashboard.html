@@ -2269,6 +2269,25 @@
             const distributionData = [6274, 1344, 520, 11231, 826];
             const distributionTotal = distributionData.reduce((a, b) => a + b, 0);
 
+            const distributionLabels = ['Community', 'Crowd', 'Congregation', 'Committed', 'Core'];
+            const labelColors = ['#2e7d32', '#1b5e20', '#ffffff', '#ffffff', '#ffffff'];
+            const segmentIconPaths = [globeIcon, usersIcon, churchIcon, heartHandshakeIcon, starIcon];
+
+            // Create icon images for segment labels
+            function createSegmentIcon(iconSvg, color, size) {
+                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${iconSvg}</svg>`;
+                const img = new Image();
+                img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+                return img;
+            }
+
+            const innerSegmentIcons = segmentIconPaths.map(function(path, i) {
+                return createSegmentIcon(path, labelColors[i], 20);
+            });
+            const outerSegmentIcons = segmentIconPaths.map(function(path) {
+                return createSegmentIcon(path, '#6b7280', 16);
+            });
+
             const centerTextPlugin = {
                 id: 'centerText',
                 afterDraw: function(chart) {
@@ -2294,10 +2313,68 @@
                 }
             };
 
+            const segmentLabelsPlugin = {
+                id: 'segmentLabels',
+                afterDraw: function(chart) {
+                    const ctx = chart.ctx;
+                    const meta = chart.getDatasetMeta(0);
+
+                    meta.data.forEach(function(arc, i) {
+                        const startAngle = arc.startAngle;
+                        const endAngle = arc.endAngle;
+                        const arcSpan = endAngle - startAngle;
+                        const midAngle = (startAngle + endAngle) / 2;
+                        const midRadius = (arc.innerRadius + arc.outerRadius) / 2;
+                        const arcLength = arcSpan * midRadius;
+
+                        ctx.save();
+
+                        if (arcLength > 60) {
+                            // Large segment: icon inside
+                            const x = arc.x + Math.cos(midAngle) * midRadius;
+                            const y = arc.y + Math.sin(midAngle) * midRadius;
+                            const icon = innerSegmentIcons[i];
+                            if (icon && icon.complete) {
+                                ctx.globalAlpha = 0.5;
+                                ctx.drawImage(icon, x - 10, y - 10, 20, 20);
+                            }
+                        } else {
+                            // Small segment: line + icon outside
+                            const outerX = arc.x + Math.cos(midAngle) * arc.outerRadius;
+                            const outerY = arc.y + Math.sin(midAngle) * arc.outerRadius;
+                            const lineEnd = arc.outerRadius + 12;
+                            const lineEndX = arc.x + Math.cos(midAngle) * lineEnd;
+                            const lineEndY = arc.y + Math.sin(midAngle) * lineEnd;
+
+                            // Draw connector line (stops before icon)
+                            ctx.beginPath();
+                            ctx.moveTo(outerX, outerY);
+                            ctx.lineTo(lineEndX, lineEndY);
+                            ctx.strokeStyle = '#9ca3af';
+                            ctx.lineWidth = 1;
+                            ctx.globalAlpha = 0.4;
+                            ctx.stroke();
+
+                            // Draw icon with gap after line
+                            const iconDist = arc.outerRadius + 22;
+                            const iconX = arc.x + Math.cos(midAngle) * iconDist;
+                            const iconY = arc.y + Math.sin(midAngle) * iconDist;
+                            const icon = outerSegmentIcons[i];
+                            if (icon && icon.complete) {
+                                ctx.globalAlpha = 0.6;
+                                ctx.drawImage(icon, iconX - 8, iconY - 8, 16, 16);
+                            }
+                        }
+
+                        ctx.restore();
+                    });
+                }
+            };
+
             participantsCharts.circle = new Chart(document.getElementById('participantsCircleChart'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['Community', 'Crowd', 'Congregation', 'Committed', 'Core'],
+                    labels: distributionLabels,
                     datasets: [{
                         data: distributionData,
                         backgroundColor: circleColors,
@@ -2308,9 +2385,15 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }
+                    layout: {
+                        padding: 30
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    }
                 },
-                plugins: [centerTextPlugin]
+                plugins: [centerTextPlugin, segmentLabelsPlugin]
             });
 
             // Engagement (Stacked Bar)
