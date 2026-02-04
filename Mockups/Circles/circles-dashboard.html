@@ -2465,7 +2465,7 @@
                         x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } },
                         y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' } }
                     },
-                    plugins: { legend: { display: false }, circleTop: { enabled: true } }
+                    plugins: { legend: { display: false }, circleTop: { enabled: true }, tooltip: createBarTooltipConfig('engagementTooltip', false) }
                 }
             });
 
@@ -2487,7 +2487,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     layout: { padding: { top: 25 } },
-                    plugins: { legend: { display: false }, circleTop: { enabled: true } },
+                    plugins: { legend: { display: false }, circleTop: { enabled: true }, tooltip: createBarTooltipConfig('participantTooltip', false) },
                     scales: {
                         x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } },
                         y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' } }
@@ -2513,13 +2513,48 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     layout: { padding: { top: 25 } },
-                    plugins: { legend: { display: false }, circleTop: { enabled: true } },
+                    plugins: { legend: { display: false }, circleTop: { enabled: true }, tooltip: createBarTooltipConfig('householdTooltip', false) },
                     scales: {
                         x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } },
                         y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' } }
                     }
                 }
             });
+        }
+
+        // Reusable external tooltip for bar charts (color matches segment)
+        function createBarTooltipConfig(tooltipId, isPercent) {
+            return {
+                enabled: false,
+                external: function(context) {
+                    let el = document.getElementById(tooltipId);
+                    if (!el) {
+                        el = document.createElement('div');
+                        el.id = tooltipId;
+                        el.style.cssText = 'position:absolute;pointer-events:none;padding:8px 12px;border-radius:6px;font-family:Poppins,sans-serif;transition:opacity 0.15s;z-index:50;';
+                        document.body.appendChild(el);
+                    }
+                    const tooltip = context.tooltip;
+                    if (tooltip.opacity === 0) { el.style.opacity = '0'; return; }
+                    const dp = tooltip.dataPoints[0];
+                    const bg = dp.dataset.backgroundColor;
+                    // Calculate luminance for text color
+                    const hex = bg.replace('#', '');
+                    const r = parseInt(hex.substr(0,2), 16);
+                    const g = parseInt(hex.substr(2,2), 16);
+                    const b = parseInt(hex.substr(4,2), 16);
+                    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+                    const textColor = luminance > 0.6 ? '#1a1a1a' : '#ffffff';
+                    const val = isPercent ? dp.raw.toFixed(1) + '%' : dp.raw.toLocaleString();
+                    el.style.background = bg;
+                    el.style.color = textColor;
+                    el.innerHTML = '<div style="font-size:12px;font-weight:600;margin-bottom:2px;">' + dp.dataset.label + '</div><div style="font-size:13px;">' + val + '</div>';
+                    const pos = context.chart.canvas.getBoundingClientRect();
+                    el.style.opacity = '1';
+                    el.style.left = pos.left + window.scrollX + tooltip.caretX + 'px';
+                    el.style.top = pos.top + window.scrollY + tooltip.caretY - 50 + 'px';
+                }
+            };
         }
 
         // Participant Chart Data (shared across chart types)
@@ -2586,7 +2621,7 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         layout: { padding: { top: 25 } },
-                        plugins: { legend: { display: false }, circleTop: { enabled: true } },
+                        plugins: { legend: { display: false }, circleTop: { enabled: true }, tooltip: createBarTooltipConfig('participantTooltip', false) },
                         scales: {
                             x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } },
                             y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' } }
@@ -2615,11 +2650,7 @@
                         plugins: {
                             legend: { display: false },
                             circleTop: { enabled: true },
-                            tooltip: {
-                                callbacks: {
-                                    label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(1)}%`
-                                }
-                            }
+                            tooltip: createBarTooltipConfig('participantTooltip', true)
                         },
                         scales: {
                             x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } },
@@ -2643,7 +2674,7 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         layout: { padding: { top: 35 } },
-                        plugins: { legend: { display: false }, circleTop: { enabled: false } },
+                        plugins: { legend: { display: false }, circleTop: { enabled: false }, tooltip: createBarTooltipConfig('participantTooltip', false) },
                         scales: {
                             x: { grid: { display: false }, ticks: { font: { size: 10 } } },
                             y: { grid: { color: 'rgba(0,0,0,0.05)' } }
@@ -2766,7 +2797,7 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         layout: { padding: { top: 25 } },
-                        plugins: { legend: { display: false }, circleTop: { enabled: true } },
+                        plugins: { legend: { display: false }, circleTop: { enabled: true }, tooltip: createBarTooltipConfig('engagementTooltip', false) },
                         scales: {
                             x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } },
                             y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' } }
@@ -2794,7 +2825,7 @@
                         plugins: {
                             legend: { display: false },
                             circleTop: { enabled: true },
-                            tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(1)}%` } }
+                            tooltip: createBarTooltipConfig('engagementTooltip', true)
                         },
                         scales: {
                             x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } },
@@ -2817,7 +2848,7 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         layout: { padding: { top: 35 } },
-                        plugins: { legend: { display: false }, circleTop: { enabled: false } },
+                        plugins: { legend: { display: false }, circleTop: { enabled: false }, tooltip: createBarTooltipConfig('engagementTooltip', false) },
                         scales: {
                             x: { grid: { display: false }, ticks: { font: { size: 10 } } },
                             y: { grid: { color: 'rgba(0,0,0,0.05)' } }
@@ -2993,7 +3024,7 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         layout: { padding: { top: 25 } },
-                        plugins: { legend: { display: false }, circleTop: { enabled: true } },
+                        plugins: { legend: { display: false }, circleTop: { enabled: true }, tooltip: createBarTooltipConfig('householdTooltip', false) },
                         scales: {
                             x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } },
                             y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' } }
@@ -3021,7 +3052,7 @@
                         plugins: {
                             legend: { display: false },
                             circleTop: { enabled: true },
-                            tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(1)}%` } }
+                            tooltip: createBarTooltipConfig('householdTooltip', true)
                         },
                         scales: {
                             x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } },
@@ -3044,7 +3075,7 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         layout: { padding: { top: 35 } },
-                        plugins: { legend: { display: false }, circleTop: { enabled: false } },
+                        plugins: { legend: { display: false }, circleTop: { enabled: false }, tooltip: createBarTooltipConfig('householdTooltip', false) },
                         scales: {
                             x: { grid: { display: false }, ticks: { font: { size: 10 } } },
                             y: { grid: { color: 'rgba(0,0,0,0.05)' } }
