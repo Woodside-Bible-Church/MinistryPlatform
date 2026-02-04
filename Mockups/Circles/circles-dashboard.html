@@ -35,8 +35,8 @@
         /* Concentric circles visualization */
         .circles-container {
             position: relative;
-            width: 280px;
-            height: 280px;
+            width: 360px;
+            height: 360px;
         }
 
         .circle {
@@ -54,9 +54,10 @@
             box-shadow: 0 0 30px rgba(170, 212, 60, 0.3);
         }
 
+        /* Center each circle within the container */
         .circle-community {
-            width: 280px;
-            height: 280px;
+            width: 360px;
+            height: 360px;
             background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
             border: 3px dashed #AAD43C;
             top: 0;
@@ -64,39 +65,39 @@
         }
 
         .circle-crowd {
-            width: 224px;
-            height: 224px;
+            width: 288px;
+            height: 288px;
             background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
             border: 3px solid #AAD43C;
-            top: 28px;
-            left: 28px;
+            top: 36px;
+            left: 36px;
         }
 
         .circle-congregation {
-            width: 168px;
-            height: 168px;
+            width: 216px;
+            height: 216px;
             background: linear-gradient(135deg, #a5d6a7 0%, #81c784 100%);
             border: 3px solid #90c23e;
-            top: 56px;
-            left: 56px;
+            top: 72px;
+            left: 72px;
         }
 
         .circle-committed {
-            width: 112px;
-            height: 112px;
+            width: 144px;
+            height: 144px;
             background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%);
             border: 3px solid #90c23e;
-            top: 84px;
-            left: 84px;
+            top: 108px;
+            left: 108px;
         }
 
         .circle-core {
-            width: 56px;
-            height: 56px;
+            width: 72px;
+            height: 72px;
             background: linear-gradient(135deg, #AAD43C 0%, #90c23e 100%);
             border: 3px solid #7da32d;
-            top: 112px;
-            left: 112px;
+            top: 144px;
+            left: 144px;
         }
 
         .circle-label {
@@ -581,192 +582,150 @@
             <!-- Tab 1: Circles Over Time -->
             <div id="tab-circles-over-time" class="tab-content">
 
-            <!-- Main Content Grid -->
-            <div class="grid grid-cols-2 gap-6 items-stretch">
-                <!-- Circles Visualization -->
-                <div class="bg-white p-6 shadow-sm h-full">
-                    <div class="flex items-center justify-between mb-6">
-                        <div>
-                            <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">Overview</h2>
-                            <p class="text-xs text-gray-500 mt-0.5">As of <span class="font-semibold">January 2026</span></p>
+            <!-- Circle Overview - Full Width -->
+            <div class="bg-white p-6 shadow-sm">
+                <div class="flex gap-12 items-stretch">
+                    <!-- Circles Visualization -->
+                    <div class="flex-shrink-0 flex flex-col" style="width: 360px;">
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-bold text-granger-black uppercase tracking-wider">Circle Overview</h2>
+                            <p class="text-sm text-gray-400 mt-1 uppercase tracking-wide font-semibold">As of January 2026</p>
                         </div>
-                        <button class="text-gray-400 hover:text-granger-black transition">
-                            <i data-lucide="maximize-2" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-
-                    <div class="flex items-center gap-8">
-                        <!-- Circles -->
-                        <div class="circles-container flex-shrink-0">
-                            <div class="circle circle-community" data-level="community">
-                                <span class="circle-label" style="top: 2px; left: 50%; transform: translateX(-50%);"><i data-lucide="globe" class="w-5 h-5" style="color: #4a7c4e;"></i></span>
-                            </div>
-                            <div class="circle circle-crowd" data-level="crowd">
-                                <span class="circle-label" style="top: 2px; left: 50%; transform: translateX(-50%);"><i data-lucide="users" class="w-5 h-5" style="color: #3d6b40;"></i></span>
-                            </div>
-                            <div class="circle circle-congregation" data-level="congregation">
-                                <span class="circle-label" style="top: 2px; left: 50%; transform: translateX(-50%);"><i data-lucide="church" class="w-5 h-5" style="color: #2d5a30;"></i></span>
-                            </div>
-                            <div class="circle circle-committed" data-level="committed">
-                                <span class="circle-label" style="top: 2px; left: 50%; transform: translateX(-50%);"><i data-lucide="heart-handshake" class="w-5 h-5" style="color: #fff;"></i></span>
-                            </div>
-                            <div class="circle circle-core" data-level="core">
-                                <span class="circle-label" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"><i data-lucide="star" class="w-4 h-4" style="color: #fff;"></i></span>
-                            </div>
+                        <div class="flex-1 flex items-center justify-center">
+                            <div class="circles-container">
+                        <div class="circle circle-community" data-level="community" onclick="openCircleModal('community')">
+                            <span class="circle-label" style="top: 2px; left: 50%; transform: translateX(-50%);"><i data-lucide="globe" class="w-5 h-5" style="color: #4a7c4e;"></i></span>
                         </div>
-
-                        <!-- Legend with counts -->
-                        <div class="flex-1">
-                            <div class="space-y-1">
-                            <div class="flex items-center gap-3 p-2 -mx-2 rounded cursor-pointer hover:bg-gray-50 transition" >
-                                <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center" style="background-color: rgba(200, 230, 201, 0.3); border: 2px dashed #a5d6a7;">
-                                    <i data-lucide="globe" class="w-4 h-4" style="color: #66bb6a;"></i>
-                                </div>
-                                <span class="font-semibold text-sm text-granger-black flex-1">Community</span>
-                                <span class="text-lg font-bold text-granger-black">6,274</span>
-                                <span class="text-xs font-semibold trend-up w-12 text-right">+19.4%</span>
-                            </div>
-                            <div class="flex items-center gap-3 p-2 -mx-2 rounded cursor-pointer hover:bg-gray-50 transition" >
-                                <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center" style="background-color: #c8e6c9; border: 2px solid #a5d6a7;">
-                                    <i data-lucide="users" class="w-4 h-4" style="color: #4a7c4e;"></i>
-                                </div>
-                                <span class="font-semibold text-sm text-granger-black flex-1">Crowd</span>
-                                <span class="text-lg font-bold text-granger-black">1,344</span>
-                                <span class="text-xs font-semibold trend-up w-12 text-right">+6.9%</span>
-                            </div>
-                            <div class="flex items-center gap-3 p-2 -mx-2 rounded cursor-pointer hover:bg-gray-50 transition" >
-                                <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center" style="background-color: #a5d6a7; border: 2px solid #81c784;">
-                                    <i data-lucide="church" class="w-4 h-4" style="color: #3d6b40;"></i>
-                                </div>
-                                <span class="font-semibold text-sm text-granger-black flex-1">Congregation</span>
-                                <span class="text-lg font-bold text-granger-black">520</span>
-                                <span class="text-xs font-semibold trend-down w-12 text-right">-0.6%</span>
-                            </div>
-                            <div class="flex items-center gap-3 p-2 -mx-2 rounded cursor-pointer hover:bg-gray-50 transition" >
-                                <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center" style="background-color: #81c784; border: 2px solid #66bb6a;">
-                                    <i data-lucide="heart-handshake" class="w-4 h-4 text-white"></i>
-                                </div>
-                                <span class="font-semibold text-sm text-granger-black flex-1">Committed</span>
-                                <span class="text-lg font-bold text-granger-black">11,231</span>
-                                <span class="text-xs font-semibold trend-up w-12 text-right">+0.2%</span>
-                            </div>
-                            <div class="flex items-center gap-3 p-2 -mx-2 rounded cursor-pointer hover:bg-gray-50 transition" >
-                                <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center" style="background-color: #AAD43C; border: 2px solid #7da32d;">
-                                    <i data-lucide="star" class="w-4 h-4 text-white"></i>
-                                </div>
-                                <span class="font-semibold text-sm text-granger-black flex-1">Core</span>
-                                <span class="text-lg font-bold text-granger-black">826</span>
-                                <span class="text-xs font-semibold trend-up w-12 text-right">+3.4%</span>
-                            </div>
-                            </div>
+                        <div class="circle circle-crowd" data-level="crowd" onclick="openCircleModal('crowd')">
+                            <span class="circle-label" style="top: 2px; left: 50%; transform: translateX(-50%);"><i data-lucide="users" class="w-5 h-5" style="color: #3d6b40;"></i></span>
+                        </div>
+                        <div class="circle circle-congregation" data-level="congregation" onclick="openCircleModal('congregation')">
+                            <span class="circle-label" style="top: 2px; left: 50%; transform: translateX(-50%);"><i data-lucide="church" class="w-5 h-5" style="color: #2d5a30;"></i></span>
+                        </div>
+                        <div class="circle circle-committed" data-level="committed" onclick="openCircleModal('committed')">
+                            <span class="circle-label" style="top: 2px; left: 50%; transform: translateX(-50%);"><i data-lucide="heart-handshake" class="w-5 h-5" style="color: #fff;"></i></span>
+                        </div>
+                        <div class="circle circle-core" data-level="core" onclick="openCircleModal('core')">
+                            <span class="circle-label" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"><i data-lucide="star" class="w-4 h-4" style="color: #fff;"></i></span>
+                        </div>
+                        </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- New Joins This Month -->
-                <div class="bg-white p-6 shadow-sm h-full">
-                    <div class="mb-6">
-                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">New Joins</h2>
-                    </div>
+                    <!-- Combined Data Table -->
+                    <div class="flex-1 flex flex-col h-full">
+                        <!-- Circle Rows -->
+                        <div class="flex flex-col justify-between h-full gap-2">
+                            <!-- Community -->
+                            <div class="relative overflow-hidden cursor-pointer transition hover:shadow-md flex-1" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px dashed #a5d6a7;" onclick="openCircleModal('community')">
+                                <i data-lucide="globe" class="absolute -left-6 top-1/2 -translate-y-1/2 w-28 h-28 opacity-10" style="color: #2e7d32;"></i>
+                                <div class="flex items-center h-full py-5 px-5 relative z-10">
+                                    <div class="flex-1 pl-14">
+                                        <div class="text-2xl font-bold text-granger-black uppercase tracking-wide">Community</div>
+                                    </div>
+                                    <div class="w-24 text-right">
+                                        <div class="text-lg font-bold text-granger-black">6,274</div>
+                                        <div class="text-xs text-green-700 uppercase tracking-wide">Total</div>
+                                    </div>
+                                    <div class="w-24 text-right">
+                                        <div class="text-lg font-bold text-granger-black">1,020</div>
+                                        <div class="text-xs text-green-700 uppercase tracking-wide">New</div>
+                                    </div>
+                                    <div class="w-24 text-right">
+                                        <div class="text-lg font-bold text-granger-black">+19.4%</div>
+                                        <div class="text-xs text-green-700 uppercase tracking-wide">Change</div>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="border-b border-gray-100">
-                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Circle</th>
-                                    <th class="text-right py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Count</th>
-                                    <th class="text-right py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Change</th>
-                                    <th class="text-right py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Trend</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="border-b border-gray-50">
-                                    <td class="py-3">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center" style="background-color: rgba(200, 230, 201, 0.3); border: 2px dashed #a5d6a7;">
-                                                <i data-lucide="globe" class="w-3.5 h-3.5" style="color: #66bb6a;"></i>
-                                            </div>
-                                            <span class="font-semibold text-granger-black">Community</span>
-                                        </div>
-                                    </td>
-                                    <td class="py-3 text-right font-bold text-granger-black">1,020</td>
-                                    <td class="py-3 text-right">
-                                        <span class="text-sm font-semibold trend-up">+19.4%</span>
-                                    </td>
-                                    <td class="py-3 text-right">
-                                        <i data-lucide="trending-up" class="w-4 h-4 trend-up inline"></i>
-                                    </td>
-                                </tr>
-                                <tr class="border-b border-gray-50">
-                                    <td class="py-3">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center" style="background-color: #c8e6c9; border: 2px solid #a5d6a7;">
-                                                <i data-lucide="users" class="w-3.5 h-3.5" style="color: #4a7c4e;"></i>
-                                            </div>
-                                            <span class="font-semibold text-granger-black">Crowd</span>
-                                        </div>
-                                    </td>
-                                    <td class="py-3 text-right font-bold text-granger-black">87</td>
-                                    <td class="py-3 text-right">
-                                        <span class="text-sm font-semibold trend-up">+6.9%</span>
-                                    </td>
-                                    <td class="py-3 text-right">
-                                        <i data-lucide="trending-up" class="w-4 h-4 trend-up inline"></i>
-                                    </td>
-                                </tr>
-                                <tr class="border-b border-gray-50">
-                                    <td class="py-3">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center" style="background-color: #a5d6a7; border: 2px solid #81c784;">
-                                                <i data-lucide="church" class="w-3.5 h-3.5" style="color: #3d6b40;"></i>
-                                            </div>
-                                            <span class="font-semibold text-granger-black">Congregation</span>
-                                        </div>
-                                    </td>
-                                    <td class="py-3 text-right font-bold text-granger-black">72</td>
-                                    <td class="py-3 text-right">
-                                        <span class="text-sm font-semibold trend-up">+15.9%</span>
-                                    </td>
-                                    <td class="py-3 text-right">
-                                        <i data-lucide="trending-up" class="w-4 h-4 trend-up inline"></i>
-                                    </td>
-                                </tr>
-                                <tr class="border-b border-gray-50">
-                                    <td class="py-3">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center" style="background-color: #81c784; border: 2px solid #66bb6a;">
-                                                <i data-lucide="heart-handshake" class="w-3.5 h-3.5 text-white"></i>
-                                            </div>
-                                            <span class="font-semibold text-granger-black">Committed</span>
-                                        </div>
-                                    </td>
-                                    <td class="py-3 text-right font-bold text-granger-black">18</td>
-                                    <td class="py-3 text-right">
-                                        <span class="text-sm font-semibold trend-up">+0.2%</span>
-                                    </td>
-                                    <td class="py-3 text-right">
-                                        <i data-lucide="trending-up" class="w-4 h-4 trend-up inline"></i>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-3">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center" style="background-color: #AAD43C; border: 2px solid #7da32d;">
-                                                <i data-lucide="star" class="w-3.5 h-3.5 text-white"></i>
-                                            </div>
-                                            <span class="font-semibold text-granger-black">Core</span>
-                                        </div>
-                                    </td>
-                                    <td class="py-3 text-right font-bold text-granger-black">27</td>
-                                    <td class="py-3 text-right">
-                                        <span class="text-sm font-semibold trend-up">+3.4%</span>
-                                    </td>
-                                    <td class="py-3 text-right">
-                                        <i data-lucide="trending-up" class="w-4 h-4 trend-up inline"></i>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                            <!-- Crowd -->
+                            <div class="relative overflow-hidden cursor-pointer transition hover:shadow-md flex-1" style="background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%); border: 2px solid #a5d6a7;" onclick="openCircleModal('crowd')">
+                                <i data-lucide="users" class="absolute -left-6 top-1/2 -translate-y-1/2 w-28 h-28 opacity-10" style="color: #2e7d32;"></i>
+                                <div class="flex items-center h-full py-5 px-5 relative z-10">
+                                    <div class="flex-1 pl-14">
+                                        <div class="text-2xl font-bold text-granger-black uppercase tracking-wide">Crowd</div>
+                                    </div>
+                                    <div class="w-24 text-right">
+                                        <div class="text-lg font-bold text-granger-black">1,344</div>
+                                        <div class="text-xs text-green-800 uppercase tracking-wide">Total</div>
+                                    </div>
+                                    <div class="w-24 text-right">
+                                        <div class="text-lg font-bold text-granger-black">87</div>
+                                        <div class="text-xs text-green-800 uppercase tracking-wide">New</div>
+                                    </div>
+                                    <div class="w-24 text-right">
+                                        <div class="text-lg font-bold text-granger-black">+6.9%</div>
+                                        <div class="text-xs text-green-800 uppercase tracking-wide">Change</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Congregation -->
+                            <div class="relative overflow-hidden cursor-pointer transition hover:shadow-md flex-1" style="background: linear-gradient(135deg, #a5d6a7 0%, #81c784 100%); border: 2px solid #81c784;" onclick="openCircleModal('congregation')">
+                                <i data-lucide="church" class="absolute -left-6 top-1/2 -translate-y-1/2 w-28 h-28 opacity-10" style="color: #1b5e20;"></i>
+                                <div class="flex items-center h-full py-5 px-5 relative z-10">
+                                    <div class="flex-1 pl-14">
+                                        <div class="text-2xl font-bold text-granger-black uppercase tracking-wide">Congregation</div>
+                                    </div>
+                                    <div class="w-24 text-right">
+                                        <div class="text-lg font-bold text-granger-black">520</div>
+                                        <div class="text-xs text-green-900 uppercase tracking-wide">Total</div>
+                                    </div>
+                                    <div class="w-24 text-right">
+                                        <div class="text-lg font-bold text-granger-black">72</div>
+                                        <div class="text-xs text-green-900 uppercase tracking-wide">New</div>
+                                    </div>
+                                    <div class="w-24 text-right">
+                                        <div class="text-lg font-bold text-granger-black">-0.6%</div>
+                                        <div class="text-xs text-green-900 uppercase tracking-wide">Change</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Committed -->
+                            <div class="relative overflow-hidden cursor-pointer transition hover:shadow-md flex-1" style="background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%); border: 2px solid #66bb6a;" onclick="openCircleModal('committed')">
+                                <i data-lucide="heart-handshake" class="absolute -left-6 top-1/2 -translate-y-1/2 w-28 h-28 opacity-10" style="color: #1b5e20;"></i>
+                                <div class="flex items-center h-full py-5 px-5 relative z-10">
+                                    <div class="flex-1 pl-14">
+                                        <div class="text-2xl font-bold text-white uppercase tracking-wide">Committed</div>
+                                    </div>
+                                    <div class="w-24 text-right">
+                                        <div class="text-lg font-bold text-white">11,231</div>
+                                        <div class="text-xs text-green-100 uppercase tracking-wide">Total</div>
+                                    </div>
+                                    <div class="w-24 text-right">
+                                        <div class="text-lg font-bold text-white">18</div>
+                                        <div class="text-xs text-green-100 uppercase tracking-wide">New</div>
+                                    </div>
+                                    <div class="w-24 text-right">
+                                        <div class="text-lg font-bold text-white">+0.2%</div>
+                                        <div class="text-xs text-green-100 uppercase tracking-wide">Change</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Core -->
+                            <div class="relative overflow-hidden cursor-pointer transition hover:shadow-md flex-1" style="background: linear-gradient(135deg, #AAD43C 0%, #8bc34a 100%); border: 2px solid #7da32d;" onclick="openCircleModal('core')">
+                                <i data-lucide="star" class="absolute -left-6 top-1/2 -translate-y-1/2 w-28 h-28 opacity-15" style="color: #5a7a1f;"></i>
+                                <div class="flex items-center h-full py-5 px-5 relative z-10">
+                                    <div class="flex-1 pl-14">
+                                        <div class="text-2xl font-bold text-white uppercase tracking-wide">Core</div>
+                                    </div>
+                                    <div class="w-24 text-right">
+                                        <div class="text-lg font-bold text-white">826</div>
+                                        <div class="text-xs text-green-100 uppercase tracking-wide">Total</div>
+                                    </div>
+                                    <div class="w-24 text-right">
+                                        <div class="text-lg font-bold text-white">27</div>
+                                        <div class="text-xs text-green-100 uppercase tracking-wide">New</div>
+                                    </div>
+                                    <div class="w-24 text-right">
+                                        <div class="text-lg font-bold text-white">+3.4%</div>
+                                        <div class="text-xs text-green-100 uppercase tracking-wide">Change</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1236,42 +1195,42 @@
                             <div class="p-3 rounded flex flex-col h-24" style="background-color: #3b82f6;">
                                 <div class="text-xs font-bold uppercase tracking-wide text-white opacity-90">Church Family</div>
                                 <div class="mt-auto">
-                                    <div class="text-xl font-bold text-white">12,542</div>
+                                    <div class="text-lg font-bold text-white">12,542</div>
                                     <div class="text-xs text-white opacity-75">62.1%</div>
                                 </div>
                             </div>
                             <div class="p-3 rounded flex flex-col h-24" style="background-color: #6366f1;">
                                 <div class="text-xs font-bold uppercase tracking-wide text-white opacity-90">Attendee</div>
                                 <div class="mt-auto">
-                                    <div class="text-xl font-bold text-white">4,231</div>
+                                    <div class="text-lg font-bold text-white">4,231</div>
                                     <div class="text-xs text-white opacity-75">21.0%</div>
                                 </div>
                             </div>
                             <div class="p-3 rounded flex flex-col h-24" style="background-color: #8b5cf6;">
                                 <div class="text-xs font-bold uppercase tracking-wide text-white opacity-90">New</div>
                                 <div class="mt-auto">
-                                    <div class="text-xl font-bold text-white">1,823</div>
+                                    <div class="text-lg font-bold text-white">1,823</div>
                                     <div class="text-xs text-white opacity-75">9.0%</div>
                                 </div>
                             </div>
                             <div class="p-3 rounded flex flex-col h-24" style="background-color: #a855f7;">
                                 <div class="text-xs font-bold uppercase tracking-wide text-white opacity-90">MC3 Neighbor</div>
                                 <div class="mt-auto">
-                                    <div class="text-xl font-bold text-white">876</div>
+                                    <div class="text-lg font-bold text-white">876</div>
                                     <div class="text-xs text-white opacity-75">4.3%</div>
                                 </div>
                             </div>
                             <div class="p-3 rounded flex flex-col h-24" style="background-color: #d946ef;">
                                 <div class="text-xs font-bold uppercase tracking-wide text-white opacity-90">Non-Attending</div>
                                 <div class="mt-auto">
-                                    <div class="text-xl font-bold text-white">512</div>
+                                    <div class="text-lg font-bold text-white">512</div>
                                     <div class="text-xs text-white opacity-75">2.5%</div>
                                 </div>
                             </div>
                             <div class="p-3 rounded flex flex-col h-24" style="background-color: #ec4899;">
                                 <div class="text-xs font-bold uppercase tracking-wide text-white opacity-90">Dropped</div>
                                 <div class="mt-auto">
-                                    <div class="text-xl font-bold text-white">211</div>
+                                    <div class="text-lg font-bold text-white">211</div>
                                     <div class="text-xs text-white opacity-75">1.0%</div>
                                 </div>
                             </div>
@@ -1305,42 +1264,42 @@
                             <div class="p-3 rounded flex flex-col h-24" style="background-color: #f97316;">
                                 <div class="text-xs font-bold uppercase tracking-wide text-white opacity-90">Head of Household</div>
                                 <div class="mt-auto">
-                                    <div class="text-xl font-bold text-white">8,934</div>
+                                    <div class="text-lg font-bold text-white">8,934</div>
                                     <div class="text-xs text-white opacity-75">44.2%</div>
                                 </div>
                             </div>
                             <div class="p-3 rounded flex flex-col h-24" style="background-color: #fb923c;">
                                 <div class="text-xs font-bold uppercase tracking-wide text-white opacity-90">Minor Child</div>
                                 <div class="mt-auto">
-                                    <div class="text-xl font-bold text-white">5,621</div>
+                                    <div class="text-lg font-bold text-white">5,621</div>
                                     <div class="text-xs text-white opacity-75">27.8%</div>
                                 </div>
                             </div>
                             <div class="p-3 rounded flex flex-col h-24" style="background-color: #fbbf24;">
                                 <div class="text-xs font-bold uppercase tracking-wide text-granger-black opacity-70">Other Adult</div>
                                 <div class="mt-auto">
-                                    <div class="text-xl font-bold text-granger-black">3,212</div>
+                                    <div class="text-lg font-bold text-granger-black">3,212</div>
                                     <div class="text-xs text-granger-black opacity-60">15.9%</div>
                                 </div>
                             </div>
                             <div class="p-3 rounded flex flex-col h-24" style="background-color: #facc15;">
                                 <div class="text-xs font-bold uppercase tracking-wide text-granger-black opacity-70">Adult Child</div>
                                 <div class="mt-auto">
-                                    <div class="text-xl font-bold text-granger-black">1,876</div>
+                                    <div class="text-lg font-bold text-granger-black">1,876</div>
                                     <div class="text-xs text-granger-black opacity-60">9.3%</div>
                                 </div>
                             </div>
                             <div class="p-3 rounded flex flex-col h-24" style="background-color: #a3e635;">
                                 <div class="text-xs font-bold uppercase tracking-wide text-granger-black opacity-70">Guest Child</div>
                                 <div class="mt-auto">
-                                    <div class="text-xl font-bold text-granger-black">423</div>
+                                    <div class="text-lg font-bold text-granger-black">423</div>
                                     <div class="text-xs text-granger-black opacity-60">2.1%</div>
                                 </div>
                             </div>
                             <div class="p-3 rounded flex flex-col h-24" style="background-color: #4ade80;">
                                 <div class="text-xs font-bold uppercase tracking-wide text-granger-black opacity-70">Company</div>
                                 <div class="mt-auto">
-                                    <div class="text-xl font-bold text-granger-black">129</div>
+                                    <div class="text-lg font-bold text-granger-black">129</div>
                                     <div class="text-xs text-granger-black opacity-60">0.6%</div>
                                 </div>
                             </div>
@@ -1593,7 +1552,7 @@
 
     <!-- Circle Detail Modal -->
     <div id="circleModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target === this) closeCircleModal()">
-        <div class="bg-white max-w-lg w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+        <div class="bg-white max-w-4xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeCircleModal()" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition z-10">
                 <i data-lucide="x" class="w-6 h-6"></i>
             </button>
@@ -1601,15 +1560,40 @@
             <div class="p-8">
                 <!-- Modal Header -->
                 <div class="mb-8">
-                    <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Circle Details</div>
+                    <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Circle Overview</div>
                     <h2 id="modalTitle" class="text-3xl font-bold text-granger-black uppercase tracking-tight">Committed</h2>
                     <p id="modalDescription" class="text-gray-500 mt-1">People maturing in their faith through prayer, giving, and training</p>
                 </div>
 
-                <!-- Engagement Donut Chart -->
-                <div class="flex justify-center">
-                    <div style="width: 300px; height: 300px;">
-                        <canvas id="engagementChart"></canvas>
+                <!-- Chart -->
+                <div class="mt-4">
+                    <div style="height: 250px;">
+                        <canvas id="modalInCircleChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Stats Row -->
+                <div class="flex justify-center gap-20 mt-6">
+                    <div class="p-4 text-center">
+                        <div id="modalTotal" class="text-2xl font-bold text-granger-black">11,231</div>
+                        <div class="flex items-center justify-center gap-1.5 mt-1">
+                            <i data-lucide="users" class="w-3.5 h-3.5 text-gray-400 shrink-0" style="margin-top: -1px;"></i>
+                            <span class="text-xs text-gray-500 uppercase tracking-wide leading-none">Total</span>
+                        </div>
+                    </div>
+                    <div class="p-4 text-center">
+                        <div id="modalNew" class="text-2xl font-bold text-green-600">+18</div>
+                        <div class="flex items-center justify-center gap-1.5 mt-1">
+                            <i data-lucide="user-plus" class="w-3.5 h-3.5 text-gray-400 shrink-0" style="margin-top: -1px;"></i>
+                            <span class="text-xs text-gray-500 uppercase tracking-wide leading-none">New</span>
+                        </div>
+                    </div>
+                    <div class="p-4 text-center">
+                        <div id="modalChange" class="text-2xl font-bold text-green-600">+0.2%</div>
+                        <div class="flex items-center justify-center gap-1.5 mt-1">
+                            <i data-lucide="trending-up" class="w-3.5 h-3.5 text-gray-400 shrink-0" style="margin-top: -1px;"></i>
+                            <span class="text-xs text-gray-500 uppercase tracking-wide leading-none">Change</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1690,9 +1674,13 @@
                 title: 'Community',
                 description: 'The unchurched in the immediate area - your starting point and hottest prospects',
                 total: '6,274',
+                newThisMonth: '1,020',
+                change: '+19.4%',
                 engaged: '1,254',
                 partial: '2,891',
                 lapsing: '2,129',
+                color: '#a5d6a7',
+                history: [5254, 5359, 5460, 5564, 5804, 5991, 6050, 6120, 6180, 6220, 6250, 6274],
                 milestones: [
                     { icon: 'users', name: 'Joined Crowd', count: '59,758' },
                     { icon: 'calendar', name: 'Participant Start Date', count: '134,678' }
@@ -1708,9 +1696,13 @@
                 title: 'Crowd',
                 description: 'Everyone who shows up - regular service attendees',
                 total: '1,344',
+                newThisMonth: '87',
+                change: '+6.9%',
                 engaged: '412',
                 partial: '623',
                 lapsing: '309',
+                color: '#81c784',
+                history: [1150, 1180, 1210, 1250, 1280, 1300, 1320, 1340, 1350, 1355, 1348, 1344],
                 milestones: [
                     { icon: 'users', name: 'First Life Group', count: '5,767' },
                     { icon: 'user-check', name: 'First Time Guest', count: '2,002' },
@@ -1729,9 +1721,13 @@
                 title: 'Congregation',
                 description: 'Official members of the church with a sense of ownership',
                 total: '520',
+                newThisMonth: '72',
+                change: '-0.6%',
                 engaged: '187',
                 partial: '214',
                 lapsing: '119',
+                color: '#66bb6a',
+                history: [480, 490, 495, 500, 508, 512, 515, 518, 520, 522, 523, 520],
                 milestones: [
                     { icon: 'droplet', name: 'Baptism', count: '8,940' },
                     { icon: 'heart', name: 'I Am Committed', count: '2,707' },
@@ -1751,9 +1747,13 @@
                 title: 'Committed',
                 description: 'People who pray, give, and are dedicated to growing in discipleship',
                 total: '11,231',
+                newThisMonth: '18',
+                change: '+0.2%',
                 engaged: '2,847',
                 partial: '5,123',
                 lapsing: '3,261',
+                color: '#4caf50',
+                history: [10850, 10920, 10980, 11020, 11080, 11120, 11150, 11180, 11200, 11215, 11225, 11231],
                 milestones: [
                     { icon: 'flag', name: 'Joined Committed', count: '50,044' },
                     { icon: 'hand-helping', name: 'Began Serving', count: '50,036' },
@@ -1771,9 +1771,13 @@
                 title: 'Core',
                 description: 'Ministers and leaders - without these people the church would come to a standstill',
                 total: '826',
+                newThisMonth: '27',
+                change: '+3.4%',
                 engaged: '624',
                 partial: '156',
                 lapsing: '46',
+                color: '#AAD43C',
+                history: [760, 772, 780, 788, 795, 800, 806, 812, 818, 822, 824, 826],
                 milestones: [
                     { icon: 'flag', name: 'Joined Core', count: '1,136' },
                     { icon: 'megaphone', name: 'Began Leading', count: '866' },
@@ -1795,75 +1799,113 @@
             document.getElementById('modalTitle').textContent = data.title;
             document.getElementById('modalDescription').textContent = data.description;
 
+            // Update stats
+            document.getElementById('modalTotal').textContent = data.total;
+            document.getElementById('modalNew').textContent = '+' + data.newThisMonth;
+            document.getElementById('modalChange').textContent = data.change;
+            // Set color for change indicator
+            const changeEl = document.getElementById('modalChange');
+            if (data.change.startsWith('-')) {
+                changeEl.classList.remove('text-green-600');
+                changeEl.classList.add('text-red-600');
+            } else {
+                changeEl.classList.remove('text-red-600');
+                changeEl.classList.add('text-green-600');
+            }
+
             document.getElementById('circleModal').classList.remove('hidden');
-
-            // Parse engagement numbers
-            const engagedNum = parseInt(data.engaged.replace(/,/g, ''));
-            const partialNum = parseInt(data.partial.replace(/,/g, ''));
-            const lapsingNum = parseInt(data.lapsing.replace(/,/g, ''));
-
-            // Store values for closure
-            const chartData = {
-                engaged: data.engaged,
-                partial: data.partial,
-                lapsing: data.lapsing,
-                engagedNum: engagedNum,
-                partialNum: partialNum,
-                lapsingNum: lapsingNum
-            };
 
             // Use setTimeout to ensure DOM has painted
             setTimeout(function() {
                 try {
-                    if (window.engagementChart && typeof window.engagementChart.destroy === 'function') {
-                        window.engagementChart.destroy();
+                    if (window.modalChart && typeof window.modalChart.destroy === 'function') {
+                        window.modalChart.destroy();
                     }
-                    window.engagementChart = null;
+                    window.modalChart = null;
 
-                    const canvas = document.getElementById('engagementChart');
+                    const canvas = document.getElementById('modalInCircleChart');
                     if (!canvas) {
                         console.error('Canvas not found');
                         return;
                     }
 
-                    console.log('Creating chart with data:', chartData);
-
-                    window.engagementChart = new Chart(canvas, {
-                        type: 'doughnut',
+                    window.modalChart = new Chart(canvas, {
+                        type: 'line',
                         data: {
-                            labels: [
-                                'Fully Engaged (' + chartData.engaged + ')',
-                                'Partially Engaged (' + chartData.partial + ')',
-                                'Lapsing (' + chartData.lapsing + ')'
-                            ],
+                            labels: ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
                             datasets: [{
-                                data: [chartData.engagedNum, chartData.partialNum, chartData.lapsingNum],
-                                backgroundColor: ['#AAD43C', '#eab308', '#ef4444'],
-                                borderColor: ['#ffffff', '#ffffff', '#ffffff'],
-                                borderWidth: 2
+                                label: data.title,
+                                data: data.history,
+                                borderColor: data.color,
+                                backgroundColor: data.color + '20',
+                                borderWidth: 3,
+                                tension: 0.4,
+                                fill: true,
+                                pointBackgroundColor: data.color,
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2,
+                                pointRadius: 5,
+                                pointHoverRadius: 7
                             }]
                         },
                         options: {
                             responsive: true,
-                            maintainAspectRatio: true,
-                            cutout: '50%',
+                            maintainAspectRatio: false,
                             plugins: {
                                 legend: {
-                                    position: 'bottom',
-                                    labels: {
-                                        usePointStyle: true,
-                                        padding: 20,
+                                    display: false
+                                },
+                                tooltip: {
+                                    backgroundColor: '#1a1a1a',
+                                    titleFont: {
+                                        family: 'Poppins',
+                                        size: 12,
+                                        weight: '600'
+                                    },
+                                    bodyFont: {
+                                        family: 'Poppins',
+                                        size: 14,
+                                        weight: 'bold'
+                                    },
+                                    padding: 12,
+                                    cornerRadius: 8,
+                                    callbacks: {
+                                        label: function(context) {
+                                            return context.parsed.y.toLocaleString() + ' people';
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: false,
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.05)'
+                                    },
+                                    ticks: {
                                         font: {
                                             family: 'Poppins',
-                                            size: 13,
-                                            weight: '600'
+                                            size: 11
+                                        },
+                                        callback: function(value) {
+                                            return value.toLocaleString();
+                                        }
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        font: {
+                                            family: 'Poppins',
+                                            size: 11
                                         }
                                     }
                                 }
                             }
                         }
                     });
-                    console.log('Chart created successfully');
                 } catch (e) {
                     console.error('Chart error:', e);
                 }
