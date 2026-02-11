@@ -43,6 +43,8 @@ import {
   Trash2,
   Save,
   ExternalLink,
+  Upload,
+  ImageIcon,
   type LucideIcon,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -319,6 +321,8 @@ export default function ProjectDetailPage({
   const [isSavingColors, setIsSavingColors] = useState(false);
   const [isEditingImages, setIsEditingImages] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [editingCampusImage, setEditingCampusImage] = useState<number | null>(null); // Congregation_ID of campus being edited
+  const [isUploadingCampusImage, setIsUploadingCampusImage] = useState(false);
 
   // Campus editing states
   const [editingMeetingInstructions, setEditingMeetingInstructions] = useState<number | null>(null); // Event_ID being edited
@@ -341,6 +345,7 @@ export default function ProjectDetailPage({
     config: { title: string; bullets: Array<{ icon: string; text: string }> };
   } | null>(null);
   const [isSavingConfirmationCard, setIsSavingConfirmationCard] = useState(false);
+  const [isAddingConfirmationCard, setIsAddingConfirmationCard] = useState(false);
 
   // Carousel Dialog State
   const [carouselDialogOpen, setCarouselDialogOpen] = useState(false);
@@ -794,6 +799,96 @@ export default function ProjectDetailPage({
     }
   };
 
+  // Handler for uploading campus image
+  const handleCampusImageUpload = async (file: File, eventId: number, congregationId: number) => {
+    if (!project) return;
+
+    setIsUploadingCampusImage(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("fileName", "Campus_Image.jpg");
+
+      const response = await fetch(`/api/rsvp/events/${eventId}/files`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to upload campus image");
+      }
+
+      // Reload the project to get the updated image URLs
+      const projectResponse = await fetch(`/api/rsvp/projects/details/${project.RSVP_Slug || project.Project_ID}`);
+      if (!projectResponse.ok) {
+        throw new Error("Failed to reload project");
+      }
+
+      const data = await projectResponse.json();
+      setProject(data.Project);
+      setCampuses(data.Campuses);
+      setEditingCampusImage(null);
+
+      alert("Campus image uploaded successfully!");
+    } catch (error) {
+      console.error("Error uploading campus image:", error);
+      alert("Failed to upload campus image. Please try again.");
+    } finally {
+      setIsUploadingCampusImage(false);
+    }
+  };
+
+  // Handler for deleting campus image
+  const handleCampusImageDelete = async (eventId: number, congregationId: number) => {
+    if (!project) return;
+    if (!confirm("Are you sure you want to delete the campus image?")) return;
+
+    setIsUploadingCampusImage(true);
+
+    try {
+      // Get files to find the Campus_Image.jpg fileId
+      const filesResponse = await fetch(`/api/rsvp/events/${eventId}/files`);
+      if (!filesResponse.ok) {
+        throw new Error("Failed to fetch event files");
+      }
+
+      const files = await filesResponse.json();
+      const fileToDelete = files.find((f: any) => f.FileName === "Campus_Image.jpg");
+
+      if (!fileToDelete) {
+        alert("Campus image file not found");
+        return;
+      }
+
+      const deleteResponse = await fetch(`/api/rsvp/events/${eventId}/files?fileId=${fileToDelete.FileId}`, {
+        method: "DELETE",
+      });
+
+      if (!deleteResponse.ok) {
+        throw new Error("Failed to delete campus image");
+      }
+
+      // Reload the project to get the updated image URLs
+      const projectResponse = await fetch(`/api/rsvp/projects/details/${project.RSVP_Slug || project.Project_ID}`);
+      if (!projectResponse.ok) {
+        throw new Error("Failed to reload project");
+      }
+
+      const data = await projectResponse.json();
+      setProject(data.Project);
+      setCampuses(data.Campuses);
+      setEditingCampusImage(null);
+
+      alert("Campus image deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting campus image:", error);
+      alert("Failed to delete campus image. Please try again.");
+    } finally {
+      setIsUploadingCampusImage(false);
+    }
+  };
+
   // Handler for saving meeting instructions
   const handleSaveMeetingInstructions = async () => {
     if (!editingMeetingInstructions) return;
@@ -910,6 +1005,56 @@ export default function ProjectDetailPage({
       alert("Failed to update confirmation card. Please try again.");
     } finally {
       setIsSavingConfirmationCard(false);
+    }
+  };
+
+  // Handler for adding a new confirmation card
+  const handleAddConfirmationCard = async (congregationId: number) => {
+    if (!project) return;
+
+    setIsAddingConfirmationCard(true);
+
+    try {
+      const response = await fetch("/api/rsvp/confirmation-cards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: project.Project_ID,
+          congregationId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create confirmation card");
+      }
+
+      const { cardId } = await response.json();
+
+      // Reload project data
+      const projectResponse = await fetch(`/api/rsvp/projects/details/${project.RSVP_Slug || project.Project_ID}`);
+      if (!projectResponse.ok) {
+        throw new Error("Failed to reload project");
+      }
+
+      const data = await projectResponse.json();
+      setProject(data.Project);
+      setCampuses(data.Campuses);
+
+      // Open the edit modal on the new card
+      if (cardId) {
+        setEditingConfirmationCard({
+          cardId,
+          config: {
+            title: "What to Expect",
+            bullets: [],
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Error creating confirmation card:", error);
+      alert("Failed to create confirmation card. Please try again.");
+    } finally {
+      setIsAddingConfirmationCard(false);
     }
   };
 
@@ -1898,7 +2043,6 @@ export default function ProjectDetailPage({
           )}
 
           {/* Images Card */}
-          {(project.RSVP_Image_URL || project.RSVP_BG_Image_URL || isEditingImages) && (
             <div className="bg-card border border-border rounded-lg p-6">
               <div className="flex justify-between items-start mb-6">
                 <h2 className="text-xl font-semibold text-foreground">Images</h2>
@@ -2002,7 +2146,6 @@ export default function ProjectDetailPage({
                 </div>
               )}
             </div>
-          )}
         </div>
       )}
 
@@ -2066,15 +2209,96 @@ export default function ProjectDetailPage({
                 {campus.Public_Event_ID ? (
                   <div className={`bg-card border border-border rounded-lg overflow-hidden max-w-md relative mb-6 ${isChurchWide ? 'mt-4' : ''}`}>
                     {/* Public Event Image */}
-                    {campus.Public_Event_Image_URL && (
-                      <div className="w-full bg-muted">
+                    {campus.Public_Event_Image_URL ? (
+                      <div className="w-full bg-muted relative group">
                         <img
                           src={campus.Public_Event_Image_URL}
                           alt="Additional Meeting Information"
                           className="w-full h-auto"
                         />
+                        {permissions.canEdit && editingCampusImage !== campus.Congregation_ID && (
+                          <button
+                            className="absolute top-2 right-2 p-1.5 bg-black/50 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                            onClick={() => setEditingCampusImage(campus.Congregation_ID)}
+                            title="Edit campus image"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                        )}
+                        {editingCampusImage === campus.Congregation_ID && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-3">
+                            <label className="px-3 py-2 bg-[#61bc47] text-white rounded-md hover:bg-[#51a839] transition-colors text-sm font-medium cursor-pointer flex items-center gap-1.5">
+                              <Upload className="w-4 h-4" />
+                              Replace
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file && campus.Public_Event_ID) {
+                                    handleCampusImageUpload(file, campus.Public_Event_ID, campus.Congregation_ID);
+                                  }
+                                }}
+                                disabled={isUploadingCampusImage}
+                              />
+                            </label>
+                            <button
+                              onClick={() => {
+                                if (campus.Public_Event_ID) {
+                                  handleCampusImageDelete(campus.Public_Event_ID, campus.Congregation_ID);
+                                }
+                              }}
+                              className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium flex items-center gap-1.5"
+                              disabled={isUploadingCampusImage}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Delete
+                            </button>
+                            <button
+                              onClick={() => setEditingCampusImage(null)}
+                              className="px-3 py-2 bg-white/20 text-white rounded-md hover:bg-white/30 transition-colors text-sm font-medium"
+                              disabled={isUploadingCampusImage}
+                            >
+                              Cancel
+                            </button>
+                            {isUploadingCampusImage && (
+                              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                <span className="text-white text-sm">Processing...</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    )}
+                    ) : permissions.canEdit ? (
+                      <div className="w-full bg-muted border-b border-border">
+                        <label className="flex flex-col items-center justify-center py-8 cursor-pointer hover:bg-muted/80 transition-colors">
+                          <ImageIcon className="w-8 h-8 text-muted-foreground mb-2" />
+                          <span className="text-sm text-muted-foreground mb-1">No campus image</span>
+                          <span className="text-xs text-[#61bc47] font-medium flex items-center gap-1">
+                            <Upload className="w-3 h-3" />
+                            Click to upload
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file && campus.Public_Event_ID) {
+                                handleCampusImageUpload(file, campus.Public_Event_ID, campus.Congregation_ID);
+                              }
+                            }}
+                            disabled={isUploadingCampusImage}
+                          />
+                        </label>
+                        {isUploadingCampusImage && editingCampusImage === null && (
+                          <div className="px-4 pb-3 text-center">
+                            <span className="text-xs text-muted-foreground">Uploading...</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
 
                     {/* Public Event Text Content */}
                     <div className="p-4">
@@ -2586,15 +2810,28 @@ export default function ProjectDetailPage({
                 </div>
 
                 {/* Confirmation Cards for this campus */}
-                {campus.Confirmation_Cards && campus.Confirmation_Cards.length > 0 && (
-                  <div className="mt-8">
-                    {/* Confirmation Cards Heading */}
-                    <div className="flex items-center gap-2 mb-6">
+                <div className="mt-8">
+                  {/* Confirmation Cards Heading */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-2">
                       <CheckCircle2 className="w-5 h-5 text-[#61bc47]" />
                       <h4 className="text-lg font-semibold text-foreground">
                         Confirmation Cards
                       </h4>
                     </div>
+                    {permissions.canEdit && (
+                      <button
+                        className="px-3 py-1.5 text-sm border border-border rounded-md text-foreground hover:bg-muted transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => handleAddConfirmationCard(campus.Congregation_ID)}
+                        disabled={isAddingConfirmationCard}
+                      >
+                        <Plus className="w-4 h-4" />
+                        {isAddingConfirmationCard ? "Adding..." : "Add Confirmation Card"}
+                      </button>
+                    )}
+                  </div>
+
+                  {campus.Confirmation_Cards && campus.Confirmation_Cards.length > 0 ? (
                     <div className="flex flex-wrap gap-6">
                       {campus.Confirmation_Cards.map((card) => {
                           // Parse configuration JSON if it exists
@@ -2669,9 +2906,15 @@ export default function ProjectDetailPage({
                             </div>
                           );
                         })}
-                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-card border border-dashed border-border rounded-lg p-8 text-center">
+                      <p className="text-muted-foreground text-sm">
+                        No confirmation cards yet. Click &quot;Add Confirmation Card&quot; above to create one.
+                      </p>
                     </div>
                   )}
+                </div>
               </div>
             ))}
           </div>
