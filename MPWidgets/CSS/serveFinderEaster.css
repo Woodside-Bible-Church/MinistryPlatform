@@ -24,7 +24,8 @@
   --footer-fg: currentColor;
 }
 
-.mppw-form-wrapper {
+.mppw-form-wrapper,
+.mpp-card--header {
   display: none !important;
 }
 
