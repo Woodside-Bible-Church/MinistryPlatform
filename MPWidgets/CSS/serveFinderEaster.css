@@ -24,6 +24,10 @@
   --footer-fg: currentColor;
 }
 
+.mppw-form-wrapper {
+  display: none !important;
+}
+
 :host([hide-title]) .mppw-form-wrapper > h1:nth-child(1) {
   display: none !important;
 }
