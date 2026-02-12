@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circles of Commitment - The Hub | Granger Community Church</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'granger-green': '#AAD43C',
+                        'granger-green-alt': '#90c23e',
+                        'granger-black': '#252525',
+                        'granger-dark': '#1a1a1a',
+                    },
+                    fontFamily: {
+                        'poppins': ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Concentric circles visualization */
+        .circles-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+        }
+
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .circle:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(170, 212, 60, 0.3);
+        }
+
+        .circle-community {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border: 3px dashed #AAD43C;
+            top: 0;
+            left: 0;
+        }
+
+        .circle-crowd {
+            width: 320px;
+            height: 320px;
+            background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+            border: 3px solid #AAD43C;
+            top: 40px;
+            left: 40px;
+        }
+
+        .circle-congregation {
+            width: 240px;
+            height: 240px;
+            background: linear-gradient(135deg, #a5d6a7 0%, #81c784 100%);
+            border: 3px solid #90c23e;
+            top: 80px;
+            left: 80px;
+        }
+
+        .circle-committed {
+            width: 160px;
+            height: 160px;
+            background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%);
+            border: 3px solid #90c23e;
+            top: 120px;
+            left: 120px;
+        }
+
+        .circle-core {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #AAD43C 0%, #90c23e 100%);
+            border: 3px solid #252525;
+            top: 160px;
+            left: 160px;
+        }
+
+        .circle-label {
+            position: absolute;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 10px;
+            color: #252525;
+            white-space: nowrap;
+        }
+
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+        }
+
+        .trend-up {
+            color: #AAD43C;
+        }
+
+        .trend-down {
+            color: #ef4444;
+        }
+
+        .sidebar-link {
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-link:hover {
+            background-color: rgba(170, 212, 60, 0.1);
+        }
+
+        .sidebar-link.active {
+            background-color: rgba(170, 212, 60, 0.2);
+            border-left: 3px solid #AAD43C;
+        }
+
+        </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Top Navigation -->
+    <nav class="bg-granger-black text-white">
+        <div class="flex items-center h-16">
+            <!-- Logo & Title - matches sidebar width -->
+            <div class="w-64 flex-shrink-0 px-4">
+                <div class="flex items-center gap-3">
+                    <img src="grangerLogo.svg" alt="Granger" class="w-10 h-10 invert">
+                    <div>
+                        <div class="text-sm font-bold uppercase tracking-wider">THE HUB</div>
+                        <div class="text-xs text-gray-400 uppercase tracking-wide">Granger Community Church</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main header content - matches main content area -->
+            <div class="flex-1 flex items-center justify-between px-8">
+                <!-- Spacer to balance -->
+                <div class="w-48"></div>
+
+                <!-- Search (centered) -->
+                <div class="flex-1 max-w-md mx-auto">
+                    <div class="relative">
+                        <input type="text" placeholder="Search..." class="w-full bg-neutral-700 text-white px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-500 placeholder-neutral-400">
+                        <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                    </div>
+                </div>
+
+                <!-- User Menu -->
+                <div class="flex items-center gap-4">
+                    <button class="relative p-2 hover:bg-gray-800 transition">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-granger-green rounded-full"></span>
+                    </button>
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-granger-green rounded-full flex items-center justify-center">
+                            <span class="text-granger-black font-bold text-sm">JD</span>
+                        </div>
+                        <div class="text-sm">
+                            <div class="font-semibold">John Doe</div>
+                            <div class="text-xs text-gray-400">Staff</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white min-h-[calc(100vh-64px)] border-r border-gray-200">
+            <div class="p-4">
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-3">DASHBOARDS</div>
+                <nav class="space-y-1">
+                    <a href="#" class="sidebar-link active flex items-center gap-3 px-3 py-2 text-sm font-medium text-granger-black">
+                        <i data-lucide="target" class="w-4 h-4"></i>
+                        Circles of Commitment
+                    </a>
+                </nav>
+
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-3 mt-8">APPS</div>
+                <nav class="space-y-1">
+                    <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600">
+                        <i data-lucide="wallet" class="w-4 h-4"></i>
+                        Budgets
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600">
+                        <i data-lucide="x-circle" class="w-4 h-4"></i>
+                        Cancellations
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600">
+                        <i data-lucide="tally-5" class="w-4 h-4"></i>
+                        Counter
+                    </a>
+                </nav>
+
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-3 mt-8">TOOLS</div>
+                <nav class="space-y-1">
+                    <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600">
+                        <i data-lucide="mail" class="w-4 h-4"></i>
+                        Communications
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600">
+                        <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+                        Reports
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600">
+                        <i data-lucide="settings" class="w-4 h-4"></i>
+                        Settings
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8">
+            <!-- Page Header -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-granger-black uppercase tracking-tight">Circles of Commitment</h1>
+                        <p class="text-gray-500 mt-1">Track engagement levels across your congregation</p>
+                    </div>
+                    <div class="flex items-end gap-3">
+                                                <button class="bg-granger-black text-white px-4 py-2 font-bold uppercase text-sm tracking-wide hover:bg-neutral-700 transition flex items-center gap-2">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                            Sync
+                        </button>
+                        <button class="bg-granger-green text-granger-black px-6 py-2 font-bold uppercase text-sm tracking-wide hover:bg-granger-green-alt transition">
+                            Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="grid grid-cols-3 gap-6 items-stretch">
+                <!-- Circles Visualization -->
+                <div class="bg-white p-6 shadow-sm h-full">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">Overview</h2>
+                        <button class="text-gray-400 hover:text-granger-black transition">
+                            <i data-lucide="maximize-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex justify-center">
+                        <div class="circles-container">
+                            <div class="circle circle-community" data-level="community" onclick="openCircleModal('community')">
+                                <span class="circle-label" style="top: 10px; left: 50%; transform: translateX(-50%);">Community</span>
+                            </div>
+                            <div class="circle circle-crowd" data-level="crowd" onclick="openCircleModal('crowd')">
+                                <span class="circle-label" style="top: 10px; left: 50%; transform: translateX(-50%);">Crowd</span>
+                            </div>
+                            <div class="circle circle-congregation" data-level="congregation" onclick="openCircleModal('congregation')">
+                                <span class="circle-label" style="top: 10px; left: 50%; transform: translateX(-50%);">Congregation</span>
+                            </div>
+                            <div class="circle circle-committed" data-level="committed" onclick="openCircleModal('committed')">
+                                <span class="circle-label" style="top: 10px; left: 50%; transform: translateX(-50%);">Committed</span>
+                            </div>
+                            <div class="circle circle-core" data-level="core" onclick="openCircleModal('core')">
+                                <span class="circle-label" style="top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 9px;">Core</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Legend with counts -->
+                    <div class="mt-6 pt-6 border-t border-gray-100">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-3 p-2 -mx-2 rounded cursor-pointer hover:bg-gray-50 transition" onclick="openCircleModal('community')">
+                                <div class="w-8 h-8 rounded-full flex-shrink-0 bg-granger-green flex items-center justify-center">
+                                    <i data-lucide="globe" class="w-4 h-4 text-granger-black"></i>
+                                </div>
+                                <span class="font-semibold text-sm text-granger-black flex-1">Community</span>
+                                <span class="text-lg font-bold text-granger-black">6,274</span>
+                                <span class="text-xs font-semibold trend-up w-12 text-right">+19.4%</span>
+                            </div>
+                            <div class="flex items-center gap-3 p-2 -mx-2 rounded cursor-pointer hover:bg-gray-50 transition" onclick="openCircleModal('crowd')">
+                                <div class="w-8 h-8 rounded-full flex-shrink-0 bg-granger-green flex items-center justify-center">
+                                    <i data-lucide="users" class="w-4 h-4 text-granger-black"></i>
+                                </div>
+                                <span class="font-semibold text-sm text-granger-black flex-1">Crowd</span>
+                                <span class="text-lg font-bold text-granger-black">1,344</span>
+                                <span class="text-xs font-semibold trend-up w-12 text-right">+6.9%</span>
+                            </div>
+                            <div class="flex items-center gap-3 p-2 -mx-2 rounded cursor-pointer hover:bg-gray-50 transition" onclick="openCircleModal('congregation')">
+                                <div class="w-8 h-8 rounded-full flex-shrink-0 bg-granger-green flex items-center justify-center">
+                                    <i data-lucide="church" class="w-4 h-4 text-granger-black"></i>
+                                </div>
+                                <span class="font-semibold text-sm text-granger-black flex-1">Congregation</span>
+                                <span class="text-lg font-bold text-granger-black">520</span>
+                                <span class="text-xs font-semibold trend-down w-12 text-right">-0.6%</span>
+                            </div>
+                            <div class="flex items-center gap-3 p-2 -mx-2 rounded cursor-pointer hover:bg-gray-50 transition" onclick="openCircleModal('committed')">
+                                <div class="w-8 h-8 rounded-full flex-shrink-0 bg-granger-green flex items-center justify-center">
+                                    <i data-lucide="heart-handshake" class="w-4 h-4 text-granger-black"></i>
+                                </div>
+                                <span class="font-semibold text-sm text-granger-black flex-1">Committed</span>
+                                <span class="text-lg font-bold text-granger-black">11,231</span>
+                                <span class="text-xs font-semibold trend-up w-12 text-right">+0.2%</span>
+                            </div>
+                            <div class="flex items-center gap-3 p-2 -mx-2 rounded cursor-pointer hover:bg-gray-50 transition" onclick="openCircleModal('core')">
+                                <div class="w-8 h-8 rounded-full flex-shrink-0 bg-granger-green flex items-center justify-center">
+                                    <i data-lucide="star" class="w-4 h-4 text-granger-black"></i>
+                                </div>
+                                <span class="font-semibold text-sm text-granger-black flex-1">Core</span>
+                                <span class="text-lg font-bold text-granger-black">826</span>
+                                <span class="text-xs font-semibold trend-up w-12 text-right">+3.4%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Trends Chart -->
+                <div class="bg-white p-6 shadow-sm col-span-2 flex flex-col h-full">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">Movement</h2>
+                        <div class="flex items-center gap-2">
+                            <button class="px-3 py-1 text-xs font-semibold uppercase tracking-wide bg-granger-green text-granger-black">YTD</button>
+                            <button class="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-400 hover:bg-gray-100 transition">6M</button>
+                            <button class="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-400 hover:bg-gray-100 transition">12M</button>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-h-0">
+                        <canvas id="trendsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Section -->
+            <div class="grid grid-cols-2 gap-6 mt-6">
+                <!-- New Joins This Month -->
+                <div class="bg-white p-6 shadow-sm">
+                    <div class="mb-6">
+                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">New Joins</h2>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-100">
+                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Circle</th>
+                                    <th class="text-right py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Count</th>
+                                    <th class="text-right py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Change</th>
+                                    <th class="text-right py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Trend</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-gray-50">
+                                    <td class="py-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-2 h-2 rounded-full" style="background-color: #e8f5e9; border: 1px dashed #AAD43C;"></div>
+                                            <span class="font-semibold text-granger-black">Community</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-right font-bold text-granger-black">1,020</td>
+                                    <td class="py-3 text-right">
+                                        <span class="text-sm font-semibold trend-up">+19.4%</span>
+                                    </td>
+                                    <td class="py-3 text-right">
+                                        <i data-lucide="trending-up" class="w-4 h-4 trend-up inline"></i>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-50">
+                                    <td class="py-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-2 h-2 rounded-full" style="background-color: #c8e6c9;"></div>
+                                            <span class="font-semibold text-granger-black">Crowd</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-right font-bold text-granger-black">87</td>
+                                    <td class="py-3 text-right">
+                                        <span class="text-sm font-semibold trend-up">+6.9%</span>
+                                    </td>
+                                    <td class="py-3 text-right">
+                                        <i data-lucide="trending-up" class="w-4 h-4 trend-up inline"></i>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-50">
+                                    <td class="py-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-2 h-2 rounded-full" style="background-color: #a5d6a7;"></div>
+                                            <span class="font-semibold text-granger-black">Congregation</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-right font-bold text-granger-black">72</td>
+                                    <td class="py-3 text-right">
+                                        <span class="text-sm font-semibold trend-up">+15.9%</span>
+                                    </td>
+                                    <td class="py-3 text-right">
+                                        <i data-lucide="trending-up" class="w-4 h-4 trend-up inline"></i>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-50">
+                                    <td class="py-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-2 h-2 rounded-full" style="background-color: #81c784;"></div>
+                                            <span class="font-semibold text-granger-black">Committed</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-right font-bold text-granger-black">18</td>
+                                    <td class="py-3 text-right">
+                                        <span class="text-sm font-semibold trend-up">+0.2%</span>
+                                    </td>
+                                    <td class="py-3 text-right">
+                                        <i data-lucide="trending-up" class="w-4 h-4 trend-up inline"></i>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-2 h-2 rounded-full bg-granger-green"></div>
+                                            <span class="font-semibold text-granger-black">Core</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-right font-bold text-granger-black">27</td>
+                                    <td class="py-3 text-right">
+                                        <span class="text-sm font-semibold trend-up">+3.4%</span>
+                                    </td>
+                                    <td class="py-3 text-right">
+                                        <i data-lucide="trending-up" class="w-4 h-4 trend-up inline"></i>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    </div>
+
+                <!-- Movement Flow -->
+                <div class="bg-white p-6 shadow-sm">
+                    <div class="mb-6">
+                        <h2 class="text-lg font-bold text-granger-black uppercase tracking-tight">Flow</h2>
+                    </div>
+
+                    <!-- Conversion Funnel -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-24 text-xs font-semibold text-gray-500 uppercase tracking-wide">Community</div>
+                            <div class="flex-1 h-8 bg-gray-100 relative">
+                                <div class="h-full bg-gradient-to-r from-green-100 to-green-200" style="width: 55.8%;"></div>
+                                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-granger-black">6,274</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <div class="flex items-center gap-2 text-xs text-gray-400">
+                                <i data-lucide="arrow-down" class="w-4 h-4"></i>
+                                <span class="font-semibold">21.4% conversion</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-24 text-xs font-semibold text-gray-500 uppercase tracking-wide">Crowd</div>
+                            <div class="flex-1 h-8 bg-gray-100 relative">
+                                <div class="h-full bg-gradient-to-r from-green-200 to-green-300" style="width: 12%;"></div>
+                                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-granger-black">1,344</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <div class="flex items-center gap-2 text-xs text-gray-400">
+                                <i data-lucide="arrow-down" class="w-4 h-4"></i>
+                                <span class="font-semibold">38.7% conversion</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-24 text-xs font-semibold text-gray-500 uppercase tracking-wide">Congregation</div>
+                            <div class="flex-1 h-8 bg-gray-100 relative">
+                                <div class="h-full bg-gradient-to-r from-green-300 to-green-400" style="width: 4.6%;"></div>
+                                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-granger-black">520</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <div class="flex items-center gap-2 text-xs text-gray-400">
+                                <i data-lucide="arrow-down" class="w-4 h-4"></i>
+                                <span class="font-semibold">2159.8%</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-24 text-xs font-semibold text-gray-500 uppercase tracking-wide">Committed</div>
+                            <div class="flex-1 h-8 bg-gray-100 relative">
+                                <div class="h-full bg-gradient-to-r from-green-400 to-green-500" style="width: 100%;"></div>
+                                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-white">11,231</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <div class="flex items-center gap-2 text-xs text-gray-400">
+                                <i data-lucide="arrow-down" class="w-4 h-4"></i>
+                                <span class="font-semibold">7.4% conversion</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-24 text-xs font-semibold text-gray-500 uppercase tracking-wide">Core</div>
+                            <div class="flex-1 h-8 bg-gray-100 relative">
+                                <div class="h-full bg-granger-green" style="width: 7.4%;"></div>
+                                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-granger-black">826</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Circle Detail Modal -->
+    <div id="circleModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target === this) closeCircleModal()">
+        <div class="bg-white max-w-4xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeCircleModal()" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition z-10">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+
+            <div class="p-8">
+                <!-- Modal Header -->
+                <div class="mb-8">
+                    <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Circle Details</div>
+                    <h2 id="modalTitle" class="text-3xl font-bold text-granger-black uppercase tracking-tight">Committed</h2>
+                    <p id="modalDescription" class="text-gray-500 mt-1">People maturing in their faith through prayer, giving, and training</p>
+                </div>
+
+                <!-- Stats Row -->
+                <div class="grid grid-cols-4 gap-4 mb-8">
+                    <div class="bg-gray-50 p-4">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total</div>
+                        <div id="modalTotal" class="text-2xl font-bold text-granger-black">11,231</div>
+                    </div>
+                    <div class="bg-gray-50 p-4">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Fully Engaged</div>
+                        <div id="modalEngaged" class="text-2xl font-bold text-granger-green">2,847</div>
+                    </div>
+                    <div class="bg-gray-50 p-4">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Partially Engaged</div>
+                        <div id="modalPartial" class="text-2xl font-bold text-yellow-500">5,123</div>
+                    </div>
+                    <div class="bg-gray-50 p-4">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Lapsing</div>
+                        <div id="modalLapsing" class="text-2xl font-bold text-red-500">3,261</div>
+                    </div>
+                </div>
+
+                <!-- Two Column Layout -->
+                <div class="grid grid-cols-2 gap-8">
+                    <!-- Milestones that add to this circle -->
+                    <div>
+                        <div class="text-sm font-bold text-granger-black uppercase tracking-wide mb-4">Entry Milestones</div>
+                        <div id="modalMilestones" class="space-y-3">
+                            <div class="flex items-center justify-between p-3 bg-gray-50">
+                                <div class="flex items-center gap-3">
+                                    <i data-lucide="flag" class="w-4 h-4 text-granger-green"></i>
+                                    <span class="font-medium text-granger-black">Joined Committed</span>
+                                </div>
+                                <span class="text-sm font-bold text-gray-500">50,044</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-gray-50">
+                                <div class="flex items-center gap-3">
+                                    <i data-lucide="hand-helping" class="w-4 h-4 text-granger-green"></i>
+                                    <span class="font-medium text-granger-black">Began Serving</span>
+                                </div>
+                                <span class="text-sm font-bold text-gray-500">50,036</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-gray-50">
+                                <div class="flex items-center gap-3">
+                                    <i data-lucide="id-card" class="w-4 h-4 text-granger-green"></i>
+                                    <span class="font-medium text-granger-black">Membership</span>
+                                </div>
+                                <span class="text-sm font-bold text-gray-500">1,115</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-gray-50">
+                                <div class="flex items-center gap-3">
+                                    <i data-lucide="shapes" class="w-4 h-4 text-granger-green"></i>
+                                    <span class="font-medium text-granger-black">S.H.A.P.E. Covenant</span>
+                                </div>
+                                <span class="text-sm font-bold text-gray-500">344</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Campus Breakdown -->
+                    <div>
+                        <div class="text-sm font-bold text-granger-black uppercase tracking-wide mb-4">By Campus</div>
+                        <div id="modalCampuses" class="space-y-3">
+                            <div class="flex items-center justify-between p-3 bg-gray-50">
+                                <span class="font-medium text-granger-black">Granger Campus</span>
+                                <span class="text-sm font-bold text-gray-500">8,456</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-gray-50">
+                                <span class="font-medium text-granger-black">Elkhart Campus</span>
+                                <span class="text-sm font-bold text-gray-500">1,892</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-gray-50">
+                                <span class="font-medium text-granger-black">South Bend</span>
+                                <span class="text-sm font-bold text-gray-500">645</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-gray-50">
+                                <span class="font-medium text-granger-black">Mishawaka</span>
+                                <span class="text-sm font-bold text-gray-500">238</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent People Sample -->
+                <div class="mt-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-sm font-bold text-granger-black uppercase tracking-wide">Recent People</div>
+                        <a href="#" class="text-sm font-semibold text-granger-green hover:text-granger-green-alt transition uppercase tracking-wide">View All</a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Name</th>
+                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Engagement</th>
+                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Campus</th>
+                                    <th class="text-left py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">City</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalPeopleTable">
+                                <tr class="border-b border-gray-100">
+                                    <td class="py-3 font-medium text-granger-black">Contact #606952</td>
+                                    <td class="py-3"><span class="px-2 py-1 text-xs font-semibold bg-yellow-100 text-yellow-700">Lapsing</span></td>
+                                    <td class="py-3 text-gray-600">Granger Campus</td>
+                                    <td class="py-3 text-gray-600">Niles, MI</td>
+                                </tr>
+                                <tr class="border-b border-gray-100">
+                                    <td class="py-3 font-medium text-granger-black">Contact #499646</td>
+                                    <td class="py-3"><span class="px-2 py-1 text-xs font-semibold bg-yellow-100 text-yellow-700">Lapsing</span></td>
+                                    <td class="py-3 text-gray-600">Granger Campus</td>
+                                    <td class="py-3 text-gray-600">Granger, IN</td>
+                                </tr>
+                                <tr class="border-b border-gray-100">
+                                    <td class="py-3 font-medium text-granger-black">Contact #535592</td>
+                                    <td class="py-3"><span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-700">Fully Engaged</span></td>
+                                    <td class="py-3 text-gray-600">Elkhart Campus</td>
+                                    <td class="py-3 text-gray-600">Elkhart, IN</td>
+                                </tr>
+                                <tr class="border-b border-gray-100">
+                                    <td class="py-3 font-medium text-granger-black">Contact #589765</td>
+                                    <td class="py-3"><span class="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-700">Partially Engaged</span></td>
+                                    <td class="py-3 text-gray-600">Granger Campus</td>
+                                    <td class="py-3 text-gray-600">Granger, IN</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Circle data for modal
+        const circleData = {
+            community: {
+                title: 'Community',
+                description: 'The unchurched in the immediate area - your starting point and hottest prospects',
+                total: '6,274',
+                engaged: '1,254',
+                partial: '2,891',
+                lapsing: '2,129',
+                milestones: [
+                    { icon: 'users', name: 'Joined Crowd', count: '59,758' },
+                    { icon: 'calendar', name: 'Participant Start Date', count: '134,678' }
+                ],
+                campuses: [
+                    { name: 'Granger Campus', count: '4,521' },
+                    { name: 'Elkhart Campus', count: '982' },
+                    { name: 'South Bend', count: '534' },
+                    { name: 'Mishawaka', count: '237' }
+                ]
+            },
+            crowd: {
+                title: 'Crowd',
+                description: 'Everyone who shows up - regular service attendees',
+                total: '1,344',
+                engaged: '412',
+                partial: '623',
+                lapsing: '309',
+                milestones: [
+                    { icon: 'users', name: 'First Life Group', count: '5,767' },
+                    { icon: 'user-check', name: 'First Time Guest', count: '2,002' },
+                    { icon: 'log-in', name: 'Joined Congregation', count: '53,392' },
+                    { icon: 'home', name: 'New Family Visit', count: '363' },
+                    { icon: 'baby', name: 'New-Kids Checkin', count: '12,778' }
+                ],
+                campuses: [
+                    { name: 'Granger Campus', count: '923' },
+                    { name: 'Elkhart Campus', count: '241' },
+                    { name: 'South Bend', count: '112' },
+                    { name: 'Mishawaka', count: '68' }
+                ]
+            },
+            congregation: {
+                title: 'Congregation',
+                description: 'Official members of the church with a sense of ownership',
+                total: '520',
+                engaged: '187',
+                partial: '214',
+                lapsing: '119',
+                milestones: [
+                    { icon: 'droplet', name: 'Baptism', count: '8,940' },
+                    { icon: 'heart', name: 'I Am Committed', count: '2,707' },
+                    { icon: 'cross', name: 'I previously decided to follow Christ', count: '2,940' },
+                    { icon: 'sparkles', name: 'I recently decided to follow Christ', count: '2,882' },
+                    { icon: 'gift', name: 'New-Giving', count: '254' },
+                    { icon: 'rotate-ccw', name: 'Rededication', count: '1,691' }
+                ],
+                campuses: [
+                    { name: 'Granger Campus', count: '356' },
+                    { name: 'Elkhart Campus', count: '98' },
+                    { name: 'South Bend', count: '42' },
+                    { name: 'Mishawaka', count: '24' }
+                ]
+            },
+            committed: {
+                title: 'Committed',
+                description: 'People who pray, give, and are dedicated to growing in discipleship',
+                total: '11,231',
+                engaged: '2,847',
+                partial: '5,123',
+                lapsing: '3,261',
+                milestones: [
+                    { icon: 'flag', name: 'Joined Committed', count: '50,044' },
+                    { icon: 'hand-helping', name: 'Began Serving', count: '50,036' },
+                    { icon: 'id-card', name: 'Membership', count: '1,115' },
+                    { icon: 'shapes', name: 'S.H.A.P.E. Covenant', count: '344' }
+                ],
+                campuses: [
+                    { name: 'Granger Campus', count: '8,456' },
+                    { name: 'Elkhart Campus', count: '1,892' },
+                    { name: 'South Bend', count: '645' },
+                    { name: 'Mishawaka', count: '238' }
+                ]
+            },
+            core: {
+                title: 'Core',
+                description: 'Ministers and leaders - without these people the church would come to a standstill',
+                total: '826',
+                engaged: '624',
+                partial: '156',
+                lapsing: '46',
+                milestones: [
+                    { icon: 'flag', name: 'Joined Core', count: '1,136' },
+                    { icon: 'megaphone', name: 'Began Leading', count: '866' },
+                    { icon: 'award', name: 'Core 401 Graduate', count: '483' }
+                ],
+                campuses: [
+                    { name: 'Granger Campus', count: '612' },
+                    { name: 'Elkhart Campus', count: '134' },
+                    { name: 'South Bend', count: '52' },
+                    { name: 'Mishawaka', count: '28' }
+                ]
+            }
+        };
+
+        function openCircleModal(circle) {
+            const data = circleData[circle];
+            if (!data) return;
+
+            document.getElementById('modalTitle').textContent = data.title;
+            document.getElementById('modalDescription').textContent = data.description;
+            document.getElementById('modalTotal').textContent = data.total;
+            document.getElementById('modalEngaged').textContent = data.engaged;
+            document.getElementById('modalPartial').textContent = data.partial;
+            document.getElementById('modalLapsing').textContent = data.lapsing;
+
+            // Update milestones
+            const milestonesHtml = data.milestones.map(m => `
+                <div class="flex items-center justify-between p-3 bg-gray-50">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="${m.icon}" class="w-4 h-4 text-granger-green"></i>
+                        <span class="font-medium text-granger-black">${m.name}</span>
+                    </div>
+                    <span class="text-sm font-bold text-gray-500">${m.count}</span>
+                </div>
+            `).join('');
+            document.getElementById('modalMilestones').innerHTML = milestonesHtml;
+
+            // Update campuses
+            const campusesHtml = data.campuses.map(c => `
+                <div class="flex items-center justify-between p-3 bg-gray-50">
+                    <span class="font-medium text-granger-black">${c.name}</span>
+                    <span class="text-sm font-bold text-gray-500">${c.count}</span>
+                </div>
+            `).join('');
+            document.getElementById('modalCampuses').innerHTML = campusesHtml;
+
+            document.getElementById('circleModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeCircleModal() {
+            document.getElementById('circleModal').classList.add('hidden');
+        }
+
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Trends Chart
+        const ctx = document.getElementById('trendsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'],
+                datasets: [
+                    {
+                        label: 'Community',
+                        data: [7372, 7132, 6814, 6487, 6249, 5991, 5804, 5564, 5460, 5359, 5254],
+                        borderColor: '#c8e6c9',
+                        backgroundColor: 'rgba(200, 230, 201, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: false
+                    },
+                    {
+                        label: 'Crowd',
+                        data: [845, 834, 861, 931, 980, 1001, 1016, 1086, 1166, 1230, 1257],
+                        borderColor: '#a5d6a7',
+                        backgroundColor: 'rgba(165, 214, 167, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: false
+                    },
+                    {
+                        label: 'Congregation',
+                        data: [362, 335, 326, 351, 357, 413, 410, 400, 417, 451, 523],
+                        borderColor: '#81c784',
+                        backgroundColor: 'rgba(129, 199, 132, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: false
+                    },
+                    {
+                        label: 'Committed',
+                        data: [9789, 10067, 10365, 10594, 10777, 10901, 11063, 11236, 11243, 11246, 11249],
+                        borderColor: '#66bb6a',
+                        backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: false
+                    },
+                    {
+                        label: 'Core',
+                        data: [714, 714, 716, 719, 719, 776, 789, 796, 796, 796, 799],
+                        borderColor: '#AAD43C',
+                        backgroundColor: 'rgba(170, 212, 60, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                family: 'Poppins',
+                                size: 11,
+                                weight: '600'
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Poppins',
+                                size: 11
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Poppins',
+                                size: 11
+                            }
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+
+        // Circle hover effects
+        document.querySelectorAll('.circle').forEach(circle => {
+            circle.addEventListener('mouseenter', function() {
+                const level = this.dataset.level;
+                // Could show a tooltip or highlight related data
+            });
+        });
+    </script>
+</body>
+</html>
