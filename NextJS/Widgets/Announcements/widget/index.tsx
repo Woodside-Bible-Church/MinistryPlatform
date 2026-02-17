@@ -72,10 +72,14 @@ class AnnouncementsWidget {
     // Inject styles into shadow DOM
     this.injectStyles();
 
-    // Store config globally for API client to access (include dataParams)
+    // Read theme from container
+    const dataTheme = container.getAttribute('data-theme');
+
+    // Store config globally for API client to access (include dataParams and theme)
     (window as any).__ANNOUNCEMENTS_WIDGET_CONFIG__ = {
       ...this.config,
-      dataParams
+      dataParams,
+      theme: dataTheme || undefined
     };
 
     console.log('Announcements Widget initialized with Shadow DOM', {
@@ -247,10 +251,14 @@ class AnnouncementsWidget {
     // Re-inject styles
     this.injectStyles();
 
+    // Read theme from container
+    const dataTheme = container.getAttribute('data-theme');
+
     // Update global config
     (window as any).__ANNOUNCEMENTS_WIDGET_CONFIG__ = {
       ...this.config,
-      dataParams
+      dataParams,
+      theme: dataTheme || undefined
     };
 
     console.log('Widget reinitialized with new config:', {

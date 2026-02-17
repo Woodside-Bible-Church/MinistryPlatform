@@ -9,6 +9,7 @@ export interface Announcement {
   Title: string;
   Body?: string;
   Image?: string;
+  CarouselSort?: number;
   CallToAction: CallToAction;
 }
 

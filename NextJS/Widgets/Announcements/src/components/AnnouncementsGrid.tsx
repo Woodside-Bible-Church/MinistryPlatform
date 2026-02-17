@@ -57,8 +57,14 @@ function LinkOptionsModal({
   const modalRef = useRef<HTMLDivElement>(null);
   const isBibleLink = isBibleComLink(url);
 
-  // Detect system dark mode preference
+  // Detect dark mode: use widget config theme if provided, otherwise fall back to system preference
   useEffect(() => {
+    const widgetConfig = (window as Window & { __ANNOUNCEMENTS_WIDGET_CONFIG__?: { theme?: string } }).__ANNOUNCEMENTS_WIDGET_CONFIG__;
+    if (widgetConfig?.theme) {
+      setIsDarkMode(widgetConfig.theme === 'dark');
+      return;
+    }
+
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     setIsDarkMode(mediaQuery.matches);
 
@@ -339,9 +345,18 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
   const isCarousel = mode === 'carousel';
   const isSocial = mode === 'social';
 
-  // Detect system dark mode preference for social mode
+  // Detect dark mode: use widget config theme if provided, otherwise fall back to system preference
   useEffect(() => {
     if (!isSocial) return;
+
+    // Check if theme is explicitly set via widget config (e.g., from management app)
+    const widgetConfig = (window as Window & { __ANNOUNCEMENTS_WIDGET_CONFIG__?: { theme?: string } }).__ANNOUNCEMENTS_WIDGET_CONFIG__;
+    if (widgetConfig?.theme) {
+      setIsDarkMode(widgetConfig.theme === 'dark');
+      return;
+    }
+
+    // Fall back to system preference
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     setIsDarkMode(mediaQuery.matches);
 
@@ -676,148 +691,97 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
         </div>
       </div>
 
-      {/* Sticky section headers for carousel - mobile only */}
-      {isCarousel && showChurchWideHeader && (
-        <h2 className="md:hidden sticky top-0 left-0 right-0 bg-white dark:bg-neutral-900 z-20 py-3 pr-4 text-xs font-medium text-primary/60 dark:text-white/60 uppercase tracking-wide transition-opacity duration-200">
-          {labels.churchWideTitle || 'Happening At Woodside'}
-        </h2>
-      )}
-      {isCarousel && showCampusHeader && (
-        <h2 className="md:hidden sticky top-0 left-0 right-0 bg-white dark:bg-neutral-900 z-20 py-3 pr-4 text-xs font-medium text-primary/60 dark:text-white/60 uppercase tracking-wide transition-opacity duration-200">
-          {data.Campus!.Name || 'Campus'}
-        </h2>
-      )}
-
       <div ref={scrollContainerRef} className={isCarousel ? 'overflow-x-auto scrollbar-hide snap-x snap-mandatory' : ''}>
-        <div className={isCarousel ? 'inline-flex' : 'block'}>
-          {/* Church-wide Featured Announcements */}
-          {hasChurchWide && (
+        <div className={isCarousel ? 'flex gap-6' : 'block'}>
+          {/* Carousel mode: unified list of all announcements sorted by CarouselSort */}
+          {isCarousel && carouselAnnouncements.map((announcement) => {
+            const heading = announcement.CallToAction?.Heading || announcement.Title;
+            const subHeading = announcement.CallToAction?.SubHeading || announcement.Body;
+            const hasLink = announcement.CallToAction?.Link;
+
+            return (
+              <div key={announcement.ID} className="w-[clamp(260px,70vw,400px)] flex-shrink-0 flex flex-col snap-start">
+                <a
+                  href={hasLink || '#'}
+                  className="relative block aspect-video overflow-hidden carousel-snap-item"
+                  aria-label={announcement.Title}
+                >
+                  {announcement.Image ? (
+                    <img
+                      src={announcement.Image}
+                      alt={announcement.Title}
+                      loading="lazy"
+                      className="w-full h-full object-cover transition-transform duration-[650ms] ease-out hover:scale-[1.025]"
+                    />
+                  ) : (
+                    <div
+                      className="w-full h-full grid place-items-center p-4 md:p-7 outline outline-1 outline-white/95"
+                      style={{
+                        backgroundColor: '#1c2b39',
+                        backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23ffffff' fill-opacity='0.15'/%3E%3Ccircle cx='12' cy='12' r='1' fill='%23ffffff' fill-opacity='0.25'/%3E%3C/svg%3E\")",
+                        backgroundRepeat: 'repeat',
+                        backgroundSize: '20px 20px',
+                        outlineOffset: '-10px'
+                      } as React.CSSProperties}
+                    >
+                      <span className="text-white font-extrabold uppercase leading-tight text-center text-xl md:text-3xl tracking-tight">
+                        {announcement.Title}
+                      </span>
+                    </div>
+                  )}
+                </a>
+                <a
+                  href={hasLink || '#'}
+                  className="p-2 mt-3 flex flex-col overflow-hidden hover:underline"
+                  style={{ width: 'clamp(260px, 70vw, 400px)' }}
+                >
+                  <h3 className="font-extrabold leading-tight mb-0.5 line-clamp-1 text-[clamp(0.8rem,1vw,1rem)] text-primary dark:text-white">
+                    {heading}
+                  </h3>
+                  {subHeading && (
+                    <p className="text-primary/65 dark:text-white/70 leading-snug line-clamp-2 text-[clamp(0.75rem,0.9vw,0.8rem)] m-0 p-0">
+                      {subHeading.replace(/<[^>]*>/g, '').trim().substring(0, 140)}
+                    </p>
+                  )}
+                </a>
+              </div>
+            );
+          })}
+
+          {/* Grid mode: Church-wide Featured Announcements */}
+          {!isCarousel && hasChurchWide && (
             <div ref={churchWideSectionRef}>
-              {!isCarousel && (
-                <h2 className="mb-4 md:mb-6 text-lg md:text-3xl lg:text-4xl font-bold text-primary dark:text-white uppercase tracking-tight animate-[fadeInFromLeft_1.25s_ease-out_0.8s_both]">
-                  {labels.churchWideTitle || 'Happening At Woodside'}
-                </h2>
-              )}
-              {isCarousel && (
-                <h2 className="hidden md:block mb-4 text-sm font-semibold text-primary/80 dark:text-white/80 uppercase tracking-wide">
-                  {labels.churchWideTitle || 'Happening At Woodside'}
-                </h2>
-              )}
+              <h2 className="mb-4 md:mb-6 text-lg md:text-3xl lg:text-4xl font-bold text-primary dark:text-white uppercase tracking-tight animate-[fadeInFromLeft_1.25s_ease-out_0.8s_both]">
+                {labels.churchWideTitle || 'Happening At Woodside'}
+              </h2>
               <div
-                className={
-                  isCarousel
-                    ? 'grid gap-6 pb-2 md:pb-8'
-                    : (() => {
-                        const count = data.ChurchWide.length;
-                        // For 1-2 announcements, use flexbox like campus section for consistent sizing
-                        if (count <= 2) return 'flex flex-wrap gap-3 md:gap-4';
-                        if (count === 3) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-6 md:grid-rows-2';
-                        if (count === 4) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2';
-                        if (count === 5) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-6';
-                        // 6+ announcements: masonry-style grid
-                        return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-3';
-                      })()
-                }
-                style={
-                  isCarousel
-                    ? {
-                        gridTemplateAreas:
-                          data.ChurchWide.length === 1 ? '"i1" "d1"' :
-                          data.ChurchWide.length === 2 ? '"i1 i2" "d1 d2"' :
-                          '"i1 i2 i3" "d1 d2 d3"',
-                        gridTemplateColumns: `repeat(${Math.min(data.ChurchWide.length, 3)}, clamp(260px, 70vw, 400px))`,
-                        gridTemplateRows: 'auto auto',
-                        rowGap: '0.75rem',
-                      }
-                    : {}
-                }
+                className={(() => {
+                  const count = data.ChurchWide.length;
+                  // For 1-2 announcements, use flexbox like campus section for consistent sizing
+                  if (count <= 2) return 'flex flex-wrap gap-3 md:gap-4';
+                  if (count === 3) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-6 md:grid-rows-2';
+                  if (count === 4) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2';
+                  if (count === 5) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-6';
+                  // 6+ announcements: masonry-style grid
+                  return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-3';
+                })()}
               >
-                {(isCarousel ? data.ChurchWide.slice(0, 3) : data.ChurchWide).map((announcement, index) => {
-                  const heading = announcement.CallToAction?.Heading || announcement.Title;
-                  const subHeading = announcement.CallToAction?.SubHeading || announcement.Body;
-                  const hasLink = announcement.CallToAction?.Link;
-
-                  if (isCarousel) {
-                    return (
-                      <div key={announcement.ID} className="contents snap-start">
-                        {/* Image */}
-                        <a
-                          href={hasLink || '#'}
-                          className="relative block aspect-video overflow-hidden carousel-snap-item snap-start"
-                          aria-label={announcement.Title}
-                          style={{
-                            gridArea: index === 0 ? 'i1' : index === 1 ? 'i2' : 'i3',
-                          }}
-                        >
-                          {announcement.Image ? (
-                            <img
-                              src={announcement.Image}
-                              alt={announcement.Title}
-                              loading="lazy"
-                              className="w-full h-full object-cover transition-transform duration-[650ms] ease-out hover:scale-[1.025]"
-                            />
-                          ) : (
-                            <div
-                              className="w-full h-full grid place-items-center p-4 md:p-7 outline outline-1 outline-white/95"
-                              style={{
-                                backgroundColor: '#1c2b39',
-                                backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23ffffff' fill-opacity='0.15'/%3E%3Ccircle cx='12' cy='12' r='1' fill='%23ffffff' fill-opacity='0.25'/%3E%3C/svg%3E\")",
-                                backgroundRepeat: 'repeat',
-                                backgroundSize: '20px 20px',
-                                outlineOffset: '-10px'
-                              } as React.CSSProperties}
-                            >
-                              <span className="text-white font-extrabold uppercase leading-tight text-center text-xl md:text-3xl tracking-tight">
-                                {announcement.Title}
-                              </span>
-                            </div>
-                          )}
-                        </a>
-                        {/* Text body */}
-                        <a
-                          href={hasLink || '#'}
-                          className="p-2 flex flex-col overflow-hidden hover:underline"
-                          style={{
-                            gridArea: index === 0 ? 'd1' : index === 1 ? 'd2' : 'd3',
-                            width: 'clamp(260px, 70vw, 400px)',
-                          }}
-                        >
-                          <h3 className="font-extrabold leading-tight mb-0.5 line-clamp-1 text-[clamp(0.8rem,1vw,1rem)] text-primary dark:text-white">
-                            {heading}
-                          </h3>
-                          {subHeading && (
-                            <p className="text-primary/65 dark:text-white/70 leading-snug line-clamp-2 text-[clamp(0.75rem,0.9vw,0.8rem)] m-0 p-0">
-                              {subHeading.replace(/<[^>]*>/g, '').trim().substring(0, 140)}
-                            </p>
-                          )}
-                        </a>
-                      </div>
-                    );
-                  }
-
+                {data.ChurchWide.map((announcement, index) => {
                   // Dynamic bento-box style grid with varied card sizes
                   const count = data.ChurchWide.length;
                   let cardClass = '';
 
-                  if (!isCarousel) {
-                    if (count <= 2) {
-                      // Flexbox layout matching campus section for consistent sizing
-                      cardClass = 'flex-1 min-w-[280px] max-w-[480px] md:min-w-[320px] md:max-w-[420px]';
-                    } else if (count === 3) {
-                      // 6-column, 2-row grid: [4x2] + [2x1] + [2x1]
-                      // First card is wider (4 cols) = taller at 16:9, spans 2 rows
-                      // Other cards are narrower (2 cols) = shorter at 16:9, 1 row each
-                      // Math: 4*(9/16) = 2.25, and 2*(2*(9/16)) = 2*1.125 = 2.25 ✓
-                      if (index === 0) cardClass = 'md:col-span-4 md:row-span-2';
-                      else cardClass = 'md:col-span-2';
-                    } else if (count === 4) {
-                      // 2-column, 2-row grid: all equal size
-                      cardClass = '';
-                    } else if (count === 5) {
-                      // 6-column grid: 2 + 2 + 2 + 3 + 3
-                      if (index < 3) cardClass = 'md:col-span-2';
-                      else cardClass = 'md:col-span-3';
-                    }
+                  if (count <= 2) {
+                    // Flexbox layout matching campus section for consistent sizing
+                    cardClass = 'flex-1 min-w-[280px] max-w-[480px] md:min-w-[320px] md:max-w-[420px]';
+                  } else if (count === 3) {
+                    if (index === 0) cardClass = 'md:col-span-4 md:row-span-2';
+                    else cardClass = 'md:col-span-2';
+                  } else if (count === 4) {
+                    cardClass = '';
+                  } else if (count === 5) {
+                    if (index < 3) cardClass = 'md:col-span-2';
+                    else cardClass = 'md:col-span-3';
                   }
 
                   return (
@@ -835,7 +799,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                   );
                 })}
                 {/* Invisible filler elements for 1-2 announcements to prevent stretching */}
-                {!isCarousel && data.ChurchWide.length <= 2 && Array.from({ length: 5 }).map((_, i) => (
+                {data.ChurchWide.length <= 2 && Array.from({ length: 5 }).map((_, i) => (
                   <div
                     key={`churchwide-filler-${i}`}
                     className="flex-1 min-w-[280px] max-w-[480px] md:min-w-[320px] md:max-w-[420px] h-0"
@@ -846,12 +810,11 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
             </div>
           )}
 
-          {/* Campus Announcements */}
-          {hasCampus && (
-            <div ref={campusSectionRef} className={isCarousel ? 'ml-6' : 'mt-6 md:mt-8'}>
-              {!isCarousel && (() => {
+          {/* Grid mode: Campus Announcements */}
+          {!isCarousel && hasCampus && (
+            <div ref={campusSectionRef} className="mt-6 md:mt-8">
+              {(() => {
                 // Calculate when campus section should start animating
-                // Church-wide cards start at 1.0s with 0.6s stagger and 0.8s duration
                 const churchWideCount = hasChurchWide ? data.ChurchWide.length : 0;
                 const lastChurchWideCardStart = 1.0 + ((churchWideCount - 1) * 0.6);
                 const lastChurchWideCardEnd = lastChurchWideCardStart + 0.8;
@@ -868,82 +831,15 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                   </h2>
                 );
               })()}
-              {isCarousel && (
-                <h2 className="hidden md:block mb-4 text-sm font-semibold text-primary/80 dark:text-white/80 uppercase tracking-wide">
-                  {data.Campus!.Name || 'Campus'}
-                </h2>
-              )}
-              <div
-                className={
-                  isCarousel
-                    ? 'flex gap-6'
-                    : 'flex flex-wrap gap-3 md:gap-4'
-                }
-              >
+              <div className="flex flex-wrap gap-3 md:gap-4">
                 {data.Campus!.Announcements.map((announcement, index) => {
-                  if (isCarousel) {
-                    const heading = announcement.CallToAction?.Heading || announcement.Title;
-                    const subHeading = announcement.CallToAction?.SubHeading || announcement.Body;
-                    const hasLink = announcement.CallToAction?.Link;
-
-                    return (
-                      <div key={announcement.ID} className="w-[clamp(260px,70vw,400px)] flex flex-col snap-start">
-                        <a
-                          href={hasLink || '#'}
-                          className="relative block aspect-video overflow-hidden carousel-snap-item"
-                          aria-label={announcement.Title}
-                        >
-                          {announcement.Image ? (
-                            <img
-                              src={announcement.Image}
-                              alt={announcement.Title}
-                              loading="lazy"
-                              className="w-full h-full object-cover transition-transform duration-[650ms] ease-out hover:scale-[1.025]"
-                            />
-                          ) : (
-                            <div
-                              className="w-full h-full grid place-items-center p-4 md:p-7 outline outline-1 outline-white/95"
-                              style={{
-                                backgroundColor: '#1c2b39',
-                                backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23ffffff' fill-opacity='0.15'/%3E%3Ccircle cx='12' cy='12' r='1' fill='%23ffffff' fill-opacity='0.25'/%3E%3C/svg%3E\")",
-                                backgroundRepeat: 'repeat',
-                                backgroundSize: '20px 20px',
-                                outlineOffset: '-10px'
-                              } as React.CSSProperties}
-                            >
-                              <span className="text-white font-extrabold uppercase leading-tight text-center text-xl md:text-3xl tracking-tight">
-                                {announcement.Title}
-                              </span>
-                            </div>
-                          )}
-                        </a>
-                        <a
-                          href={hasLink || '#'}
-                          className="p-2 mt-3 flex flex-col overflow-hidden hover:underline"
-                          style={{ width: 'clamp(260px, 70vw, 400px)' }}
-                        >
-                          <h3 className="font-extrabold leading-tight mb-0.5 line-clamp-1 text-[clamp(0.8rem,1vw,1rem)] text-primary dark:text-white">
-                            {heading}
-                          </h3>
-                          {subHeading && (
-                            <p className="text-primary/65 dark:text-white/70 leading-snug line-clamp-2 text-[clamp(0.75rem,0.9vw,0.8rem)] m-0 p-0">
-                              {subHeading.replace(/<[^>]*>/g, '').trim().substring(0, 140)}
-                            </p>
-                          )}
-                        </a>
-                      </div>
-                    );
-                  }
-
                   // Calculate when campus cards should start animating
-                  // Start cards shortly after header begins (0.3s overlap for smoother flow)
                   const churchWideCount = hasChurchWide ? data.ChurchWide.length : 0;
                   const lastChurchWideCardStart = 1.0 + ((churchWideCount - 1) * 0.6);
                   const lastChurchWideCardEnd = lastChurchWideCardStart + 0.8;
                   const campusHeaderDelay = hasChurchWide ? lastChurchWideCardEnd : 0.8;
                   const campusCardsStart = campusHeaderDelay + 0.3;
 
-                  // Flexbox with consistent sizing - cards maintain same width across all rows
                   return (
                     <div
                       key={announcement.ID}
@@ -959,7 +855,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                   );
                 })}
                 {/* Invisible filler elements to prevent last row from growing */}
-                {!isCarousel && Array.from({ length: 5 }).map((_, i) => (
+                {Array.from({ length: 5 }).map((_, i) => (
                   <div
                     key={`filler-${i}`}
                     className="flex-1 min-w-[280px] max-w-[480px] md:min-w-[320px] md:max-w-[420px] h-0"

@@ -43,6 +43,7 @@ BEGIN
                 a.Announcement_Start_Date AS [StartDate],
                 a.Announcement_End_Date AS [EndDate],
                 a.Sort,
+                a.Carousel_Sort AS [CarouselSort],
 
                 -- Congregation
                 a.Congregation_ID AS [CongregationID],
@@ -117,6 +118,7 @@ BEGIN
             a.Announcement_Start_Date AS [StartDate],
             a.Announcement_End_Date AS [EndDate],
             a.Sort,
+            a.Carousel_Sort AS [CarouselSort],
 
             -- Congregation
             a.Congregation_ID AS [CongregationID],

@@ -22,6 +22,7 @@ import {
   Image as ImageIcon,
   ChevronUp,
   ChevronDown,
+  Link,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCampus } from "@/contexts/CampusContext";
@@ -122,11 +123,12 @@ export default function AnnouncementsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("active");
   const [processingIds, setProcessingIds] = useState<Set<number>>(new Set());
-  const [widgetMode, setWidgetMode] = useState<"carousel" | "grid">(() => {
+  const [widgetMode, setWidgetMode] = useState<"carousel" | "grid" | "links">(() => {
     // Load from localStorage on mount
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('announcements-widget-mode');
-      return (saved === 'grid' ? 'grid' : 'carousel') as "carousel" | "grid";
+      if (saved === 'grid' || saved === 'links') return saved;
+      return 'carousel';
     }
     return "carousel";
   });
@@ -145,6 +147,7 @@ export default function AnnouncementsPage() {
     startDate: new Date().toISOString().slice(0, 16),
     endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
     sort: 10,
+    carouselSort: null,
     congregationID: 1,
     callToActionURL: null,
     callToActionLabel: null,
@@ -467,6 +470,7 @@ export default function AnnouncementsPage() {
       startDate: nowFormatted,
       endDate: weekFromNowFormatted,
       sort: maxSort + 1,
+      carouselSort: null,
       congregationID: defaultCongregation,
       callToActionURL: null,
       callToActionLabel: null,
@@ -501,6 +505,7 @@ export default function AnnouncementsPage() {
       startDate: startDate,
       endDate: endDate,
       sort: announcement.Sort,
+      carouselSort: announcement.CarouselSort,
       congregationID: announcement.CongregationID,
       callToActionURL: announcement.CallToActionURL,
       callToActionLabel: announcement.CallToActionLabel,
@@ -1021,6 +1026,106 @@ export default function AnnouncementsPage() {
     }
   }
 
+  // Handle drag end for Links mode (CarouselSort ordering)
+  async function handleLinksDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = linksAnnouncements.findIndex((a) => a.ID === active.id);
+    const newIndex = linksAnnouncements.findIndex((a) => a.ID === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reorderedItems = arrayMove(linksAnnouncements, oldIndex, newIndex);
+    const baseSortNumber = 1;
+
+    const updates = reorderedItems.map((item, index) => ({
+      id: item.ID,
+      sort: baseSortNumber + index,
+    }));
+
+    // Update local state optimistically (update CarouselSort)
+    setAnnouncements((prev) =>
+      prev.map((a) => {
+        const update = updates.find((u) => u.id === a.ID);
+        return update ? { ...a, CarouselSort: update.sort } : a;
+      })
+    );
+
+    try {
+      const response = await fetch("/api/announcements/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ updates, field: "carouselSort" }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to reorder announcements");
+      }
+
+      toast.success("Links order updated successfully");
+      refreshWidget();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to reorder");
+
+      const params = new URLSearchParams();
+      if (searchQuery) params.append("search", searchQuery);
+      const fetchResponse = await fetch(`/api/announcements?${params.toString()}`);
+      if (fetchResponse.ok) {
+        const data = await fetchResponse.json();
+        setAnnouncements(data);
+      }
+    }
+  }
+
+  // Handle move up/down for Links mode (CarouselSort ordering)
+  async function handleLinksMove(id: number, direction: "up" | "down") {
+    const currentIndex = linksAnnouncements.findIndex((a) => a.ID === id);
+    if (currentIndex === -1) return;
+
+    const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+    if (newIndex < 0 || newIndex >= linksAnnouncements.length) return;
+
+    const reorderedItems = arrayMove(linksAnnouncements, currentIndex, newIndex);
+    const baseSortNumber = 1;
+
+    const updates = reorderedItems.map((item, index) => ({
+      id: item.ID,
+      sort: baseSortNumber + index,
+    }));
+
+    setAnnouncements((prev) =>
+      prev.map((a) => {
+        const update = updates.find((u) => u.id === a.ID);
+        return update ? { ...a, CarouselSort: update.sort } : a;
+      })
+    );
+
+    try {
+      const response = await fetch("/api/announcements/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ updates, field: "carouselSort" }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to reorder announcements");
+      }
+
+      toast.success("Announcement moved successfully");
+      refreshWidget();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to reorder");
+
+      const params = new URLSearchParams();
+      if (searchQuery) params.append("search", searchQuery);
+      const fetchResponse = await fetch(`/api/announcements?${params.toString()}`);
+      if (fetchResponse.ok) {
+        const data = await fetchResponse.json();
+        setAnnouncements(data);
+      }
+    }
+  }
+
   // Filter announcements by status and campus
   const filteredAnnouncements = announcements.filter((announcement) => {
     // Filter by status
@@ -1068,6 +1173,14 @@ export default function AnnouncementsPage() {
   const campusAnnouncements = sortAnnouncements(
     filteredAnnouncements.filter((a) => a.CongregationID !== 1)
   );
+
+  // Links mode: all announcements merged, sorted by CarouselSort
+  const linksAnnouncements = [...filteredAnnouncements].sort((a, b) => {
+    const csA = a.CarouselSort ?? 999;
+    const csB = b.CarouselSort ?? 999;
+    if (csA !== csB) return csA - csB;
+    return a.ID - b.ID;
+  });
 
   if (isLoading) {
     return (
@@ -1258,62 +1371,58 @@ export default function AnnouncementsPage() {
 
       {/* Widget Toggle and Display */}
       <div className="mb-8">
-        {/* View Toggle */}
+        {/* View Toggle - 3-way: Grid | Links | Carousel */}
         <div className="mb-6 flex justify-center">
-          <button
-            onClick={() => {
-              const newMode = widgetMode === "carousel" ? "grid" : "carousel";
-              setWidgetMode(newMode);
-
-              // Save to localStorage
-              localStorage.setItem('announcements-widget-mode', newMode);
-
-              // Update the widget container attribute and reinitialize
-              if (widgetRef.current) {
-                widgetRef.current.setAttribute('data-mode', newMode);
-
-                // Use the widget's ReInitWidget function if available
-                if (typeof (window as any).ReInitWidget === 'function') {
-                  (window as any).ReInitWidget('announcements-widget-root');
-                }
-              }
-            }}
-            className="relative w-full md:w-auto md:min-w-[320px] inline-flex rounded-xl bg-zinc-100 dark:bg-zinc-800 p-1 shadow-inner cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+          <div
+            className="relative w-full md:w-auto md:min-w-[420px] inline-flex rounded-xl bg-zinc-100 dark:bg-zinc-800 p-1 shadow-inner"
           >
             {/* Sliding background indicator */}
             <div
-              className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#61BC47] rounded-lg shadow-md transition-all duration-300 ease-in-out pointer-events-none ${
-                widgetMode === "carousel" ? "left-1" : "left-[calc(50%+4px-1px)]"
+              className={`absolute top-1 bottom-1 w-[calc(33.333%-3px)] bg-[#61BC47] rounded-lg shadow-md transition-all duration-300 ease-in-out pointer-events-none ${
+                widgetMode === "grid"
+                  ? "left-1"
+                  : widgetMode === "links"
+                    ? "left-[calc(33.333%+1px)]"
+                    : "left-[calc(66.666%+1px)]"
               }`}
             />
 
             {/* Labels */}
-            <div
-              className={`relative z-10 flex-1 py-2.5 rounded-lg font-medium text-center transition-all duration-300 pointer-events-none ${
-                widgetMode === "carousel"
-                  ? "text-white"
-                  : "text-muted-foreground"
-              }`}
-            >
-              Carousel
-            </div>
-            <div
-              className={`relative z-10 flex-1 py-2.5 rounded-lg font-medium text-center transition-all duration-300 pointer-events-none ${
-                widgetMode === "grid"
-                  ? "text-white"
-                  : "text-muted-foreground"
-              }`}
-            >
-              Grid
-            </div>
-          </button>
+            {(["grid", "links", "carousel"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => {
+                  setWidgetMode(mode);
+                  localStorage.setItem('announcements-widget-mode', mode);
+
+                  // Update the widget container attribute and reinitialize
+                  if (widgetRef.current) {
+                    // Links mode uses "social" as the widget display mode
+                    const widgetDisplayMode = mode === "links" ? "social" : mode;
+                    widgetRef.current.setAttribute('data-mode', widgetDisplayMode);
+
+                    if (typeof (window as any).ReInitWidget === 'function') {
+                      (window as any).ReInitWidget('announcements-widget-root');
+                    }
+                  }
+                }}
+                className={`relative z-10 flex-1 py-2.5 rounded-lg font-medium text-center transition-all duration-300 cursor-pointer ${
+                  widgetMode === mode
+                    ? "text-white"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {mode === "carousel" ? "Carousel" : mode === "grid" ? "Grid" : "Links"}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Widget Container */}
         <div
           ref={widgetRef}
           id="announcements-widget-root"
-          data-mode={widgetMode}
+          data-mode={widgetMode === "links" ? "social" : widgetMode}
           data-theme={resolvedTheme || "light"}
           data-params={
             selectedCampus && selectedCampus.Congregation_ID !== 1
@@ -1388,8 +1497,58 @@ export default function AnnouncementsPage() {
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Church-Wide Announcements */}
-          {churchWideAnnouncements.length > 0 && (
+          {/* Carousel/Links mode: unified DnD list sorted by CarouselSort */}
+          {(widgetMode === "links" || widgetMode === "carousel") && (
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Link className="w-5 h-5 text-[#61BC47]" />
+                {widgetMode === "links" ? "Links / Social Ordering" : "Carousel Ordering"}
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Drag to reorder how announcements appear in the Carousel and Links (social) views. This ordering is independent from the Grid view.
+              </p>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleLinksDragEnd}
+              >
+                <SortableContext
+                  items={linksAnnouncements.map((a) => a.ID)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-4">
+                    {linksAnnouncements.map((announcement, index) => (
+                      <SortableAnnouncementCard
+                        key={announcement.ID}
+                        id={announcement.ID}
+                        isProcessing={processingIds.has(announcement.ID)}
+                      >
+                        <div className="relative">
+                          {/* Badge indicating ChurchWide vs Campus */}
+                          <span className={`absolute -top-2 -right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                            announcement.CongregationID === 1
+                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                              : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                          }`}>
+                            {announcement.CongregationID === 1 ? "Church-Wide" : announcement.CongregationName}
+                          </span>
+                          {renderAnnouncementCard(announcement, {
+                            onMoveUp: () => handleLinksMove(announcement.ID, "up"),
+                            onMoveDown: () => handleLinksMove(announcement.ID, "down"),
+                            isFirst: index === 0,
+                            isLast: index === linksAnnouncements.length - 1,
+                          })}
+                        </div>
+                      </SortableAnnouncementCard>
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            </div>
+          )}
+
+          {/* Grid mode: Church-Wide Announcements */}
+          {widgetMode === "grid" && churchWideAnnouncements.length > 0 && (
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Church className="w-5 h-5 text-[#61BC47]" />
@@ -1438,8 +1597,8 @@ export default function AnnouncementsPage() {
             </div>
           )}
 
-          {/* Campus-Specific Announcements */}
-          {campusAnnouncements.length > 0 && (
+          {/* Grid mode: Campus-Specific Announcements */}
+          {widgetMode === "grid" && campusAnnouncements.length > 0 && (
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                 {selectedCampus?.Campus_SVG_URL && !svgError ? (

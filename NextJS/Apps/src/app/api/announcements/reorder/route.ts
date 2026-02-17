@@ -16,8 +16,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { updates } = body as {
+    const { updates, field = 'sort' } = body as {
       updates: Array<{ id: number; sort: number }>;
+      field?: 'sort' | 'carouselSort';
     };
 
     if (!updates || !Array.isArray(updates) || updates.length === 0) {
@@ -46,7 +47,11 @@ export async function POST(request: NextRequest) {
     const userId = users[0].User_ID;
 
     const service = new AnnouncementsService();
-    await service.bulkUpdateSortOrder(updates, userId);
+    if (field === 'carouselSort') {
+      await service.bulkUpdateCarouselSortOrder(updates, userId);
+    } else {
+      await service.bulkUpdateSortOrder(updates, userId);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -11,6 +11,7 @@ export interface Announcement {
   StartDate: string;
   EndDate: string;
   Sort: number;
+  CarouselSort: number | null;
 
   // Congregation
   CongregationID: number;
@@ -53,6 +54,7 @@ export interface AnnouncementFormData {
   startDate: string;
   endDate: string;
   sort: number;
+  carouselSort: number | null;
   congregationID: number;
   callToActionURL: string | null;
   callToActionLabel: string | null;
