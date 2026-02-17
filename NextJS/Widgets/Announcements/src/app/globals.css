@@ -158,3 +158,12 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateX(0) scale(2.15); /* 275px / 128px = ~2.15 */
   }
 }
+
+/* Dark mode: black shadows for glass elements */
+.dark .glass-shadow {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+.dark .glass-shadow:hover,
+.dark .glass-shadow:active {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.5);
+}

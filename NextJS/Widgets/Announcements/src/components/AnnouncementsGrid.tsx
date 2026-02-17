@@ -226,7 +226,7 @@ function LinkOptionsModal({
           {isBibleLink && (
             <button
               onClick={handleOpenInBibleApp}
-              className="flex items-center gap-3 w-full p-4 rounded-xl bg-gray-200 dark:bg-neutral-700 hover:bg-gray-300 dark:hover:bg-neutral-600 shadow-md transition-colors"
+              className="flex items-center gap-3 w-full p-4 rounded-xl backdrop-blur-xl bg-white/40 dark:bg-white/10 border border-white/50 dark:border-white/20 shadow-lg hover:bg-white/55 dark:hover:bg-white/20 hover:shadow-xl transition-all"
             >
               <div className="w-10 h-10 rounded-lg overflow-hidden shadow-sm">
                 <img
@@ -241,7 +241,7 @@ function LinkOptionsModal({
 
           <button
             onClick={handleOpenInChrome}
-            className="flex items-center gap-3 w-full p-4 rounded-xl bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors"
+            className="flex items-center gap-3 w-full p-4 rounded-xl backdrop-blur-xl bg-white/40 dark:bg-white/10 border border-white/50 dark:border-white/20 shadow-lg hover:bg-white/55 dark:hover:bg-white/20 hover:shadow-xl transition-all"
           >
             <div className="w-10 h-10 rounded-full bg-white dark:bg-neutral-700 flex items-center justify-center shadow-sm">
               <img
@@ -255,7 +255,7 @@ function LinkOptionsModal({
 
           <button
             onClick={handleOpenInFirefox}
-            className="flex items-center gap-3 w-full p-4 rounded-xl bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors"
+            className="flex items-center gap-3 w-full p-4 rounded-xl backdrop-blur-xl bg-white/40 dark:bg-white/10 border border-white/50 dark:border-white/20 shadow-lg hover:bg-white/55 dark:hover:bg-white/20 hover:shadow-xl transition-all"
           >
             <div className="w-10 h-10 rounded-full bg-white dark:bg-neutral-700 flex items-center justify-center shadow-sm">
               <img
@@ -269,7 +269,7 @@ function LinkOptionsModal({
 
           <button
             onClick={handleCopyLink}
-            className="flex items-center gap-3 w-full p-4 rounded-xl bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors"
+            className="flex items-center gap-3 w-full p-4 rounded-xl backdrop-blur-xl bg-white/40 dark:bg-white/10 border border-white/50 dark:border-white/20 shadow-lg hover:bg-white/55 dark:hover:bg-white/20 hover:shadow-xl transition-all"
           >
             <div className="w-10 h-10 rounded-full bg-white dark:bg-neutral-700 flex items-center justify-center shadow-sm">
               {copied ? (
@@ -569,7 +569,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => hasLink && handleSocialLinkClick(e, hasLink)}
-                  className="relative flex items-start gap-3 md:gap-4 p-2 md:p-3 shadow hover:shadow-lg active:scale-[1.02] active:shadow-lg border border-gray-200 dark:border-neutral-700 transition-all duration-200 group"
+                  className="glass-shadow relative flex items-start gap-3 md:gap-4 p-2 md:p-3 backdrop-blur-xl bg-gray-100/80 dark:bg-white/10 shadow-lg hover:shadow-xl active:scale-[1.02] active:shadow-lg border border-gray-200/60 dark:border-white/[0.08] transition-all duration-200 group"
                 >
                   {/* Small thumbnail - 16:9 aspect ratio */}
                   <div className="flex-shrink-0 w-24 md:w-36 aspect-video overflow-hidden">
@@ -660,10 +660,10 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
               <button
                 onClick={scrollLeft}
                 disabled={!canScrollLeft}
-                className={`w-10 h-10 flex items-center justify-center rounded-full border border-black/10 transition-all duration-200 ${
+                className={`w-10 h-10 flex items-center justify-center rounded-full border transition-all duration-200 ${
                   canScrollLeft
-                    ? 'bg-white/90 hover:bg-white hover:scale-110'
-                    : 'bg-gray-100 opacity-40 cursor-not-allowed'
+                    ? 'backdrop-blur-xl bg-white/40 dark:bg-white/10 border-white/50 dark:border-white/20 shadow-lg hover:bg-white/55 dark:hover:bg-white/20 hover:shadow-xl hover:scale-110'
+                    : 'bg-gray-100/50 border-gray-200/50 opacity-40 cursor-not-allowed'
                 }`}
                 aria-label="Scroll left"
               >
@@ -674,10 +674,10 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
               <button
                 onClick={scrollRight}
                 disabled={!canScrollRight}
-                className={`w-10 h-10 flex items-center justify-center rounded-full border border-black/10 transition-all duration-200 ${
+                className={`w-10 h-10 flex items-center justify-center rounded-full border transition-all duration-200 ${
                   canScrollRight
-                    ? 'bg-white/90 hover:bg-white hover:scale-110'
-                    : 'bg-gray-100 opacity-40 cursor-not-allowed'
+                    ? 'backdrop-blur-xl bg-white/40 dark:bg-white/10 border-white/50 dark:border-white/20 shadow-lg hover:bg-white/55 dark:hover:bg-white/20 hover:shadow-xl hover:scale-110'
+                    : 'bg-gray-100/50 border-gray-200/50 opacity-40 cursor-not-allowed'
                 }`}
                 aria-label="Scroll right"
               >
