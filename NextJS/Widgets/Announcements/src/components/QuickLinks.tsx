@@ -8,6 +8,7 @@ interface QuickLink {
   href: string;
   icon: React.ReactNode;
   color?: string;
+  circleBackground?: boolean;
 }
 
 // Persistent/long-standing quick links
@@ -16,10 +17,10 @@ const defaultQuickLinks: QuickLink[] = [
     id: 'baptism',
     title: 'Baptism',
     href: 'https://woodsidebible.org/baptism/',
+    circleBackground: true,
     icon: (
-      <svg viewBox="0 0 646.97 630.24" fill="currentColor" className="w-5 h-5">
-        {/* Baptism logo */}
-        <path d="M304.76.45c191.39-9.79,348.86,141.68,341.99,333.95-9.08,254.15-310.68,376.15-512.39,238.41C-114.46,402.92,5.42,15.76,304.76.45ZM301.77,13.44C33.06,27.69-89.95,368.06,118.62,544.6c186.75,158.07,503.85,45.64,515.18-208.22C642.2,148.33,487.57,3.58,301.77,13.44Z"/>
+      <svg viewBox="0 0 646.97 630.24" fill="currentColor" className="w-[30px] h-[30px] sm:w-[34px] sm:h-[34px]">
+        {/* Baptism logo (circle outline removed - using circleBackground instead) */}
         <path d="M549.57,475.93c5.05,5.06-6.21,18.22-9.73,22.27-79.15,90.98-261.89,107.29-363.46,48.6-20.88-12.06-51.35-37.23-29.82-63.12,34.75-41.78,115.52-9.96,157.99.93,64.32,16.5,127.97,19.43,192.72,3,12.15-3.08,37.3-13.73,48.05-12.92,1.24.09,3.39.39,4.25,1.25ZM538.82,484.69c-10.62,2.56-20.52,7.38-30.98,10.48-68.81,20.39-140.24,17.57-209.08-.78-39.04-10.41-100.03-36.43-136.83-9.34-28.17,20.74,6.05,43.53,24.44,53.75,59.04,32.8,141.53,36.94,206.72,23.49,54.06-11.15,108.21-36.67,145.72-77.6Z"/>
         <path d="M318.67,41.32c5.93-1.35,10.06,1.66,13.69,5.87,9.6,11.13,20.57,30.15,28.98,42.96,25.43,38.71,65.3,96.7,68.58,143.24,9.9,140.46-209.57,146.92-215.94,13.07-2.73-57.28,55.14-138.97,87.57-185.28,3.41-4.86,11.83-18.66,17.12-19.86ZM321.48,53.11c-15.71,22.67-31.35,45.58-45.91,69.01-29.27,47.1-68.52,108.71-36.37,164.06,31.88,54.88,118.11,59.83,158.73,12.21,50.86-59.63-9.73-144.6-43.58-197.25-7.75-12.05-21.75-37.03-30.55-46.39-.69-.73-.88-2-2.33-1.64Z"/>
         <path d="M119.89,382.08c96.14-8.24,163.79,49.42,249.82,73.35,17.57,4.89,42.19,7.57,58.16,13.79,8.31,3.24,9.7,9.01,1.24,13.19-16.98,8.4-52.7,4.93-71.4,2-61.32-9.61-122.98-47.72-186.66-31.2-14.85,3.85-32.59,12.54-42.39,24.56-7.97,9.77-8.9,22.91-25.27,14.11-11.78-6.33-27.66-27.99-32.46-40.48-15.85-41.24,8.72-65.87,48.95-69.32ZM418.89,475.7c-11.78-.91-24.36-3.78-35.98-6.49-79.54-18.57-145.73-68.76-227.35-76.43-33.08-3.11-86.12-.51-75.99,47,3.44,16.15,17.74,35.67,31.99,43.93,8.71-21.47,29.53-34.07,51.08-39.91,75.73-20.5,141.83,25.15,214.91,32.76,10.91,1.14,29.34,2.47,39.87,1.13,1.46-.19,3.11-.78,1.48-1.99Z"/>
@@ -35,8 +36,9 @@ const defaultQuickLinks: QuickLink[] = [
     id: 'connect',
     title: 'Connect',
     href: 'https://woodsidebible.org/connect/',
+    circleBackground: true,
     icon: (
-      <svg viewBox="0 0 822.73 822.41" fill="currentColor" className="w-5 h-5">
+      <svg viewBox="0 0 822.73 822.41" fill="currentColor" className="w-[30px] h-[30px] sm:w-[34px] sm:h-[34px]">
         {/* Woodside logo */}
         <path d="M482.59,292.96c-28.5,75.56-63.52,148.62-91.88,224.24-22.85,60.93-44.5,165.54,5.99,218.03,53.19,55.31,103.27-36.03,126.36-76.12,29.77-51.67,60.19-102.91,92.51-153.1,37.77-58.65,82.78-117.18,128.05-170.34,17.33-20.35,35.58-39.9,55.18-58.05,1.32-.3,1.67.72,2.19,1.61,2.7,4.68,6.16,19.72,7.79,25.79,55.59,207.53-59.67,424.44-261.39,494.49-162.86,56.55-343.5,6.03-452.97-125.71l.02-2.82c22.1-29.38,43.34-59.51,66.31-88.22,46.87-58.59,104.84-117,159.18-168.95,39.21-37.49,94.79-86.04,141.88-112.38,2.97-1.66,18.74-10.3,20.79-8.46Z"/>
         <path d="M454.78,615.29c-.4-37.26,12.31-73.93,23.96-108.91,21.35-64.11,58.46-144.93,65.26-211.05,10.09-98.15-75.84-54.82-121.59-23.71-87.22,59.32-157.97,140.42-238.72,207.44-1.08.9-1.56,2.33-3.36,1.91,29.91-61.5,79.75-118.22,92.63-187.03,26.62-142.2-143-109.97-223.13-77.75-1.54-1.51,19.5-33.71,21.85-37.14C170.36,35.21,348.48-31.19,518.31,14.05c111.97,29.83,206.98,107.78,259.7,210.54l-1.23,3.19c-101.38,85.68-182.57,188.93-258.5,297.03-21.17,30.14-40.81,61.47-63.5,90.48Z"/>
@@ -48,10 +50,19 @@ const defaultQuickLinks: QuickLink[] = [
     id: 'giving',
     title: 'Giving',
     href: 'https://woodsidebible.org/give/',
+    circleBackground: true,
     icon: (
-      <svg viewBox="-3 -3 161.91 75.48" fill="currentColor" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" className="w-6 h-6">
-        {/* Giving hands icon */}
-        <path d="M0,0h30.46v7.55l2.44-1.58c21.74-10.75,42,5.58,61.65,12.6,2.29.82,4.62,1.57,6.96,2.26,11.62-3.8,23.06-8.22,34.65-12.09,17.47-5.82,27.57,17.39,12.21,26.45l-45.42,26.26H30.46v8.03H0V0ZM25.42,4.91H5.04v59.66h20.38V4.91ZM60.79,31.51h36.15c.2,0,1.11-.44,1.34-.58,1.72-1.02,2.66-3.56,1.59-5.35-4.74-1.5-9.44-3.11-14.02-5.04-12.96-5.46-24.54-13.65-39.4-13-5.09.22-11.99,1.73-14.97,6.25-.23.35-1.03,1.76-1.03,2.09v40.55h71.29l45.5-26.42c8.2-6.65,1.62-19.58-8.59-16.85l-33.48,11.71c-.27.21.1,1.2.12,1.56.28,4.78-3.35,10.12-8.45,10.12h-36.03v-5.03Z"/>
+      <svg viewBox="0 0 22.777 24" fill="currentColor" className="w-[22px] h-[22px] sm:w-[26px] sm:h-[26px]">
+        {/* Give - hand with heart (from woodsidebible.org) */}
+        <g transform="translate(-6757.558 5391.5)">
+          <g transform="translate(6757.558 -5376.74)">
+            <path d="M22.411,304.65a1.255,1.255,0,0,0-1.775,0l-3.4,3.4a2.572,2.572,0,0,1-1.831.758s-3.006-.15-3.2-.223-.706-.545.136-.879a11.2,11.2,0,0,1,3.059-.232,1.255,1.255,0,0,0,0-2.509H9.156a3.2,3.2,0,0,0-3.391,2.182l-.157.444H0v5.935H9.757l7.527-1.971,5.127-5.127A1.255,1.255,0,0,0,22.411,304.65Z" transform="translate(-0.002 -304.282)" />
+          </g>
+          <g transform="translate(6761.818 -5391.5)">
+            <path d="M14.279,31.173a3.879,3.879,0,0,0-6.194.446,5.9,5.9,0,0,0-.383.622,5.9,5.9,0,0,0-.383-.622,3.879,3.879,0,0,0-6.194-.446A4.669,4.669,0,0,0,0,34.274a5.717,5.717,0,0,0,1.575,3.751,35.057,35.057,0,0,0,3.941,3.682c.6.508,1.212,1.033,1.869,1.607l.02.017a.451.451,0,0,0,.594,0l.02-.017c.656-.574,1.273-1.1,1.869-1.607a35.051,35.051,0,0,0,3.941-3.682A5.717,5.717,0,0,0,15.4,34.274,4.669,4.669,0,0,0,14.279,31.173ZM9.3,41.02c-.514.438-1.043.888-1.6,1.373-.558-.485-1.086-.935-1.6-1.373C2.971,38.352.9,36.59.9,34.274a3.768,3.768,0,0,1,.9-2.5,3.012,3.012,0,0,1,2.29-1.031,3.042,3.042,0,0,1,2.49,1.4,5.35,5.35,0,0,1,.691,1.374.451.451,0,0,0,.858,0,5.35,5.35,0,0,1,.691-1.374,2.978,2.978,0,0,1,4.781-.371,3.768,3.768,0,0,1,.9,2.5C14.5,36.59,12.432,38.352,9.3,41.02Z" transform="translate(0 -29.836)" />
+            <path d="M-17541.93-11521.2l-1.457-1.839-2.031-.566-2.121.75-1.207,1.655-.156,2.02.332,1.5,1.57,2.008,5.3,4.623,6.094-5.455.887-1.885.137-2.021-.637-1.636-.879-.994-1.148-.566h-1.141l-1.121.193-1.32,1.367-.625.845Z" transform="translate(17549.477 11524.147)" />
+          </g>
+        </g>
       </svg>
     ),
   },
@@ -67,7 +78,7 @@ export function QuickLinks({ links = defaultQuickLinks, openInNewTab = false, on
   if (!links || links.length === 0) return null;
 
   return (
-    <div className="flex justify-between md:justify-start items-center w-full md:w-auto gap-x-4 sm:gap-x-6 mt-6 md:mt-5">
+    <div className="flex flex-wrap justify-between md:justify-start items-center w-full md:w-auto gap-x-2 sm:gap-x-6 gap-y-3 mt-6 md:mt-5">
       {links.map((link, index) => (
         <a
           key={link.id}
@@ -75,24 +86,30 @@ export function QuickLinks({ links = defaultQuickLinks, openInNewTab = false, on
           target={openInNewTab ? '_blank' : undefined}
           rel={openInNewTab ? 'noopener noreferrer' : undefined}
           onClick={onLinkClick ? (e) => onLinkClick(e, link.href) : undefined}
-          className="group flex items-center gap-1.5 sm:gap-2 text-secondary hover:text-secondary-dark transition-colors duration-200"
+          className="group flex items-center gap-1 sm:gap-2.5 text-secondary hover:text-secondary-dark transition-colors duration-200"
           style={{
             animation: `fadeInUp 0.5s ease-out ${0.3 + index * 0.1}s both`
           }}
         >
-          <span className="text-gray-400 dark:text-neutral-500 group-hover:text-secondary transition-colors duration-200">
-            {link.icon}
-          </span>
-          <span className="text-xs sm:text-sm font-normal text-gray-400 dark:text-neutral-500 group-hover:text-secondary uppercase tracking-wider sm:tracking-widest whitespace-nowrap transition-colors duration-200">
+          {link.circleBackground ? (
+            <span className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0 rounded-full overflow-hidden bg-gray-100 dark:bg-neutral-800 group-hover:bg-secondary/10 text-gray-600 dark:text-neutral-400 group-hover:text-secondary transition-colors duration-200">
+              {link.icon}
+            </span>
+          ) : (
+            <span className="text-gray-600 dark:text-neutral-400 group-hover:text-secondary transition-colors duration-200">
+              {link.icon}
+            </span>
+          )}
+          <span className="text-[10px] sm:text-sm font-semibold text-gray-600 dark:text-neutral-400 group-hover:text-secondary uppercase tracking-wide sm:tracking-widest whitespace-nowrap transition-colors duration-200">
             {link.title}
           </span>
           <svg
-            className="w-4 h-4 text-secondary opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 hidden sm:block"
+            className="w-3.5 h-3.5 text-gray-400 dark:text-neutral-500 group-hover:text-secondary sm:opacity-0 sm:-translate-x-2 sm:group-hover:opacity-100 sm:group-hover:translate-x-0 transition-all duration-200"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
           </svg>
         </a>
       ))}
