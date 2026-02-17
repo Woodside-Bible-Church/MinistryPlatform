@@ -78,7 +78,7 @@ export function QuickLinks({ links = defaultQuickLinks, openInNewTab = false, on
   if (!links || links.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap justify-between md:justify-start items-center w-full md:w-auto gap-x-2 sm:gap-x-6 gap-y-3 mt-6 md:mt-5">
+    <div className="flex items-stretch w-full gap-2 sm:gap-3 mt-6 md:mt-5">
       {links.map((link, index) => (
         <a
           key={link.id}
@@ -86,30 +86,30 @@ export function QuickLinks({ links = defaultQuickLinks, openInNewTab = false, on
           target={openInNewTab ? '_blank' : undefined}
           rel={openInNewTab ? 'noopener noreferrer' : undefined}
           onClick={onLinkClick ? (e) => onLinkClick(e, link.href) : undefined}
-          className="group flex items-center gap-1 sm:gap-2.5 text-secondary hover:text-secondary-dark transition-colors duration-200"
+          className="group relative flex-1 flex flex-col items-center justify-center gap-1.5 sm:gap-2 py-3 sm:py-4 shadow hover:shadow-lg active:scale-[1.03] active:shadow-lg border border-gray-200 dark:border-neutral-700 transition-all duration-200"
           style={{
             animation: `fadeInUp 0.5s ease-out ${0.3 + index * 0.1}s both`
           }}
         >
           {link.circleBackground ? (
-            <span className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0 rounded-full overflow-hidden bg-gray-100 dark:bg-neutral-800 group-hover:bg-secondary/10 text-gray-600 dark:text-neutral-400 group-hover:text-secondary transition-colors duration-200">
+            <span className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 rounded-full overflow-hidden bg-gray-100 dark:bg-neutral-800 group-hover:bg-secondary/10 text-gray-600 dark:text-neutral-400 group-hover:text-secondary transition-colors duration-200">
               {link.icon}
             </span>
           ) : (
-            <span className="text-gray-600 dark:text-neutral-400 group-hover:text-secondary transition-colors duration-200">
+            <span className="flex items-center justify-center flex-shrink-0 text-gray-600 dark:text-neutral-400 group-hover:text-secondary transition-colors duration-200">
               {link.icon}
             </span>
           )}
-          <span className="text-[10px] sm:text-sm font-semibold text-gray-600 dark:text-neutral-400 group-hover:text-secondary uppercase tracking-wide sm:tracking-widest whitespace-nowrap transition-colors duration-200">
+          <span className="text-[10px] sm:text-xs font-semibold text-gray-600 dark:text-neutral-400 group-hover:text-secondary uppercase tracking-wide sm:tracking-widest whitespace-nowrap transition-colors duration-200">
             {link.title}
           </span>
           <svg
-            className="w-3.5 h-3.5 text-gray-400 dark:text-neutral-500 group-hover:text-secondary sm:opacity-0 sm:-translate-x-2 sm:group-hover:opacity-100 sm:group-hover:translate-x-0 transition-all duration-200"
+            className="absolute bottom-1.5 right-1.5 w-3 h-3 text-gray-400 dark:text-neutral-500 group-hover:text-secondary group-hover:translate-x-0.5 transition-all duration-200"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 12h14M12 5l7 7-7 7" />
           </svg>
         </a>
       ))}

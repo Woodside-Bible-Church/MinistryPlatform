@@ -496,11 +496,11 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
 
   // Social mode - compact horizontal list layout for Linktree replacement
   if (isSocial) {
-    // Combine all announcements for social mode
+    // Combine all announcements for social mode, sorted by CarouselSort
     const allAnnouncements = [
       ...data.ChurchWide,
       ...(data.Campus?.Announcements || [])
-    ];
+    ].sort((a, b) => (a.CarouselSort ?? 999) - (b.CarouselSort ?? 999));
 
     return (
       <div className={`max-w-lg md:max-w-2xl mx-auto relative bg-white dark:bg-neutral-900 ${isDarkMode ? 'dark' : ''}`}>
@@ -554,7 +554,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => hasLink && handleSocialLinkClick(e, hasLink)}
-                  className="flex items-center gap-3 md:gap-4 p-2 md:p-3 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors duration-200 group"
+                  className="relative flex items-start gap-3 md:gap-4 p-2 md:p-3 shadow hover:shadow-lg active:scale-[1.02] active:shadow-lg border border-gray-200 dark:border-neutral-700 transition-all duration-200 group"
                 >
                   {/* Small thumbnail - 16:9 aspect ratio */}
                   <div className="flex-shrink-0 w-24 md:w-36 aspect-video overflow-hidden">
@@ -581,25 +581,24 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                       </div>
                     )}
                   </div>
-                  {/* Text content */}
+                  {/* Text content with arrow beneath */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-xs md:text-base leading-tight text-primary dark:text-white group-hover:text-secondary transition-colors duration-200">
+                    <h3 className="font-bold text-sm md:text-lg leading-tight text-primary dark:text-white group-hover:text-secondary transition-colors duration-200">
                       {heading}
                     </h3>
                     {subHeading && (
-                      <p className="text-[11px] md:text-sm text-gray-500 dark:text-neutral-400 mt-0.5 leading-snug">
+                      <p className="text-xs md:text-sm text-gray-500 dark:text-neutral-400 mt-0.5 leading-snug">
                         {subHeading.replace(/<[^>]*>/g, '').trim().substring(0, 80)}
                       </p>
                     )}
                   </div>
-                  {/* Arrow */}
                   <svg
-                    className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0 text-gray-400 dark:text-neutral-500 group-hover:text-secondary group-hover:translate-x-0.5 transition-all duration-200"
+                    className="absolute bottom-2 right-2 md:bottom-3 md:right-3 w-3 h-3 text-gray-400 dark:text-neutral-500 group-hover:text-secondary group-hover:translate-x-0.5 transition-all duration-200"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
                 </a>
               </React.Fragment>
@@ -617,6 +616,12 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
       </div>
     );
   }
+
+  // Merge all announcements for carousel mode, sorted by CarouselSort
+  const carouselAnnouncements = isCarousel
+    ? [...data.ChurchWide, ...(data.Campus?.Announcements || [])]
+        .sort((a, b) => (a.CarouselSort ?? 999) - (b.CarouselSort ?? 999))
+    : [];
 
   return (
     <div>
