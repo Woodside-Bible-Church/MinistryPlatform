@@ -1381,7 +1381,7 @@ export default function RSVPPage() {
                 <div className="flex flex-wrap gap-4">
                   {carousel.Events.map((event) => (
                     <InformationalEventCard
-                      key={event.Event_ID}
+                      key={`${event.Item_Type || 'Event'}-${event.Event_ID || event.Opportunity_ID}`}
                       event={event}
                       baseUrl={baseUrl}
                     />

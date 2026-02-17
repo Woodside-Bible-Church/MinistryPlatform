@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { InformationalEvent } from "@/data/mockData";
 import { CarouselEvent } from "@/types/rsvp";
-import { Calendar, MapPin } from "lucide-react";
+import { Calendar, MapPin, Heart } from "lucide-react";
 
 // Support both mock data type and real API type
 type EventCardData = InformationalEvent | CarouselEvent;
@@ -34,19 +34,28 @@ export default function InformationalEventCard({
   // Extract common properties based on event type
   const eventTitle = isMockEvent(event) ? event.title : event.Event_Title;
   const imageUrl = isMockEvent(event) ? event.imageUrl : event.Event_Image_URL;
-  const startDate = isMockEvent(event) ? event.startDate : new Date(event.Event_Start_Date);
   const campusName = isMockEvent(event) ? event.campusName : event.Campus_Name;
+  const isOpportunity = !isMockEvent(event) && event.Item_Type === 'Opportunity';
 
-  // Format date and time
-  const formattedDate = startDate.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
-  const formattedTime = startDate.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+  // Parse start date (may be null for opportunities)
+  const startDate = isMockEvent(event)
+    ? event.startDate
+    : event.Event_Start_Date ? new Date(event.Event_Start_Date) : null;
+
+  // Format date and time (only if date exists)
+  const formattedDate = startDate
+    ? startDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+      })
+    : null;
+  const formattedTime = startDate
+    ? startDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+      })
+    : null;
 
   return (
     <motion.button
@@ -68,7 +77,15 @@ export default function InformationalEventCard({
         )}
         {!imageUrl && (
           <div className="w-full h-full flex items-center justify-center text-gray-400">
-            <Calendar className="w-16 h-16" />
+            {isOpportunity ? <Heart className="w-16 h-16" /> : <Calendar className="w-16 h-16" />}
+          </div>
+        )}
+
+        {/* Serve badge for opportunities */}
+        {isOpportunity && (
+          <div className="absolute top-3 left-3 bg-green-600 text-white text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-md">
+            <Heart className="w-3 h-3" />
+            Serve
           </div>
         )}
       </div>
@@ -80,10 +97,12 @@ export default function InformationalEventCard({
             {eventTitle}
           </h3>
           <div className="flex flex-col gap-1.5 text-sm text-white/90">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span>{formattedDate} at {formattedTime}</span>
-            </div>
+            {formattedDate && formattedTime && (
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                <span>{formattedDate} at {formattedTime}</span>
+              </div>
+            )}
             {campusName && (
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />

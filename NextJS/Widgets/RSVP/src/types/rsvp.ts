@@ -59,21 +59,23 @@ export interface EventCarousel {
 }
 
 /**
- * Individual event in a carousel (non-RSVP event)
+ * Individual item in a carousel (event or serve opportunity)
  */
 export interface CarouselEvent {
-  Event_ID: number;
-  Event_Title: string;
-  Event_Start_Date: string; // ISO date string
-  Event_End_Date: string; // ISO date string
-  Event_Type_ID: number;
+  Item_Type: 'Event' | 'Opportunity';
+  Event_ID?: number | null;           // Present for events
+  Opportunity_ID?: number | null;     // Present for opportunities
+  Event_Title: string;                // Title (used for both events and opportunities)
+  Event_Start_Date?: string | null;   // ISO date string (events have dates, opportunities may not)
+  Event_End_Date?: string | null;     // ISO date string
+  Event_Type_ID?: number | null;
   Congregation_ID: number | null;
   Campus_Name: string | null;
   Campus_Slug: string | null;
   Campus_Location: string | null;
   Description: string | null;
-  Event_Image_URL: string | null;  // Default image from Events table
-  Event_URL: string | null;  // Link to event details page
+  Event_Image_URL: string | null;  // Default image from Events or Opportunities table
+  Event_URL: string | null;  // Link to event/opportunity details page
 }
 
 /**
