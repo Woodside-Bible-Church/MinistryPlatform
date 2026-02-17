@@ -652,8 +652,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
             <h1 className={isCarousel ? 'text-xl md:text-4xl font-bold truncate' : 'text-3xl md:text-7xl lg:text-8xl font-bold tracking-tighter'}>
               {labels.carouselHeading2 || 'Announcements'}
             </h1>
-            {/* Quick links - grid mode only */}
-            {!isCarousel && <QuickLinks />}
+            {/* Quick links removed from grid mode - only shown in social/links mode */}
           </div>
           {/* Navigation arrows visible on desktop only - carousel mode only */}
           {isCarousel && hasOverflow && (
