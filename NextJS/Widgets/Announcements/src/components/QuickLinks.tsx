@@ -71,14 +71,18 @@ const defaultQuickLinks: QuickLink[] = [
 interface QuickLinksProps {
   links?: QuickLink[];
   openInNewTab?: boolean;
+  compact?: boolean;
   onLinkClick?: (e: React.MouseEvent, url: string) => void;
 }
 
-export function QuickLinks({ links = defaultQuickLinks, openInNewTab = false, onLinkClick }: QuickLinksProps) {
+export function QuickLinks({ links = defaultQuickLinks, openInNewTab = false, compact = false, onLinkClick }: QuickLinksProps) {
   if (!links || links.length === 0) return null;
 
   return (
-    <div className="flex items-center justify-between w-full mt-6 md:mt-5 px-4 sm:px-8">
+    <div className={compact
+      ? "flex items-center justify-start gap-6 sm:gap-8 w-full mt-4 md:mt-3"
+      : "flex items-center justify-between w-full mt-6 md:mt-5 px-4 sm:px-8"
+    }>
       {links.map((link, index) => (
         <a
           key={link.id}
@@ -91,10 +95,16 @@ export function QuickLinks({ links = defaultQuickLinks, openInNewTab = false, on
             animation: `fadeInUp 0.5s ease-out ${0.3 + index * 0.1}s both`
           }}
         >
-          <span className="glass-shadow flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full backdrop-blur-xl bg-gray-100/80 dark:bg-white/10 shadow-lg hover:shadow-xl active:scale-[1.05] border border-gray-200/60 dark:border-white/[0.08] text-gray-600 dark:text-neutral-400 group-hover:text-secondary group-hover:bg-gray-200/70 dark:group-hover:bg-white/20 transition-all duration-200 [&_svg]:w-10 [&_svg]:h-10 sm:[&_svg]:w-12 sm:[&_svg]:h-12">
+          <span className={compact
+            ? "glass-shadow flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full backdrop-blur-xl bg-gray-100/80 dark:bg-white/10 shadow-lg hover:shadow-xl active:scale-[1.05] border border-gray-200/60 dark:border-white/[0.08] text-gray-600 dark:text-neutral-400 group-hover:text-secondary group-hover:bg-gray-200/70 dark:group-hover:bg-white/20 transition-all duration-200 [&_svg]:w-7 [&_svg]:h-7 sm:[&_svg]:w-8 sm:[&_svg]:h-8"
+            : "glass-shadow flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full backdrop-blur-xl bg-gray-100/80 dark:bg-white/10 shadow-lg hover:shadow-xl active:scale-[1.05] border border-gray-200/60 dark:border-white/[0.08] text-gray-600 dark:text-neutral-400 group-hover:text-secondary group-hover:bg-gray-200/70 dark:group-hover:bg-white/20 transition-all duration-200 [&_svg]:w-10 [&_svg]:h-10 sm:[&_svg]:w-12 sm:[&_svg]:h-12"
+          }>
             {link.icon}
           </span>
-          <span className="text-[10px] sm:text-xs font-semibold text-gray-600 dark:text-neutral-400 group-hover:text-secondary uppercase tracking-wide sm:tracking-widest whitespace-nowrap transition-colors duration-200">
+          <span className={compact
+            ? "text-[9px] sm:text-[10px] font-semibold text-gray-600 dark:text-neutral-400 group-hover:text-secondary uppercase tracking-wide whitespace-nowrap transition-colors duration-200"
+            : "text-[10px] sm:text-xs font-semibold text-gray-600 dark:text-neutral-400 group-hover:text-secondary uppercase tracking-wide sm:tracking-widest whitespace-nowrap transition-colors duration-200"
+          }>
             {link.title}
           </span>
         </a>
