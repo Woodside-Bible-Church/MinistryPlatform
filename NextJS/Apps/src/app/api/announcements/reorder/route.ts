@@ -16,9 +16,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { updates, field = 'sort' } = body as {
+    const { updates, field = 'sort', congregationId } = body as {
       updates: Array<{ id: number; sort: number }>;
       field?: 'sort' | 'carouselSort';
+      congregationId?: number;
     };
 
     if (!updates || !Array.isArray(updates) || updates.length === 0) {
@@ -48,7 +49,13 @@ export async function POST(request: NextRequest) {
 
     const service = new AnnouncementsService();
     if (field === 'carouselSort') {
-      await service.bulkUpdateCarouselSortOrder(updates, userId);
+      if (congregationId && congregationId !== 1) {
+        // Campus-specific override — update JSON overrides field
+        await service.bulkUpdateCarouselSortOrderForCampus(updates, congregationId, userId);
+      } else {
+        // Church-wide (All Campuses) — update base Carousel_Sort
+        await service.bulkUpdateCarouselSortOrder(updates, userId);
+      }
     } else {
       await service.bulkUpdateSortOrder(updates, userId);
     }

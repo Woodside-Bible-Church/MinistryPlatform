@@ -148,6 +148,7 @@ export default function AnnouncementsPage() {
     endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
     sort: 10,
     carouselSort: null,
+    carouselSortOverrides: null,
     congregationID: 1,
     callToActionURL: null,
     callToActionLabel: null,
@@ -471,6 +472,7 @@ export default function AnnouncementsPage() {
       endDate: weekFromNowFormatted,
       sort: maxSort + 1,
       carouselSort: null,
+      carouselSortOverrides: null,
       congregationID: defaultCongregation,
       callToActionURL: null,
       callToActionLabel: null,
@@ -506,6 +508,7 @@ export default function AnnouncementsPage() {
       endDate: endDate,
       sort: announcement.Sort,
       carouselSort: announcement.CarouselSort,
+      carouselSortOverrides: announcement.CarouselSortOverrides,
       congregationID: announcement.CongregationID,
       callToActionURL: announcement.CallToActionURL,
       callToActionLabel: announcement.CallToActionLabel,
@@ -1043,11 +1046,24 @@ export default function AnnouncementsPage() {
       sort: baseSortNumber + index,
     }));
 
-    // Update local state optimistically (update CarouselSort)
+    const campusId = selectedCampus?.Congregation_ID;
+    const isCampusSpecific = campusId && campusId !== 1;
+
+    // Update local state optimistically
     setAnnouncements((prev) =>
       prev.map((a) => {
         const update = updates.find((u) => u.id === a.ID);
-        return update ? { ...a, CarouselSort: update.sort } : a;
+        if (!update) return a;
+        if (isCampusSpecific) {
+          // Update the overrides JSON for this campus
+          let overrides: Record<string, number> = {};
+          if (a.CarouselSortOverrides) {
+            try { overrides = JSON.parse(a.CarouselSortOverrides); } catch { /* ignore */ }
+          }
+          overrides[String(campusId)] = update.sort;
+          return { ...a, CarouselSortOverrides: JSON.stringify(overrides) };
+        }
+        return { ...a, CarouselSort: update.sort };
       })
     );
 
@@ -1055,7 +1071,11 @@ export default function AnnouncementsPage() {
       const response = await fetch("/api/announcements/reorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ updates, field: "carouselSort" }),
+        body: JSON.stringify({
+          updates,
+          field: "carouselSort",
+          ...(isCampusSpecific ? { congregationId: campusId } : {}),
+        }),
       });
 
       if (!response.ok) {
@@ -1093,10 +1113,22 @@ export default function AnnouncementsPage() {
       sort: baseSortNumber + index,
     }));
 
+    const campusId = selectedCampus?.Congregation_ID;
+    const isCampusSpecific = campusId && campusId !== 1;
+
     setAnnouncements((prev) =>
       prev.map((a) => {
         const update = updates.find((u) => u.id === a.ID);
-        return update ? { ...a, CarouselSort: update.sort } : a;
+        if (!update) return a;
+        if (isCampusSpecific) {
+          let overrides: Record<string, number> = {};
+          if (a.CarouselSortOverrides) {
+            try { overrides = JSON.parse(a.CarouselSortOverrides); } catch { /* ignore */ }
+          }
+          overrides[String(campusId)] = update.sort;
+          return { ...a, CarouselSortOverrides: JSON.stringify(overrides) };
+        }
+        return { ...a, CarouselSort: update.sort };
       })
     );
 
@@ -1104,7 +1136,11 @@ export default function AnnouncementsPage() {
       const response = await fetch("/api/announcements/reorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ updates, field: "carouselSort" }),
+        body: JSON.stringify({
+          updates,
+          field: "carouselSort",
+          ...(isCampusSpecific ? { congregationId: campusId } : {}),
+        }),
       });
 
       if (!response.ok) {
@@ -1175,9 +1211,23 @@ export default function AnnouncementsPage() {
   );
 
   // Links mode: all announcements merged, sorted by CarouselSort
+  // Get the effective carousel sort for an announcement, considering campus overrides
+  function getEffectiveCarouselSort(announcement: Announcement): number {
+    if (selectedCampus && selectedCampus.Congregation_ID !== 1 && announcement.CarouselSortOverrides) {
+      try {
+        const overrides = JSON.parse(announcement.CarouselSortOverrides);
+        const campusOverride = overrides[String(selectedCampus.Congregation_ID)];
+        if (campusOverride != null) return campusOverride;
+      } catch {
+        // Malformed JSON — fall through to base
+      }
+    }
+    return announcement.CarouselSort ?? 999;
+  }
+
   const linksAnnouncements = [...filteredAnnouncements].sort((a, b) => {
-    const csA = a.CarouselSort ?? 999;
-    const csB = b.CarouselSort ?? 999;
+    const csA = getEffectiveCarouselSort(a);
+    const csB = getEffectiveCarouselSort(b);
     if (csA !== csB) return csA - csB;
     return a.ID - b.ID;
   });

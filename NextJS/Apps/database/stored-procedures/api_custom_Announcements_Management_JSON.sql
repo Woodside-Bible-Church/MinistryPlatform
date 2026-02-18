@@ -44,6 +44,7 @@ BEGIN
                 a.Announcement_End_Date AS [EndDate],
                 a.Sort,
                 a.Carousel_Sort AS [CarouselSort],
+                a.Carousel_Sort_Overrides AS [CarouselSortOverrides],
 
                 -- Congregation
                 a.Congregation_ID AS [CongregationID],
@@ -119,6 +120,7 @@ BEGIN
             a.Announcement_End_Date AS [EndDate],
             a.Sort,
             a.Carousel_Sort AS [CarouselSort],
+            a.Carousel_Sort_Overrides AS [CarouselSortOverrides],
 
             -- Congregation
             a.Congregation_ID AS [CongregationID],

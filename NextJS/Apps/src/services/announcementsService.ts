@@ -12,6 +12,7 @@ export interface AnnouncementRecord {
   Announcement_End_Date: string;
   Sort: number;
   Carousel_Sort: number | null;
+  Carousel_Sort_Overrides: string | null;
   Congregation_ID: number;
   Call_To_Action_URL: string | null;
   Call_To_Action_Label: string | null;
@@ -122,13 +123,14 @@ export class AnnouncementsService {
       Announcement_End_Date: string;
       Sort: number;
       Carousel_Sort: number | null;
+      Carousel_Sort_Overrides: string | null;
       Congregation_ID: number;
       Call_To_Action_URL: string | null;
       Call_To_Action_Label: string | null;
       Event_ID: number | null;
       Opportunity_ID: number | null;
     }>("Announcements", {
-      $select: "Announcement_ID,Announcement_Title,Announcement_Body,Active,Top_Priority,Announcement_Start_Date,Announcement_End_Date,Sort,Carousel_Sort,Congregation_ID,Call_To_Action_URL,Call_To_Action_Label,Event_ID,Opportunity_ID",
+      $select: "Announcement_ID,Announcement_Title,Announcement_Body,Active,Top_Priority,Announcement_Start_Date,Announcement_End_Date,Sort,Carousel_Sort,Carousel_Sort_Overrides,Congregation_ID,Call_To_Action_URL,Call_To_Action_Label,Event_ID,Opportunity_ID",
       $filter: `Announcement_ID=${id}`,
       $top: 1,
     });
@@ -159,6 +161,7 @@ export class AnnouncementsService {
       EndDate: record.Announcement_End_Date,
       Sort: record.Sort,
       CarouselSort: record.Carousel_Sort,
+      CarouselSortOverrides: record.Carousel_Sort_Overrides,
       CongregationID: record.Congregation_ID,
       CongregationName: congregations[0]?.Congregation_Name || "",
       CallToActionURL: record.Call_To_Action_URL,
@@ -187,6 +190,7 @@ export class AnnouncementsService {
       Announcement_End_Date: data.endDate,
       Sort: data.sort,
       Carousel_Sort: data.carouselSort,
+      Carousel_Sort_Overrides: data.carouselSortOverrides,
       Congregation_ID: data.congregationID,
       Call_To_Action_URL: data.callToActionURL,
       Call_To_Action_Label: data.callToActionLabel,
@@ -215,6 +219,7 @@ export class AnnouncementsService {
       Announcement_End_Date: data.endDate,
       Sort: data.sort,
       Carousel_Sort: data.carouselSort,
+      Carousel_Sort_Overrides: data.carouselSortOverrides,
       Congregation_ID: data.congregationID,
       Call_To_Action_URL: data.callToActionURL,
       Call_To_Action_Label: data.callToActionLabel,
@@ -288,6 +293,7 @@ export class AnnouncementsService {
         Announcement_End_Date: existing.EndDate,
         Sort: update.sort,
         Carousel_Sort: existing.CarouselSort,
+        Carousel_Sort_Overrides: existing.CarouselSortOverrides,
         Congregation_ID: existing.CongregationID,
         Call_To_Action_URL: existing.CallToActionURL,
         Call_To_Action_Label: existing.CallToActionLabel,
@@ -328,6 +334,63 @@ export class AnnouncementsService {
         Announcement_End_Date: existing.EndDate,
         Sort: existing.Sort,
         Carousel_Sort: update.sort,
+        Carousel_Sort_Overrides: existing.CarouselSortOverrides,
+        Congregation_ID: existing.CongregationID,
+        Call_To_Action_URL: existing.CallToActionURL,
+        Call_To_Action_Label: existing.CallToActionLabel,
+        Event_ID: existing.EventID,
+        Opportunity_ID: existing.OpportunityID,
+        Domain_ID: 1,
+      });
+    }
+
+    await this.tableService.updateTableRecords("Announcements", records, {
+      $userId: userId,
+    });
+  }
+
+  /**
+   * Bulk update carousel sort order for a specific campus
+   * Updates the Carousel_Sort_Overrides JSON field with campus-specific sort values
+   */
+  async bulkUpdateCarouselSortOrderForCampus(
+    updates: Array<{ id: number; sort: number }>,
+    congregationId: number,
+    userId: number
+  ): Promise<void> {
+    const records: AnnouncementRecord[] = [];
+
+    for (const update of updates) {
+      const existing = await this.getAnnouncementById(update.id);
+      if (!existing) {
+        throw new Error(`Announcement ${update.id} not found`);
+      }
+
+      // Parse existing overrides or start fresh
+      let overrides: Record<string, number> = {};
+      if (existing.CarouselSortOverrides) {
+        try {
+          overrides = JSON.parse(existing.CarouselSortOverrides);
+        } catch {
+          // Malformed JSON — start fresh
+          overrides = {};
+        }
+      }
+
+      // Set the campus-specific sort value
+      overrides[String(congregationId)] = update.sort;
+
+      records.push({
+        Announcement_ID: update.id,
+        Announcement_Title: existing.Title,
+        Announcement_Body: existing.Body,
+        Active: existing.Active,
+        Top_Priority: existing.TopPriority,
+        Announcement_Start_Date: existing.StartDate,
+        Announcement_End_Date: existing.EndDate,
+        Sort: existing.Sort,
+        Carousel_Sort: existing.CarouselSort,
+        Carousel_Sort_Overrides: JSON.stringify(overrides),
         Congregation_ID: existing.CongregationID,
         Call_To_Action_URL: existing.CallToActionURL,
         Call_To_Action_Label: existing.CallToActionLabel,
