@@ -116,15 +116,53 @@ h6 {
   }
 }
 
-/* Cleaned Page v0.6 — Inline image + title layout (only when .cleanPage exists) */
+/* Cleaned Page v0.7 — hide extras + inline image/title (only when .cleanPage exists) */
 @supports selector(:has(*)) {
-  .mpp-innerpage:has(.cleanPage) {
+  /* =========
+     HIDE EXTRAS
+     ========= */
+
+  /* Hide blocks that are INSIDE the section.mpp-innerpage */
+  section.mpp-innerpage:has(.cleanPage)
+    :is(
+      h3.mpp-innerpage--back,
+      .mpp-innerpage--datetime,
+      .mpp-innerpage--map-container,
+      .mpp-innerpage--contacts-wrapper,
+      .mpp-innerpage--special
+    ) {
+    display: none !important;
+  }
+
+  /* Hide blocks that are SIBLINGS AFTER the section (common MP structure) */
+  section.mpp-innerpage:has(.cleanPage)
+    ~ :is(
+      .mpp-innerpage--special,
+      .mpp-innerpage--map-container,
+      #responseFormTitle,
+      h2#responseFormTitle,
+      [id="responseFormTitle"]
+    ) {
+    display: none !important;
+  }
+
+  /* (Optional) In case #responseFormTitle is NOT a sibling of the section for some opps */
+  #detailsContainer:has(section.mpp-innerpage .cleanPage)
+    :is(#responseFormTitle, h2#responseFormTitle, [id="responseFormTitle"]) {
+    display: none !important;
+  }
+
+  /* ==========================
+     INLINE IMAGE + TITLE LAYOUT
+     ========================== */
+
+  section.mpp-innerpage:has(.cleanPage) {
     --cp-img-w: 360px;
     --cp-gap: 1rem;
   }
 
-  /* Mobile: keep image 16:9 above title */
-  .mpp-innerpage:has(.cleanPage) .mpp-innerpage--fixed-imgcontainer {
+  /* Mobile: image 16:9 above title */
+  section.mpp-innerpage:has(.cleanPage) .mpp-innerpage--fixed-imgcontainer {
     display: block !important;
     width: 100% !important;
     height: 0 !important;
@@ -135,22 +173,22 @@ h6 {
     margin: 0 0 0.8rem !important;
   }
 
-  /* Desktop: place image left, title right */
+  /* Desktop: image left, title right */
   @media (min-width: 700px) {
-    .mpp-innerpage:has(.cleanPage) .mpp-innerpage--fixed-imgcontainer,
-    .mpp-innerpage:has(.cleanPage) .mpp-innerpage--subtitle {
+    section.mpp-innerpage:has(.cleanPage) .mpp-innerpage--fixed-imgcontainer,
+    section.mpp-innerpage:has(.cleanPage) .mpp-innerpage--subtitle {
       display: inline-block !important;
       vertical-align: middle !important;
     }
 
-    .mpp-innerpage:has(.cleanPage) .mpp-innerpage--fixed-imgcontainer {
+    section.mpp-innerpage:has(.cleanPage) .mpp-innerpage--fixed-imgcontainer {
       width: var(--cp-img-w) !important;
       height: calc(var(--cp-img-w) * 0.5625) !important; /* 16:9 */
       padding-top: 0 !important;
       margin: 0 var(--cp-gap) 0 0 !important;
     }
 
-    .mpp-innerpage:has(.cleanPage) .mpp-innerpage--subtitle {
+    section.mpp-innerpage:has(.cleanPage) .mpp-innerpage--subtitle {
       max-width: calc(100% - (var(--cp-img-w) + var(--cp-gap))) !important;
     }
   }
