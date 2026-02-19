@@ -188,3 +188,121 @@ section.mpp-innerpage:has(.cleanPage) .mppw-btn:hover {
   background: var(--cp-ink) !important;
   border-color: var(--cp-ink) !important;
 }
+
+/* =========================
+   Clean Page (flagged only)
+   Add to description:
+   <span class="cleanPage" style="--cleanAccent:#993366;--cleanInk:#1C2B39"></span>
+   ========================= */
+@supports selector(:has(*)) {
+  .mpp-innerpage:has(.cleanPage) {
+    --cp-accent: var(--cleanAccent, var(--innerPage-primaryColor));
+    --cp-ink: var(--cleanInk, var(--innerPage-h3color));
+    --cp-border: rgba(0, 0, 0, 0.12);
+    --cp-radius: 10px;
+    --cp-pad: 12px;
+    --cp-gap: 10px;
+  }
+
+  /* Hide “extra” blocks above the form */
+  .mpp-innerpage:has(.cleanPage) .mpp-innerpage--back,
+  .mpp-innerpage:has(.cleanPage) .mpp-innerpage--datetime,
+  .mpp-innerpage:has(.cleanPage) .mpp-innerpage--map-container,
+  .mpp-innerpage:has(.cleanPage) .mpp-innerpage--contacts-wrapper,
+  .mpp-innerpage:has(.cleanPage) #responseFormTitle,
+  .mpp-innerpage:has(.cleanPage) .mpp-innerpage--special {
+    display: none !important;
+  }
+
+  /* Make the image block 16:9 + aligned with subtitle on wide screens */
+  .mpp-innerpage:has(.cleanPage) .mpp-innerpage--fixed-imgcontainer {
+    display: block !important;
+    width: 100% !important;
+    height: 0 !important;
+    padding-top: 56.25% !important;
+    background: center/contain no-repeat !important;
+    margin: 0 0 0.8rem !important;
+  }
+  @media (min-width: 700px) {
+    .mpp-innerpage:has(.cleanPage) .mpp-innerpage--fixed-imgcontainer,
+    .mpp-innerpage:has(.cleanPage) .mpp-innerpage--subtitle {
+      display: inline-block !important;
+      vertical-align: middle !important;
+    }
+    .mpp-innerpage:has(.cleanPage) .mpp-innerpage--fixed-imgcontainer {
+      width: 360px !important;
+      height: 202px !important; /* 16:9 */
+      padding: 0 !important;
+      margin-right: 1rem !important;
+    }
+    .mpp-innerpage:has(.cleanPage) .mpp-innerpage--subtitle {
+      max-width: calc(100% - 380px) !important;
+    }
+  }
+
+  /* Remove the big field “boxes” */
+  .mpp-innerpage:has(.cleanPage) .mppw-form-field__control {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  /* Inputs look consistent */
+  .mpp-innerpage:has(.cleanPage) :is(input[type="text"], select, textarea) {
+    border: 1px solid var(--cp-border) !important;
+    border-radius: var(--cp-radius) !important;
+    padding: var(--cp-pad) !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  /* Kill textarea resizing (only textarea on these opps) */
+  .mpp-innerpage:has(.cleanPage) textarea {
+    resize: none !important;
+  }
+
+  /* Radio/checkbox options become clean “rows” (but avoid multiselect UI) */
+  .mpp-innerpage:has(.cleanPage)
+    .mppw-form-field__control
+    > label:not(:has(.multiselectOption)):has(input[type="radio"]),
+  .mpp-innerpage:has(.cleanPage)
+    .mppw-form-field__control
+    > label:not(:has(.multiselectOption)):has(input[type="checkbox"]) {
+    display: flex !important;
+    align-items: center !important;
+    gap: var(--cp-gap) !important;
+    padding: 10px 12px !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    border-radius: var(--cp-radius) !important;
+    background: #fff !important;
+    margin: 0 0 8px !important;
+    line-height: 1.2 !important;
+  }
+  .mpp-innerpage:has(.cleanPage)
+    :is(input[type="radio"], input[type="checkbox"]) {
+    margin: 0 !important;
+  }
+
+  /* Focus ring uses per-opportunity accent */
+  .mpp-innerpage:has(.cleanPage)
+    :is(input[type="text"], select, textarea):focus {
+    outline: none !important;
+    border-color: color-mix(
+      in srgb,
+      var(--cp-accent) 55%,
+      transparent
+    ) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--cp-accent) 14%, transparent) !important;
+  }
+
+  /* Buttons use per-opportunity accent */
+  .mpp-innerpage:has(.cleanPage) .mppw-btn.primary {
+    background: var(--cp-accent) !important;
+    border-color: var(--cp-accent) !important;
+  }
+  .mpp-innerpage:has(.cleanPage) .mppw-btn:hover {
+    background: var(--cp-ink) !important;
+    border-color: var(--cp-ink) !important;
+  }
+}
