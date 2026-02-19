@@ -199,7 +199,6 @@ h6 {
     background-size: cover !important;
     background-repeat: no-repeat !important;
 
-    border-radius: 12px !important;
     overflow: hidden !important;
 
     margin: 0 0 0.8rem !important;
@@ -274,7 +273,7 @@ h6 {
     box-shadow: none !important;
 
     padding: 0.7rem 0.85rem !important;
-    border-radius: 10px !important;
+    border-radius: 0px !important;
 
     outline: none !important;
   }
@@ -329,7 +328,7 @@ h6 {
     padding: 0.75rem 0.85rem !important;
     min-height: 140px !important;
 
-    border-radius: 10px !important;
+    border-radius: 0px !important;
     outline: none !important;
 
     resize: none !important;
