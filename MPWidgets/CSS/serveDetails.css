@@ -116,33 +116,42 @@ h6 {
   }
 }
 
-/* Cleaned Page v0.5 — Hide extra sections + reliably hide #responseFormTitle */
+/* Cleaned Page v0.6 — Inline image + title layout (only when .cleanPage exists) */
 @supports selector(:has(*)) {
-  /* 1) Hide blocks INSIDE the inner page section */
-  .mpp-innerpage:has(.cleanPage)
-    :is(
-      h3.mpp-innerpage--back,
-      .mpp-innerpage--datetime,
-      .mpp-innerpage--contacts-wrapper,
-      .mpp-innerpage--special,
-      .mpp-innerpage--map-container
-    ) {
-    display: none !important;
+  .mpp-innerpage:has(.cleanPage) {
+    --cp-img-w: 360px;
+    --cp-gap: 1rem;
   }
 
-  /* 2) Hide blocks that are SIBLINGS AFTER the inner page section
-        (this is where your duplicate .mpp-innerpage--special and the form title live) */
-  .mpp-innerpage:has(.cleanPage)
-    ~ :is(
-      .mpp-innerpage--special,
-      .mpp-innerpage--map-container,
-      #responseFormTitle
-    ) {
-    display: none !important;
+  /* Mobile: keep image 16:9 above title */
+  .mpp-innerpage:has(.cleanPage) .mpp-innerpage--fixed-imgcontainer {
+    display: block !important;
+    width: 100% !important;
+    height: 0 !important;
+    padding-top: 56.25% !important; /* 16:9 */
+    background-position: center !important;
+    background-size: contain !important;
+    background-repeat: no-repeat !important;
+    margin: 0 0 0.8rem !important;
   }
 
-  /* 3) Extra direct hit, just in case the DOM shifts (harmless redundancy) */
-  #responseFormTitle {
-    display: none !important;
+  /* Desktop: place image left, title right */
+  @media (min-width: 700px) {
+    .mpp-innerpage:has(.cleanPage) .mpp-innerpage--fixed-imgcontainer,
+    .mpp-innerpage:has(.cleanPage) .mpp-innerpage--subtitle {
+      display: inline-block !important;
+      vertical-align: middle !important;
+    }
+
+    .mpp-innerpage:has(.cleanPage) .mpp-innerpage--fixed-imgcontainer {
+      width: var(--cp-img-w) !important;
+      height: calc(var(--cp-img-w) * 0.5625) !important; /* 16:9 */
+      padding-top: 0 !important;
+      margin: 0 var(--cp-gap) 0 0 !important;
+    }
+
+    .mpp-innerpage:has(.cleanPage) .mpp-innerpage--subtitle {
+      max-width: calc(100% - (var(--cp-img-w) + var(--cp-gap))) !important;
+    }
   }
 }
