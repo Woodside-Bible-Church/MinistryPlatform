@@ -116,23 +116,33 @@ h6 {
   }
 }
 
-/* Cleaned Page v0.4 — Hide extra sections (properly targets #responseFormTitle + both “special” blocks) */
+/* Cleaned Page v0.5 — Hide extra sections + reliably hide #responseFormTitle */
 @supports selector(:has(*)) {
-  /* Anchor at the common parent that contains BOTH the inner section and the form title */
-  #detailsContainer:has(.cleanPage)
+  /* 1) Hide blocks INSIDE the inner page section */
+  .mpp-innerpage:has(.cleanPage)
     :is(
-      /* inside the inner page section */
       h3.mpp-innerpage--back,
       .mpp-innerpage--datetime,
-      .mpp-innerpage--map-container,
       .mpp-innerpage--contacts-wrapper,
-
-      /* appears both inside AND outside the section in different renders */
       .mpp-innerpage--special,
+      .mpp-innerpage--map-container
+    ) {
+    display: none !important;
+  }
 
-      /* outside the section */
+  /* 2) Hide blocks that are SIBLINGS AFTER the inner page section
+        (this is where your duplicate .mpp-innerpage--special and the form title live) */
+  .mpp-innerpage:has(.cleanPage)
+    ~ :is(
+      .mpp-innerpage--special,
+      .mpp-innerpage--map-container,
       #responseFormTitle
     ) {
+    display: none !important;
+  }
+
+  /* 3) Extra direct hit, just in case the DOM shifts (harmless redundancy) */
+  #responseFormTitle {
     display: none !important;
   }
 }
