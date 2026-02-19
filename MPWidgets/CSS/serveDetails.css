@@ -116,27 +116,28 @@ h6 {
   }
 }
 
-/* Cleaned Page v0.2 — Hide extra sections */
+/* Cleaned Page v0.3 — Hide extra sections (handles sibling special block too) */
 @supports selector(:has(*)) {
-  .mpp-innerpage:has(.cleanPage) {
-    /* Back button */
-    h3.mpp-innerpage--back,
+  /* Hide blocks inside the inner page section */
+  .mpp-innerpage:has(.cleanPage)
+    :is(
+      h3.mpp-innerpage--back,
+      .mpp-innerpage--datetime,
+      .mpp-innerpage--map-container,
+      .mpp-innerpage--contacts-wrapper,
+      .mpp-innerpage--special,
+      #responseFormTitle
+    ) {
+    display: none !important;
+  }
 
-    /* Date/time block */
-    .mpp-innerpage--datetime,
-
-    /* Map */
-    .mpp-innerpage--map-container,
-
-    /* Contacts (primary contact section) */
-    .mpp-innerpage--contacts-wrapper,
-
-    /* Special / misc block */
-    .mpp-innerpage--special,
-
-    /* “Respond to this Opportunity” title */
-    #responseFormTitle {
-      display: none !important;
-    }
+  /* ALSO hide blocks that are siblings AFTER the section (not children of it) */
+  .mpp-innerpage:has(.cleanPage)
+    ~ :is(
+      .mpp-innerpage--special,
+      .mpp-innerpage--map-container,
+      #responseFormTitle
+    ) {
+    display: none !important;
   }
 }
