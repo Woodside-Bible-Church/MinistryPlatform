@@ -106,11 +106,11 @@ input[data-input-text-counter="true"] {
   }
 
   .mppw-form-field-alt:has(
-      > .mppw-form-field__alt-label
-        > .mppw-form-field__alt-label-container
-        > .mppw-form-field__alt-label-content
-        > .multiselectTextbox
-    ) {
+    > .mppw-form-field__alt-label
+      > .mppw-form-field__alt-label-container
+      > .mppw-form-field__alt-label-content
+      > .multiselectTextbox
+  ) {
     margin-top: 0 !important;
   }
 
@@ -356,7 +356,10 @@ h3,
 .mppw-btn {
   width: 100%;
   text-transform: uppercase;
-  transition: background 0.3s, color 0.3s, border-color 0.3s;
+  transition:
+    background 0.3s,
+    color 0.3s,
+    border-color 0.3s;
 }
 
 .mppw-btn.primary {
@@ -382,4 +385,80 @@ h3,
 
 .buildDetailsButton.mppw-btn {
   margin: 0;
+}
+
+/* =========================
+   Clean Page (flagged only)
+   Add: <span class="cleanPage" style="--cleanAccent:#993366"></span>
+   ========================= */
+@supports selector(:has(*)) {
+  .mpp-innerpage:has(.cleanPage) {
+    --cp-accent: var(--cleanAccent, var(--secondaryColor));
+    --cp-ink: var(--cleanAccent2, var(--primaryColor));
+    --cp-border: rgba(0, 0, 0, 0.12);
+    --cp-radius: 10px;
+    --cp-pad: 12px;
+    --cp-gap: 10px;
+  }
+
+  /* Remove heavy panels / borders */
+  .mpp-innerpage:has(.cleanPage) .mppw-form-field__control {
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  /* Inputs */
+  .mpp-innerpage:has(.cleanPage) :is(input[type="text"], select, textarea) {
+    border: 1px solid var(--cp-border) !important;
+    border-radius: var(--cp-radius) !important;
+    padding: var(--cp-pad) !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  /* Disable textarea resize (you said it’s the only one) */
+  .mpp-innerpage:has(.cleanPage) textarea {
+    resize: none !important;
+  }
+
+  /* Choice rows (radio/checkbox) */
+  .mpp-innerpage:has(.cleanPage) .mppw-form-field__control > label {
+    display: flex !important;
+    align-items: center !important;
+    gap: var(--cp-gap) !important;
+    padding: 10px 12px !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    border-radius: var(--cp-radius) !important;
+    background: #fff !important;
+    margin: 0 0 8px !important;
+    line-height: 1.2 !important;
+  }
+  .mpp-innerpage:has(.cleanPage)
+    :is(input[type="radio"], input[type="checkbox"]) {
+    margin: 0 !important;
+  }
+
+  /* Focus ring uses the per-description accent */
+  .mpp-innerpage:has(.cleanPage)
+    :is(input[type="text"], select, textarea):focus {
+    outline: none !important;
+    border-color: color-mix(
+      in srgb,
+      var(--cp-accent) 55%,
+      transparent
+    ) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--cp-accent) 14%, transparent) !important;
+  }
+
+  /* Buttons: map to per-description accent */
+  .mpp-innerpage:has(.cleanPage) .mppw-btn.primary {
+    background: var(--cp-accent) !important;
+    border-color: var(--cp-accent) !important;
+  }
+  .mpp-innerpage:has(.cleanPage) .mppw-btn:hover {
+    background: var(--cp-ink) !important;
+    border-color: var(--cp-ink) !important;
+  }
 }
