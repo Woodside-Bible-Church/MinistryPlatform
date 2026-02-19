@@ -462,3 +462,63 @@ h3,
     border-color: var(--cp-ink) !important;
   }
 }
+
+/* =========================
+   Clean Page (flagged only)
+   Add to description:
+   <span class="cleanPage" style="--cleanAccent:#993366"></span>
+   ========================= */
+section.mpp-innerpage:has(.cleanPage) {
+  --cp-accent: var(--cleanAccent, var(--secondaryColor));
+  --cp-ink: var(--cleanAccent2, var(--primaryColor));
+  --cp-b: rgba(0, 0, 0, 0.12);
+  --cp-r: 10px;
+  --cp-p: 12px;
+  --cp-g: 10px;
+}
+section.mpp-innerpage:has(.cleanPage) textarea {
+  resize: none !important;
+}
+section.mpp-innerpage:has(.cleanPage) .mppw-form-field__control {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+section.mpp-innerpage:has(.cleanPage)
+  :is(input[type="text"], select, textarea) {
+  border: 1px solid var(--cp-b) !important;
+  border-radius: var(--cp-r) !important;
+  padding: var(--cp-p) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+section.mpp-innerpage:has(.cleanPage)
+  :is(input[type="text"], select, textarea):focus {
+  outline: none !important;
+  border-color: var(--cp-accent) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cp-accent) 14%, transparent) !important;
+}
+section.mpp-innerpage:has(.cleanPage) .mppw-form-field__control > label {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--cp-g) !important;
+  padding: 10px 12px !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-radius: var(--cp-r) !important;
+  background: #fff !important;
+  margin: 0 0 8px !important;
+  line-height: 1.2 !important;
+}
+section.mpp-innerpage:has(.cleanPage)
+  :is(input[type="radio"], input[type="checkbox"]) {
+  margin: 0 !important;
+}
+section.mpp-innerpage:has(.cleanPage) .mppw-btn.primary {
+  background: var(--cp-accent) !important;
+  border-color: var(--cp-accent) !important;
+}
+section.mpp-innerpage:has(.cleanPage) .mppw-btn:hover {
+  background: var(--cp-ink) !important;
+  border-color: var(--cp-ink) !important;
+}
