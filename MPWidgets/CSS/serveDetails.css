@@ -116,10 +116,27 @@ h6 {
   }
 }
 
-/* Cleaned Page v0.1 — HAS() sanity test */
+//* Cleaned Page v0.2 — Hide extra sections */
 @supports selector(:has(*)) {
-  /* Only when your marker exists somewhere inside this opportunity details view */
-  .mpp-innerpage:has(.cleanPage) h3.mpp-innerpage--back {
-    display: none !important;
+  .mpp-innerpage:has(.cleanPage) {
+    /* Back button */
+    h3.mpp-innerpage--back,
+
+    /* Date/time block */
+    .mpp-innerpage--datetime,
+
+    /* Map */
+    .mpp-innerpage--map-container,
+
+    /* Contacts (primary contact section) */
+    .mpp-innerpage--contacts-wrapper,
+
+    /* Special / misc block */
+    .mpp-innerpage--special,
+
+    /* “Respond to this Opportunity” title */
+    #responseFormTitle {
+      display: none !important;
+    }
   }
 }
