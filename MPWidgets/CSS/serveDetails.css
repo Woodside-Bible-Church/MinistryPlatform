@@ -116,4 +116,10 @@ h6 {
   }
 }
 
-/* Cleaned Page v0.1 */
+/* Cleaned Page v0.1 — HAS() sanity test */
+@supports selector(:has(*)) {
+  /* Only when your marker exists somewhere inside this opportunity details view */
+  .mpp-innerpage:has(.cleanPage) h3.mpp-innerpage--back {
+    display: none !important;
+  }
+}
