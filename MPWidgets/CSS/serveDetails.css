@@ -116,23 +116,244 @@ h6 {
   }
 }
 
-/* Cleaned Page v0.8 — Hide extra sections (robust via #detailsContainer gate) */
+/* ============================================================
+   Cleaned Page v2.0 (SAFER)
+   - Hide extras
+   - Image/title layout
+   - ONLY style: Respond As + Message + Submit Button
+   - Do NOT touch conditional / multiselect wrappers
+   ============================================================ */
+
 @supports selector(:has(*)) {
-  /* Gate everything off the real wrapper that contains section + siblings */
+  /* =========================================================
+     0) GATE + ACCENT
+     We derive --cp-accent from the marker element's inline --cleanAccent.
+     This works even though the form is a sibling (not inside #detailsContainer),
+     because CSS variables inherit down the tree from #detailsContainer to its siblings?
+     (They DON'T.) So we also set button color without relying on inheritance:
+     we read --cleanAccent off the marker via :has() and set --cp-accent on #detailsContainer,
+     then we *recompute* it on the sibling form by matching the same gate.
+     ========================================================= */
+
+  /* If marker exists, define an accent on #detailsContainer */
+  #detailsContainer:has(.cleanPage) {
+    --cp-accent: var(--innerPage-primaryColor, #62bb46); /* default */
+  }
+  /* If marker includes inline --cleanAccent, prefer it */
+  #detailsContainer:has(.cleanPage[style*="--cleanAccent"]) {
+    --cp-accent: var(--cleanAccent, var(--innerPage-primaryColor, #62bb46));
+  }
+
+  /* Also define the same accent on the sibling form by using the same gate */
+  #detailsContainer:has(.cleanPage) ~ form#responseForm {
+    --cp-accent: var(--innerPage-primaryColor, #62bb46);
+  }
+  #detailsContainer:has(.cleanPage[style*="--cleanAccent"])
+    ~ form#responseForm {
+    --cp-accent: var(--cleanAccent, var(--innerPage-primaryColor, #62bb46));
+  }
+
+  /* =========================================================
+     1) HIDE: stuff INSIDE #detailsContainer
+     ========================================================= */
   #detailsContainer:has(.cleanPage)
     :is(
-      /* inside the section */
       h3.mpp-innerpage--back,
       .mpp-innerpage--datetime,
       .mpp-innerpage--contacts-wrapper,
-      .mpp-innerpage--special,
+      .mpp-innerpage--special
+    ) {
+    display: none !important;
+  }
 
-      /* siblings / outside the section */
+  /* =========================================================
+     2) HIDE: siblings AFTER #detailsContainer
+        (map + response heading)
+     ========================================================= */
+  #detailsContainer:has(.cleanPage)
+    ~ :is(
       .mpp-innerpage--map-container,
       #responseFormTitle,
       h2#responseFormTitle,
       [id="responseFormTitle"]
     ) {
     display: none !important;
+  }
+
+  /* =========================================================
+     3) IMAGE + TITLE LAYOUT
+     ========================================================= */
+  #detailsContainer:has(.cleanPage) .mpp-innerpage--fixed-imgcontainer {
+    display: block !important;
+    width: 100% !important;
+    height: 0 !important;
+    padding-top: 56.25% !important; /* 16:9 */
+    background-position: center !important;
+    background-size: contain !important;
+    background-repeat: no-repeat !important;
+    margin: 0 0 0.8rem !important;
+  }
+
+  @media (min-width: 700px) {
+    #detailsContainer:has(.cleanPage) .mpp-innerpage--fixed-imgcontainer,
+    #detailsContainer:has(.cleanPage) .mpp-innerpage--subtitle {
+      display: inline-block !important;
+      vertical-align: middle !important;
+    }
+
+    #detailsContainer:has(.cleanPage) .mpp-innerpage--fixed-imgcontainer {
+      width: 360px !important;
+      height: 202px !important; /* 16:9 */
+      padding-top: 0 !important;
+      margin: 0 1rem 0.8rem 0 !important;
+    }
+
+    #detailsContainer:has(.cleanPage) .mpp-innerpage--subtitle {
+      max-width: calc(100% - 380px) !important;
+    }
+  }
+
+  /* =========================================================
+     4) RESPOND AS (ONLY)
+     Container: #respondAsContainer
+     - kill floating label
+     - give select a visible input box (optional)
+     ========================================================= */
+  #detailsContainer:has(.cleanPage) ~ form#responseForm #respondAsContainer {
+    margin: 0 0 1rem 0 !important;
+  }
+
+  #detailsContainer:has(.cleanPage)
+    ~ form#responseForm
+    #respondAsContainer
+    > label {
+    position: static !important;
+    display: block !important;
+    width: auto !important;
+    left: auto !important;
+    top: auto !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 0 0.35rem 0 !important;
+    pointer-events: auto !important;
+    overflow: visible !important;
+  }
+
+  #detailsContainer:has(.cleanPage)
+    ~ form#responseForm
+    #respondAsContainer
+    > select#respondAs {
+    display: block !important;
+    width: 100% !important;
+
+    /* visible field box */
+    border: 1px solid rgba(0, 0, 0, 0.18) !important;
+    background: #fff !important;
+    box-shadow: none !important;
+
+    padding: 0.7rem 0.85rem !important;
+    border-radius: 10px !important;
+
+    outline: none !important;
+  }
+
+  #detailsContainer:has(.cleanPage)
+    ~ form#responseForm
+    #respondAsContainer
+    > select#respondAs:focus {
+    border-color: var(--cp-accent) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--cp-accent) 14%, transparent) !important;
+  }
+
+  /* =========================================================
+     5) MESSAGE (ONLY)
+     Container: #formMessage
+     DOM is textarea THEN label; we visually reorder via flex
+     ========================================================= */
+  #detailsContainer:has(.cleanPage) ~ form#responseForm #formMessage {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.35rem !important;
+    margin: 0 0 1.25rem 0 !important;
+  }
+
+  /* label above */
+  #detailsContainer:has(.cleanPage) ~ form#responseForm #formMessage > label {
+    order: 0 !important;
+    position: static !important;
+    display: block !important;
+    width: auto !important;
+    left: auto !important;
+    top: auto !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    pointer-events: auto !important;
+    overflow: visible !important;
+  }
+
+  /* textarea box */
+  #detailsContainer:has(.cleanPage)
+    ~ form#responseForm
+    #formMessage
+    > textarea#messageText {
+    order: 1 !important;
+    width: 100% !important;
+
+    border: 1px solid rgba(0, 0, 0, 0.18) !important;
+    background: #fff !important;
+    box-shadow: none !important;
+
+    padding: 0.75rem 0.85rem !important;
+    min-height: 140px !important;
+
+    border-radius: 10px !important;
+    outline: none !important;
+
+    resize: none !important;
+  }
+
+  #detailsContainer:has(.cleanPage)
+    ~ form#responseForm
+    #formMessage
+    > textarea#messageText:focus {
+    border-color: var(--cp-accent) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--cp-accent) 14%, transparent) !important;
+  }
+
+  /* counter (if present) */
+  #detailsContainer:has(.cleanPage)
+    ~ form#responseForm
+    #formMessage
+    .mppw-textarea-counter {
+    order: 2 !important;
+    margin-top: 0.25rem !important;
+    font-size: 0.85rem !important;
+    opacity: 0.7 !important;
+  }
+
+  /* =========================================================
+     6) SUBMIT BUTTON (ONLY)
+     Actual element: input#responseButton.mppw-btn.primary
+     ========================================================= */
+  #detailsContainer:has(.cleanPage) ~ form#responseForm #responseButton {
+    background: var(--cp-accent) !important;
+    border: none !important;
+    color: #fff !important;
+
+    padding: 0.65em 1.6em !important;
+    min-width: 220px !important;
+
+    text-transform: uppercase !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.04em !important;
+    font-size: 1.05rem !important;
+
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  #detailsContainer:has(.cleanPage) ~ form#responseForm #responseButton:hover {
+    filter: brightness(0.92);
   }
 }
