@@ -1,5 +1,4 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;900&display=swap");
-
 @font-face {
   font-family: "ProximaNova-Regular";
   src: url("../webfonts/23533C_8_0.eot");
@@ -26,9 +25,6 @@
     url("../webfonts/30622B_2_0.ttf") format("truetype");
 }
 
-/* =========================
-   Theme Variables
-   ========================= */
 :host {
   --innerPage-primaryColor: #62bb46;
   --innerPage-h3color: #1c2b39;
@@ -39,7 +35,6 @@
   --innerPage-linkColor: #62bb46;
   --innerPage-linkHoverColor: #1c2b39;
   --innerPage-linkActiveColor: #1c2b39;
-
   --primary: #62bb46;
   --form-btn-primary-bgcolor: #62bb46;
   --form-btn-primary-hover: #1c2b39;
@@ -47,73 +42,10 @@
   --form-field-border--active: #1c2b39;
 }
 
-/* =========================
-   Global Typography
-   ========================= */
-* {
-  font-family: "ProximaNova-Semibold", Helvetica, Arial, sans-serif !important;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: "Montserrat", Helvetica, Arial, sans-serif !important;
-}
-
-/* =========================
-   Base Layout / Container
-   ========================= */
-.mppw-component-container {
-  width: 100% !important;
-  max-width: 860px !important;
-  margin: 0 auto !important;
-  padding: 0 16px 100px !important;
-}
-
-@media screen and (max-width: 1300px) {
-  .mppw-component-container {
-    width: 100% !important;
-    max-width: 860px !important;
-    padding: 0 16px 100px !important;
-  }
-}
-
-/* =========================
-   Hide default placeholder/image bits
-   ========================= */
 .mpp-innerpage--fixed-imgplaceholder {
   display: none !important;
 }
 
-.mpp-innerpage > img {
-  display: none !important;
-}
-
-/* =========================
-   Contact header spacing
-   ========================= */
-.mpp-innerpage--contacts-wrapper h3 {
-  margin-bottom: 25px;
-}
-
-/* =========================
-   Buttons
-   ========================= */
-.mppw-btn {
-  min-width: 200px;
-  padding: 15px 10px;
-  margin: 0;
-  margin-top: 25px;
-  border-radius: 0;
-  box-shadow: none;
-}
-
-/* =========================
-   Radio / Checkbox styling (square check)
-   ========================= */
 .mppw-form-field__control > label > span.mppw-radio,
 .mppw-form-field__control > label > span.mppw-radio__vertical {
   border-radius: 0 !important;
@@ -142,129 +74,46 @@ h6 {
   transform: rotate(45deg);
 }
 
-/* ============================================================
-   CLEAN PAGE (flagged only) — Shadow DOM safe
-   Add to description:
-   <span class="cleanPage" style="--cleanAccent:#993366;--cleanInk:#1C2B39"></span>
-   ============================================================ */
-@supports selector(:has(*)) {
-  /* IMPORTANT: use :host, not .mpp-innerpage/section.mpp-innerpage */
-  :host:has(.cleanPage) {
-    --cp-accent: var(--cleanAccent, var(--innerPage-primaryColor, #62bb46));
-    --cp-ink: var(--cleanInk, var(--innerPage-h3color, #1c2b39));
-    --cp-border: rgba(0, 0, 0, 0.12);
-    --cp-radius: 10px;
-    --cp-pad: 12px;
-    --cp-gap: 10px;
-  }
+* {
+  font-family: "ProximaNova-Semibold", Helvetica, Arial, sans-serif !important;
+}
 
-  /* Optional: soften the overall page spacing */
-  :host:has(.cleanPage) .mppw-component-container {
-    max-width: 860px !important;
-    padding-bottom: 80px !important;
-  }
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Montserrat", Helvetica, Arial, sans-serif !important;
+}
 
-  /* Hide “extra” blocks above the form (only if these exist in this widget DOM) */
-  :host:has(.cleanPage) .mpp-innerpage--back,
-  :host:has(.cleanPage) .mpp-innerpage--datetime,
-  :host:has(.cleanPage) .mpp-innerpage--map-container,
-  :host:has(.cleanPage) .mpp-innerpage--contacts-wrapper,
-  :host:has(.cleanPage) #responseFormTitle,
-  :host:has(.cleanPage) .mpp-innerpage--special {
-    display: none !important;
-  }
+.mppw-component-container {
+  width: 1160px;
+  margin: 0 auto;
+  padding-bottom: 100px;
+}
 
-  /* Make the image block behave like a real hero (if the fixed img container exists) */
-  :host:has(.cleanPage) .mpp-innerpage--fixed-imgcontainer {
-    display: block !important;
-    width: 100% !important;
-    height: 0 !important;
-    padding-top: 56.25% !important; /* 16:9 */
-    background: center/contain no-repeat !important;
-    margin: 0 0 0.8rem !important;
-  }
+.mpp-innerpage > img {
+  display: none;
+}
 
-  @media (min-width: 700px) {
-    :host:has(.cleanPage) .mpp-innerpage--fixed-imgcontainer,
-    :host:has(.cleanPage) .mpp-innerpage--subtitle {
-      display: inline-block !important;
-      vertical-align: middle !important;
-    }
+.mpp-innerpage--contacts-wrapper h3 {
+  margin-bottom: 25px;
+}
 
-    :host:has(.cleanPage) .mpp-innerpage--fixed-imgcontainer {
-      width: 360px !important;
-      height: 202px !important; /* 16:9 */
-      padding: 0 !important;
-      margin: 0 1rem 0.8rem 0 !important;
-    }
+.mppw-btn {
+  min-width: 200px;
+  padding: 15px 10px;
+  margin: 0;
+  margin-top: 25px;
+  border-radius: 0;
+  box-shadow: none;
+}
 
-    :host:has(.cleanPage) .mpp-innerpage--subtitle {
-      max-width: calc(100% - 380px) !important;
-    }
-  }
-
-  /* stop textarea resize */
-  :host:has(.cleanPage) textarea {
-    resize: none !important;
-  }
-
-  /* remove the “panel/box” look around controls */
-  :host:has(.cleanPage) .mppw-form-field__control {
-    border: 0 !important;
-    box-shadow: none !important;
-    background: transparent !important;
-    padding: 0 !important;
-  }
-
-  /* clean inputs */
-  :host:has(.cleanPage) :is(input[type="text"], select, textarea) {
-    border: 1px solid var(--cp-border) !important;
-    border-radius: var(--cp-radius) !important;
-    padding: var(--cp-pad) !important;
-    background: #fff !important;
-    box-shadow: none !important;
-  }
-
-  /* focus ring uses per-opp accent */
-  :host:has(.cleanPage) :is(input[type="text"], select, textarea):focus {
-    outline: none !important;
-    border-color: color-mix(
-      in srgb,
-      var(--cp-accent) 55%,
-      transparent
-    ) !important;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--cp-accent) 14%, transparent) !important;
-  }
-
-  /* radio/checkbox rows become “cards”
-     NOTE: keep this broad for now; if it hits other label styles we can narrow later. */
-  :host:has(.cleanPage) .mppw-form-field__control > label {
-    display: flex !important;
-    align-items: center !important;
-    gap: var(--cp-gap) !important;
-    padding: 10px 12px !important;
-    border: 1px solid rgba(0, 0, 0, 0.1) !important;
-    border-radius: var(--cp-radius) !important;
-    background: #fff !important;
-    margin: 0 0 8px !important;
-    line-height: 1.2 !important;
-  }
-
-  :host:has(.cleanPage) :is(input[type="radio"], input[type="checkbox"]) {
-    margin: 0 !important;
-  }
-
-  /* buttons adopt per-opp accent */
-  :host:has(.cleanPage) .mppw-btn.primary {
-    background: var(--cp-accent) !important;
-    border-color: var(--cp-accent) !important;
-    color: #fff !important;
-  }
-
-  :host:has(.cleanPage) .mppw-btn:hover {
-    background: var(--cp-ink) !important;
-    border-color: var(--cp-ink) !important;
+@media screen and (max-width: 1300px) {
+  .mppw-component-container {
+    width: 90%;
   }
 }
 
-/* Clean Page V1.0 */
+/* Cleaned Page v0.1 */
