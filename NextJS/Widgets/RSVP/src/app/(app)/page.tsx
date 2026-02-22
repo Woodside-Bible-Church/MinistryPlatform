@@ -8,6 +8,7 @@ import ServiceTimeCard from "@/components/rsvp/ServiceTimeCard";
 import RSVPForm from "@/components/rsvp/RSVPForm";
 import ConfirmationView from "@/components/rsvp/ConfirmationView";
 import InformationalEventCard from "@/components/rsvp/InformationalEventCard";
+import HorizontalCarousel from "@/components/rsvp/HorizontalCarousel";
 import { AmenitiesLegend } from "@/components/rsvp/AmenitiesLegend";
 import {
   RSVPFormInput,
@@ -1378,7 +1379,7 @@ export default function RSVPPage() {
                 <h2 className="text-3xl font-bold mb-6 text-gray-900">
                   {carousel.Carousel_Name}
                 </h2>
-                <div className="flex flex-wrap gap-4">
+                <HorizontalCarousel>
                   {carousel.Events.map((event) => (
                     <InformationalEventCard
                       key={`${event.Item_Type || 'Event'}-${event.Event_ID || event.Opportunity_ID}`}
@@ -1386,7 +1387,7 @@ export default function RSVPPage() {
                       baseUrl={baseUrl}
                     />
                   ))}
-                </div>
+                </HorizontalCarousel>
               </div>
             ))}
           </div>

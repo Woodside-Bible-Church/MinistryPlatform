@@ -64,7 +64,7 @@ export default function InformationalEventCard({
       whileHover={{ scale: 1.02, y: -4 }}
       whileTap={{ scale: 0.99 }}
       onClick={handleClick}
-      className="relative flex-1 min-w-[300px] max-w-[450px] overflow-hidden rounded-lg shadow-lg hover:shadow-2xl transition-all duration-200 cursor-pointer bg-white group"
+      className="relative w-[340px] shrink-0 overflow-hidden rounded-lg shadow-lg hover:shadow-2xl transition-all duration-200 cursor-pointer bg-white group"
     >
       {/* Event Image */}
       <div className="relative w-full aspect-[16/9] overflow-hidden bg-gray-200">
