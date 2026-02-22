@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+
+# Environment
+.env
+.env.*.local
+
+# Build output
+out/
+public/widget/*.js
+public/widget/*.js.map
+
+# Vercel
+.vercel/
+
+# Test coverage
+coverage/
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Turbo
+turbo/
