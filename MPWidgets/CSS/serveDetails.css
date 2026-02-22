@@ -229,7 +229,15 @@ h6 {
      - force label above
      - visible select input box
      ========================================================= */
+  /* Default (safe): do NOT force this visible */
   #detailsContainer:has(.cleanPage) ~ form#responseForm #respondAsContainer {
+    display: none !important;
+  }
+
+  /* Only when there is at least one real person option */
+  #detailsContainer:has(.cleanPage)
+    ~ form#responseForm
+    #respondAsContainer:has(select#respondAs option[value]:not([value=""])) {
     display: flex !important;
     flex-direction: column !important;
     gap: 0.35rem !important;
