@@ -1170,7 +1170,7 @@ export default function RSVPPage() {
                           You&apos;re All Set
                         </h2>
                         <p className="text-base text-right md:text-left" style={{ color: 'var(--theme-primary)', opacity: 0.9 }}>
-                          We can&apos;t wait to see you at Christmas.
+                          We can&apos;t wait to see you{rsvpData?.Project?.RSVP_Title ? ` at ${rsvpData.Project.RSVP_Title}` : ''}!
                         </p>
                       </div>
                     </div>
