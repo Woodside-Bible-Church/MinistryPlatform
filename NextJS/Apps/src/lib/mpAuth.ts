@@ -191,6 +191,97 @@ export async function checkRsvpAppAccess(): Promise<{
 }
 
 /**
+ * Check if the current user has permission to access the Projects app
+ * Dynamically fetches allowed roles from Neon instead of hardcoding
+ * Users must be authenticated AND (have "Administrators" role OR have a role configured in Neon)
+ *
+ * @returns Promise<{hasAccess: boolean, roles: string[], canEdit: boolean, canDelete: boolean}> - Access status and permissions
+ */
+export async function checkProjectsAppAccess(): Promise<{
+  hasAccess: boolean;
+  roles: string[];
+  canEdit: boolean;
+  canDelete: boolean;
+}> {
+  const session = await auth();
+
+  if (!session) {
+    return { hasAccess: false, roles: [], canEdit: false, canDelete: false };
+  }
+
+  const userRoles = session.roles || [];
+  const userEmail = session.user?.email;
+
+  // Administrators always have full access
+  if (userRoles.includes("Administrators")) {
+    return {
+      hasAccess: true,
+      roles: userRoles,
+      canEdit: true,
+      canDelete: true,
+    };
+  }
+
+  // Find the Projects app in Neon
+  const projectsApp = await db.query.applications.findFirst({
+    where: eq(applications.key, "project-manager"),
+  });
+
+  if (!projectsApp) {
+    console.error("Projects app not found in Neon database");
+    return { hasAccess: false, roles: userRoles, canEdit: false, canDelete: false };
+  }
+
+  // Build permission query conditions
+  const permissionConditions = [];
+
+  // Check by role names if user has any roles
+  if (userRoles.length > 0) {
+    permissionConditions.push(
+      and(
+        eq(appPermissions.applicationId, projectsApp.id),
+        inArray(appPermissions.roleName, userRoles)
+      )
+    );
+  }
+
+  // Check by email if user has an email
+  if (userEmail) {
+    permissionConditions.push(
+      and(
+        eq(appPermissions.applicationId, projectsApp.id),
+        eq(appPermissions.userEmail, userEmail)
+      )
+    );
+  }
+
+  // If no conditions, user has no access
+  if (permissionConditions.length === 0) {
+    return { hasAccess: false, roles: userRoles, canEdit: false, canDelete: false };
+  }
+
+  // Query for Projects app permissions matching user's roles or email
+  const projectsPermissions = await db.query.appPermissions.findMany({
+    where: or(...permissionConditions),
+  });
+
+  if (projectsPermissions.length === 0) {
+    return { hasAccess: false, roles: userRoles, canEdit: false, canDelete: false };
+  }
+
+  // Determine highest permission level
+  const canEdit = projectsPermissions.some(p => p.canEdit);
+  const canDelete = projectsPermissions.some(p => p.canDelete);
+
+  return {
+    hasAccess: true,
+    roles: userRoles,
+    canEdit,
+    canDelete,
+  };
+}
+
+/**
  * Get an OAuth access token using client credentials (app-level authentication)
  * This should be used for all MinistryPlatform API calls instead of user tokens
  *

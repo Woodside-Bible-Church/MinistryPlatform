@@ -9,34 +9,26 @@ export default function ProjectsLoading() {
           <Skeleton className="h-9 w-48 mb-2" />
           <Skeleton className="h-5 w-96" />
         </div>
-        <div className="flex gap-3">
-          <Skeleton className="h-12 w-32" />
-          <Skeleton className="h-12 w-40" />
-        </div>
+        <Skeleton className="h-10 w-36" />
       </div>
 
       {/* Search Bar Skeleton */}
       <div className="mb-6">
-        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-10 w-full" />
       </div>
 
       {/* Project Cards Skeletons */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div key={i} className="bg-card border border-border rounded-lg overflow-hidden p-6">
-            <Skeleton className="h-8 w-3/4 mb-4" />
+            <Skeleton className="h-7 w-3/4 mb-3" />
             <div className="flex gap-2 mb-4">
               <Skeleton className="h-6 w-24" />
-              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-6 w-20" />
             </div>
-            <div className="space-y-3 mb-4">
+            <div className="space-y-2">
               <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
-            </div>
-            <Skeleton className="h-2 w-full mb-2" />
-            <div className="grid grid-cols-2 gap-4">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-4 w-2/3" />
             </div>
           </div>
         ))}

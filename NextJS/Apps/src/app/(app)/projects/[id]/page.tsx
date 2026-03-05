@@ -1,1019 +1,1374 @@
 "use client";
 
-import { type BudgetCategory } from "@/data/mockProjects";
-import { use } from "react";
+import { use, useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useProjects } from "@/hooks/useProjects";
 import {
   ArrowLeft,
-  TrendingUp,
-  TrendingDown,
-  Minus,
+  Save,
+  Trash2,
+  Plus,
+  X,
   Calendar,
   User,
+  MapPin,
+  CalendarDays,
+  Settings,
+  LinkIcon,
+  AlertCircle,
+  Check,
+  ChevronsUpDown,
   DollarSign,
-  PieChart as PieChartIcon,
-  Receipt,
-  Plus,
-  ChevronDown,
-  ChevronRight,
-  List,
-  BarChart3,
+  Ticket,
 } from "lucide-react";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { PieChart, Pie, Cell, ResponsiveContainer, Label, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from "recharts";
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
-import { Skeleton } from "@/components/ui/skeleton";
-
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-}
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+import {
+  useProject,
+  useProjectCampuses,
+  useProjectEvents,
+  useProjectLookups,
+} from "@/hooks/useProjectManagement";
+import type {
+  ProjectRecord,
+  UpdateProjectPayload,
+  CoordinatorLookup,
+} from "@/types/projectManagement";
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("en-US", {
-    month: "long",
+    month: "short",
     day: "numeric",
     year: "numeric",
   });
 }
 
-function CategorySection({ category, projectId }: { category: BudgetCategory; projectId: string }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const variance = category.actual - category.estimated;
-  const variancePercent =
-    category.estimated > 0 ? (variance / category.estimated) * 100 : 0;
-
-  return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden">
-      {/* Category Header */}
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-6 py-4 bg-zinc-300 dark:bg-black border-b border-border hover:bg-zinc-400 dark:hover:bg-zinc-900 transition-colors"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {isExpanded ? (
-              <ChevronDown className="w-5 h-5 text-muted-foreground" />
-            ) : (
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            )}
-            <h3 className="text-lg font-semibold text-foreground">
-              {category.name}
-            </h3>
-            <span
-              className={`text-xs px-2 py-1 rounded-full font-medium ${
-                category.type === "revenue"
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                  : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-              }`}
-            >
-              {category.type === "revenue" ? "Revenue" : "Expense"}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-6">
-            <div className="text-right">
-              <div className="text-xs text-muted-foreground">Total</div>
-              <div className="font-bold text-foreground">
-                {formatCurrency(category.actual)}
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-xs text-muted-foreground">Budgeted</div>
-              <div className="font-semibold text-muted-foreground">
-                {formatCurrency(category.estimated)}
-              </div>
-            </div>
-            <div className="text-right min-w-[100px]">
-              <div className="text-xs text-muted-foreground">Variance</div>
-              <div
-                className={`font-semibold ${
-                  category.type === "revenue"
-                    ? variance >= 0
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-red-600 dark:text-red-400"
-                    : variance <= 0
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-red-600 dark:text-red-400"
-                }`}
-              >
-                {variance >= 0 ? "+" : ""}
-                {formatCurrency(variance)}
-              </div>
-            </div>
-          </div>
-        </div>
-      </button>
-
-      {/* Line Items Table */}
-      {isExpanded && (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-zinc-200 dark:bg-zinc-900 border-b border-border">
-                <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-                  Item
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-                  Estimated
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-                  Actual
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-                  Variance
-                </th>
-                <th className="px-6 py-3 text-center text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {category.lineItems.map((item) => {
-                const itemVariance = item.actual - item.estimated;
-                const itemVariancePercent =
-                  item.estimated > 0 ? (itemVariance / item.estimated) * 100 : 0;
-
-                return (
-                  <tr key={item.id} className="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
-                    <Link
-                      href={`/projects/${projectId}/items/${item.id}`}
-                      className="contents cursor-pointer"
-                    >
-                      <td className="px-6 py-4">
-                        <div>
-                          <div className="font-medium text-foreground">
-                            {item.name}
-                          </div>
-                          {item.description && (
-                            <div className="text-sm text-muted-foreground mt-1">
-                              {item.description}
-                            </div>
-                          )}
-                          {item.vendor && (
-                            <div className="text-xs text-muted-foreground mt-1">
-                              Vendor: {item.vendor}
-                            </div>
-                          )}
-                          {item.quantity && item.unitPrice !== undefined && (
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {item.quantity} × {formatCurrency(item.unitPrice)}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-right font-medium text-gray-700 dark:text-gray-300">
-                        {formatCurrency(item.estimated)}
-                      </td>
-                      <td className="px-6 py-4 text-right font-semibold text-foreground">
-                        {formatCurrency(item.actual)}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div
-                          className={`font-medium ${
-                            category.type === "revenue"
-                              ? itemVariance >= 0
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-red-600 dark:text-red-400"
-                              : itemVariance <= 0
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-red-600 dark:text-red-400"
-                          }`}
-                        >
-                          {itemVariance >= 0 ? "+" : ""}
-                          {formatCurrency(itemVariance)}
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          ({itemVariance >= 0 ? "+" : ""}
-                          {itemVariancePercent.toFixed(1)}%)
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span
-                          className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
-                            item.status === "paid"
-                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                              : item.status === "ordered"
-                                ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
-                                : item.status === "pending"
-                                  ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                                  : item.status === "received"
-                                    ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
-                                    : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"
-                          }`}
-                        >
-                          {item.status}
-                        </span>
-                      </td>
-                    </Link>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
+function toInputDate(dateString: string) {
+  if (!dateString) return "";
+  return dateString.split("T")[0];
 }
+
+type Tab = "general" | "budget" | "rsvp" | "events" | "campuses";
 
 export default function ProjectDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = use(params);
+  const { id: slug } = use(params);
   const router = useRouter();
-  const { projects, isLoading, error } = useProjects(); // Fetch all projects
 
-  // Find the current project
-  const project = projects.find(p => p.slug === id);
+  const {
+    data: project,
+    isLoading: projectLoading,
+    error: projectError,
+    refetch: refetchProject,
+  } = useProject(slug);
 
-  // Find all projects with the same type
-  const projectsOfSameType = project?.typeId && project.typeId !== 0
-    ? projects.filter(p => p.typeId === project.typeId).sort((a, b) =>
-        new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-      )
-    : [];
+  const projectId = project?.Project_ID ?? null;
 
-  const [isAddLineItemOpen, setIsAddLineItemOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"expenses" | "income">("expenses");
-  const [lineItemFormData, setLineItemFormData] = useState({
-    name: "",
-    description: "",
-    category: "",
-    estimated: "",
-    quantity: "",
-    unitPrice: "",
-    vendor: "",
-    status: "pending" as const,
-  });
+  const {
+    data: campuses,
+    isLoading: campusesLoading,
+    refetch: refetchCampuses,
+  } = useProjectCampuses(projectId);
+  const {
+    data: events,
+    isLoading: eventsLoading,
+    refetch: refetchEvents,
+  } = useProjectEvents(projectId);
+  const { data: lookups } = useProjectLookups();
 
-  if (isLoading) {
+  const [activeTab, setActiveTab] = useState<Tab>("general");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+
+  // Edit form state
+  const [formData, setFormData] = useState<Partial<UpdateProjectPayload> | null>(
+    null
+  );
+
+  // Campus dialog state
+  const [showAddCampus, setShowAddCampus] = useState(false);
+  const [newCampusCongregationId, setNewCampusCongregationId] = useState("");
+
+  // Coordinator combobox state
+  const [coordinatorOpen, setCoordinatorOpen] = useState(false);
+  const [coordinatorSearch, setCoordinatorSearch] = useState("");
+  const [coordinatorResults, setCoordinatorResults] = useState<CoordinatorLookup[]>([]);
+  const [coordinatorLoading, setCoordinatorLoading] = useState(false);
+  const [selectedCoordinatorName, setSelectedCoordinatorName] = useState("");
+  const coordinatorDebounce = useRef<ReturnType<typeof setTimeout>>(null);
+
+  useEffect(() => {
+    if (project?.Coordinator_Name && !selectedCoordinatorName) {
+      setSelectedCoordinatorName(project.Coordinator_Name);
+    }
+  }, [project, selectedCoordinatorName]);
+
+  useEffect(() => {
+    if (coordinatorDebounce.current) clearTimeout(coordinatorDebounce.current);
+    if (coordinatorSearch.length < 2) {
+      setCoordinatorResults([]);
+      return;
+    }
+    setCoordinatorLoading(true);
+    coordinatorDebounce.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/projects/contacts/search?q=${encodeURIComponent(coordinatorSearch)}`);
+        if (res.ok) {
+          setCoordinatorResults(await res.json());
+        }
+      } catch { /* ignore */ }
+      setCoordinatorLoading(false);
+    }, 300);
+    return () => { if (coordinatorDebounce.current) clearTimeout(coordinatorDebounce.current); };
+  }, [coordinatorSearch]);
+
+  // Event link dialog state
+  const [showLinkEvent, setShowLinkEvent] = useState(false);
+  const [linkEventId, setLinkEventId] = useState("");
+
+  // Initialize form data when project loads
+  if (project && !formData) {
+    setFormData({
+      Project_ID: project.Project_ID,
+      Project_Title: project.Project_Title,
+      Project_Coordinator: project.Project_Coordinator,
+      Project_Start: toInputDate(project.Project_Start),
+      Project_End: toInputDate(project.Project_End),
+      Project_Approved: project.Project_Approved,
+      Project_Type_ID: project.Project_Type_ID,
+      Slug: project.Slug,
+      // Budget
+      Budgets_Enabled: project.Budgets_Enabled,
+      Budget_Status_ID: project.Budget_Status_ID ?? null,
+      Budget_Locked: project.Budget_Locked,
+      Expected_Registration_Revenue: project.Expected_Registration_Revenue ?? null,
+      Expected_Discounts_Budget: project.Expected_Discounts_Budget ?? null,
+      // RSVP
+      RSVP_Title: project.RSVP_Title ?? null,
+      RSVP_Description: project.RSVP_Description ?? null,
+      RSVP_URL: project.RSVP_URL ?? null,
+      RSVP_Start_Date: project.RSVP_Start_Date ?? null,
+      RSVP_End_Date: project.RSVP_End_Date ?? null,
+      RSVP_Is_Active: project.RSVP_Is_Active ?? null,
+      RSVP_Slug: project.RSVP_Slug ?? null,
+      RSVP_Confirmation_Email_Template_ID: project.RSVP_Confirmation_Email_Template_ID ?? null,
+      RSVP_Reminder_Email_Template_ID: project.RSVP_Reminder_Email_Template_ID ?? null,
+      RSVP_Days_To_Remind: project.RSVP_Days_To_Remind ?? null,
+      RSVP_Primary_Color: project.RSVP_Primary_Color ?? null,
+      RSVP_Secondary_Color: project.RSVP_Secondary_Color ?? null,
+      RSVP_Accent_Color: project.RSVP_Accent_Color ?? null,
+      RSVP_Background_Color: project.RSVP_Background_Color ?? null,
+    });
+  }
+
+  const handleSave = async () => {
+    if (!formData) return;
+    setIsSaving(true);
+    setSaveMessage(null);
+
+    try {
+      const response = await fetch("/api/projects", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to save");
+      }
+
+      setSaveMessage("Project saved successfully");
+      refetchProject();
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (err) {
+      setSaveMessage(
+        `Error: ${err instanceof Error ? err.message : "Unknown error"}`
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/projects?id=${projectId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete");
+      }
+
+      router.push("/projects");
+    } catch (err) {
+      console.error("Delete failed:", err);
+      setIsDeleting(false);
+    }
+  };
+
+  const handleAddCampus = async () => {
+    if (!newCampusCongregationId) return;
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}/campuses`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          Congregation_ID: parseInt(newCampusCongregationId, 10),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to add campus");
+      }
+
+      setShowAddCampus(false);
+      setNewCampusCongregationId("");
+      refetchCampuses();
+    } catch (err) {
+      console.error("Add campus failed:", err);
+    }
+  };
+
+  const handleRemoveCampus = async (campusId: number) => {
+    try {
+      const response = await fetch(
+        `/api/projects/${projectId}/campuses?campusId=${campusId}`,
+        { method: "DELETE" }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to remove campus");
+      }
+
+      refetchCampuses();
+    } catch (err) {
+      console.error("Remove campus failed:", err);
+    }
+  };
+
+  const handleLinkEvent = async () => {
+    if (!linkEventId) return;
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}/events`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          Event_ID: parseInt(linkEventId, 10),
+          action: "link",
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to link event");
+      }
+
+      setShowLinkEvent(false);
+      setLinkEventId("");
+      refetchEvents();
+    } catch (err) {
+      console.error("Link event failed:", err);
+    }
+  };
+
+  const handleUpdateEventField = async (
+    eventId: number,
+    field: string,
+    value: boolean
+  ) => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}/events`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          Event_ID: eventId,
+          [field]: value,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update event");
+      }
+
+      refetchEvents();
+    } catch (err) {
+      console.error("Update event field failed:", err);
+    }
+  };
+
+  const handleUnlinkEvent = async (eventId: number) => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}/events`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          Event_ID: eventId,
+          action: "unlink",
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to unlink event");
+      }
+
+      refetchEvents();
+    } catch (err) {
+      console.error("Unlink event failed:", err);
+    }
+  };
+
+  if (projectLoading) {
     return (
       <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
-        {/* Header Skeleton */}
-        <div className="mb-8">
-          <Skeleton className="h-4 w-32 mb-4" />
-          <div className="flex justify-between items-start">
-            <div>
-              <Skeleton className="h-10 w-96 mb-2" />
-              <div className="flex items-center gap-4">
-                <Skeleton className="h-4 w-40" />
-                <Skeleton className="h-4 w-48" />
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Skeleton className="h-12 w-32" />
-              <Skeleton className="h-12 w-40" />
-            </div>
-          </div>
-        </div>
-
-        {/* Toggle Skeleton */}
-        <div className="mb-6 flex justify-between items-center">
-          <div className="flex-1" />
-          <Skeleton className="h-12 w-64" />
-          <div className="flex-1 flex justify-end">
-            <Skeleton className="h-12 w-40" />
-          </div>
-        </div>
-
-        {/* Summary Cards Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-card border border-border rounded-lg p-6">
-              <div className="flex items-center justify-between mb-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-5 w-5 rounded-full" />
-              </div>
-              <Skeleton className="h-8 w-32 mb-2" />
-              <Skeleton className="h-3 w-40" />
-            </div>
-          ))}
-        </div>
-
-        {/* Category Skeletons */}
+        <Skeleton className="h-8 w-24 mb-6" />
+        <Skeleton className="h-10 w-64 mb-2" />
+        <Skeleton className="h-5 w-96 mb-8" />
+        <Skeleton className="h-10 w-full max-w-md mb-8" />
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-card border border-border rounded-lg overflow-hidden">
-              <Skeleton className="h-20 w-full" />
-            </div>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} className="h-16 w-full" />
           ))}
         </div>
       </div>
     );
   }
 
-  if (error || (!isLoading && !project)) {
+  if (projectError || !project) {
     return (
       <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-bold text-foreground mb-2">
-            {error ? "Error Loading Project" : "Project Not Found"}
-          </h2>
-          <p className="text-muted-foreground mb-6">
-            {error ? error.message : "The project you're looking for doesn't exist."}
-          </p>
-          <Link
-            href="/projects"
-            className="inline-flex items-center gap-2 text-[#61bc47] hover:underline"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Projects
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  // TODO: Categories and line items will come from database later
-  // For now, use empty arrays as placeholders
-  const expenseCategories: BudgetCategory[] = [];
-  const revenueCategories: BudgetCategory[] = [];
-
-  const totalExpensesEstimated = project?.totalEstimated || 0;
-  const totalExpensesActual = project?.totalActual || 0;
-
-  const totalRevenueEstimated = 0; // Will come from database later
-  const totalRevenueActual = 0; // Will come from database later
-
-  const profitLossEstimated = totalRevenueEstimated - totalExpensesEstimated;
-  const profitLossActual = totalRevenueActual - totalExpensesActual;
-
-  const budgetUtilization =
-    totalExpensesEstimated > 0
-      ? (totalExpensesActual / totalExpensesEstimated) * 100
-      : 0;
-
-  return (
-    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
-      {/* Header */}
-      <div className="mb-8">
         <Link
           href="/projects"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#61bc47] mb-4 transition-colors"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Projects
         </Link>
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-8 text-center">
+          <AlertCircle className="w-12 h-12 text-red-600 dark:text-red-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-red-900 dark:text-red-200 mb-2">
+            Project Not Found
+          </h3>
+          <p className="text-red-700 dark:text-red-300 mb-4">
+            {projectError || "The project could not be loaded."}
+          </p>
+          <Button variant="outline" asChild>
+            <Link href="/projects">Back to Projects</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
-        <div className="flex justify-between items-start">
-          <div>
-            {/* Title with dropdown for projects of the same type */}
-            {projectsOfSameType.length > 1 ? (
-              <div className="relative mb-2">
-                <div className="flex items-center gap-3">
-                  <h1 className="text-4xl font-bold text-primary dark:text-foreground">
-                    {project?.title}
-                  </h1>
-                  <ChevronDown className="w-6 h-6 text-foreground flex-shrink-0" />
-                </div>
-                <select
-                  value={project?.slug}
-                  onChange={(e) => {
-                    router.push(`/projects/${e.target.value}`);
-                  }}
-                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                >
-                  {projectsOfSameType.map((typeProject) => (
-                    <option key={typeProject.id} value={typeProject.slug}>
-                      {typeProject.title} ({typeProject.status})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ) : (
-              <h1 className="text-4xl font-bold text-primary dark:text-foreground mb-2">
-                {project?.title}
-              </h1>
+  const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
+    { key: "general", label: "General", icon: <Settings className="w-4 h-4" /> },
+    { key: "budget", label: "Budget", icon: <DollarSign className="w-4 h-4" /> },
+    { key: "rsvp", label: "RSVP", icon: <Ticket className="w-4 h-4" /> },
+    {
+      key: "events",
+      label: `Events (${events.length})`,
+      icon: <CalendarDays className="w-4 h-4" />,
+    },
+    {
+      key: "campuses",
+      label: `Campuses (${campuses.length})`,
+      icon: <MapPin className="w-4 h-4" />,
+    },
+  ];
+
+  return (
+    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-[1600px]">
+      {/* Back link */}
+      <Link
+        href="/projects"
+        className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back to Projects
+      </Link>
+
+      {/* Page Header */}
+      <div className="flex justify-between items-start mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-primary dark:text-foreground">
+            {project.Project_Title}
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            {project.Project_Type_Name && (
+              <span className="mr-3">{project.Project_Type_Name}</span>
             )}
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4" />
-                <span>{project?.coordinator.displayName}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                <span>
-                  {project && formatDate(project.startDate)} - {project && formatDate(project.endDate)}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 w-[360px]">
-            <Link
-              href={`/projects/${id}/reports`}
-              className="border border-border bg-card hover:bg-gray-50 dark:hover:bg-gray-800 text-foreground px-4 py-3 rounded-lg font-semibold transition-colors shadow-sm flex items-center justify-center gap-2"
-            >
-              <BarChart3 className="w-5 h-5" />
-              <span>Reports</span>
-            </Link>
-            <Link
-              href={`/projects/${id}/transactions`}
-              className="border border-border bg-card hover:bg-gray-50 dark:hover:bg-gray-800 text-foreground px-4 py-3 rounded-lg font-semibold transition-colors shadow-sm flex items-center justify-center gap-2"
-            >
-              <List className="w-5 h-5" />
-              <span>Transactions</span>
-            </Link>
-          </div>
+            {project.Coordinator_Name && (
+              <span>
+                <User className="w-3 h-3 inline mr-1" />
+                {project.Coordinator_Name}
+              </span>
+            )}
+          </p>
         </div>
-      </div>
 
-      {/* View Toggle and Add Button */}
-      <div className="mb-6 flex justify-between items-center">
-        <div className="flex-1" /> {/* Spacer for centering */}
-        <button
-          onClick={() => setViewMode(viewMode === "expenses" ? "income" : "expenses")}
-          className="relative inline-flex rounded-xl bg-zinc-100 dark:bg-zinc-800 p-1 shadow-inner cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-        >
-          {/* Sliding background indicator */}
-          <div
-            className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#61BC47] rounded-lg shadow-md transition-all duration-300 ease-in-out pointer-events-none ${
-              viewMode === "expenses" ? "left-1" : "left-[calc(50%+4px-1px)]"
-            }`}
-          />
-
-          {/* Labels */}
-          <div
-            className={`relative z-10 px-8 py-2.5 rounded-lg font-medium transition-all duration-300 pointer-events-none ${
-              viewMode === "expenses"
-                ? "text-white"
-                : "text-muted-foreground"
-            }`}
-          >
-            Expenses
-          </div>
-          <div
-            className={`relative z-10 px-8 py-2.5 rounded-lg font-medium transition-all duration-300 pointer-events-none ${
-              viewMode === "income"
-                ? "text-white"
-                : "text-muted-foreground"
-            }`}
-          >
-            Income
-          </div>
-        </button>
-        <div className="flex-1 flex justify-end">
-          <button
-            onClick={() => setIsAddLineItemOpen(true)}
-            className="bg-[#61BC47] hover:bg-[#4fa037] text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm hover:shadow-md flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            {viewMode === "expenses" ? "Add Expense" : "Add Income"}
-          </button>
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      {viewMode === "expenses" ? (
-        <>
-          {/* Single Row: 2 Cards - Radar Chart + Budget Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            {/* Card 1: Radar Chart */}
-            <div className="bg-card border border-border rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Spending by Category
-                </h3>
-                <PieChartIcon className="w-5 h-5 text-muted-foreground" />
-              </div>
-              {expenseCategories.filter(cat => cat.estimated > 0 || cat.actual > 0).length < 2 ? (
-                <div className="h-[360px] flex items-center justify-center">
-                  <p className="text-muted-foreground text-sm">No data to show</p>
-                </div>
-              ) : (
-                <ChartContainer
-                  config={{
-                    estimated: {
-                      label: "Budget",
-                      color: "hsl(217, 91%, 60%)",
-                    },
-                    actual: {
-                      label: "Actual",
-                      color: "hsl(142, 76%, 36%)",
-                    },
-                  } satisfies ChartConfig}
-                  className="h-[360px]"
-                >
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart
-                      data={expenseCategories.map((cat) => ({
-                        category: cat.name.length > 20 ? cat.name.substring(0, 18) + "..." : cat.name,
-                        estimated: cat.estimated,
-                        actual: cat.actual,
-                      }))}
-                    >
-                      <PolarGrid stroke="hsl(240, 5%, 84%)" />
-                      <PolarAngleAxis
-                        dataKey="category"
-                        tick={{ fill: "hsl(240, 4%, 46%)", fontSize: 11 }}
-                      />
-                      <PolarRadiusAxis angle={90} domain={[0, 'dataMax']} tick={{ fontSize: 10 }} />
-                      <Radar
-                        name="Budget"
-                        dataKey="estimated"
-                        stroke="hsl(217, 91%, 60%)"
-                        fill="hsl(217, 91%, 60%)"
-                        fillOpacity={0.3}
-                      />
-                      <Radar
-                        name="Actual"
-                        dataKey="actual"
-                        stroke="hsl(142, 76%, 36%)"
-                        fill="hsl(142, 76%, 36%)"
-                        fillOpacity={0.5}
-                      />
-                      <Legend
-                        wrapperStyle={{ fontSize: "12px" }}
-                        iconType="circle"
-                      />
-                      <ChartTooltip
-                        content={<ChartTooltipContent
-                          formatter={(value) => formatCurrency(value as number)}
-                        />}
-                      />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-              )}
-            </div>
-
-            {/* Card 2: Budget Summary - Combined Total Spent + Top Categories */}
-            <div className="bg-card border border-border rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Budget Summary
-                </h3>
-                <DollarSign className="w-5 h-5 text-red-500" />
-              </div>
-
-              {/* Total Spent Section */}
-              <div className="mb-6">
-                <div className="text-3xl font-bold text-foreground mb-4">
-                  {formatCurrency(totalExpensesActual)}
-                </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Budget</span>
-                    <span className="font-medium">{formatCurrency(totalExpensesEstimated)}</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all ${
-                        budgetUtilization < 90
-                          ? "bg-green-500"
-                          : budgetUtilization < 100
-                            ? "bg-yellow-500"
-                            : "bg-red-500"
-                      }`}
-                      style={{ width: `${Math.min(budgetUtilization, 100)}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Remaining</span>
-                    <span className={`font-medium ${totalExpensesEstimated - totalExpensesActual >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                      {formatCurrency(totalExpensesEstimated - totalExpensesActual)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div className="border-t border-border my-6"></div>
-
-              {/* Top Categories Section */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Receipt className="w-4 h-4 text-purple-500" />
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Top Categories
-                  </h4>
-                </div>
-                <div className="space-y-4">
-                  {expenseCategories
-                    .sort((a, b) => b.actual - a.actual)
-                    .slice(0, 3)
-                    .map((category) => {
-                      const catUtilization = category.estimated > 0 ? (category.actual / category.estimated) * 100 : 0;
-                      return (
-                        <div key={category.id}>
-                          <div className="flex justify-between items-center mb-1.5">
-                            <span className="text-sm font-medium text-foreground truncate pr-2">
-                              {category.name}
-                            </span>
-                            <span className="text-sm font-bold text-foreground whitespace-nowrap">
-                              {formatCurrency(category.actual)}
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div
-                              className={`h-full rounded-full ${
-                                catUtilization < 90 ? "bg-green-500" : catUtilization < 100 ? "bg-yellow-500" : "bg-red-500"
-                              }`}
-                              style={{ width: `${Math.min(catUtilization, 100)}%` }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </>
-      ) : (
-        <>
-          {/* Income View - 2 Card Layout matching Expenses */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            {/* Card 1: Radar Chart for Income by Source */}
-            <div className="bg-card border border-border rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Income by Source
-                </h3>
-                <PieChartIcon className="w-5 h-5 text-muted-foreground" />
-              </div>
-              {revenueCategories.filter(cat => cat.estimated > 0 || cat.actual > 0).length < 2 ? (
-                <div className="h-[360px] flex items-center justify-center">
-                  <p className="text-muted-foreground text-sm">No data to show</p>
-                </div>
-              ) : (
-                <ChartContainer
-                  config={{
-                    estimated: {
-                      label: "Projected",
-                      color: "hsl(217, 91%, 60%)",
-                    },
-                    actual: {
-                      label: "Actual",
-                      color: "hsl(142, 76%, 36%)",
-                    },
-                  } satisfies ChartConfig}
-                  className="h-[360px]"
-                >
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart
-                      data={revenueCategories.map((cat) => ({
-                        category: cat.name.length > 20 ? cat.name.substring(0, 18) + "..." : cat.name,
-                        estimated: cat.estimated,
-                        actual: cat.actual,
-                      }))}
-                    >
-                      <PolarGrid stroke="hsl(240, 5%, 84%)" />
-                      <PolarAngleAxis
-                        dataKey="category"
-                        tick={{ fill: "hsl(240, 4%, 46%)", fontSize: 11 }}
-                      />
-                      <PolarRadiusAxis angle={90} domain={[0, 'dataMax']} tick={{ fontSize: 10 }} />
-                      <Radar
-                        name="Projected"
-                        dataKey="estimated"
-                        stroke="hsl(217, 91%, 60%)"
-                        fill="hsl(217, 91%, 60%)"
-                        fillOpacity={0.3}
-                      />
-                      <Radar
-                        name="Actual"
-                        dataKey="actual"
-                        stroke="hsl(142, 76%, 36%)"
-                        fill="hsl(142, 76%, 36%)"
-                        fillOpacity={0.5}
-                      />
-                      <Legend
-                        wrapperStyle={{ fontSize: "12px" }}
-                        iconType="circle"
-                      />
-                      <ChartTooltip
-                        content={<ChartTooltipContent
-                          formatter={(value) => formatCurrency(value as number)}
-                        />}
-                      />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-              )}
-            </div>
-
-            {/* Card 2: Income Summary - Combined Total Income + Top Sources */}
-            <div className="bg-card border border-border rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Income Summary
-                </h3>
-                <DollarSign className="w-5 h-5 text-green-500" />
-              </div>
-
-              {/* Total Income Section */}
-              <div className="mb-6">
-                <div className="text-3xl font-bold text-foreground mb-4">
-                  {formatCurrency(totalRevenueActual)}
-                </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Projected</span>
-                    <span className="font-medium">{formatCurrency(totalRevenueEstimated)}</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-green-500 transition-all"
-                      style={{ width: `${Math.min((totalRevenueActual / totalRevenueEstimated) * 100, 100)}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Remaining</span>
-                    <span className={`font-medium ${totalRevenueEstimated - totalRevenueActual >= 0 ? "text-yellow-600 dark:text-yellow-400" : "text-green-600 dark:text-green-400"}`}>
-                      {formatCurrency(totalRevenueEstimated - totalRevenueActual)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div className="border-t border-border my-6"></div>
-
-              {/* Top Income Sources Section */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Receipt className="w-4 h-4 text-teal-500" />
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Top Sources
-                  </h4>
-                </div>
-                <div className="space-y-4">
-                  {revenueCategories
-                    .sort((a, b) => b.actual - a.actual)
-                    .slice(0, 3)
-                    .map((category) => {
-                      const incomeProgress = category.estimated > 0 ? (category.actual / category.estimated) * 100 : 0;
-                      return (
-                        <div key={category.id}>
-                          <div className="flex justify-between items-center mb-1.5">
-                            <span className="text-sm font-medium text-foreground truncate pr-2">
-                              {category.name}
-                            </span>
-                            <span className="text-sm font-bold text-foreground whitespace-nowrap">
-                              {formatCurrency(category.actual)}
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div
-                              className="h-full rounded-full bg-green-500"
-                              style={{ width: `${Math.min(incomeProgress, 100)}%` }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Categories Coming Soon Message */}
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-8 text-center mb-8">
-        <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-200 mb-2">
-          Budget Categories Coming Soon
-        </h3>
-        <p className="text-blue-700 dark:text-blue-300">
-          Detailed budget categories and line items will be displayed here once we've migrated that data from the database.
-        </p>
-      </div>
-
-      {/* Add Line Item Dialog */}
-      <Dialog open={isAddLineItemOpen} onOpenChange={setIsAddLineItemOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add Line Item</DialogTitle>
-            <DialogDescription>
-              Add a new expense or revenue line item to this project
-            </DialogDescription>
-          </DialogHeader>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              console.log("Adding line item:", lineItemFormData);
-              // TODO: Add to mock data or API call
-              setIsAddLineItemOpen(false);
-              setLineItemFormData({
-                name: "",
-                description: "",
-                category: "",
-                estimated: "",
-                quantity: "",
-                unitPrice: "",
-                vendor: "",
-                status: "pending",
-              });
-            }}
-            className="space-y-4"
-          >
-            {/* Category Selection */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Category *
-              </label>
-              <select
-                required
-                value={lineItemFormData.category}
-                onChange={(e) =>
-                  setLineItemFormData({ ...lineItemFormData, category: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" size="sm">
+              <Trash2 className="w-4 h-4" />
+              Delete
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Project</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete &quot;{project.Project_Title}
+                &quot;? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="bg-destructive text-white hover:bg-destructive/90"
               >
-                <option value="">Select a category...</option>
-                {/* TODO: Categories will come from database */}
-                {[...expenseCategories, ...revenueCategories].map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name} ({cat.type})
+                {isDeleting ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+
+      {/* Tabs */}
+      <div className="border-b border-border mb-6">
+        <div className="flex gap-1">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`inline-flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === tab.key
+                  ? "border-[#61bc47] text-[#61bc47]"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === "general" && formData && (
+        <div className="max-w-2xl">
+          {saveMessage && (
+            <div
+              className={`mb-6 p-3 rounded-lg text-sm ${
+                saveMessage.startsWith("Error")
+                  ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300"
+                  : "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300"
+              }`}
+            >
+              {saveMessage}
+            </div>
+          )}
+
+          <div className="space-y-6">
+            <div>
+              <Label htmlFor="edit-title">Project Title</Label>
+              <Input
+                id="edit-title"
+                value={formData.Project_Title || ""}
+                onChange={(e) =>
+                  setFormData((prev) =>
+                    prev ? { ...prev, Project_Title: e.target.value } : prev
+                  )
+                }
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="edit-slug">Slug</Label>
+              <Input
+                id="edit-slug"
+                value={formData.Slug || ""}
+                onChange={(e) =>
+                  setFormData((prev) =>
+                    prev ? { ...prev, Slug: e.target.value } : prev
+                  )
+                }
+              />
+            </div>
+
+            <div>
+              <Label>Coordinator</Label>
+              <Popover open={coordinatorOpen} onOpenChange={setCoordinatorOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={coordinatorOpen}
+                    className="w-full justify-between font-normal"
+                  >
+                    {selectedCoordinatorName || "Search for coordinator..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command shouldFilter={false}>
+                    <CommandInput
+                      placeholder="Type a name..."
+                      value={coordinatorSearch}
+                      onValueChange={setCoordinatorSearch}
+                    />
+                    <CommandList>
+                      {coordinatorLoading ? (
+                        <div className="py-6 text-center text-sm text-muted-foreground">Searching...</div>
+                      ) : coordinatorSearch.length < 2 ? (
+                        <div className="py-6 text-center text-sm text-muted-foreground">Type at least 2 characters...</div>
+                      ) : coordinatorResults.length === 0 ? (
+                        <CommandEmpty>No contacts found.</CommandEmpty>
+                      ) : (
+                        <CommandGroup>
+                          {coordinatorResults.map((c) => (
+                            <CommandItem
+                              key={c.User_ID}
+                              value={String(c.User_ID)}
+                              onSelect={() => {
+                                setFormData((prev) =>
+                                  prev
+                                    ? { ...prev, Project_Coordinator: c.User_ID }
+                                    : prev
+                                );
+                                setSelectedCoordinatorName(c.Display_Name);
+                                setCoordinatorOpen(false);
+                                setCoordinatorSearch("");
+                              }}
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${
+                                  formData.Project_Coordinator === c.User_ID
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                }`}
+                              />
+                              <div>
+                                <div>{c.Display_Name}</div>
+                                {c.Email_Address && (
+                                  <div className="text-xs text-muted-foreground">{c.Email_Address}</div>
+                                )}
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      )}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div>
+              <Label htmlFor="edit-type">Project Type</Label>
+              <select
+                id="edit-type"
+                value={formData.Project_Type_ID || ""}
+                onChange={(e) =>
+                  setFormData((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          Project_Type_ID: parseInt(e.target.value, 10),
+                        }
+                      : prev
+                  )
+                }
+                className="w-full h-9 rounded-md border bg-background px-3 text-sm"
+              >
+                <option value="">Select type...</option>
+                {lookups?.projectTypes.map((t) => (
+                  <option key={t.Project_Type_ID} value={t.Project_Type_ID}>
+                    {t.Project_Type}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* Name */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Item Name *
-              </label>
-              <input
-                type="text"
-                required
-                value={lineItemFormData.name}
-                onChange={(e) =>
-                  setLineItemFormData({ ...lineItemFormData, name: e.target.value })
-                }
-                placeholder="e.g., T-shirts for volunteers"
-                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
-              />
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Description
-              </label>
-              <textarea
-                value={lineItemFormData.description}
-                onChange={(e) =>
-                  setLineItemFormData({ ...lineItemFormData, description: e.target.value })
-                }
-                placeholder="Additional details about this line item"
-                rows={3}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
-              />
-            </div>
-
-            {/* Estimated Amount or Quantity/Unit Price */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Estimated Amount *
-                </label>
-                <input
-                  type="number"
-                  required
-                  step="0.01"
-                  min="0"
-                  value={lineItemFormData.estimated}
+                <Label htmlFor="edit-start">Start Date</Label>
+                <Input
+                  id="edit-start"
+                  type="date"
+                  value={formData.Project_Start || ""}
                   onChange={(e) =>
-                    setLineItemFormData({ ...lineItemFormData, estimated: e.target.value })
+                    setFormData((prev) =>
+                      prev
+                        ? { ...prev, Project_Start: e.target.value }
+                        : prev
+                    )
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-end">End Date</Label>
+                <Input
+                  id="edit-end"
+                  type="date"
+                  value={formData.Project_End || ""}
+                  onChange={(e) =>
+                    setFormData((prev) =>
+                      prev ? { ...prev, Project_End: e.target.value } : prev
+                    )
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Switch
+                id="edit-approved"
+                checked={formData.Project_Approved || false}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) =>
+                    prev ? { ...prev, Project_Approved: checked } : prev
+                  )
+                }
+              />
+              <Label htmlFor="edit-approved">Approved</Label>
+            </div>
+
+            <div className="pt-4">
+              <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="bg-[#61BC47] hover:bg-[#4fa037] text-white"
+              >
+                <Save className="w-4 h-4" />
+                {isSaving ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "budget" && formData && (
+        <div className="max-w-2xl">
+          {saveMessage && (
+            <div
+              className={`mb-6 p-3 rounded-lg text-sm ${
+                saveMessage.startsWith("Error")
+                  ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300"
+                  : "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300"
+              }`}
+            >
+              {saveMessage}
+            </div>
+          )}
+
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <Switch
+                id="budget-enabled"
+                checked={formData.Budgets_Enabled || false}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) =>
+                    prev ? { ...prev, Budgets_Enabled: checked } : prev
+                  )
+                }
+              />
+              <Label htmlFor="budget-enabled">Budget Enabled</Label>
+            </div>
+
+            {project.Budget_Status_Name && (
+              <div>
+                <Label>Status</Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {project.Budget_Status_Name}
+                </p>
+              </div>
+            )}
+
+            <div className="flex items-center gap-3">
+              <Switch
+                id="budget-locked"
+                checked={formData.Budget_Locked || false}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) =>
+                    prev ? { ...prev, Budget_Locked: checked } : prev
+                  )
+                }
+              />
+              <Label htmlFor="budget-locked">Budget Locked</Label>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="expected-revenue">Expected Registration Revenue</Label>
+                <Input
+                  id="expected-revenue"
+                  type="number"
+                  step="0.01"
+                  value={formData.Expected_Registration_Revenue ?? ""}
+                  onChange={(e) =>
+                    setFormData((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            Expected_Registration_Revenue: e.target.value
+                              ? parseFloat(e.target.value)
+                              : null,
+                          }
+                        : prev
+                    )
                   }
                   placeholder="0.00"
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Quantity
-                </label>
-                <input
-                  type="number"
-                  step="1"
-                  min="0"
-                  value={lineItemFormData.quantity}
-                  onChange={(e) =>
-                    setLineItemFormData({ ...lineItemFormData, quantity: e.target.value })
-                  }
-                  placeholder="Optional"
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Unit Price
-                </label>
-                <input
+                <Label htmlFor="expected-discounts">Expected Discounts Budget</Label>
+                <Input
+                  id="expected-discounts"
                   type="number"
                   step="0.01"
-                  min="0"
-                  value={lineItemFormData.unitPrice}
+                  value={formData.Expected_Discounts_Budget ?? ""}
                   onChange={(e) =>
-                    setLineItemFormData({ ...lineItemFormData, unitPrice: e.target.value })
+                    setFormData((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            Expected_Discounts_Budget: e.target.value
+                              ? parseFloat(e.target.value)
+                              : null,
+                          }
+                        : prev
+                    )
                   }
-                  placeholder="Optional"
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
+                  placeholder="0.00"
                 />
               </div>
             </div>
 
-            {/* Vendor and Status */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="pt-4">
+              <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="bg-[#61BC47] hover:bg-[#4fa037] text-white"
+              >
+                <Save className="w-4 h-4" />
+                {isSaving ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "rsvp" && formData && (
+        <div className="max-w-2xl">
+          {saveMessage && (
+            <div
+              className={`mb-6 p-3 rounded-lg text-sm ${
+                saveMessage.startsWith("Error")
+                  ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300"
+                  : "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300"
+              }`}
+            >
+              {saveMessage}
+            </div>
+          )}
+
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <Switch
+                id="rsvp-active"
+                checked={formData.RSVP_Is_Active || false}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) =>
+                    prev ? { ...prev, RSVP_Is_Active: checked } : prev
+                  )
+                }
+              />
+              <Label htmlFor="rsvp-active">Active</Label>
+            </div>
+
+            <div>
+              <Label htmlFor="rsvp-title">Title</Label>
+              <Input
+                id="rsvp-title"
+                value={formData.RSVP_Title ?? ""}
+                onChange={(e) =>
+                  setFormData((prev) =>
+                    prev ? { ...prev, RSVP_Title: e.target.value || null } : prev
+                  )
+                }
+                placeholder="RSVP title"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="rsvp-description">Description</Label>
+              <textarea
+                id="rsvp-description"
+                value={formData.RSVP_Description ?? ""}
+                onChange={(e) =>
+                  setFormData((prev) =>
+                    prev ? { ...prev, RSVP_Description: e.target.value || null } : prev
+                  )
+                }
+                placeholder="RSVP description"
+                className="w-full min-h-[100px] rounded-md border bg-background px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Vendor
-                </label>
-                <input
-                  type="text"
-                  value={lineItemFormData.vendor}
+                <Label htmlFor="rsvp-slug">Slug</Label>
+                <Input
+                  id="rsvp-slug"
+                  value={formData.RSVP_Slug ?? ""}
                   onChange={(e) =>
-                    setLineItemFormData({ ...lineItemFormData, vendor: e.target.value })
+                    setFormData((prev) =>
+                      prev ? { ...prev, RSVP_Slug: e.target.value || null } : prev
+                    )
                   }
-                  placeholder="Vendor name"
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
+                  placeholder="rsvp-slug"
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Status *
-                </label>
-                <select
-                  required
-                  value={lineItemFormData.status}
+                <Label htmlFor="rsvp-url">URL</Label>
+                <Input
+                  id="rsvp-url"
+                  value={formData.RSVP_URL ?? ""}
                   onChange={(e) =>
-                    setLineItemFormData({
-                      ...lineItemFormData,
-                      status: e.target.value as typeof lineItemFormData.status,
-                    })
+                    setFormData((prev) =>
+                      prev ? { ...prev, RSVP_URL: e.target.value || null } : prev
+                    )
                   }
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-[#61bc47] focus:border-transparent"
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="rsvp-start">Start Date</Label>
+                <Input
+                  id="rsvp-start"
+                  type="date"
+                  value={formData.RSVP_Start_Date ? toInputDate(formData.RSVP_Start_Date) : ""}
+                  onChange={(e) =>
+                    setFormData((prev) =>
+                      prev
+                        ? { ...prev, RSVP_Start_Date: e.target.value || null }
+                        : prev
+                    )
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="rsvp-end">End Date</Label>
+                <Input
+                  id="rsvp-end"
+                  type="date"
+                  value={formData.RSVP_End_Date ? toInputDate(formData.RSVP_End_Date) : ""}
+                  onChange={(e) =>
+                    setFormData((prev) =>
+                      prev
+                        ? { ...prev, RSVP_End_Date: e.target.value || null }
+                        : prev
+                    )
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="rsvp-confirm-email">Confirmation Email Template ID</Label>
+                <Input
+                  id="rsvp-confirm-email"
+                  type="number"
+                  value={formData.RSVP_Confirmation_Email_Template_ID ?? ""}
+                  onChange={(e) =>
+                    setFormData((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            RSVP_Confirmation_Email_Template_ID: e.target.value
+                              ? parseInt(e.target.value, 10)
+                              : null,
+                          }
+                        : prev
+                    )
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="rsvp-reminder-email">Reminder Email Template ID</Label>
+                <Input
+                  id="rsvp-reminder-email"
+                  type="number"
+                  value={formData.RSVP_Reminder_Email_Template_ID ?? ""}
+                  onChange={(e) =>
+                    setFormData((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            RSVP_Reminder_Email_Template_ID: e.target.value
+                              ? parseInt(e.target.value, 10)
+                              : null,
+                          }
+                        : prev
+                    )
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="rsvp-days-remind">Days to Remind</Label>
+                <Input
+                  id="rsvp-days-remind"
+                  type="number"
+                  value={formData.RSVP_Days_To_Remind ?? ""}
+                  onChange={(e) =>
+                    setFormData((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            RSVP_Days_To_Remind: e.target.value
+                              ? parseInt(e.target.value, 10)
+                              : null,
+                          }
+                        : prev
+                    )
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="rsvp-primary-color">Primary Color</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="rsvp-primary-color"
+                    value={formData.RSVP_Primary_Color ?? ""}
+                    onChange={(e) =>
+                      setFormData((prev) =>
+                        prev ? { ...prev, RSVP_Primary_Color: e.target.value || null } : prev
+                      )
+                    }
+                    placeholder="#000000"
+                    className="flex-1"
+                  />
+                  {formData.RSVP_Primary_Color && (
+                    <div
+                      className="w-9 h-9 rounded-md border flex-shrink-0"
+                      style={{ backgroundColor: formData.RSVP_Primary_Color }}
+                    />
+                  )}
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="rsvp-secondary-color">Secondary Color</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="rsvp-secondary-color"
+                    value={formData.RSVP_Secondary_Color ?? ""}
+                    onChange={(e) =>
+                      setFormData((prev) =>
+                        prev ? { ...prev, RSVP_Secondary_Color: e.target.value || null } : prev
+                      )
+                    }
+                    placeholder="#000000"
+                    className="flex-1"
+                  />
+                  {formData.RSVP_Secondary_Color && (
+                    <div
+                      className="w-9 h-9 rounded-md border flex-shrink-0"
+                      style={{ backgroundColor: formData.RSVP_Secondary_Color }}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="rsvp-accent-color">Accent Color</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="rsvp-accent-color"
+                    value={formData.RSVP_Accent_Color ?? ""}
+                    onChange={(e) =>
+                      setFormData((prev) =>
+                        prev ? { ...prev, RSVP_Accent_Color: e.target.value || null } : prev
+                      )
+                    }
+                    placeholder="#000000"
+                    className="flex-1"
+                  />
+                  {formData.RSVP_Accent_Color && (
+                    <div
+                      className="w-9 h-9 rounded-md border flex-shrink-0"
+                      style={{ backgroundColor: formData.RSVP_Accent_Color }}
+                    />
+                  )}
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="rsvp-bg-color">Background Color</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="rsvp-bg-color"
+                    value={formData.RSVP_Background_Color ?? ""}
+                    onChange={(e) =>
+                      setFormData((prev) =>
+                        prev ? { ...prev, RSVP_Background_Color: e.target.value || null } : prev
+                      )
+                    }
+                    placeholder="#000000"
+                    className="flex-1"
+                  />
+                  {formData.RSVP_Background_Color && (
+                    <div
+                      className="w-9 h-9 rounded-md border flex-shrink-0"
+                      style={{ backgroundColor: formData.RSVP_Background_Color }}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4">
+              <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="bg-[#61BC47] hover:bg-[#4fa037] text-white"
+              >
+                <Save className="w-4 h-4" />
+                {isSaving ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "events" && (
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-foreground">
+              Linked Events
+            </h2>
+            <Button
+              size="sm"
+              onClick={() => setShowLinkEvent(true)}
+              className="bg-[#61BC47] hover:bg-[#4fa037] text-white"
+            >
+              <Plus className="w-4 h-4" />
+              Link Event
+            </Button>
+          </div>
+
+          {eventsLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          ) : events.length === 0 ? (
+            <div className="bg-card border-2 border-dashed border-border rounded-lg p-8 text-center">
+              <CalendarDays className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">
+                No events linked to this project yet.
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-3"
+                onClick={() => setShowLinkEvent(true)}
+              >
+                Link an Event
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {events.map((event) => (
+                <div
+                  key={event.Event_ID}
+                  className="bg-card border border-border rounded-lg p-4"
                 >
-                  <option value="pending">Pending</option>
-                  <option value="ordered">Ordered</option>
-                  <option value="received">Received</option>
-                  <option value="paid">Paid</option>
-                  <option value="cancelled">Cancelled</option>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-foreground">
+                        {event.Event_Title}
+                      </div>
+                      <div className="text-sm text-muted-foreground flex items-center gap-3 mt-1">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {formatDate(event.Event_Start_Date)}
+                        </span>
+                        {event.Congregation_Name && (
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {event.Congregation_Name}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleUnlinkEvent(event.Event_ID)}
+                      title="Unlink event"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-6 mt-3 pt-3 border-t border-border">
+                    <label className="flex items-center gap-2 text-sm">
+                      <Switch
+                        checked={
+                          event.Include_Registrations_In_Project_Budgets ??
+                          false
+                        }
+                        onCheckedChange={(checked) =>
+                          handleUpdateEventField(
+                            event.Event_ID,
+                            "Include_Registrations_In_Project_Budgets",
+                            checked
+                          )
+                        }
+                      />
+                      <span className="text-muted-foreground">
+                        Include Registrations in Budgets
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <Switch
+                        checked={event.Include_In_RSVP ?? false}
+                        onCheckedChange={(checked) =>
+                          handleUpdateEventField(
+                            event.Event_ID,
+                            "Include_In_RSVP",
+                            checked
+                          )
+                        }
+                      />
+                      <span className="text-muted-foreground">
+                        Include in RSVP
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Link Event Dialog */}
+          <Dialog open={showLinkEvent} onOpenChange={setShowLinkEvent}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle>Link Event</DialogTitle>
+                <DialogDescription>
+                  Enter the Event ID to link to this project.
+                </DialogDescription>
+              </DialogHeader>
+              <div>
+                <Label htmlFor="event-id">Event ID</Label>
+                <Input
+                  id="event-id"
+                  type="number"
+                  value={linkEventId}
+                  onChange={(e) => setLinkEventId(e.target.value)}
+                  placeholder="e.g. 12345"
+                />
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowLinkEvent(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleLinkEvent}
+                  disabled={!linkEventId}
+                  className="bg-[#61BC47] hover:bg-[#4fa037] text-white"
+                >
+                  <LinkIcon className="w-4 h-4" />
+                  Link
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
+
+      {activeTab === "campuses" && (
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-foreground">
+              Project Campuses
+            </h2>
+            <Button
+              size="sm"
+              onClick={() => setShowAddCampus(true)}
+              className="bg-[#61BC47] hover:bg-[#4fa037] text-white"
+            >
+              <Plus className="w-4 h-4" />
+              Add Campus
+            </Button>
+          </div>
+
+          {campusesLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          ) : campuses.length === 0 ? (
+            <div className="bg-card border-2 border-dashed border-border rounded-lg p-8 text-center">
+              <MapPin className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">
+                No campuses added to this project yet.
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-3"
+                onClick={() => setShowAddCampus(true)}
+              >
+                Add a Campus
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {campuses.map((campus) => (
+                <div
+                  key={campus.Project_Campus_ID}
+                  className="flex items-center justify-between bg-card border border-border rounded-lg p-4"
+                >
+                  <div>
+                    <div className="font-medium text-foreground">
+                      {campus.Campus_Name || `Campus ${campus.Congregation_ID}`}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {campus.Event_Title && (
+                        <span className="flex items-center gap-1">
+                          <CalendarDays className="w-3 h-3" />
+                          {campus.Event_Title}
+                        </span>
+                      )}
+                      {!campus.Is_Active && (
+                        <span className="text-yellow-600 dark:text-yellow-400">
+                          Inactive
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemoveCampus(campus.Project_Campus_ID)}
+                    title="Remove campus"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add Campus Dialog */}
+          <Dialog open={showAddCampus} onOpenChange={setShowAddCampus}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle>Add Campus</DialogTitle>
+                <DialogDescription>
+                  Select a campus to add to this project.
+                </DialogDescription>
+              </DialogHeader>
+              <div>
+                <Label htmlFor="campus-select">Campus</Label>
+                <select
+                  id="campus-select"
+                  value={newCampusCongregationId}
+                  onChange={(e) => setNewCampusCongregationId(e.target.value)}
+                  className="w-full h-9 rounded-md border bg-background px-3 text-sm"
+                >
+                  <option value="">Select campus...</option>
+                  {lookups?.congregations.map((c) => (
+                    <option
+                      key={c.Congregation_ID}
+                      value={c.Congregation_ID}
+                    >
+                      {c.Congregation_Name}
+                    </option>
+                  ))}
                 </select>
               </div>
-            </div>
-
-            {/* Form Actions */}
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAddLineItemOpen(false);
-                  setLineItemFormData({
-                    name: "",
-                    description: "",
-                    category: "",
-                    estimated: "",
-                    quantity: "",
-                    unitPrice: "",
-                    vendor: "",
-                    status: "pending",
-                  });
-                }}
-                className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-[#61BC47] hover:bg-[#4fa037] text-white rounded-lg font-medium transition-colors"
-              >
-                Add Line Item
-              </button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAddCampus(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleAddCampus}
+                  disabled={!newCampusCongregationId}
+                  className="bg-[#61BC47] hover:bg-[#4fa037] text-white"
+                >
+                  Add Campus
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
     </div>
   );
 }
