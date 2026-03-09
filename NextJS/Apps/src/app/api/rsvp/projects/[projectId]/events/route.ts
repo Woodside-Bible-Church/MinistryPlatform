@@ -3,8 +3,8 @@ import { MinistryPlatformClient } from "@/providers/MinistryPlatform/core/minist
 
 /**
  * GET /api/rsvp/projects/[projectId]/events
- * Fetch all events for a project, optionally filtered by campus
- * Used for carousel event selection (includes all events, not just RSVP events)
+ * Fetch all events AND opportunities for a project, optionally filtered by campus
+ * Used for carousel event/opportunity selection
  */
 export async function GET(
   request: NextRequest,
@@ -21,27 +21,63 @@ export async function GET(
       );
     }
 
-    // Get optional campus filter from query params
     const searchParams = request.nextUrl.searchParams;
     const campusId = searchParams.get("campusId");
 
     const mp = new MinistryPlatformClient();
     await mp.ensureValidToken();
 
-    // Build filter for events
-    let filter = `Project_ID=${projectId}`;
+    // Fetch events for this project/campus
+    let eventFilter = `Project_ID=${projectId}`;
     if (campusId) {
-      filter += ` AND Congregation_ID=${campusId}`;
+      eventFilter += ` AND Congregation_ID=${campusId}`;
     }
 
-    // Fetch all events for this project/campus
-    const events = await mp.get("/tables/Events", {
+    const eventsPromise = mp.get("/tables/Events", {
       $select: "Event_ID, Event_Title, Event_Start_Date, Event_End_Date, Congregation_ID, RSVP_Carousel_Name, Include_In_RSVP",
-      $filter: filter,
+      $filter: eventFilter,
       $orderby: "Event_Start_Date ASC",
     });
 
-    return NextResponse.json(events);
+    // Fetch opportunities for this project
+    // Opportunities get campus via Program_ID -> Programs.Congregation_ID
+    let oppFilter = `Project_ID=${projectId}`;
+    if (campusId) {
+      oppFilter += ` AND Program_ID_Table.Congregation_ID=${campusId}`;
+    }
+
+    const opportunitiesPromise = mp.get("/tables/Opportunities", {
+      $select: "Opportunity_ID, Opportunity_Title, Program_ID_Table.Congregation_ID, RSVP_Carousel_Name",
+      $filter: oppFilter,
+      $orderby: "Opportunity_Title ASC",
+    });
+
+    const [events, opportunities] = await Promise.all([eventsPromise, opportunitiesPromise]) as [any[], any[]];
+
+    // Normalize into a combined list with Item_Type
+    const normalizedEvents = (events || []).map((e: any) => ({
+      Item_Type: "Event" as const,
+      Event_ID: e.Event_ID,
+      Opportunity_ID: null,
+      Event_Title: e.Event_Title,
+      Event_Start_Date: e.Event_Start_Date,
+      Congregation_ID: e.Congregation_ID,
+      RSVP_Carousel_Name: e.RSVP_Carousel_Name,
+      Include_In_RSVP: e.Include_In_RSVP,
+    }));
+
+    const normalizedOpportunities = (opportunities || []).map((o: any) => ({
+      Item_Type: "Opportunity" as const,
+      Event_ID: null,
+      Opportunity_ID: o.Opportunity_ID,
+      Event_Title: o.Opportunity_Title,
+      Event_Start_Date: null,
+      Congregation_ID: o.Congregation_ID,
+      RSVP_Carousel_Name: o.RSVP_Carousel_Name,
+      Include_In_RSVP: false,
+    }));
+
+    return NextResponse.json([...normalizedEvents, ...normalizedOpportunities]);
   } catch (error) {
     console.error("Error fetching project events:", error);
     return NextResponse.json(

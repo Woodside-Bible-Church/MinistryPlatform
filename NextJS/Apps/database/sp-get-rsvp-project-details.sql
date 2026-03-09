@@ -226,51 +226,115 @@ BEGIN
               AND (pcc.Congregation_ID = pc.Congregation_ID OR pcc.Congregation_ID IS NULL OR pcc.Congregation_ID = 1)
             ORDER BY pcc.Display_Order ASC
             FOR JSON PATH) AS Confirmation_Cards,
-            -- Carousels for this campus (events grouped by RSVP_Carousel_Name)
-            (SELECT DISTINCT
-                e.RSVP_Carousel_Name AS Carousel_Name,
-                -- Events in this carousel for this campus
-                (SELECT
-                    e2.Event_ID,
-                    e2.Event_Title,
-                    e2.Event_Start_Date,
-                    e2.Event_End_Date,
-                    e2.Meeting_Instructions,
-                    e2.RSVP_Carousel_Name,
-                    e2.Congregation_ID,
-                    c4.Congregation_Name,
-                    et2.Event_Type,
-                    -- Build Event Image URL from dp_files
-                    Event_Image_URL = CASE
-                        WHEN EI.File_ID IS NOT NULL AND CS2.Value IS NOT NULL AND D2.Domain_GUID IS NOT NULL
-                        THEN CONCAT(CS2.Value, '?dn=', CONVERT(varchar(40), D2.Domain_GUID), '&fn=', EI.Unique_Name, '.', EI.Extension)
-                        ELSE NULL
-                    END
-                FROM Events e2
-                LEFT JOIN Congregations c4 ON e2.Congregation_ID = c4.Congregation_ID
-                LEFT JOIN Event_Types et2 ON e2.Event_Type_ID = et2.Event_Type_ID
-                -- Join to dp_files to get Event default image
-                LEFT OUTER JOIN dp_files EI ON EI.Record_ID = e2.Event_ID
-                    AND EI.Table_Name = 'Events'
-                    AND EI.Default_Image = 1
-                -- Join to get ImageURL configuration setting
-                LEFT OUTER JOIN dp_Configuration_Settings CS2
-                    ON CS2.Domain_ID = COALESCE(e2.Domain_ID, 1)
-                    AND CS2.Key_Name = 'ImageURL'
-                    AND CS2.Application_Code = 'Common'
-                -- Join to get Domain GUID
-                LEFT OUTER JOIN dp_Domains D2
-                    ON D2.Domain_ID = COALESCE(e2.Domain_ID, 1)
-                WHERE e2.RSVP_Carousel_Name = e.RSVP_Carousel_Name
-                  AND e2.Project_ID = @Project_ID
-                  AND e2.Congregation_ID = pc.Congregation_ID
-                ORDER BY e2.Event_Start_Date ASC
-                FOR JSON PATH) AS Events
-            FROM Events e
-            WHERE e.Project_ID = @Project_ID
-              AND e.RSVP_Carousel_Name IS NOT NULL
-              AND e.RSVP_Carousel_Name <> ''
-              AND e.Congregation_ID = pc.Congregation_ID
+            -- Carousels for this campus (events + opportunities grouped by RSVP_Carousel_Name)
+            (SELECT
+                acn.Carousel_Name,
+                (
+                    SELECT
+                        Item_Type,
+                        Event_ID,
+                        Opportunity_ID,
+                        Event_Title,
+                        Event_Start_Date,
+                        Event_End_Date,
+                        Meeting_Instructions,
+                        RSVP_Carousel_Name,
+                        Congregation_ID,
+                        Congregation_Name,
+                        Event_Type,
+                        Event_Image_URL
+                    FROM (
+                        -- Events
+                        SELECT
+                            'Event' AS Item_Type,
+                            e2.Event_ID,
+                            CAST(NULL AS INT) AS Opportunity_ID,
+                            e2.Event_Title,
+                            e2.Event_Start_Date,
+                            e2.Event_End_Date,
+                            e2.Meeting_Instructions,
+                            e2.RSVP_Carousel_Name,
+                            e2.Congregation_ID,
+                            c4.Congregation_Name,
+                            et2.Event_Type,
+                            CASE
+                                WHEN EI.File_ID IS NOT NULL AND CS2.Value IS NOT NULL AND D2.Domain_GUID IS NOT NULL
+                                THEN CONCAT(CS2.Value, '?dn=', CONVERT(varchar(40), D2.Domain_GUID), '&fn=', EI.Unique_Name, '.', EI.Extension)
+                                ELSE NULL
+                            END AS Event_Image_URL
+                        FROM Events e2
+                        LEFT JOIN Congregations c4 ON e2.Congregation_ID = c4.Congregation_ID
+                        LEFT JOIN Event_Types et2 ON e2.Event_Type_ID = et2.Event_Type_ID
+                        LEFT OUTER JOIN dp_files EI ON EI.Record_ID = e2.Event_ID
+                            AND EI.Table_Name = 'Events'
+                            AND EI.Default_Image = 1
+                        LEFT OUTER JOIN dp_Configuration_Settings CS2
+                            ON CS2.Domain_ID = COALESCE(e2.Domain_ID, 1)
+                            AND CS2.Key_Name = 'ImageURL'
+                            AND CS2.Application_Code = 'Common'
+                        LEFT OUTER JOIN dp_Domains D2
+                            ON D2.Domain_ID = COALESCE(e2.Domain_ID, 1)
+                        WHERE e2.RSVP_Carousel_Name = acn.Carousel_Name
+                          AND e2.Project_ID = @Project_ID
+                          AND e2.Congregation_ID = pc.Congregation_ID
+
+                        UNION ALL
+
+                        -- Opportunities
+                        SELECT
+                            'Opportunity' AS Item_Type,
+                            CAST(NULL AS INT) AS Event_ID,
+                            o2.Opportunity_ID,
+                            o2.Opportunity_Title AS Event_Title,
+                            CAST(NULL AS DATETIME) AS Event_Start_Date,
+                            CAST(NULL AS DATETIME) AS Event_End_Date,
+                            CAST(NULL AS NVARCHAR(MAX)) AS Meeting_Instructions,
+                            o2.RSVP_Carousel_Name,
+                            prog2.Congregation_ID,
+                            cong2.Congregation_Name,
+                            CAST(NULL AS NVARCHAR(50)) AS Event_Type,
+                            CASE
+                                WHEN OI.File_ID IS NOT NULL AND CS3.Value IS NOT NULL AND D3.Domain_GUID IS NOT NULL
+                                THEN CONCAT(CS3.Value, '?dn=', CONVERT(varchar(40), D3.Domain_GUID), '&fn=', OI.Unique_Name, '.', OI.Extension)
+                                ELSE NULL
+                            END AS Event_Image_URL
+                        FROM Opportunities o2
+                        INNER JOIN Programs prog2 ON o2.Program_ID = prog2.Program_ID
+                        INNER JOIN Congregations cong2 ON prog2.Congregation_ID = cong2.Congregation_ID
+                        LEFT OUTER JOIN dp_files OI ON OI.Record_ID = o2.Opportunity_ID
+                            AND OI.Table_Name = 'Opportunities'
+                            AND OI.Default_Image = 1
+                        LEFT OUTER JOIN dp_Configuration_Settings CS3
+                            ON CS3.Domain_ID = COALESCE(o2.Domain_ID, 1)
+                            AND CS3.Key_Name = 'ImageURL'
+                            AND CS3.Application_Code = 'Common'
+                        LEFT OUTER JOIN dp_Domains D3
+                            ON D3.Domain_ID = COALESCE(o2.Domain_ID, 1)
+                        WHERE o2.RSVP_Carousel_Name = acn.Carousel_Name
+                          AND o2.Project_ID = @Project_ID
+                          AND prog2.Congregation_ID = pc.Congregation_ID
+                    ) AS CarouselItems
+                    ORDER BY Event_Start_Date ASC, Event_Title ASC
+                    FOR JSON PATH
+                ) AS Events
+            FROM (
+                -- Collect distinct carousel names from both events and opportunities for this campus
+                SELECT DISTINCT e.RSVP_Carousel_Name AS Carousel_Name
+                FROM Events e
+                WHERE e.Project_ID = @Project_ID
+                  AND e.RSVP_Carousel_Name IS NOT NULL
+                  AND e.RSVP_Carousel_Name <> ''
+                  AND e.Congregation_ID = pc.Congregation_ID
+                UNION
+                SELECT DISTINCT o.RSVP_Carousel_Name AS Carousel_Name
+                FROM Opportunities o
+                INNER JOIN Programs prog ON o.Program_ID = prog.Program_ID
+                WHERE o.Project_ID = @Project_ID
+                  AND o.RSVP_Carousel_Name IS NOT NULL
+                  AND o.RSVP_Carousel_Name <> ''
+                  AND prog.Congregation_ID = pc.Congregation_ID
+            ) AS acn
+            ORDER BY acn.Carousel_Name ASC
             FOR JSON PATH) AS Carousels
         FROM Project_Campuses pc
         INNER JOIN Congregations c ON pc.Congregation_ID = c.Congregation_ID
