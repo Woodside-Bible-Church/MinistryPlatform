@@ -160,20 +160,31 @@ export default function AnnouncementsPage() {
         }
 
         // Handle @CongregationID with priority: data-params > URL param > cookie
-        // Also check for friendly 'campus' URL param
+        // Also check for friendly 'campus' param from data-params or URL
         if (!apiParams.has('@CongregationID')) {
           let congregationId: string | null = null;
           let campusSlug: string | null = null;
 
+          // Check if campus was provided via data-params (parsed as @campus or @Campus)
+          campusSlug = apiParams.get('@campus') || apiParams.get('@Campus');
+          if (campusSlug) {
+            // Remove the raw @campus key and normalize to @Campus
+            apiParams.delete('@campus');
+            apiParams.delete('@Campus');
+            apiParams.set('@Campus', campusSlug);
+          }
+
           // Check URL parameters (second priority)
-          if (typeof window !== 'undefined') {
+          if (!campusSlug && typeof window !== 'undefined') {
             const urlParams = new URLSearchParams(window.location.search);
 
             // Try @CongregationID first
             congregationId = urlParams.get('@CongregationID');
 
             // Also check for friendly 'campus' param (without @)
-            campusSlug = urlParams.get('campus');
+            if (!congregationId) {
+              campusSlug = urlParams.get('campus');
+            }
 
             // If not in URL, check cookie (third priority)
             if (!congregationId && !campusSlug) {
@@ -184,7 +195,7 @@ export default function AnnouncementsPage() {
           // Add to params if found
           if (congregationId) {
             apiParams.set('@CongregationID', congregationId);
-          } else if (campusSlug) {
+          } else if (campusSlug && !apiParams.has('@Campus')) {
             // Pass campus slug to API - stored proc will resolve it
             apiParams.set('@Campus', campusSlug);
           }
