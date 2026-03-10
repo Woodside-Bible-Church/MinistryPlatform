@@ -2,21 +2,24 @@
 @font-face {
   font-family: "ProximaNova-Regular";
   src: url("../webfonts/23533C_8_0.eot");
-  src: url("../webfonts/23533C_8_0.eot?#iefix") format("embedded-opentype"),
+  src:
+    url("../webfonts/23533C_8_0.eot?#iefix") format("embedded-opentype"),
     url("../webfonts/23533C_8_0.woff") format("woff"),
     url("../webfonts/23533C_8_0.ttf") format("truetype");
 }
 @font-face {
   font-family: "ProximaNova-Bold";
   src: url("../webfonts/23533C_A_0.eot");
-  src: url("../webfonts/23533C_A_0.eot?#iefix") format("embedded-opentype"),
+  src:
+    url("../webfonts/23533C_A_0.eot?#iefix") format("embedded-opentype"),
     url("../webfonts/23533C_A_0.woff") format("woff"),
     url("../webfonts/23533C_A_0.ttf") format("truetype");
 }
 @font-face {
   font-family: "ProximaNova-Semibold";
   src: url("../webfonts/30622B_2_0.eot");
-  src: url("../webfonts/30622B_2_0.eot?#iefix") format("embedded-opentype"),
+  src:
+    url("../webfonts/30622B_2_0.eot?#iefix") format("embedded-opentype"),
     url("../webfonts/30622B_2_0.woff2") format("woff2"),
     url("../webfonts/30622B_2_0.woff") format("woff"),
     url("../webfonts/30622B_2_0.ttf") format("truetype");
@@ -318,6 +321,10 @@ h6 {
   order: 100;
 }
 
+.mpp-innerpage--description {
+  order: 99;
+}
+
 .mpp-innerpage > img {
   display: none;
 }
@@ -384,21 +391,24 @@ h6 {
 @font-face {
   font-family: "ProximaNova-Regular";
   src: url("../webfonts/23533C_8_0.eot");
-  src: url("../webfonts/23533C_8_0.eot?#iefix") format("embedded-opentype"),
+  src:
+    url("../webfonts/23533C_8_0.eot?#iefix") format("embedded-opentype"),
     url("../webfonts/23533C_8_0.woff") format("woff"),
     url("../webfonts/23533C_8_0.ttf") format("truetype");
 }
 @font-face {
   font-family: "ProximaNova-Bold";
   src: url("../webfonts/23533C_A_0.eot");
-  src: url("../webfonts/23533C_A_0.eot?#iefix") format("embedded-opentype"),
+  src:
+    url("../webfonts/23533C_A_0.eot?#iefix") format("embedded-opentype"),
     url("../webfonts/23533C_A_0.woff") format("woff"),
     url("../webfonts/23533C_A_0.ttf") format("truetype");
 }
 @font-face {
   font-family: "ProximaNova-Semibold";
   src: url("../webfonts/30622B_2_0.eot");
-  src: url("../webfonts/30622B_2_0.eot?#iefix") format("embedded-opentype"),
+  src:
+    url("../webfonts/30622B_2_0.eot?#iefix") format("embedded-opentype"),
     url("../webfonts/30622B_2_0.woff2") format("woff2"),
     url("../webfonts/30622B_2_0.woff") format("woff"),
     url("../webfonts/30622B_2_0.ttf") format("truetype");
@@ -500,11 +510,11 @@ input[data-input-text-counter="true"] {
   }
 
   .mppw-form-field-alt:has(
-      > .mppw-form-field__alt-label
-        > .mppw-form-field__alt-label-container
-        > .mppw-form-field__alt-label-content
-        > .multiselectTextbox
-    ) {
+    > .mppw-form-field__alt-label
+      > .mppw-form-field__alt-label-container
+      > .mppw-form-field__alt-label-content
+      > .multiselectTextbox
+  ) {
     margin-top: 0 !important;
   }
 
@@ -832,11 +842,11 @@ input[data-input-text-counter="true"] {
   }
 
   .mppw-form-field-alt:has(
-      > .mppw-form-field__alt-label
-        > .mppw-form-field__alt-label-container
-        > .mppw-form-field__alt-label-content
-        > .multiselectTextbox
-    ) {
+    > .mppw-form-field__alt-label
+      > .mppw-form-field__alt-label-container
+      > .mppw-form-field__alt-label-content
+      > .multiselectTextbox
+  ) {
     margin-top: 0 !important;
   }
 
