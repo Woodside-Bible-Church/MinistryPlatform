@@ -110,6 +110,11 @@
   padding-top: 8px;
 }
 
+/* Hide light DOM links before the web component shadow DOM initializes (prevents FOUC) */
+mpp-user-login > a {
+  display: none;
+}
+
 @media screen and (max-width: 1400px) {
   #userDisplayName {
     display: none;
