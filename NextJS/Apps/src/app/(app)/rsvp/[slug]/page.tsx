@@ -171,6 +171,7 @@ type EventAmenity = {
   Icon_Color: string | null;
   Icon_URL: string | null; // From dp_Files: icon.svg
   Display_Order: number;
+  Detail: string | null;
 };
 
 function formatDate(dateString: string | null) {
@@ -1061,14 +1062,14 @@ export default function ProjectDetailPage({
   };
 
   // Handler for saving amenities
-  const handleSaveAmenities = async (amenityIds: number[]) => {
+  const handleSaveAmenities = async (amenityIds: number[], details: Record<number, string>) => {
     if (!editingAmenities) return;
 
     try {
       const response = await fetch(`/api/rsvp/events/${editingAmenities.eventId}/amenities`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amenityIds }),
+        body: JSON.stringify({ amenityIds, details }),
       });
 
       if (!response.ok) {
@@ -2662,7 +2663,10 @@ export default function ProjectDetailPage({
                                         style={{ color: amenity.Icon_Color || "#61bc47" }}
                                       />
                                     )}
-                                    <span className="text-foreground">{amenity.Amenity_Name}</span>
+                                    <span className="text-foreground">
+                                      {amenity.Amenity_Name}
+                                      {amenity.Detail && <span className="text-muted-foreground"> ({amenity.Detail})</span>}
+                                    </span>
                                   </div>
                                 );
                               })}

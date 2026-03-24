@@ -54,7 +54,11 @@ export function AmenityBadge({ amenity, size = 'md', showTooltip = true, themeCo
           borderColor: badgeColor,
           borderWidth: '2px'
         }}
-        title={showTooltip ? (amenity.Amenity_Description || amenity.Amenity_Name) : undefined}
+        title={showTooltip ? (
+          amenity.Detail
+            ? `${amenity.Amenity_Name} (${amenity.Detail})`
+            : (amenity.Amenity_Description || amenity.Amenity_Name)
+        ) : undefined}
       >
         {hasCustomIcon ? (
           // Priority 1: Custom SVG from dp_Files (icon.svg)
@@ -82,7 +86,9 @@ export function AmenityBadge({ amenity, size = 'md', showTooltip = true, themeCo
       {showTooltip && isHovered && (
         <div className="hidden md:block absolute bottom-full mb-2 right-0 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg pointer-events-none w-64 z-50">
           <div className="whitespace-normal text-left break-words">
-            {amenity.Amenity_Description || amenity.Amenity_Name}
+            {amenity.Detail
+              ? `${amenity.Amenity_Name} (${amenity.Detail})`
+              : (amenity.Amenity_Description || amenity.Amenity_Name)}
           </div>
           {/* Arrow pointing up from tooltip to badge */}
           <div

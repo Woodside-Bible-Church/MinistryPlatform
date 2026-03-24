@@ -193,6 +193,7 @@ BEGIN
                     a.Icon_Name,
                     a.Icon_Color,
                     a.Display_Order,
+                    ea.Detail,
                     -- Build Icon_URL from dp_files if icon.svg is attached
                     Icon_URL = CASE
                         WHEN F_Icon.File_ID IS NOT NULL AND CS_Icon.Value IS NOT NULL AND D_Icon.Domain_GUID IS NOT NULL

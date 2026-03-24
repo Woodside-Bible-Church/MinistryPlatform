@@ -132,6 +132,7 @@ export interface EventAmenity {
   Icon_Color: string | null; // Hex color code (e.g., '#3B82F6')
   Icon_URL: string | null; // From dp_Files: icon.svg
   Display_Order: number;
+  Detail: string | null; // Context-specific detail from Event_Amenities junction (e.g., "Birth to Grade 5")
 }
 
 export interface RSVPEvent {

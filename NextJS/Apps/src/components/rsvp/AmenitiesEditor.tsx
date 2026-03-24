@@ -32,6 +32,7 @@ type EventAmenity = {
   Icon_Color: string | null;
   Icon_URL: string | null; // From dp_Files: icon.svg
   Display_Order: number;
+  Detail: string | null; // Context-specific detail from Event_Amenities junction
 };
 
 interface AmenitiesEditorProps {
@@ -40,7 +41,7 @@ interface AmenitiesEditorProps {
   eventId: number;
   eventName: string;
   currentAmenities: EventAmenity[];
-  onSave: (amenityIds: number[]) => Promise<void>;
+  onSave: (amenityIds: number[], details: Record<number, string>) => Promise<void>;
 }
 
 export function AmenitiesEditor({
@@ -53,13 +54,19 @@ export function AmenitiesEditor({
 }: AmenitiesEditorProps) {
   const [availableAmenities, setAvailableAmenities] = useState<Amenity[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [details, setDetails] = useState<Record<number, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Initialize selected IDs from current amenities
+  // Initialize selected IDs and details from current amenities
   useEffect(() => {
     if (isOpen) {
       setSelectedIds(currentAmenities.map((a) => a.Amenity_ID));
+      const initialDetails: Record<number, string> = {};
+      currentAmenities.forEach((a) => {
+        if (a.Detail) initialDetails[a.Amenity_ID] = a.Detail;
+      });
+      setDetails(initialDetails);
     }
   }, [isOpen, currentAmenities]);
 
@@ -98,7 +105,12 @@ export function AmenitiesEditor({
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await onSave(selectedIds);
+      // Only send details for selected amenities
+      const selectedDetails: Record<number, string> = {};
+      selectedIds.forEach((id) => {
+        if (details[id]) selectedDetails[id] = details[id];
+      });
+      await onSave(selectedIds, selectedDetails);
       onClose();
     } catch (error) {
       console.error("Error saving amenities:", error);
@@ -180,6 +192,23 @@ export function AmenitiesEditor({
                           <p className="text-xs text-muted-foreground">
                             {amenity.Amenity_Description}
                           </p>
+                        )}
+                        {isSelected && (
+                          <input
+                            type="text"
+                            placeholder="Detail (e.g., Birth to Grade 5)"
+                            maxLength={100}
+                            value={details[amenity.Amenity_ID] || ""}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              setDetails((prev) => ({
+                                ...prev,
+                                [amenity.Amenity_ID]: e.target.value,
+                              }));
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="mt-2 w-full text-xs px-2 py-1.5 border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-[#61bc47]"
+                          />
                         )}
                       </div>
                     </div>

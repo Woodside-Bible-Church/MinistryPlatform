@@ -9,6 +9,7 @@ import {
   getCapacityStatusText,
 } from "@/types/rsvp";
 import { AmenityBadge } from "./AmenityBadge";
+import type { EventAmenity } from "@/types/rsvp";
 
 interface ServiceTimeCardProps {
   serviceTime: ServiceTimeResponse;
@@ -18,6 +19,7 @@ interface ServiceTimeCardProps {
   backgroundColor?: string; // Dynamic background color from database
   accentColor?: string; // Dynamic accent color for checkmark
   textColor?: string; // Dynamic text color from database
+  legendDetails?: Map<number, string | null>; // Scoped legend details for amenities
 }
 
 export default function ServiceTimeCard({
@@ -28,6 +30,7 @@ export default function ServiceTimeCard({
   backgroundColor = '#1C2B39',
   accentColor = '#FFFFFF',
   textColor = '#E5E7EB',
+  legendDetails,
 }: ServiceTimeCardProps) {
   const startDate = new Date(serviceTime.Event_Start_Date);
 
@@ -82,7 +85,7 @@ export default function ServiceTimeCard({
                     key={amenity.Amenity_ID}
                     amenity={amenity}
                     size="sm"
-                    showTooltip={false}
+                    showTooltip={!legendDetails}
                     themeColor={textColor}
                   />
                 ))}
@@ -124,6 +127,23 @@ export default function ServiceTimeCard({
             />
           </div>
         </div>
+
+        {/* Inline amenity details — only shown when detail varies across events */}
+        {legendDetails && serviceTime.Amenities && serviceTime.Amenities.length > 0 && (() => {
+          const varyingDetails = serviceTime.Amenities.filter(
+            (a: EventAmenity) => a.Detail && a.Detail !== legendDetails.get(a.Amenity_ID)
+          );
+          if (varyingDetails.length === 0) return null;
+          return (
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+              {varyingDetails.map((a: EventAmenity) => (
+                <span key={a.Amenity_ID} className="text-xs" style={{ color: `${textColor}99` }}>
+                  {a.Amenity_Name}: <span className="font-medium" style={{ color: `${textColor}CC` }}>{a.Detail}</span>
+                </span>
+              ))}
+            </div>
+          );
+        })()}
 
         {/* RSVP Call-to-Action */}
         {!selected && (

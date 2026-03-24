@@ -645,19 +645,36 @@ export default function RSVPPage() {
   }, [rsvpData, selectedCampusId]);
 
 
-  // Collect all unique amenities from filtered service times
-  const allAmenities = useMemo(() => {
+  // Collect unique amenities and determine legend details
+  // If every instance of an amenity has the same detail, show it in the legend.
+  // Otherwise, detail only appears at the service-time card level.
+  const { allAmenities, legendDetails } = useMemo(() => {
     const amenitiesMap = new Map();
+    const detailSets = new Map<number, Set<string | null>>();
+
     filteredServiceTimes.forEach(service => {
       if (service.Amenities && service.Amenities.length > 0) {
         service.Amenities.forEach(amenity => {
           if (!amenitiesMap.has(amenity.Amenity_ID)) {
             amenitiesMap.set(amenity.Amenity_ID, amenity);
           }
+          if (!detailSets.has(amenity.Amenity_ID)) detailSets.set(amenity.Amenity_ID, new Set());
+          detailSets.get(amenity.Amenity_ID)!.add(amenity.Detail ?? null);
         });
       }
     });
-    return Array.from(amenitiesMap.values());
+
+    const details = new Map<number, string | null>();
+    for (const [id, values] of detailSets) {
+      if (values.size === 1) {
+        const only = values.values().next().value;
+        details.set(id, only ?? null);
+      } else {
+        details.set(id, null);
+      }
+    }
+
+    return { allAmenities: Array.from(amenitiesMap.values()), legendDetails: details };
   }, [filteredServiceTimes]);
 
   // Group service times by date for display
@@ -1245,6 +1262,7 @@ export default function RSVPPage() {
                     {allAmenities.length > 0 && (
                       <AmenitiesLegend
                         amenities={allAmenities}
+                        legendDetails={legendDetails}
                         textColor={rsvpData?.Project?.RSVP_Primary_Color || '#FFFFFF'}
                       />
                     )}
@@ -1273,6 +1291,7 @@ export default function RSVPPage() {
                                   backgroundColor={rsvpData?.Project?.RSVP_Background_Color || '#1C2B39'}
                                   accentColor={rsvpData?.Project?.RSVP_Secondary_Color || '#FFFFFF'}
                                   textColor={rsvpData?.Project?.RSVP_Primary_Color || '#E5E7EB'}
+                                  legendDetails={legendDetails}
                                 />
                               ))}
                             </div>

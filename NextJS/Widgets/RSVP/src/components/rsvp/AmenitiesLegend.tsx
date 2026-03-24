@@ -5,6 +5,7 @@ import { AmenityBadge } from './AmenityBadge';
 
 interface AmenitiesLegendProps {
   amenities: EventAmenity[];
+  legendDetails?: Map<number, string | null>;
   textColor?: string;
 }
 
@@ -14,6 +15,7 @@ interface AmenitiesLegendProps {
  */
 export function AmenitiesLegend({
   amenities,
+  legendDetails,
   textColor = '#FFFFFF',
 }: AmenitiesLegendProps) {
   // Get unique amenities (deduplicate by Amenity_ID)
@@ -38,6 +40,9 @@ export function AmenitiesLegend({
               style={{ color: `${textColor}` }}
             >
               {amenity.Amenity_Name}
+              {legendDetails?.get(amenity.Amenity_ID) && (
+                <span style={{ color: `${textColor}99` }}> ({legendDetails.get(amenity.Amenity_ID)})</span>
+              )}
             </span>
           </div>
         ))}
