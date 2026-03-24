@@ -112,7 +112,7 @@
 
 /* Hide light DOM links before the web component shadow DOM initializes (prevents FOUC) */
 mpp-user-login > a {
-  display: none;
+  display: none !important;
 }
 
 @media screen and (max-width: 1400px) {
