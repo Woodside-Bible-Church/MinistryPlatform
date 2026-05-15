@@ -1,367 +1,39 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
-import { db } from '@/db';
-import { applications, appPermissions } from '@/db/schema';
-import { eq, inArray, or, and } from 'drizzle-orm';
 
-// Force Node.js runtime for middleware (required for database access)
-export const runtime = 'nodejs';
-
-// Cache for public app routes to avoid repeated API calls
-const publicAppRoutesCache: { routes: Set<string>; timestamp: number } = {
-  routes: new Set(),
-  timestamp: 0,
-};
-const CACHE_TTL = 60000; // 1 minute cache
-
-// Cache for service account token (client credentials flow)
-const serviceTokenCache: { token: string | null; timestamp: number } = {
-  token: null,
-  timestamp: 0,
-};
-const TOKEN_TTL = 3300000; // 55 minutes (tokens usually last 1 hour, refresh before expiry)
-
-async function getServiceToken(): Promise<string | null> {
-  // Return cached token if still valid
-  if (serviceTokenCache.token && Date.now() - serviceTokenCache.timestamp < TOKEN_TTL) {
-    console.log('Middleware: Using cached service token');
-    return serviceTokenCache.token;
-  }
-
-  const clientId = process.env.MINISTRY_PLATFORM_CLIENT_ID;
-  const clientSecret = process.env.MINISTRY_PLATFORM_CLIENT_SECRET;
-  const baseUrl = process.env.MINISTRY_PLATFORM_BASE_URL;
-
-  if (!clientId || !clientSecret || !baseUrl) {
-    console.log('Middleware: Missing client credentials for service token');
-    return null;
-  }
-
-  try {
-    // Use OAuth client credentials grant to get a service token
-    const tokenUrl = baseUrl.replace('/ministryplatformapi', '/ministryplatform/oauth/connect/token');
-    console.log('Middleware: Requesting service token from', tokenUrl);
-    const response = await fetch(tokenUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        grant_type: 'client_credentials',
-        client_id: clientId,
-        client_secret: clientSecret,
-        scope: 'http://www.thinkministry.com/dataplatform/scopes/all',
-      }),
-    });
-
-    if (!response.ok) {
-      console.log('Middleware: Service token request failed with status', response.status);
-      return null;
-    }
-
-    const data = await response.json();
-    serviceTokenCache.token = data.access_token;
-    serviceTokenCache.timestamp = Date.now();
-
-    console.log('Middleware: Service token obtained successfully');
-    return data.access_token;
-  } catch (error) {
-    console.error('Middleware: Error getting service token:', error);
-    return null;
-  }
-}
-
-async function checkUserHasAccessToRoute(
-  pathname: string,
-  userEmail: string,
-  userRoles: string[]
-): Promise<boolean> {
-  try {
-    // Get all applications to check against
-    const allApps = await db.query.applications.findMany();
-
-    // Find the application that matches this route
-    // Check for exact match first, then check if pathname starts with the app route
-    let app = allApps.find(a => a.route === pathname);
-
-    // If no exact match, check if this is a sub-route (e.g., /rsvp/christmas-2025 matches /rsvp)
-    if (!app) {
-      app = allApps.find(a => pathname.startsWith(a.route + '/'));
-    }
-
-    // If no app found for this route, allow access (might be a dynamic route or other page)
-    if (!app) {
-      console.log(`Middleware: No app found for route ${pathname}, allowing access`);
-      return true;
-    }
-
-    // Check if app requires authentication
-    if (!app.requiresAuth) {
-      console.log(`Middleware: App ${app.name} does not require auth`);
-      return true;
-    }
-
-    // Check if app is active
-    if (!app.isActive) {
-      console.log(`Middleware: App ${app.name} is not active`);
-      return false;
-    }
-
-    // If user has no roles, deny access
-    if (!userRoles || userRoles.length === 0) {
-      console.log(`Middleware: User has no roles, denying access to ${app.name}`);
-      return false;
-    }
-
-    // Check if user is an administrator (admins have access to everything)
-    if (userRoles.includes('Administrators')) {
-      console.log(`Middleware: User is admin, allowing access to ${app.name}`);
-      return true;
-    }
-
-    // Find permissions that match the user's roles or email
-    const userPermissions = await db.query.appPermissions.findMany({
-      where: and(
-        eq(appPermissions.applicationId, app.id),
-        or(
-          inArray(appPermissions.roleName, userRoles),
-          eq(appPermissions.userEmail, userEmail)
-        )
-      ),
-    });
-
-    const hasAccess = userPermissions.length > 0 && userPermissions.some(p => p.canView);
-
-    if (hasAccess) {
-      console.log(`Middleware: User has permission to access ${app.name}`);
-    } else {
-      console.log(`Middleware: User does NOT have permission to access ${app.name}`);
-    }
-
-    return hasAccess;
-  } catch (error) {
-    console.error('Middleware: Error checking user access:', error);
-    return false;
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function getPublicAppRoutes(): Promise<Set<string>> {
-  // Return cached routes if still valid
-  if (Date.now() - publicAppRoutesCache.timestamp < CACHE_TTL) {
-    console.log('Middleware: Using cached public routes:', Array.from(publicAppRoutesCache.routes));
-    return publicAppRoutesCache.routes;
-  }
-
-  console.log('Middleware: Fetching public routes from database...');
-
-  try {
-    const baseUrl = process.env.MINISTRY_PLATFORM_BASE_URL;
-    if (!baseUrl) {
-      console.log('Middleware: No base URL configured');
-      return new Set();
-    }
-
-    // Get service token using client credentials flow
-    const serviceToken = await getServiceToken();
-    if (!serviceToken) {
-      // If we can't get a token, return empty set
-      // This allows the app to work without public access feature enabled
-      console.log('Middleware: Could not get service token, no public routes will be available');
-      return new Set();
-    }
-
-    // Fetch public applications directly from MinistryPlatform
-    // This runs server-side so we use client credentials for service account access
-    const response = await fetch(
-      `${baseUrl}/tables/Applications?$select=Route&$filter=Is_Active=true AND Requires_Authentication=false`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${serviceToken}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      // If query fails (e.g., columns don't exist), return empty set
-      console.log('Middleware: Applications table query failed with status', response.status);
-      return new Set();
-    }
-
-    const apps = await response.json() as Array<{ Route: string }>;
-    const routes = new Set(apps.map((app) => app.Route));
-
-    console.log('Middleware: Found public routes:', Array.from(routes));
-
-    // Update cache
-    publicAppRoutesCache.routes = routes;
-    publicAppRoutesCache.timestamp = Date.now();
-
-    return routes;
-  } catch (error) {
-    // Silently return empty set on error
-    console.error('Middleware: Error fetching public routes:', error);
-    return new Set();
-  }
-}
-
+/**
+ * Maintenance-mode middleware.
+ *
+ * The Apps platform is being replaced by the Church Hub workspace.
+ * Until that cutover lands, this app redirects all UI routes to a
+ * single /maintenance page.
+ *
+ * What's still allowed through:
+ *   - /api/*     — keeps webhook receivers and any external POST integrations alive
+ *   - /maintenance — the page itself
+ *   - /_next/*   — Next.js static asset routes
+ *   - /assets/*, favicon, manifest — handled by the matcher exclusion below
+ *
+ * Auth / Neon-permissions / role-fetch logic was removed when this file
+ * was put into maintenance mode. The full prior implementation lives in
+ * git history if it ever needs to be restored.
+ */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // console.log(`Middleware: Processing ${pathname}`);
-
-  // Early returns for public paths
-  if (pathname.startsWith('/api') || pathname === '/signin' || pathname === '/403') {
-    console.log(`Middleware: Allowing public path ${pathname}`);
+  // Webhooks + service-to-service calls keep working.
+  if (pathname.startsWith('/api')) {
     return NextResponse.next();
   }
 
-  // Hardcoded public routes (simpler than database lookup)
-  const hardcodedPublicRoutes = ['/prayer'];
-  if (hardcodedPublicRoutes.includes(pathname)) {
-    console.log(`Middleware: Allowing public app ${pathname}`);
+  // The maintenance page itself must be reachable.
+  if (pathname === '/maintenance') {
     return NextResponse.next();
   }
 
-  // Check if this route is for a public app (from database)
-  // Disabled for now due to OAuth client credentials configuration requirements
-  // const publicRoutes = await getPublicAppRoutes();
-  // if (publicRoutes.has(pathname)) {
-  //   console.log(`Middleware: Allowing public app ${pathname}`);
-  //   return NextResponse.next();
-  // }
-
-  try {
-    // Use getToken with more explicit configuration
-    let token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-      cookieName: '__Secure-next-auth.session-token'
-    });
-
-    // If secure cookie doesn't work, try the regular one
-    if (!token) {
-      token = await getToken({
-        req: request,
-        secret: process.env.NEXTAUTH_SECRET,
-        cookieName: 'next-auth.session-token'
-      });
-    }
-
-    // console.log('Middleware: Token exists:', !!token);
-    // console.log('Middleware: Available cookies:', request.cookies.getAll().map(c => c.name));
-
-    // console.log('Middleware: Token exp:', token?.exp);
-
-    if (!token) {
-      console.log("Middleware: Redirecting to sign-in - no token");
-      return NextResponse.redirect(new URL('/signin', request.url));
-    }
-
-    // Don't check token expiration here - let NextAuth's JWT callback handle token refresh
-    // If the token is expired, the JWT callback will attempt to refresh it automatically
-    // Only redirect if there's truly no valid session (handled by NextAuth)
-
-    // Check if user has permission to access this route
-    const userEmail = token.email as string;
-    let userRoles: string[] = [];
-
-    // Fetch user roles from MinistryPlatform (security roles + user groups)
-    // This matches the logic in auth.ts session callback
-    try {
-      const MPHelper = (await import('@/providers/MinistryPlatform/mpHelper')).MPHelper;
-      const mp = new MPHelper();
-
-      // Get User_ID from User_GUID (sub)
-      const users = await mp.getTableRecords<{ User_ID: number }>({
-        table: 'dp_Users',
-        select: 'User_ID',
-        filter: `User_GUID='${token.sub}'`,
-        top: 1,
-      });
-
-      if (users.length > 0) {
-        const userId = users[0].User_ID;
-
-        // Fetch ALL user group IDs
-        const allUserGroupLinks = await mp.getTableRecords<{ User_Group_ID: number }>({
-          table: 'dp_User_User_Groups',
-          select: 'User_Group_ID',
-          filter: `User_ID=${userId}`,
-        });
-
-        const groupIds = allUserGroupLinks.map(g => g.User_Group_ID).filter(Boolean);
-
-        if (groupIds.length > 0) {
-          // Fetch user group names using IN() clause
-          const groupIdList = groupIds.join(',');
-          const userGroups = await mp.getTableRecords<{ User_Group_ID: number; User_Group_Name: string }>({
-            table: 'dp_User_Groups',
-            select: 'User_Group_ID, User_Group_Name',
-            filter: `User_Group_ID IN (${groupIdList})`,
-          });
-
-          const allGroupNames = userGroups.map(g => g.User_Group_Name).filter(Boolean);
-
-          // Combine OAuth security roles (from token if available) with ALL user groups
-          const oauthRoles = (token.roles as string[]) || [];
-          userRoles = [...new Set([...oauthRoles, ...allGroupNames])];
-          console.log('Middleware: Fetched user roles. Total roles:', userRoles.length);
-        }
-      }
-    } catch (error) {
-      console.error('Middleware: Error fetching user roles:', error);
-      // If we can't fetch roles, use whatever is in the token (might be empty)
-      userRoles = (token.roles as string[]) || [];
-    }
-
-    // Check for app-specific permission simulation (cookie-based)
-    const isAdmin = userRoles.includes('Administrators');
-    if (isAdmin) {
-      const simulationCookie = request.cookies.get('admin-app-simulation');
-      if (simulationCookie) {
-        try {
-          const simulation = JSON.parse(simulationCookie.value);
-
-          // Find the application with this route
-          const app = await db.query.applications.findFirst({
-            where: eq(applications.route, pathname),
-          });
-
-          // If cookie's applicationId matches current app, replace admin role with simulated roles
-          if (app && simulation.applicationId === app.id && simulation.roles && Array.isArray(simulation.roles)) {
-            userRoles = simulation.roles;
-            console.log(`Middleware: App simulation active for ${app.name}`);
-            console.log(`Middleware: Simulating roles:`, userRoles);
-          }
-        } catch (error) {
-          console.error('Middleware: Error parsing app simulation cookie:', error);
-        }
-      }
-    }
-
-    const hasAccess = await checkUserHasAccessToRoute(pathname, userEmail, userRoles);
-
-    if (!hasAccess) {
-      console.log(`Middleware: User does not have access to ${pathname}, showing 403 page`);
-      const url = new URL('/403', request.url);
-      url.searchParams.set('path', pathname);
-      return NextResponse.redirect(url);
-    }
-
-    console.log(`Middleware: Allowing request to ${pathname}`);
-    return NextResponse.next();
-
-  } catch (error) {
-    console.error('Middleware: Error getting token:', error);
-    return NextResponse.redirect(new URL('/signin', request.url));
-  }
+  // Everything else gets sent to the maintenance page.
+  return NextResponse.redirect(new URL('/maintenance', request.url));
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|manifest.json|favicon.ico|assets/).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|manifest.json|favicon.ico|assets/).*)'],
 };
