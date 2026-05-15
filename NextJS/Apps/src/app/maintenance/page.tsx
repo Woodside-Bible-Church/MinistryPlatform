@@ -9,15 +9,6 @@ export default function MaintenancePage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-6">
       <div className="max-w-lg w-full text-center">
-        <div className="mb-8 flex justify-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/icon.svg"
-            alt="Woodside Bible Church"
-            className="h-16 w-16"
-          />
-        </div>
-
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 tracking-tight">
           Under construction
         </h1>
@@ -26,19 +17,9 @@ export default function MaintenancePage() {
           We&rsquo;re moving the Apps platform to a new home.
         </p>
 
-        <p className="text-base md:text-lg text-gray-600 mb-10 leading-relaxed">
+        <p className="text-base md:text-lg text-gray-600 leading-relaxed">
           The new version will be available soon at the same address.
         </p>
-
-        <div className="text-sm text-gray-500">
-          Need something urgent?{' '}
-          <a
-            href="mailto:tech@woodsidebible.org"
-            className="text-[#61BC47] font-medium hover:underline"
-          >
-            tech@woodsidebible.org
-          </a>
-        </div>
       </div>
     </div>
   );
