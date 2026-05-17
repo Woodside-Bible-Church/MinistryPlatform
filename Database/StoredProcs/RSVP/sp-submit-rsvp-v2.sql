@@ -4,6 +4,16 @@
 -- Submits an RSVP with Form_Response, Form_Response_Answers, Event_Participant
 -- Populates Answer_Summary field with all form answers
 -- Returns confirmation data with event details
+--
+-- AUDIT ATTRIBUTION (Phase 5 of api-architecture-rebuild, 2026-05-17):
+-- Accepts @AuditUserName / @AuditUserId so the calling service can supply
+-- its identity (e.g. "Service: RSVP Widget") plus the impersonated end
+-- user. Now uses the canonical mp_ServiceAuditLog +
+-- util_createauditlogentries pattern instead of writing directly to
+-- dp_Audit_Log / dp_Audit_Detail. Falls back to legacy
+-- "First Last (RSVP Widget)" username if caller omits @AuditUserName,
+-- preserving backwards compatibility with widgets that haven't yet been
+-- updated to pass service identity.
 -- ===================================================================
 
 USE [MinistryPlatform]
@@ -22,7 +32,10 @@ CREATE PROCEDURE [dbo].[api_Custom_RSVP_Submit_JSON]
     @Last_Name NVARCHAR(50),
     @Email_Address NVARCHAR(100),
     @Phone_Number NVARCHAR(25) = NULL,
-    @Answers NVARCHAR(MAX) = NULL  -- JSON array: [{Question_ID, Numeric_Value, Boolean_Value, Text_Value, Date_Value}]
+    @Answers NVARCHAR(MAX) = NULL, -- JSON array: [{Question_ID, Numeric_Value, Boolean_Value, Text_Value, Date_Value}]
+    -- Phase 5: caller-supplied audit identity. Optional for backwards compat.
+    @AuditUserName NVARCHAR(254) = NULL,
+    @AuditUserId INT = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -32,13 +45,35 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- ===================================================================
-        -- Audit Logging Setup
+        -- Audit Logging Setup (canonical mp_ServiceAuditLog pattern)
         -- ===================================================================
-        DECLARE @AuditRecords TABLE (
-            Table_Name VARCHAR(75),
-            Record_ID INT,
-            Audit_Description VARCHAR(50)
-        );
+        -- Resolve caller-supplied identity → legacy fallback.
+        DECLARE @ResolvedAuditUserName NVARCHAR(254);
+        DECLARE @ResolvedAuditUserId   INT;
+
+        IF @AuditUserName IS NOT NULL
+            -- Caller (apps/api) supplied a service identity like
+            -- "Service: RSVP Widget". Append the submitter email so audit
+            -- still tells us *which* end-user this row was for.
+            SET @ResolvedAuditUserName = @AuditUserName + ' (' + @Email_Address + ')';
+        ELSE
+            -- Legacy: pre-Phase-5 callers. Preserve the existing label so
+            -- nothing breaks if the proc is redeployed before its caller is.
+            SET @ResolvedAuditUserName = @First_Name + ' ' + @Last_Name + ' (RSVP Widget)';
+
+        IF @AuditUserId IS NOT NULL
+            SET @ResolvedAuditUserId = @AuditUserId;
+        ELSE IF @Contact_ID IS NOT NULL
+        BEGIN
+            -- Legacy fallback: look up impersonated user from Contact.
+            SELECT TOP 1 @ResolvedAuditUserId = User_ID
+            FROM dp_Users
+            WHERE Contact_ID = @Contact_ID;
+        END
+
+        SET @ResolvedAuditUserId = ISNULL(@ResolvedAuditUserId, 0);
+
+        DECLARE @ToBeAudited mp_ServiceAuditLog;
 
         -- ===================================================================
         -- Validate inputs
@@ -116,7 +151,7 @@ BEGIN
         END
 
         -- ===================================================================
-        -- Create Event_Participant record
+        -- Create Event_Participant record (WITH AUDIT LOGGING)
         -- ===================================================================
         DECLARE @EventParticipantID INT;
 
@@ -134,6 +169,13 @@ BEGIN
                 Notes,
                 Domain_ID
             )
+            OUTPUT 'Event_Participants',
+                   INSERTED.Event_Participant_ID,
+                   'Created',
+                   @ResolvedAuditUserId,
+                   @ResolvedAuditUserName,
+                   NULL,NULL,NULL,NULL,NULL,NULL
+            INTO @ToBeAudited
             VALUES (
                 @Event_ID,
                 @Participant_ID,
@@ -144,14 +186,10 @@ BEGIN
             );
 
             SET @EventParticipantID = SCOPE_IDENTITY();
-
-            -- Add to audit records
-            INSERT INTO @AuditRecords (Table_Name, Record_ID, Audit_Description)
-            VALUES ('Event_Participants', @EventParticipantID, 'Created');
         END
 
         -- ===================================================================
-        -- Create Form_Response record
+        -- Create Form_Response record (WITH AUDIT LOGGING)
         -- ===================================================================
         DECLARE @FormResponseID INT;
 
@@ -169,6 +207,13 @@ BEGIN
                 Event_Participant_ID,  -- Link to Event_Participant
                 Domain_ID
             )
+            OUTPUT 'Form_Responses',
+                   INSERTED.Form_Response_ID,
+                   'Created',
+                   @ResolvedAuditUserId,
+                   @ResolvedAuditUserName,
+                   NULL,NULL,NULL,NULL,NULL,NULL
+            INTO @ToBeAudited
             VALUES (
                 @Form_ID,
                 GETDATE(),
@@ -183,10 +228,6 @@ BEGIN
             );
 
             SET @FormResponseID = SCOPE_IDENTITY();
-
-            -- Add to audit records
-            INSERT INTO @AuditRecords (Table_Name, Record_ID, Audit_Description)
-            VALUES ('Form_Responses', @FormResponseID, 'Created');
         END
 
         -- ===================================================================
@@ -205,8 +246,13 @@ BEGIN
                 Event_Participant_ID,
                 Domain_ID
             )
-            OUTPUT 'Form_Response_Answers', INSERTED.Form_Response_Answer_ID, 'Created'
-            INTO @AuditRecords (Table_Name, Record_ID, Audit_Description)
+            OUTPUT 'Form_Response_Answers',
+                   INSERTED.Form_Response_Answer_ID,
+                   'Created',
+                   @ResolvedAuditUserId,
+                   @ResolvedAuditUserName,
+                   NULL,NULL,NULL,NULL,NULL,NULL
+            INTO @ToBeAudited
             SELECT
                 @FormResponseID,
                 CAST(JSON_VALUE(value, '$.Question_ID') AS INT) AS Form_Field_ID,
@@ -243,8 +289,12 @@ BEGIN
             ).value('.', 'NVARCHAR(MAX)'), 1, 4, '');  -- Remove leading <br>
         END
 
-        -- Build final Answer_Summary for Event_Participant
-        -- Start with "How many people?" then add form field answers
+        -- ===================================================================
+        -- Update Event_Participant with Answer_Summary (WITH AUDIT LOGGING)
+        -- ===================================================================
+        -- Start with "How many people?" then add form field answers.
+        -- We capture old + new values so util_createauditlogentries can emit
+        -- a proper field-level diff for the UPDATE.
         IF @EventParticipantID IS NOT NULL
         BEGIN
             DECLARE @FinalAnswerSummary NVARCHAR(MAX) = '';
@@ -263,13 +313,25 @@ BEGIN
             WHERE Event_Participant_ID = @EventParticipantID;
 
             -- Update Event_Participant with complete Answer_Summary
+            -- mp_ServiceAuditLog columns are:
+            --   Table_Name, Record_ID, Audit_Description, User_ID, User_Name,
+            --   Field_Name, Field_Label, Previous_Value, New_Value, ...
+            -- For the Updated row we populate the field-level columns so
+            -- util_createauditlogentries writes a dp_Audit_Detail entry.
             UPDATE Event_Participants
             SET Answer_Summary = @FinalAnswerSummary
+            OUTPUT 'Event_Participants',
+                   INSERTED.Event_Participant_ID,
+                   'Updated',
+                   @ResolvedAuditUserId,
+                   @ResolvedAuditUserName,
+                   'Answer_Summary',
+                   'Answer Summary',
+                   DELETED.Answer_Summary,
+                   INSERTED.Answer_Summary,
+                   NULL, NULL
+            INTO @ToBeAudited
             WHERE Event_Participant_ID = @EventParticipantID;
-
-            -- Add to audit records
-            INSERT INTO @AuditRecords (Table_Name, Record_ID, Audit_Description)
-            VALUES ('Event_Participants', @EventParticipantID, 'Updated');
         END
 
         -- ===================================================================
@@ -326,68 +388,11 @@ BEGIN
         );
 
         -- ===================================================================
-        -- Insert Audit Log Records
+        -- Write Audit Logs to dp_Audit_Log
         -- ===================================================================
-        -- Table to capture inserted Audit_Item_IDs
-        DECLARE @InsertedAuditItems TABLE (
-            Audit_Item_ID INT,
-            Table_Name VARCHAR(75),
-            Record_ID INT,
-            Audit_Description VARCHAR(50)
-        );
-
-        INSERT INTO dp_Audit_Log (
-            Table_Name,
-            Record_ID,
-            Audit_Description,
-            User_Name,
-            User_ID,
-            Date_Time
-        )
-        OUTPUT
-            INSERTED.Audit_Item_ID,
-            INSERTED.Table_Name,
-            INSERTED.Record_ID,
-            INSERTED.Audit_Description
-        INTO @InsertedAuditItems
-        SELECT
-            Table_Name,
-            Record_ID,
-            Audit_Description,
-            @First_Name + ' ' + @Last_Name + ' (RSVP Widget)',
-            ISNULL(@Contact_ID, 0),
-            GETDATE()
-        FROM @AuditRecords;
-
-        -- Insert Audit Detail for UPDATE operations (Answer_Summary change)
-        -- Allow NULL previous values for new records
-        IF @EventParticipantID IS NOT NULL
+        IF EXISTS (SELECT 1 FROM @ToBeAudited)
         BEGIN
-            DECLARE @UpdateAuditItemID INT;
-
-            SELECT @UpdateAuditItemID = Audit_Item_ID
-            FROM @InsertedAuditItems
-            WHERE Table_Name = 'Event_Participants'
-              AND Record_ID = @EventParticipantID
-              AND Audit_Description = 'Updated';
-
-            IF @UpdateAuditItemID IS NOT NULL
-            BEGIN
-                INSERT INTO dp_Audit_Detail (
-                    Audit_Item_ID,
-                    Field_Name,
-                    Field_Label,
-                    Previous_Value,
-                    New_Value
-                )
-                VALUES (
-                    @UpdateAuditItemID,
-                    'Answer_Summary',
-                    'Answer Summary',
-                    @OldAnswerSummary,  -- Can be NULL for new records
-                    @FinalAnswerSummary
-                );
-            END
+            EXEC dbo.util_createauditlogentries @ToBeAudited;
         END
 
         -- ===================================================================
@@ -433,15 +438,16 @@ GO
 -- ===================================================================
 -- GRANT EXECUTE ON [dbo].[api_Custom_RSVP_Submit_JSON] TO [apiuser];
 
-PRINT 'Created stored procedure: api_Custom_RSVP_Submit_JSON (v2)';
-PRINT 'NOTE: Remember to grant EXECUTE permission to your API user!';
+PRINT 'Created stored procedure: api_Custom_RSVP_Submit_JSON (v2, Phase 5 audit attribution)';
+PRINT 'Audit logs are written via dbo.util_createauditlogentries (mp_ServiceAuditLog pattern).';
+PRINT 'Pass @AuditUserName (e.g. "Service: RSVP Widget") and @AuditUserId for per-service attribution.';
 GO
 
 -- ===================================================================
 -- Test Query (Uncomment to test)
 -- ===================================================================
 /*
--- Test submission
+-- Test submission with explicit service identity (new Phase 5 path)
 DECLARE @AnswersJson NVARCHAR(MAX) = N'[
     {"Question_ID": 22691, "Numeric_Value": 2},
     {"Question_ID": 22656, "Boolean_Value": false}
@@ -456,5 +462,16 @@ EXEC api_Custom_RSVP_Submit_JSON
     @Last_Name = 'Doe',
     @Email_Address = 'john.doe@example.com',
     @Phone_Number = '(810) 555-1234',
+    @Answers = @AnswersJson,
+    @AuditUserName = 'Service: RSVP Widget',
+    @AuditUserId = 12345;  -- The signed-in user's User_ID
+
+-- Legacy call (still works — falls back to "First Last (RSVP Widget)")
+EXEC api_Custom_RSVP_Submit_JSON
+    @Event_ID = 6480963,
+    @Project_ID = 1,
+    @First_Name = 'Guest',
+    @Last_Name = 'User',
+    @Email_Address = 'guest@example.com',
     @Answers = @AnswersJson;
 */

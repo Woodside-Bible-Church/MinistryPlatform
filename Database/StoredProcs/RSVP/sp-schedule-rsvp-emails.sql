@@ -4,6 +4,18 @@
 -- Schedules confirmation email + optional campaigns for an RSVP
 -- Called automatically by api_Custom_RSVP_Submit_JSON after RSVP creation
 -- MP's email processor automatically sends based on Start_Date + Action_Status_ID
+--
+-- AUDIT ATTRIBUTION (Phase 5 of api-architecture-rebuild, 2026-05-17):
+-- Accepts @AuditUserName / @AuditUserId so the calling proc can propagate
+-- the original service identity (e.g. "Service: RSVP Widget") into the
+-- audit log for the dp_Communications and dp_Communication_Messages
+-- writes this proc performs. Uses the canonical mp_ServiceAuditLog +
+-- util_createauditlogentries pattern.
+--
+-- RSVP_Email_Campaign_Log is a custom table and is NOT included in audit
+-- output — it is itself a log table, not an audited business entity. If
+-- it ever gains audit configuration in dp_Domain_Audits, add OUTPUT
+-- clauses to the two INSERTs against it.
 -- ===================================================================
 
 CREATE OR ALTER PROCEDURE api_Custom_Schedule_RSVP_Emails
@@ -18,7 +30,10 @@ CREATE OR ALTER PROCEDURE api_Custom_Schedule_RSVP_Emails
     @Confirmation_Code NVARCHAR(50),
     @Party_Size INT,
     @Answers_JSON NVARCHAR(MAX) = NULL, -- JSON array of question/answer pairs
-    @Author_User_ID INT = 1 -- Default to system user
+    @Author_User_ID INT = 1, -- Default to system user; populates dp_Communications.Author_User_ID
+    -- Phase 5: caller-supplied audit identity. Optional for backwards compat.
+    @AuditUserName NVARCHAR(254) = NULL,
+    @AuditUserId INT = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -26,6 +41,20 @@ BEGIN
     DECLARE @ErrorMessage NVARCHAR(4000);
     DECLARE @ErrorSeverity INT;
     DECLARE @ErrorState INT;
+
+    -- ===================================================================
+    -- Audit Logging Setup (canonical mp_ServiceAuditLog pattern)
+    -- ===================================================================
+    -- This proc has no @Email_Address-as-Contact lookup like the parent,
+    -- so fallback identity is just a stable "RSVPWidget-EmailScheduler"
+    -- string when caller doesn't supply @AuditUserName.
+    DECLARE @ResolvedAuditUserName NVARCHAR(254) =
+        ISNULL(@AuditUserName + ' (' + @Email_Address + ')',
+               'RSVPWidget-EmailScheduler (' + @Email_Address + ')');
+    DECLARE @ResolvedAuditUserId INT =
+        ISNULL(@AuditUserId, @Author_User_ID);
+
+    DECLARE @ToBeAudited mp_ServiceAuditLog;
 
     BEGIN TRY
         -- ===================================================================
@@ -188,6 +217,13 @@ BEGIN
                 Communication_Type_ID,
                 Active
             )
+            OUTPUT 'dp_Communications',
+                   INSERTED.Communication_ID,
+                   'Created',
+                   @ResolvedAuditUserId,
+                   @ResolvedAuditUserName,
+                   NULL,NULL,NULL,NULL,NULL,NULL
+            INTO @ToBeAudited
             VALUES (
                 @Author_User_ID,
                 @Conf_Subject,
@@ -210,6 +246,13 @@ BEGIN
                 Action_Status_ID,
                 Action_Status_Time
             )
+            OUTPUT 'dp_Communication_Messages',
+                   INSERTED.Communication_Message_ID,
+                   'Created',
+                   @ResolvedAuditUserId,
+                   @ResolvedAuditUserName,
+                   NULL,NULL,NULL,NULL,NULL,NULL
+            INTO @ToBeAudited
             VALUES (
                 @Conf_Communication_ID,
                 @Email_Address,
@@ -217,7 +260,7 @@ BEGIN
                 GETDATE()
             );
 
-            -- Log it
+            -- Log it (RSVP_Email_Campaign_Log is itself a log table — not audited)
             INSERT INTO RSVP_Email_Campaign_Log (
                 Event_RSVP_ID,
                 Campaign_ID,
@@ -375,6 +418,13 @@ BEGIN
                         Communication_Type_ID,
                         Active
                     )
+                    OUTPUT 'dp_Communications',
+                           INSERTED.Communication_ID,
+                           'Created',
+                           @ResolvedAuditUserId,
+                           @ResolvedAuditUserName,
+                           NULL,NULL,NULL,NULL,NULL,NULL
+                    INTO @ToBeAudited
                     VALUES (
                         @Author_User_ID,
                         @Camp_Subject,
@@ -403,6 +453,13 @@ BEGIN
                         Action_Status_ID,
                         Action_Status_Time
                     )
+                    OUTPUT 'dp_Communication_Messages',
+                           INSERTED.Communication_Message_ID,
+                           'Created',
+                           @ResolvedAuditUserId,
+                           @ResolvedAuditUserName,
+                           NULL,NULL,NULL,NULL,NULL,NULL
+                    INTO @ToBeAudited
                     VALUES (
                         @Camp_Communication_ID,
                         @Email_Address,
@@ -410,7 +467,7 @@ BEGIN
                         @SendDate
                     );
 
-                    -- Log it
+                    -- Log it (RSVP_Email_Campaign_Log is a log table — not audited)
                     INSERT INTO RSVP_Email_Campaign_Log (
                         Event_RSVP_ID,
                         Campaign_ID,
@@ -444,6 +501,14 @@ BEGIN
         CLOSE CampaignCursor;
         DEALLOCATE CampaignCursor;
 
+        -- ===================================================================
+        -- Write Audit Logs to dp_Audit_Log
+        -- ===================================================================
+        IF EXISTS (SELECT 1 FROM @ToBeAudited)
+        BEGIN
+            EXEC dbo.util_createauditlogentries @ToBeAudited;
+        END
+
     END TRY
     BEGIN CATCH
         SET @ErrorMessage = ERROR_MESSAGE();
@@ -460,7 +525,6 @@ GO
 GRANT EXECUTE ON api_Custom_Schedule_RSVP_Emails TO [Public];
 GO
 
-PRINT 'Stored procedure api_Custom_Schedule_RSVP_Emails created successfully';
-PRINT '';
-PRINT 'NEXT STEP: Update api_Custom_RSVP_Submit_JSON to call this procedure after RSVP creation';
+PRINT 'Stored procedure api_Custom_Schedule_RSVP_Emails created successfully (Phase 5 audit attribution)';
+PRINT 'Pass @AuditUserName / @AuditUserId from the parent submit proc to propagate service identity.';
 GO

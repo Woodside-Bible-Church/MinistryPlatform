@@ -3,10 +3,28 @@
 // ===================================================================
 // Submits an RSVP with answers to the database
 // Calls stored procedure: api_Custom_RSVP_Submit_JSON
+//
+// Phase 5 (api-architecture-rebuild, 2026-05-17):
+// - Now passes @AuditUserName and @AuditUserId so MP's audit log records
+//   "Service: RSVP Widget (user@email)" instead of the proc-internal
+//   "First Last (RSVP Widget)" string.
+// - Service identity is sourced from RSVP_WIDGET_AUDIT_SERVICE_NAME env
+//   (default 'Service: RSVP Widget') so each deployment can override.
+// - When the submitter is signed in, the NextAuth session's user_id is
+//   passed as @AuditUserId so the audit row carries the impersonated
+//   end-user too. For guest RSVPs both are null and the proc falls back
+//   to legacy attribution.
+//
+// NOTE: This widget runs standalone (its own Next.js + MP OAuth, not
+// behind apps/api), so it acts as its own "service" for audit purposes.
+// If/when this widget is migrated behind apps/api, replace the env-var
+// service name with whatever apps/api forwards in its x-service-client
+// header.
 // ===================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
 import { ministryPlatformProvider } from '@/providers/MinistryPlatform/ministryPlatformProvider';
+import { auth } from '@/auth';
 import type { RSVPSubmissionRequest, RSVPSubmissionResponse } from '@/types/rsvp';
 
 /**
@@ -33,6 +51,14 @@ function formatPhoneForMP(phone: string | null | undefined): string | null {
   return phone;
 }
 
+/**
+ * Service identity to use in MP's audit log. Override per-deployment via
+ * RSVP_WIDGET_AUDIT_SERVICE_NAME (e.g. 'Service: RSVP Widget' for prod,
+ * 'Service: RSVP Widget (dev)' for staging). Defaults to the prod string.
+ */
+const AUDIT_SERVICE_NAME =
+  process.env.RSVP_WIDGET_AUDIT_SERVICE_NAME ?? 'Service: RSVP Widget';
+
 export async function POST(request: NextRequest) {
   try {
     // Parse request body
@@ -53,6 +79,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ===================================================================
+    // Phase 5: resolve audit identity from session (if signed in)
+    // ===================================================================
+    // The session's user.id holds the MP Contact_ID (see auth.ts session
+    // callback). We look up the linked dp_Users.User_ID on the SQL side
+    // (the proc already does this from @Contact_ID), but if we have a
+    // session.user.userId straight from the MP OAuth profile, we pass it
+    // as @AuditUserId so the proc skips its own lookup.
+    let auditUserId: number | null = null;
+    try {
+      const session = await auth();
+      // NextAuth session shape varies; MP profile attaches `userId` and we
+      // alias `user.id` to Contact_ID elsewhere. Prefer the explicit
+      // numeric MP User_ID when available; otherwise leave null and let
+      // the proc resolve from @Contact_ID.
+      const sessUserId =
+        (session as unknown as { userId?: number | string })?.userId ??
+        ((session as unknown as { user?: { userId?: number | string } })?.user
+          ?.userId);
+      if (sessUserId !== undefined && sessUserId !== null) {
+        const parsed = typeof sessUserId === 'string' ? parseInt(sessUserId, 10) : sessUserId;
+        if (Number.isFinite(parsed) && parsed > 0) {
+          auditUserId = parsed;
+        }
+      }
+    } catch (sessionErr) {
+      // Session lookup failure is non-fatal — guest submissions are allowed.
+      console.warn('[RSVP Submit] Could not resolve session for audit:', sessionErr);
+    }
+
     // Get MP provider singleton instance
     const mp = ministryPlatformProvider.getInstance();
 
@@ -67,6 +123,9 @@ export async function POST(request: NextRequest) {
       '@Email_Address': body.Email_Address,
       '@Phone_Number': formatPhoneForMP(body.Phone_Number),
       '@Answers': JSON.stringify(body.Answers),
+      // Phase 5: service identity for MP audit log
+      '@AuditUserName': AUDIT_SERVICE_NAME,
+      '@AuditUserId': auditUserId,
     };
 
     // Execute stored procedure
