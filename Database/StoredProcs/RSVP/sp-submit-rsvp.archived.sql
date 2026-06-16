@@ -1,0 +1,23 @@
+-- ===================================================================
+-- ARCHIVED 2026-05-17 (Phase 5 of api-architecture-rebuild)
+-- ===================================================================
+-- This was the original pre-audit version of api_Custom_RSVP_Submit_JSON.
+-- It has no audit logging and uses the old @Project_RSVP_ID-based schema
+-- (no @Participant_ID parameter, writes to Event_RSVPs/Event_RSVP_Answers).
+--
+-- DEPLOYED BODY: The production proc body is the one in sp-submit-rsvp-v2.sql.
+-- Confirmed by the widget caller at
+--   /Users/colton/Development/MinistryPlatform/NextJS/Widgets/RSVP/src/app/api/rsvp/submit/route.ts
+-- which passes @Participant_ID — a parameter only the v2 body defines.
+--
+-- VPN was DOWN during the Phase 5 patch session, so the deployed body
+-- could not be diff'd directly via SQL Server. Widget-caller param
+-- signature was used as the source of truth.
+--
+-- Kept for historical reference only. Do NOT execute against any DB.
+-- Original body preserved in git history of sp-submit-rsvp.sql at the
+-- commit immediately prior to this archive (see `git log --follow`).
+-- ===================================================================
+
+-- (Original CREATE PROCEDURE body removed. See git history for the
+-- pre-audit pre-v2 schema.)

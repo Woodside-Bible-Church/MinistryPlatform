@@ -1,0 +1,30 @@
+-- ===================================================================
+-- ARCHIVED 2026-05-17 (Phase 5 of api-architecture-rebuild)
+-- ===================================================================
+-- This file defined api_Custom_RSVP_Submit_JSON using the older
+-- Project_RSVPs / Event_RSVPs / Event_RSVP_Answers schema. It pioneered
+-- the canonical mp_ServiceAuditLog + util_createauditlogentries pattern
+-- but did NOT accept the @Participant_ID parameter that the production
+-- widget caller passes.
+--
+-- DEPLOYED BODY: The production proc body is the one in sp-submit-rsvp-v2.sql.
+-- Confirmed by the widget caller at
+--   /Users/colton/Development/MinistryPlatform/NextJS/Widgets/RSVP/src/app/api/rsvp/submit/route.ts
+-- which passes @Participant_ID — a parameter only the v2 body defines.
+--
+-- Phase 5 ported this file's audit pattern into v2 and added the
+-- @AuditUserName / @AuditUserId parameters for per-service attribution.
+-- The work this file did to introduce mp_ServiceAuditLog usage lives on
+-- in v2; this file is now redundant.
+--
+-- VPN was DOWN during the Phase 5 patch session, so the deployed body
+-- could not be diff'd directly via SQL Server. Widget-caller param
+-- signature was used as the source of truth.
+--
+-- Kept for historical reference only. Do NOT execute against any DB.
+-- Original body preserved in git history of sp-submit-rsvp-with-audit.sql
+-- at the commit immediately prior to this archive (see `git log --follow`).
+-- ===================================================================
+
+-- (Original CREATE PROCEDURE body removed. See git history for the
+-- with-audit / Project_RSVP_ID-based schema.)
