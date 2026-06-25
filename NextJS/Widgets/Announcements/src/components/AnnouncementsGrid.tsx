@@ -921,49 +921,7 @@ export function AnnouncementsGrid({
               />
             </div>
           </div>
-
-          {/* Desktop subtle link below progress bar */}
-          <div className="hidden md:flex justify-end mt-3">
-            <a
-              href="https://woodsidebible.org/Announcements"
-              className="flex items-center gap-1.5 text-base font-semibold text-primary/70 dark:text-white/70 hover:text-primary dark:hover:text-white transition-colors duration-200 group uppercase tracking-wide"
-            >
-              <span>{labels.viewAllButton || 'View All Announcements'}</span>
-              <svg
-                className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </a>
-          </div>
         </div>
-      )}
-
-      {/* Mobile button */}
-      {isCarousel && (
-        <a
-          href="https://woodsidebible.org/Announcements"
-          className="block md:hidden mt-6 px-[10px] py-[12px] border-[3px] border-solid font-bold text-xs leading-none uppercase text-center no-underline"
-          style={{
-            backgroundColor: '#62bb46',
-            borderColor: '#62bb46',
-            color: '#fff',
-            transition: 'background .3s, color .3s, border-color .3s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = '#62bb46';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#62bb46';
-            e.currentTarget.style.color = '#fff';
-          }}
-        >
-          {labels.viewAllButton || 'View All Announcements'}
-        </a>
       )}
     </div>
   );
