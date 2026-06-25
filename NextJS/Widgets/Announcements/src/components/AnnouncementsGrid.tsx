@@ -3,12 +3,21 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { AnnouncementsData, AnnouncementsLabels } from '@/lib/types';
 import { AnnouncementCard } from './AnnouncementCard';
+import CampusSelector, { type CampusOption } from './CampusSelector';
 import { QuickLinks } from './QuickLinks';
 
 interface AnnouncementsGridProps {
   data: AnnouncementsData;
   mode?: 'grid' | 'carousel' | 'social';
   labels?: AnnouncementsLabels;
+  /** Campus list for the in-heading picker (grid mode only). */
+  campuses?: CampusOption[];
+  /** Selected campus id, or null for church-wide. */
+  selectedCongregationId?: number | null;
+  /** Called when the user picks a different campus. */
+  onCampusChange?: (id: number | null) => void;
+  /** True while announcements are re-fetching after a campus change. */
+  campusChanging?: boolean;
 }
 
 // Check if URL is a bible.com link
@@ -322,9 +331,21 @@ function LinkOptionsModal({
   );
 }
 
-export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: AnnouncementsGridProps) {
+export function AnnouncementsGrid({
+  data,
+  mode = 'grid',
+  labels = {},
+  campuses = [],
+  selectedCongregationId = null,
+  onCampusChange,
+  campusChanging = false,
+}: AnnouncementsGridProps) {
   const hasChurchWide = data.ChurchWide && data.ChurchWide.length > 0;
   const hasCampus = data.Campus && data.Campus.Announcements && data.Campus.Announcements.length > 0;
+  // Grid-mode campus picker: render the interactive heading whenever a campus
+  // list + change handler are supplied (so there's an entry point even when no
+  // campus is currently selected).
+  const showCampusPicker = campuses.length > 0 && !!onCampusChange;
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
@@ -810,8 +831,8 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
             </div>
           )}
 
-          {/* Grid mode: Campus Announcements */}
-          {!isCarousel && hasCampus && (
+          {/* Grid mode: Campus Announcements — the heading doubles as the campus picker */}
+          {!isCarousel && (hasCampus || showCampusPicker) && (
             <div ref={campusSectionRef} className="mt-6 md:mt-8">
               {(() => {
                 // Calculate when campus section should start animating
@@ -827,10 +848,21 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                       animation: `fadeInFromLeft 1.25s ease-out ${campusHeaderDelay}s both`
                     }}
                   >
-                    {data.Campus!.Name || 'Campus'}
+                    {showCampusPicker ? (
+                      <CampusSelector
+                        campuses={campuses}
+                        selectedId={selectedCongregationId}
+                        onSelect={onCampusChange!}
+                        allLabel={hasCampus && data.Campus?.Name ? data.Campus.Name : 'All Campuses'}
+                        disabled={campusChanging}
+                      />
+                    ) : (
+                      data.Campus!.Name || 'Campus'
+                    )}
                   </h2>
                 );
               })()}
+              {hasCampus && (
               <div className="flex flex-wrap gap-3 md:gap-4">
                 {data.Campus!.Announcements.map((announcement, index) => {
                   // Calculate when campus cards should start animating
@@ -863,6 +895,7 @@ export function AnnouncementsGrid({ data, mode = 'grid', labels = {} }: Announce
                   />
                 ))}
               </div>
+              )}
             </div>
           )}
         </div>

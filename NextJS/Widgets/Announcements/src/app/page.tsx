@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnnouncementsGrid } from '@/components/AnnouncementsGrid';
+import { type CampusOption } from '@/components/CampusSelector';
 import { AnnouncementsData, AnnouncementsLabels } from '@/lib/types';
 
 /**
@@ -51,9 +52,48 @@ export default function AnnouncementsPage() {
   const [data, setData] = useState<AnnouncementsData | null>(null);
   const [labels, setLabels] = useState<AnnouncementsLabels>({});
   const [loading, setLoading] = useState(true);
+  const [refetching, setRefetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<'grid' | 'carousel' | 'social'>('grid');
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [campuses, setCampuses] = useState<CampusOption[]>([]);
+  const [selectedCongregationId, setSelectedCongregationId] = useState<number | null>(null);
+
+  // Resolved once on mount so a campus change can re-run the fetch without
+  // re-reading window/config. baseParams holds the non-campus query params.
+  const apiBaseUrlRef = useRef('');
+  const baseParamsRef = useRef<URLSearchParams>(new URLSearchParams());
+  const didInitRef = useRef(false);
+  const suppressFetchRef = useRef(false);
+  const pendingCampusNameRef = useRef<string | null>(null);
+
+  // Fetch announcements for a campus. congregationId === null => church-wide
+  // only. campusSlug is only used on the first load when the embed/URL gave a
+  // slug instead of a numeric id.
+  const fetchAnnouncements = useCallback(
+    async (congregationId: number | null, campusSlug?: string | null) => {
+      const params = new URLSearchParams(baseParamsRef.current);
+      params.delete('@CongregationID');
+      params.delete('@Campus');
+      if (congregationId != null) {
+        params.set('@CongregationID', String(congregationId));
+      } else if (campusSlug) {
+        params.set('@Campus', campusSlug);
+      }
+
+      const response = await fetch(
+        `${apiBaseUrlRef.current}/api/announcements?${params.toString()}`
+      );
+      if (!response.ok) {
+        throw new Error('Failed to fetch announcements');
+      }
+      const result = await response.json();
+      setData(result.Announcements);
+      setLabels(result.Information || {});
+      return result.Announcements as AnnouncementsData;
+    },
+    []
+  );
 
   // Single logo element that persists through loading and after
   // Grid mode only - logo transitions from center with spinner to top-right corner
@@ -110,6 +150,8 @@ export default function AnnouncementsPage() {
     </div>
   );
 
+  // Initial mount: resolve mode + the initial campus, load the campus list,
+  // and run the first announcements fetch.
   useEffect(() => {
     // Get mode from:
     // 1. Global config (for widget embedding)
@@ -128,111 +170,96 @@ export default function AnnouncementsPage() {
 
     setMode(modeToUse);
 
-    // Fetch announcements data
-    const fetchData = async () => {
+    // Resolve API base URL + data-params from widget config.
+    const widgetConfig = typeof window !== 'undefined' && (window as Window & { __ANNOUNCEMENTS_WIDGET_CONFIG__?: { apiBaseUrl?: string; dataParams?: string } }).__ANNOUNCEMENTS_WIDGET_CONFIG__
+      ? (window as Window & { __ANNOUNCEMENTS_WIDGET_CONFIG__?: { apiBaseUrl?: string; dataParams?: string } }).__ANNOUNCEMENTS_WIDGET_CONFIG__
+      : null;
+
+    const apiBaseUrl = widgetConfig?.apiBaseUrl || '';
+    const dataParamsString = widgetConfig?.dataParams || '';
+    apiBaseUrlRef.current = apiBaseUrl;
+
+    // Split the resolved params into the campus selection (which the dropdown
+    // now owns) and the base passthrough params (GroupID, Search, etc.).
+    const baseParams = new URLSearchParams();
+    let initialCongregationId: number | null = null;
+    let initialCampusSlug: string | null = null;
+
+    // data-params (highest priority)
+    if (dataParamsString) {
+      const decodedParams = decodeURIComponent(dataParamsString);
+      decodedParams.split(',').map((p) => p.trim()).forEach((pair) => {
+        if (!pair.includes('=')) return;
+        const [key, value] = pair.split('=');
+        const cleanKey = key.startsWith('@') ? key : `@${key}`;
+        if (cleanKey === '@CongregationID') {
+          const n = parseInt(value, 10);
+          if (!Number.isNaN(n)) initialCongregationId = n;
+        } else if (cleanKey === '@Campus' || cleanKey === '@campus') {
+          initialCampusSlug = value;
+        } else {
+          baseParams.set(cleanKey, value);
+        }
+      });
+    }
+
+    // URL params: campus (second priority) + passthrough params.
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+
+      if (initialCongregationId == null && !initialCampusSlug) {
+        const urlCong = urlParams.get('@CongregationID');
+        if (urlCong) {
+          const n = parseInt(urlCong, 10);
+          if (!Number.isNaN(n)) initialCongregationId = n;
+        } else {
+          const slug = urlParams.get('campus');
+          if (slug) initialCampusSlug = slug;
+        }
+      }
+
+      ['@GroupID', '@EventID', '@Search', '@AnnouncementIDs', '@Page', '@NumPerPage'].forEach((key) => {
+        const value = urlParams.get(key);
+        if (value && !baseParams.has(key)) baseParams.set(key, value);
+      });
+    }
+
+    // Cookie (third priority) — read only; the dropdown never writes it back.
+    if (initialCongregationId == null && !initialCampusSlug) {
+      const cookieId = getCongregationIdFromCookie();
+      if (cookieId) {
+        const n = parseInt(cookieId, 10);
+        if (!Number.isNaN(n)) initialCongregationId = n;
+      }
+    }
+
+    baseParamsRef.current = baseParams;
+    if (initialCongregationId != null) setSelectedCongregationId(initialCongregationId);
+
+    // Load the campus list for the dropdown (non-blocking).
+    fetch(`${apiBaseUrl}/api/campuses`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json) => {
+        if (json?.campuses) setCampuses(json.campuses as CampusOption[]);
+      })
+      .catch(() => {
+        /* dropdown just stays hidden if the list fails to load */
+      });
+
+    // First announcements fetch.
+    (async () => {
       try {
-        // Get API base URL and dataParams from widget config or use current origin
-        const widgetConfig = typeof window !== 'undefined' && (window as Window & { __ANNOUNCEMENTS_WIDGET_CONFIG__?: { apiBaseUrl?: string; dataParams?: string } }).__ANNOUNCEMENTS_WIDGET_CONFIG__
-          ? (window as Window & { __ANNOUNCEMENTS_WIDGET_CONFIG__?: { apiBaseUrl?: string; dataParams?: string } }).__ANNOUNCEMENTS_WIDGET_CONFIG__
-          : null;
-
-        const apiBaseUrl = widgetConfig?.apiBaseUrl || '';
-        const dataParamsString = widgetConfig?.dataParams || '';
-
-        // Build query params from URL or widget config
-        const apiParams = new URLSearchParams();
-
-        // First, add params from widget's data-params attribute (highest priority)
-        if (dataParamsString) {
-          // Decode URL-encoded characters (e.g., %40 -> @)
-          const decodedParams = decodeURIComponent(dataParamsString);
-
-          // Parse data-params format: "@CongregationID=1,@NumPerPage=6"
-          const paramPairs = decodedParams.split(',').map((p: string) => p.trim());
-          paramPairs.forEach((pair: string) => {
-            if (pair.includes('=')) {
-              const [key, value] = pair.split('=');
-              // Ensure @ prefix is present
-              const cleanKey = key.startsWith('@') ? key : `@${key}`;
-              apiParams.append(cleanKey, value);
-            }
-          });
+        const ann = await fetchAnnouncements(initialCongregationId, initialCampusSlug);
+        // Loaded via a slug (no numeric id yet)? Remember the campus name so the
+        // dropdown can sync its selection once the campus list arrives.
+        if (initialCongregationId == null && ann?.Campus?.Name) {
+          pendingCampusNameRef.current = ann.Campus.Name;
         }
 
-        // Handle @CongregationID with priority: data-params > URL param > cookie
-        // Also check for friendly 'campus' param from data-params or URL
-        if (!apiParams.has('@CongregationID')) {
-          let congregationId: string | null = null;
-          let campusSlug: string | null = null;
-
-          // Check if campus was provided via data-params (parsed as @campus or @Campus)
-          campusSlug = apiParams.get('@campus') || apiParams.get('@Campus');
-          if (campusSlug) {
-            // Remove the raw @campus key and normalize to @Campus
-            apiParams.delete('@campus');
-            apiParams.delete('@Campus');
-            apiParams.set('@Campus', campusSlug);
-          }
-
-          // Check URL parameters (second priority)
-          if (!campusSlug && typeof window !== 'undefined') {
-            const urlParams = new URLSearchParams(window.location.search);
-
-            // Try @CongregationID first
-            congregationId = urlParams.get('@CongregationID');
-
-            // Also check for friendly 'campus' param (without @)
-            if (!congregationId) {
-              campusSlug = urlParams.get('campus');
-            }
-
-            // If not in URL, check cookie (third priority)
-            if (!congregationId && !campusSlug) {
-              congregationId = getCongregationIdFromCookie();
-            }
-          }
-
-          // Add to params if found
-          if (congregationId) {
-            apiParams.set('@CongregationID', congregationId);
-          } else if (campusSlug && !apiParams.has('@Campus')) {
-            // Pass campus slug to API - stored proc will resolve it
-            apiParams.set('@Campus', campusSlug);
-          }
-        }
-
-        // Add other params from URL (only if not already set by data-params)
-        if (typeof window !== 'undefined') {
-          const urlParams = new URLSearchParams(window.location.search);
-          ['@GroupID', '@EventID', '@Search', '@AnnouncementIDs', '@Page', '@NumPerPage'].forEach(
-            (key) => {
-              const value = urlParams.get(key);
-              if (value && !apiParams.has(key)) {
-                apiParams.set(key, value);
-              }
-            }
-          );
-        }
-
-        console.log('Fetching announcements with params:', apiParams.toString());
-        const response = await fetch(`${apiBaseUrl}/api/announcements?${apiParams.toString()}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch announcements');
-        }
-
-        const result = await response.json();
-        console.log('API response:', result);
-        console.log('Announcements data:', result.Announcements);
-        console.log('Labels from Information:', result.Information);
-        setData(result.Announcements);
-        setLabels(result.Information || {});
-
-        // Trigger transition for grid mode only (not carousel or social)
         if (modeToUse === 'grid') {
-          // Wait a frame to ensure the DOM is ready, then start transition
           requestAnimationFrame(() => {
             setIsTransitioning(true);
-            setLoading(false); // Show content immediately when transition starts
+            setLoading(false);
           });
         } else {
           setLoading(false);
@@ -240,11 +267,50 @@ export default function AnnouncementsPage() {
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
         setLoading(false);
+      } finally {
+        didInitRef.current = true;
       }
-    };
-
-    fetchData();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Sync the dropdown to a slug/cookie-based initial selection once the campus
+  // list loads, without triggering a redundant re-fetch.
+  useEffect(() => {
+    if (selectedCongregationId != null) return;
+    const name = pendingCampusNameRef.current;
+    if (!name || campuses.length === 0) return;
+    const match = campuses.find(
+      (c) => c.name === name || `${c.name} Campus` === name || c.name === `${name} Campus`
+    );
+    if (match) {
+      pendingCampusNameRef.current = null;
+      suppressFetchRef.current = true; // data for this campus is already shown
+      setSelectedCongregationId(match.id);
+    }
+  }, [campuses, selectedCongregationId]);
+
+  // Re-fetch when the user picks a different campus. Never runs on the initial
+  // mount, and never writes the selected-location cookie.
+  useEffect(() => {
+    if (!didInitRef.current) return;
+    if (suppressFetchRef.current) {
+      suppressFetchRef.current = false;
+      return;
+    }
+    let cancelled = false;
+    setRefetching(true);
+    fetchAnnouncements(selectedCongregationId)
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'An error occurred');
+      })
+      .finally(() => {
+        if (!cancelled) setRefetching(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedCongregationId, fetchAnnouncements]);
 
   if (loading) {
     // Social skeleton
@@ -340,11 +406,21 @@ export default function AnnouncementsPage() {
     return null;
   }
 
+  // The campus picker is grid-mode only — it lives inside the campus section
+  // heading (rendered by AnnouncementsGrid).
   if (mode === 'grid') {
     return (
       <div className="relative">
         {logoElement}
-        <AnnouncementsGrid data={data} mode={mode} labels={labels} />
+        <AnnouncementsGrid
+          data={data}
+          mode={mode}
+          labels={labels}
+          campuses={campuses}
+          selectedCongregationId={selectedCongregationId}
+          onCampusChange={setSelectedCongregationId}
+          campusChanging={refetching}
+        />
       </div>
     );
   }
