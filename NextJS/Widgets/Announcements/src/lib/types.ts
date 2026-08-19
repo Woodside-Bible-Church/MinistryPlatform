@@ -18,9 +18,13 @@ export interface CampusAnnouncements {
   Announcements: Announcement[];
 }
 
+// The stored proc omits keys for empty buckets rather than returning empty
+// collections: no church-wide announcements => no ChurchWide key at all, and
+// no campus selected => the whole object is `{}`. Both are optional here so
+// consumers are forced to normalize.
 export interface AnnouncementsData {
-  ChurchWide: Announcement[];
-  Campus: CampusAnnouncements | null;
+  ChurchWide?: Announcement[] | null;
+  Campus?: CampusAnnouncements | null;
 }
 
 export interface AnnouncementsLabels {

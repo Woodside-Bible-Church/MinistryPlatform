@@ -340,8 +340,14 @@ export function AnnouncementsGrid({
   onCampusChange,
   campusChanging = false,
 }: AnnouncementsGridProps) {
-  const hasChurchWide = data.ChurchWide && data.ChurchWide.length > 0;
-  const hasCampus = data.Campus && data.Campus.Announcements && data.Campus.Announcements.length > 0;
+  // The stored proc omits empty buckets rather than returning empty ones (no
+  // church-wide announcements => no ChurchWide key), so normalize before
+  // anything spreads these or reads .length off them.
+  const churchWide = data.ChurchWide ?? [];
+  const campus = data.Campus && Array.isArray(data.Campus.Announcements) ? data.Campus : null;
+  const campusAnnouncements = campus?.Announcements ?? [];
+  const hasChurchWide = churchWide.length > 0;
+  const hasCampus = campusAnnouncements.length > 0;
   // Grid-mode campus picker: render the interactive heading whenever a campus
   // list + change handler are supplied (so there's an entry point even when no
   // campus is currently selected).
@@ -522,7 +528,11 @@ export function AnnouncementsGrid({
     };
   }, [isCarousel]);
 
-  if (!hasChurchWide && !hasCampus) {
+  // Grid mode keeps rendering when the campus picker is available, so an empty
+  // payload still leaves the visitor a way to switch campuses.
+  const canOfferCampusPicker = !isCarousel && !isSocial && showCampusPicker;
+
+  if (!hasChurchWide && !hasCampus && !canOfferCampusPicker) {
     return (
       <div className="my-6 md:my-10 p-6 bg-gray-50 text-primary/65 text-center rounded">
         No announcements to show.
@@ -534,8 +544,8 @@ export function AnnouncementsGrid({
   if (isSocial) {
     // Combine all announcements for social mode, sorted by CarouselSort
     const allAnnouncements = [
-      ...data.ChurchWide,
-      ...(data.Campus?.Announcements || [])
+      ...churchWide,
+      ...campusAnnouncements
     ].sort((a, b) => (a.CarouselSort ?? 999) - (b.CarouselSort ?? 999));
 
     return (
@@ -563,11 +573,11 @@ export function AnnouncementsGrid({
             {labels.carouselHeading2 || 'Announcements'}
           </h1>
           {/* Campus name if passed */}
-          {hasCampus && data.Campus?.Name && (
+          {hasCampus && campus?.Name && (
             <div className="mt-4 md:mt-6">
               <div className="w-16 md:w-20 h-px bg-gray-300 dark:bg-neutral-700 mx-auto my-3 md:my-4" />
               <div className="text-xs md:text-sm font-medium text-gray-400 dark:text-neutral-500 uppercase tracking-widest">
-                {data.Campus.Name} Campus
+                {campus.Name} Campus
               </div>
             </div>
           )}
@@ -655,7 +665,7 @@ export function AnnouncementsGrid({
 
   // Merge all announcements for carousel mode, sorted by CarouselSort
   const carouselAnnouncements = isCarousel
-    ? [...data.ChurchWide, ...(data.Campus?.Announcements || [])]
+    ? [...churchWide, ...campusAnnouncements]
         .sort((a, b) => (a.CarouselSort ?? 999) - (b.CarouselSort ?? 999))
     : [];
 
@@ -777,7 +787,7 @@ export function AnnouncementsGrid({
               </h2>
               <div
                 className={(() => {
-                  const count = data.ChurchWide.length;
+                  const count = churchWide.length;
                   // For 1-2 announcements, use flexbox like campus section for consistent sizing
                   if (count <= 2) return 'flex flex-wrap gap-3 md:gap-4';
                   if (count === 3) return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-6 md:grid-rows-2';
@@ -787,9 +797,9 @@ export function AnnouncementsGrid({
                   return 'grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-3';
                 })()}
               >
-                {data.ChurchWide.map((announcement, index) => {
+                {churchWide.map((announcement, index) => {
                   // Dynamic bento-box style grid with varied card sizes
-                  const count = data.ChurchWide.length;
+                  const count = churchWide.length;
                   let cardClass = '';
 
                   if (count <= 2) {
@@ -820,7 +830,7 @@ export function AnnouncementsGrid({
                   );
                 })}
                 {/* Invisible filler elements for 1-2 announcements to prevent stretching */}
-                {data.ChurchWide.length <= 2 && Array.from({ length: 5 }).map((_, i) => (
+                {churchWide.length <= 2 && Array.from({ length: 5 }).map((_, i) => (
                   <div
                     key={`churchwide-filler-${i}`}
                     className="flex-1 min-w-[280px] max-w-[480px] md:min-w-[320px] md:max-w-[420px] h-0"
@@ -836,7 +846,7 @@ export function AnnouncementsGrid({
             <div ref={campusSectionRef} className="mt-6 md:mt-8">
               {(() => {
                 // Calculate when campus section should start animating
-                const churchWideCount = hasChurchWide ? data.ChurchWide.length : 0;
+                const churchWideCount = hasChurchWide ? churchWide.length : 0;
                 const lastChurchWideCardStart = 1.0 + ((churchWideCount - 1) * 0.6);
                 const lastChurchWideCardEnd = lastChurchWideCardStart + 0.8;
                 const campusHeaderDelay = hasChurchWide ? lastChurchWideCardEnd : 0.8;
@@ -853,20 +863,20 @@ export function AnnouncementsGrid({
                         campuses={campuses}
                         selectedId={selectedCongregationId}
                         onSelect={onCampusChange!}
-                        allLabel={hasCampus && data.Campus?.Name ? data.Campus.Name : 'All Campuses'}
+                        allLabel={hasCampus && campus?.Name ? campus.Name : 'All Campuses'}
                         disabled={campusChanging}
                       />
                     ) : (
-                      data.Campus!.Name || 'Campus'
+                      campus?.Name || 'Campus'
                     )}
                   </h2>
                 );
               })()}
               {hasCampus && (
               <div className="flex flex-wrap gap-3 md:gap-4">
-                {data.Campus!.Announcements.map((announcement, index) => {
+                {campusAnnouncements.map((announcement, index) => {
                   // Calculate when campus cards should start animating
-                  const churchWideCount = hasChurchWide ? data.ChurchWide.length : 0;
+                  const churchWideCount = hasChurchWide ? churchWide.length : 0;
                   const lastChurchWideCardStart = 1.0 + ((churchWideCount - 1) * 0.6);
                   const lastChurchWideCardEnd = lastChurchWideCardStart + 0.8;
                   const campusHeaderDelay = hasChurchWide ? lastChurchWideCardEnd : 0.8;
@@ -895,6 +905,13 @@ export function AnnouncementsGrid({
                   />
                 ))}
               </div>
+              )}
+              {!hasCampus && (
+                <p className="my-2 text-primary/65 dark:text-white/70 animate-[fadeInFromLeft_1.25s_ease-out_1.1s_both]">
+                  {selectedCongregationId == null
+                    ? 'Pick a campus to see what\u2019s happening.'
+                    : 'Nothing posted for this campus right now. Try another campus.'}
+                </p>
               )}
             </div>
           )}
