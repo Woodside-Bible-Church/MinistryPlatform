@@ -103,7 +103,24 @@ export async function GET(request: NextRequest) {
 
     console.log('Parsed data:', JSON.stringify(data, null, 2));
 
-    return NextResponse.json(data, { headers: corsHeaders });
+    // The proc omits empty buckets entirely: no church-wide announcements
+    // means no `ChurchWide` key, and no campus selected means `Announcements`
+    // is `{}`. Normalize here so every consumer always gets an array + a
+    // nullable campus, instead of each one having to guard.
+    const announcements = data?.Announcements ?? {};
+    const normalized = {
+      ...data,
+      Announcements: {
+        ...announcements,
+        ChurchWide: Array.isArray(announcements.ChurchWide) ? announcements.ChurchWide : [],
+        Campus:
+          announcements.Campus && Array.isArray(announcements.Campus.Announcements)
+            ? announcements.Campus
+            : null,
+      },
+    };
+
+    return NextResponse.json(normalized, { headers: corsHeaders });
   } catch (error) {
     console.error('Error fetching announcements:', error);
     return NextResponse.json(
