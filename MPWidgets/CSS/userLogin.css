@@ -86,28 +86,20 @@
   color: red;
 }
 
-#userAccountLink {
-  font-size: 0; /* hide the existing text visually */
-}
-
-#userAccountLink::after {
-  content: "Profile";
-  font-size: 14px;
+/* The widget's own "My Account" link went to MP's hosted account page.
+   woodsidebible.org/profile/ is the profile now (the one link the header
+   passes in), so the built-in item is hidden and the "View My" header that
+   introduced a list of pages is gone: the menu is Profile and Log Out. */
+.mppw-login--list .mppw-login--list-item:has(#userAccountLink) {
+  display: none;
 }
 
 #securedMenuItems {
   padding-top: 8px;
 }
 
-#securedMenuItems::before {
-  content: "View My ——";
-  padding: 0 16px;
-  width: 100%;
-  color: #299c8f;
-}
-
 #securedMenuItemList {
-  padding-top: 8px;
+  padding-top: 0;
 }
 
 @media screen and (max-width: 1400px) {
